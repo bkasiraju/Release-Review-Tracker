@@ -1000,25 +1000,36 @@ class GUSModel {
       return all;
     }
   }
+  _buildMockFallback(releaseId) {
+    const plan = TEAM_PLANS[releaseId];
+    const teamEntry = Object.entries(GUS_HIERARCHY.teamReleases).find(([,rels]) => rels.some(r => r.Id === releaseId));
+    const rel = teamEntry ? teamEntry[1].find(r => r.Id === releaseId) : null;
+    const mockRelease = rel ? { Id: rel.Id, Name: rel.Name, Start_Date__c: rel.Start_Date__c, End_Date__c: rel.End_Date__c, Goals_Objectives__c: (plan ? plan.release : '') + ' Goals', Forecast_Items__c: null, Forecast_Items_Completed__c: null, Number_Forecast_Work_Items__c: null, Number_Forecast_Work_Items_Completed__c: null, Number_Forecast_Story_Points__c: null } : MOCK.releaseDetail;
+
+    let mockEpics = [];
+    if (plan && plan.epicIds && plan.epicIds.length) {
+      mockEpics = plan.epicIds.map(eid => {
+        const em = SHEET_EPIC_META[eid] || {};
+        return { Id: eid, Name: em.epicName || eid, Health__c: 'Not Started', Epic_Health_Comments__c: '', Planned_Story_Points__c: 0, Actual_Story_Points_on_Epic__c: 0, Storypoints_Closed__c: 0, Workitems_Closed__c: 0, WorkItems_In_Progress__c: 0, Workitems_New__c: 0, Remaining_Story_Points__c: 0, Remaining_Work_Items__c: 0, Percent_Of_Work_Items_Complete__c: 0, Project__r: { Name: em.measures || '', V2MOM_Method__c: '' } };
+      });
+    } else if (releaseId === 'aBQEE0000007cTZ4AY') {
+      mockEpics = MOCK.epics264 || MOCK.epics || [];
+    }
+    return { release: mockRelease, epics: mockEpics };
+  }
   async fetchReleaseData(releaseId) {
     try {
       const [releases, epics] = await Promise.all([
         this._serverQuery(`SELECT Id, Name, Start_Date__c, End_Date__c, Goals_Objectives__c, Forecast_Items__c, Forecast_Items_Completed__c, Number_Forecast_Work_Items__c, Number_Forecast_Work_Items_Completed__c, Number_Forecast_Story_Points__c, Number_Epics_Added__c, Number_Forecast_Epics_Removed__c, Number_Work_Items_Added__c, Number_Forecast_Work_Items_Removed__c, Team__r.Name FROM ADM_Planned_Release__c WHERE Id = '${releaseId}'`),
         this._serverQuery(`SELECT Id, Name, Description__c, Health__c, Epic_Health_Comments__c, Path_to_Green__c, Slippage_Comments__c, Category__c, Committed_Story_Points_on_Epic__c, Actual_Story_Points_on_Epic__c, Planned_Story_Points__c, Storypoints_Closed__c, Storypoints_In_Progress__c, Storypoints_New__c, Storypoints_In_Waiting__c, Workitems_Closed__c, WorkItems_In_Progress__c, Workitems_New__c, Workitems_in_Waiting__c, Remaining_Story_Points__c, Remaining_Work_Items__c, Percent_Of_Work_Items_Complete__c, Additional_Work_Items__c, Subtracted_Work_Items__c, Additional_Story_Points__c, Subtracted_Story_Points__c, Committed_Work_Items_on_Epic__c, Actual_Work_Items_on_Epic__c, Project__r.Name, Project__r.Id, Project__r.V2MOM_Method__c, Team__r.Name, Start_Date__c, End_Date__c, Planned_Start_Date__c, Planned_End_Date__c, Committed_By_Team__c FROM ADM_Epic__c WHERE Planned_Release__c = '${releaseId}' LIMIT 200`)
       ]);
-      return { release: releases[0] || null, epics };
+      if (epics.length > 0) return { release: releases[0] || null, epics };
+      console.warn('GUS returned 0 epics for release', releaseId, '— falling back to plan data');
+      const fb = this._buildMockFallback(releaseId);
+      return { release: releases[0] || fb.release, epics: fb.epics };
     } catch (e) {
-      console.warn('Server query failed for release data, using MOCK fallback:', e);
-      const plan = TEAM_PLANS[releaseId];
-      if (plan) {
-        const teamEntry = Object.entries(GUS_HIERARCHY.teamReleases).find(([,rels]) => rels.some(r => r.Id === releaseId));
-        const rel = teamEntry ? teamEntry[1].find(r => r.Id === releaseId) : null;
-        const mockRelease = rel ? { Id: rel.Id, Name: rel.Name, Start_Date__c: rel.Start_Date__c, End_Date__c: rel.End_Date__c, Goals_Objectives__c: plan.release + ' Goals', Forecast_Items__c: null, Forecast_Items_Completed__c: null, Number_Forecast_Work_Items__c: null, Number_Forecast_Work_Items_Completed__c: null, Number_Forecast_Story_Points__c: null } : MOCK.releaseDetail;
-        const isVegacache = releaseId === 'aBQEE0000007cTZ4AY';
-        return { release: mockRelease, epics: isVegacache ? (MOCK.epics264 || MOCK.epics) : [] };
-      }
-      const is264 = releaseId === 'aBQEE0000007cTZ4AY';
-      return { release: is264 ? MOCK.releaseDetail264 : MOCK.releaseDetail, epics: is264 ? MOCK.epics264 : MOCK.epics };
+      console.warn('Server query failed for release data, using plan fallback:', e);
+      return this._buildMockFallback(releaseId);
     }
   }
   async fetchWorkItems(epicId) {
@@ -2831,6 +2842,15 @@ const TEAM_PLANS = {
   'aBQEE0000007Xbx4AE': PLAN_MQ_264,     // MQ 264 release
 };
 
+/* Auto-derive epicIds for each plan from SHEET_EPIC_META keyed by team */
+(function buildPlanEpicIds() {
+  const vegacacheIds = Object.keys(EPIC_V2MOM_MAP);
+  PLAN_264.epicIds = vegacacheIds;
+  PLAN_MAPS_264.epicIds = [];
+  PLAN_MQ_264.epicIds = [];
+  /* Will be populated after SHEET_EPIC_META is defined — see deferred block below */
+})();
+
 // Sheet-sourced per-epic metadata from Google Sheet "Epics & Workstreams" tab
 // Maps real GUS Epic IDs to owner, priority, sprint target, status, GUS epic/WS links, doc links
 const SHEET_EPIC_META = {
@@ -2921,6 +2941,19 @@ const SHEET_EPIC_META = {
   'a3QEE000002JWvt2AG': { owner:'Himdyuti Sandilya', priority:'P0', sprintTarget:'', status:'Not Started', gusLink:'https://gus.my.salesforce.com/a3QEE000002JWvt2AG', docLink:'', wsLinks:['W-22003070','W-22003071','W-22003073','W-22003074'] },
 };
 function getEpicMeta(epicId) { return SHEET_EPIC_META[epicId] || { owner:'', priority:'', sprintTarget:'', status:'', gusLink:'', docLink:'' }; }
+
+/* Populate MAPS/MQ epicIds from SHEET_EPIC_META (VegaCache already set from EPIC_V2MOM_MAP) */
+(function() {
+  const vegaSet = new Set(Object.keys(EPIC_V2MOM_MAP));
+  const mapsIds = [], mqIds = [];
+  for (const eid of Object.keys(SHEET_EPIC_META)) {
+    if (vegaSet.has(eid)) continue;
+    if (eid.startsWith('a3QEE000002JS')) mapsIds.push(eid);
+    else if (eid.startsWith('a3QEE000002JW')) mqIds.push(eid);
+  }
+  PLAN_MAPS_264.epicIds = mapsIds;
+  PLAN_MQ_264.epicIds = mqIds;
+})();
 
 /* ================================================================
    GLOBAL WIRING
