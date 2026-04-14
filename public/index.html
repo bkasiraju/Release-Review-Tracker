@@ -2145,18 +2145,10 @@ class DashboardView {
               <div style="font-size:9px;color:var(--muted);">Cl:${metrics.closed}</div>
             </td>
             <td style="text-align:center;">
-              <div class="pva-link-wrap">
-                <a class="pva-link-icon ${gusHasLink}" href="${esc(em.gusLink)}" target="_blank" title="Open in GUS" id="gus-a-${esc(epic.Id)}">&#128279;</a>
-                <span style="cursor:pointer;font-size:10px;opacity:.5;" onclick="toggleLinkEdit('${esc(epic.Id)}','gusLink')" title="Edit link">&#9998;</span>
-              </div>
-              <input class="pva-link-input" type="text" value="${esc(em.gusLink)}" data-epic-id="${esc(epic.Id)}" data-field="gusLink" onblur="savePvaLink(this)" placeholder="Paste GUS URL…" style="display:none;">
+              <a class="pva-link-icon ${gusHasLink}" href="${esc(em.gusLink)}" target="_blank" title="Open in GUS" id="gus-a-${esc(epic.Id)}">&#128279;</a>
             </td>
             <td style="text-align:center;">
-              <div class="pva-link-wrap">
-                <a class="pva-link-icon ${docHasLink}" href="${esc(em.docLink)}" target="_blank" title="Open Doc" id="doc-a-${esc(epic.Id)}">&#128196;</a>
-                <span style="cursor:pointer;font-size:10px;opacity:.5;" onclick="toggleLinkEdit('${esc(epic.Id)}','docLink')" title="Edit link">&#9998;</span>
-              </div>
-              <input class="pva-link-input" type="text" value="${esc(em.docLink)}" data-epic-id="${esc(epic.Id)}" data-field="docLink" onblur="savePvaLink(this)" placeholder="Paste Doc URL…" style="display:none;">
+              <a class="pva-link-icon ${docHasLink}" href="${esc(em.docLink)}" target="_blank" title="Open Doc" id="doc-a-${esc(epic.Id)}">&#128196;</a>
             </td>
             ${commentCells}
           </tr>`;
