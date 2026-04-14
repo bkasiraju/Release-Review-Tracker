@@ -30,7 +30,7 @@ body { font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe
 /* ===== STICKY HEADER ===== */
 .dash-header { position: sticky; top: 0; z-index: 100; background: var(--card-white); border-bottom: 1px solid var(--border); box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
 .dash-header::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--gradient); }
-.header-row1 { display: flex; align-items: center; gap: 10px; padding: 8px 24px 2px; }
+.header-row1 { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 24px 2px; }
 .header-row2 { display: flex; align-items: center; gap: 8px; padding: 4px 24px 8px; flex-wrap: nowrap; }
 .header-brand { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 .header-brand h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
@@ -635,10 +635,12 @@ body { font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe
 <header class="dash-header">
   <div class="header-row1">
     <div class="header-brand">
-      <a href="/" id="hub-link" class="hub-back-link" style="display:none;font-size:11px;color:#94a3b8;text-decoration:none;margin-bottom:2px;">&#8592; Back to Hub</a>
       <h1>CFS Release Review</h1>
       <span class="subtitle">Engineering Release Review Dashboard &bull; v1.0.0-Alpha</span>
     </div>
+    <a href="/" id="hub-link" style="display:none;font-size:14px;font-weight:600;color:#3b82f6;text-decoration:none;white-space:nowrap;padding:6px 14px;border:1px solid #3b82f6;border-radius:6px;transition:all .15s;"
+       onmouseover="this.style.background='#3b82f6';this.style.color='#fff';"
+       onmouseout="this.style.background='transparent';this.style.color='#3b82f6';">&#8592; Back to Hub</a>
   </div>
   <div class="header-row2">
     <div id="team-tabs" class="team-tabs"></div>
@@ -2117,7 +2119,6 @@ class DashboardView {
           html += `<tr class="pva-epic-row pva-hidden" data-pva-method="${mi}" data-pva-measure="${mi}-${msIdx}" data-epic-id="${esc(epic.Id)}" data-health="${esc(epic.Health__c || 'Not Started')}" data-owner="${esc(em.owner)}" data-search-text="${esc((epicName + ' ' + projName + ' ' + (em.owner||'') + ' ' + (em.priority||'') + ' ' + (epic.Health__c||'') + ' ' + (em.sprintTarget||'')).toLowerCase())}">
             <td>
               <div style="font-weight:600;font-size:11px;line-height:1.3;" title="${esc(epicName)}">${esc(epicName)}</div>
-              <div style="font-size:9px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${esc(projName)}">${esc(projName)}</div>
             </td>
             <td class="pva-owner-cell"><input class="pva-cell-input" type="text" value="${esc(em.owner)}" data-epic-id="${esc(epic.Id)}" data-field="owner" onblur="savePvaField(this)" placeholder="Owner…"></td>
             <td style="text-align:center;">
@@ -4260,7 +4261,6 @@ function openEngFlyout(engName) {
         <span class="ef-health-pill" style="background:${hm.bg||'#f1f5f9'};color:${hm.color||'#64748b'};">${esc(h)}</span>
       </div>
       <div class="ef-epic-meta">
-        ${projName ? `<span>Method: <b>${esc(projName)}</b></span>` : ''}
         <span>Priority: <b>${esc(meta.priority || '—')}</b></span>
         <span>Sprint: <b>${esc(meta.sprintTarget || '—')}</b></span>
         <span>SP: <b>${spC}/${sp}</b> (${pctDone}%)</span>

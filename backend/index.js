@@ -27,6 +27,52 @@ function mergeMonthComment(existing, monthLabel, newText) {
     .join('\n');
 }
 
+async function sfUpdateRecord(sf, objectName, recordId, fields) {
+  const record = { Id: recordId, ...fields };
+
+  // Approach 1: jsforce-style sf.sobject(name).update(record)
+  if (typeof sf.sobject === 'function') {
+    try {
+      const r = await sf.sobject(objectName).update(record);
+      if (r && (r.id || r.success !== false)) return { ok: true, result: r };
+    } catch (e) { /* fall through */ }
+  }
+
+  // Approach 2: sf.update(objectName, { Id, ...fields })
+  try {
+    const r = await sf.update(objectName, record);
+    if (r && (r.id || r.success !== false)) return { ok: true, result: r };
+  } catch (e) { /* fall through */ }
+
+  // Approach 3: sf.update(objectName, [{ Id, ...fields }]) (batch array format)
+  try {
+    const r = await sf.update(objectName, [record]);
+    const item = Array.isArray(r) ? r[0] : r;
+    if (item && (item.id || item.success !== false)) return { ok: true, result: item };
+  } catch (e) { /* fall through */ }
+
+  // Approach 4: sf.update(objectName, recordId, fields) (3-arg)
+  try {
+    const r = await sf.update(objectName, recordId, fields);
+    if (r && (r.id || r.success !== false)) return { ok: true, result: r };
+  } catch (e) { /* fall through */ }
+
+  // Approach 5: sf.request — raw REST API PATCH
+  if (typeof sf.request === 'function') {
+    try {
+      const r = await sf.request({
+        method: 'PATCH',
+        url: `/services/data/v62.0/sobjects/${objectName}/${recordId}`,
+        body: JSON.stringify(fields),
+        headers: { 'Content-Type': 'application/json' }
+      });
+      return { ok: true, result: r || { id: recordId, success: true } };
+    } catch (e) { /* fall through */ }
+  }
+
+  return { ok: false, error: 'All update approaches failed' };
+}
+
 module.exports.handleRequest = async (ctx) => {
   const req = ctx.request || ctx;
   const sf = ctx.sf || {};
@@ -72,11 +118,10 @@ module.exports.handleRequest = async (ctx) => {
       gusValue = value;
     }
 
-    const result = await sf.update('ADM_Epic__c', epicId, { [gusField]: gusValue });
-    const success = result && (result.id || result.success !== false);
+    const upd = await sfUpdateRecord(sf, 'ADM_Epic__c', epicId, { [gusField]: gusValue });
     return {
       ok: true,
-      payload: { status: success ? 'ok' : 'error', epicId, gusField, updated: !!success }
+      payload: { status: upd.ok ? 'ok' : 'error', epicId, gusField, error: upd.error || null }
     };
   }
 
@@ -117,8 +162,8 @@ module.exports.handleRequest = async (ctx) => {
 
       if (Object.keys(gusUpdates).length) {
         try {
-          const result = await sf.update('ADM_Epic__c', epicId, gusUpdates);
-          results.push({ epicId, status: (result && result.id) ? 'ok' : 'error', fields: Object.keys(gusUpdates) });
+          const r = await sfUpdateRecord(sf, 'ADM_Epic__c', epicId, gusUpdates);
+          results.push({ epicId, status: r.ok ? 'ok' : 'error', error: r.error || null, fields: Object.keys(gusUpdates) });
         } catch (e) {
           results.push({ epicId, status: 'error', error: e.message });
         }
