@@ -72,7 +72,7 @@ module.exports.handleRequest = async (ctx) => {
       gusValue = value;
     }
 
-    const result = await sf.update('ADM_Epic__c', { Id: epicId, [gusField]: gusValue });
+    const result = await sf.update('ADM_Epic__c', epicId, { [gusField]: gusValue });
     const success = result && (result.id || result.success !== false);
     return {
       ok: true,
@@ -117,7 +117,7 @@ module.exports.handleRequest = async (ctx) => {
 
       if (Object.keys(gusUpdates).length) {
         try {
-          const result = await sf.update('ADM_Epic__c', { Id: epicId, ...gusUpdates });
+          const result = await sf.update('ADM_Epic__c', epicId, gusUpdates);
           results.push({ epicId, status: (result && result.id) ? 'ok' : 'error', fields: Object.keys(gusUpdates) });
         } catch (e) {
           results.push({ epicId, status: 'error', error: e.message });
