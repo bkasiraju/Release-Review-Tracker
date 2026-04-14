@@ -3349,7 +3349,8 @@ function saveCommentEditor() {
     showToast(`Updating GUS: ${field}...`, 'progress', tid);
     pushToGUS(epicId, field, val).then(ok => {
       td.style.borderColor = ok ? '#22c55e' : '#ef4444';
-      showToast(ok ? `Saved to GUS: ${field}` : `GUS save failed: ${field}`, ok ? 'success' : 'error', tid);
+      const errMsg = !ok && window._lastGusError ? (typeof window._lastGusError === 'string' ? window._lastGusError : JSON.stringify(window._lastGusError).slice(0, 200)) : '';
+      showToast(ok ? `Saved to GUS: ${field}` : `GUS save failed: ${field}${errMsg ? ' — ' + errMsg : ''}`, ok ? 'success' : 'error', tid);
       setTimeout(() => { td.style.borderColor = 'transparent'; }, 2000);
     });
   } else {
@@ -3424,7 +3425,8 @@ function savePvaField(el) {
     showToast(`Updating GUS: ${field}...`, 'progress', tid);
     pushToGUS(epicId, field, val).then(ok => {
       el.style.borderColor = ok ? '#16a34a' : '#dc2626';
-      showToast(ok ? `Saved to GUS: ${field}` : `GUS save failed: ${field}`, ok ? 'success' : 'error', tid);
+      const errMsg = !ok && window._lastGusError ? (typeof window._lastGusError === 'string' ? window._lastGusError : JSON.stringify(window._lastGusError).slice(0, 200)) : '';
+      showToast(ok ? `Saved to GUS: ${field}` : `GUS save failed: ${field}${errMsg ? ' — ' + errMsg : ''}`, ok ? 'success' : 'error', tid);
       setTimeout(() => { el.style.borderColor = ''; }, 2000);
     });
   } else {
@@ -3436,10 +3438,15 @@ function savePvaField(el) {
 async function pushToGUS(epicId, field, value) {
   try {
     const data = await gusApi('update', { epicId, field, value });
-    if (data.status !== 'ok') console.warn('GUS update response:', JSON.stringify(data));
+    if (data.status !== 'ok') {
+      const detail = data.details ? data.details.map(d => d.method + ': ' + d.error).join(' | ') : (data.error || 'unknown');
+      console.warn('GUS update failed:', detail);
+      window._lastGusError = data;
+    }
     return data.status === 'ok';
   } catch (e) {
     console.error('GUS write-back error:', e);
+    window._lastGusError = e.message || String(e);
     return false;
   }
 }
@@ -3837,7 +3844,13 @@ gusSyncEngine.restore();
 if (IS_GUS_APPS) {
   const hubLink = document.getElementById('hub-link');
   if (hubLink) hubLink.style.display = 'flex';
-  gusApi('debug', {}).then(d => console.log('[GUS-APPS SF DEBUG]', JSON.stringify(d))).catch(e => console.warn('debug probe failed:', e));
+  gusApi('debug', {}).then(d => {
+    window._gusAppsDebug = d;
+    console.log('[GUS-APPS SF DEBUG]', JSON.stringify(d));
+    const sf = d.sfInfo || {};
+    const writeable = sf.hasUpdate ? 'sf.update available' : 'sf.update NOT available';
+    console.log('[SF WRITE SUPPORT]', writeable, '| methods:', (sf.methods || []).join(', '));
+  }).catch(e => console.warn('debug probe failed:', e));
 }
 
 function switchPvaTab(tabId) {
