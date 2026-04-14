@@ -1017,18 +1017,38 @@ class GUSModel {
     }
     return { release: mockRelease, epics: mockEpics };
   }
+  async _queryEpicsByIds(epicIds) {
+    if (!epicIds || !epicIds.length) return [];
+    const idList = epicIds.map(id => `'${id}'`).join(',');
+    return this._serverQuery(`SELECT Id, Name, Description__c, Health__c, Epic_Health_Comments__c, Path_to_Green__c, Slippage_Comments__c, Category__c, Committed_Story_Points_on_Epic__c, Actual_Story_Points_on_Epic__c, Planned_Story_Points__c, Storypoints_Closed__c, Storypoints_In_Progress__c, Storypoints_New__c, Storypoints_In_Waiting__c, Workitems_Closed__c, WorkItems_In_Progress__c, Workitems_New__c, Workitems_in_Waiting__c, Remaining_Story_Points__c, Remaining_Work_Items__c, Percent_Of_Work_Items_Complete__c, Committed_Work_Items_on_Epic__c, Actual_Work_Items_on_Epic__c, Project__r.Name, Project__r.Id, Project__r.V2MOM_Method__c, Team__r.Name FROM ADM_Epic__c WHERE Id IN (${idList}) LIMIT 200`);
+  }
   async fetchReleaseData(releaseId) {
+    const plan = TEAM_PLANS[releaseId];
+    const epicFields = `SELECT Id, Name, Description__c, Health__c, Epic_Health_Comments__c, Path_to_Green__c, Slippage_Comments__c, Category__c, Committed_Story_Points_on_Epic__c, Actual_Story_Points_on_Epic__c, Planned_Story_Points__c, Storypoints_Closed__c, Storypoints_In_Progress__c, Storypoints_New__c, Storypoints_In_Waiting__c, Workitems_Closed__c, WorkItems_In_Progress__c, Workitems_New__c, Workitems_in_Waiting__c, Remaining_Story_Points__c, Remaining_Work_Items__c, Percent_Of_Work_Items_Complete__c, Additional_Work_Items__c, Subtracted_Work_Items__c, Additional_Story_Points__c, Subtracted_Story_Points__c, Committed_Work_Items_on_Epic__c, Actual_Work_Items_on_Epic__c, Project__r.Name, Project__r.Id, Project__r.V2MOM_Method__c, Team__r.Name, Start_Date__c, End_Date__c, Planned_Start_Date__c, Planned_End_Date__c, Committed_By_Team__c`;
     try {
       const [releases, epics] = await Promise.all([
         this._serverQuery(`SELECT Id, Name, Start_Date__c, End_Date__c, Goals_Objectives__c, Forecast_Items__c, Forecast_Items_Completed__c, Number_Forecast_Work_Items__c, Number_Forecast_Work_Items_Completed__c, Number_Forecast_Story_Points__c, Number_Epics_Added__c, Number_Forecast_Epics_Removed__c, Number_Work_Items_Added__c, Number_Forecast_Work_Items_Removed__c, Team__r.Name FROM ADM_Planned_Release__c WHERE Id = '${releaseId}'`),
-        this._serverQuery(`SELECT Id, Name, Description__c, Health__c, Epic_Health_Comments__c, Path_to_Green__c, Slippage_Comments__c, Category__c, Committed_Story_Points_on_Epic__c, Actual_Story_Points_on_Epic__c, Planned_Story_Points__c, Storypoints_Closed__c, Storypoints_In_Progress__c, Storypoints_New__c, Storypoints_In_Waiting__c, Workitems_Closed__c, WorkItems_In_Progress__c, Workitems_New__c, Workitems_in_Waiting__c, Remaining_Story_Points__c, Remaining_Work_Items__c, Percent_Of_Work_Items_Complete__c, Additional_Work_Items__c, Subtracted_Work_Items__c, Additional_Story_Points__c, Subtracted_Story_Points__c, Committed_Work_Items_on_Epic__c, Actual_Work_Items_on_Epic__c, Project__r.Name, Project__r.Id, Project__r.V2MOM_Method__c, Team__r.Name, Start_Date__c, End_Date__c, Planned_Start_Date__c, Planned_End_Date__c, Committed_By_Team__c FROM ADM_Epic__c WHERE Planned_Release__c = '${releaseId}' LIMIT 200`)
+        this._serverQuery(`${epicFields} FROM ADM_Epic__c WHERE Planned_Release__c = '${releaseId}' LIMIT 200`)
       ]);
       if (epics.length > 0) return { release: releases[0] || null, epics };
-      console.warn('GUS returned 0 epics for release', releaseId, '— falling back to plan data');
+
+      if (plan && plan.epicIds && plan.epicIds.length) {
+        console.warn('Release query returned 0 epics — querying by epic IDs directly');
+        const directEpics = await this._queryEpicsByIds(plan.epicIds);
+        if (directEpics.length > 0) return { release: releases[0] || this._buildMockFallback(releaseId).release, epics: directEpics };
+      }
+
+      console.warn('GUS returned 0 epics for release', releaseId, '— using plan fallback');
       const fb = this._buildMockFallback(releaseId);
       return { release: releases[0] || fb.release, epics: fb.epics };
     } catch (e) {
-      console.warn('Server query failed for release data, using plan fallback:', e);
+      console.warn('Server query failed, trying direct epic ID query:', e);
+      if (plan && plan.epicIds && plan.epicIds.length) {
+        try {
+          const directEpics = await this._queryEpicsByIds(plan.epicIds);
+          if (directEpics.length > 0) return { release: this._buildMockFallback(releaseId).release, epics: directEpics };
+        } catch (e2) { console.warn('Direct epic query also failed:', e2); }
+      }
       return this._buildMockFallback(releaseId);
     }
   }
