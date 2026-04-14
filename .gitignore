@@ -1,0 +1,4 @@
+.DS_Store
+*.zip
+.gus/audit/
+node_modules/

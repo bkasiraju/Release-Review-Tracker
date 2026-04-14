@@ -1,0 +1,7 @@
+{
+  "slug": "cfs-release-review",
+  "title": "CFS Release Review Tracker",
+  "description": "264 Release planning dashboard for Caching Services — VegaCache, MAPS & MQ teams. Tracks epics, workstreams, capacity, and health across the release with live GUS sync.",
+  "icon": "dashboard",
+  "iconColor": "#0e7490"
+}
