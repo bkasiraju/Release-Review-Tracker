@@ -3990,6 +3990,14 @@ function buildLocalSummary(hierarchy, monthFull) {
 }
 
 async function callLLM(prompt) {
+  if (IS_GUS_APPS) {
+    try {
+      const fullPrompt = `You are an executive communications writer for Salesforce engineering. Rewrite raw engineering updates into concise, polished executive summaries. Each summary should be 2-4 sentences. Focus on outcomes, progress, and risks. Use professional language suitable for VP/SVP leadership.\n\n${prompt}`;
+      const data = await gusApi('einsteinSummarise', { prompt: fullPrompt });
+      if (data.status === 'ok' && data.text) return data.text;
+      console.warn('Einstein summarise response:', data);
+    } catch (e) { console.warn('Einstein summarise failed:', e.message); }
+  }
   try {
     const resp = await fetch(LLM_ENDPOINT, {
       method: 'POST',
@@ -4004,7 +4012,7 @@ async function callLLM(prompt) {
     if (data.error) throw new Error(data.error.message || 'LLM error');
     return data.choices?.[0]?.message?.content || '';
   } catch (e) {
-    console.warn('LLM call failed, using local summarisation:', e.message);
+    console.warn('LLM Gateway failed, using local summarisation:', e.message);
     return null;
   }
 }
