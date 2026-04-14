@@ -27,9 +27,11 @@ function mergeMonthComment(existing, monthLabel, newText) {
     .join('\n');
 }
 
-module.exports = async (request, sf) => {
-  const body = request.body || request;
-  const { action } = body;
+module.exports.handleRequest = async (ctx) => {
+  const req = ctx.request || ctx;
+  const sf = ctx.sf || {};
+  const body = req.body || req;
+  const action = body.action;
 
   if (action === 'query') {
     const { soql } = body;

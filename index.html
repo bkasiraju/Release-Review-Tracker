@@ -933,7 +933,9 @@ async function gusApi(action, data = {}) {
   const result = await resp.json();
   if (IS_GUS_APPS) {
     if (!result.ok) throw new Error(result.error || 'Request failed');
-    return result.payload;
+    const inner = result.payload;
+    if (inner && inner.ok === false) throw new Error(inner.error || 'Backend error');
+    return inner && inner.payload !== undefined ? inner.payload : inner;
   }
   return result;
 }
