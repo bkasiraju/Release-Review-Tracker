@@ -430,6 +430,8 @@ body { font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe
 .pva-measure-row.collapsed .chevron { transform: rotate(-90deg); }
 .pva-epic-row { transition: background .15s; }
 .pva-epic-row:hover { background: #fafbfc; }
+.pva-new-flag { display: block; width: max-content; font-size: 8px; font-weight: 800; letter-spacing: .4px; color: #fff; background: #ea580c; padding: 1px 6px; border-radius: 3px; margin-bottom: 3px; line-height: 1.2; }
+.ef-ws-new-flag { position: absolute; top: -8px; left: 50%; transform: translateX(-50%); font-size: 7px; font-weight: 800; color: #fff; background: #ea580c; padding: 0 5px; border-radius: 3px; letter-spacing: .3px; z-index: 1; white-space: nowrap; }
 .pva-epic-row.pva-hidden, .pva-measure-row.pva-hidden { display: none; }
 .pva-comment-cell { font-size: 11px; color: #475569; line-height: 1.4; word-break: break-word; cursor: pointer; border: 1px solid transparent; border-radius: 4px; padding: 6px 8px; transition: border-color .15s, background .15s; min-height: 28px; position: relative; }
 .pva-comment-cell:hover { border-color: #cbd5e1; background: #f8fafc; }
@@ -539,7 +541,8 @@ body { font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe
 .eng-flyout.open { right: 0; }
 .eng-flyout-hdr { padding: 20px 24px 14px; position: relative; color: #fff; }
 .eng-flyout-hdr h3 { font-size: 18px; font-weight: 800; margin: 0; display: flex; align-items: center; gap: 10px; }
-.eng-flyout-hdr .ef-avatar { width: 38px; height: 38px; border-radius: 50%; background: rgba(255,255,255,.2); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 800; border: 2px solid rgba(255,255,255,.4); flex-shrink: 0; }
+.eng-flyout-hdr .ef-avatar { width: 42px; height: 42px; border-radius: 50%; background: rgba(255,255,255,.2); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 800; border: 2px solid rgba(255,255,255,.4); flex-shrink: 0; overflow: hidden; }
+.eng-flyout-hdr .ef-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .eng-flyout-hdr p { font-size: 11px; opacity: .85; margin: 4px 0 0; }
 .eng-flyout-close { position: absolute; top: 16px; right: 16px; background: rgba(255,255,255,.15); border: none; color: #fff; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 18px; line-height: 1; display: flex; align-items: center; justify-content: center; transition: background .15s; }
 .eng-flyout-close:hover { background: rgba(255,255,255,.35); }
@@ -574,12 +577,23 @@ body { font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe
 .ef-epic-bar { height: 4px; background: #e2e8f0; border-radius: 2px; overflow: hidden; margin-top: 6px; }
 .ef-epic-bar-fill { height: 100%; border-radius: 2px; transition: width .3s; }
 
-.ef-ws-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 4px; }
-.ef-ws-chip { display: flex; align-items: center; gap: 4px; padding: 4px 8px; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 10px; font-weight: 600; color: #334155; transition: all .15s; }
-.ef-ws-chip:hover { background: #e2e8f0; }
-.ef-ws-chip a { color: inherit; text-decoration: none; }
-.ef-ws-chip a:hover { color: #0176d3; }
-.ef-ws-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.ef-ws-grid { display: flex; flex-wrap: wrap; gap: 4px; }
+.ef-ws-tag { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 4px; font-size: 9.5px; font-weight: 500; color: #1e40af; cursor: pointer; transition: background .1s, border-color .1s; text-decoration: none; max-width: 240px; line-height: 1.2; position: relative; }
+.ef-ws-tag:hover { background: #dbeafe; border-color: #93c5fd; color: #1e3a8a; }
+.ef-ws-tag .ws-num { font-size: 8px; font-weight: 700; color: #3b82f6; background: #dbeafe; padding: 0 4px; border-radius: 3px; white-space: nowrap; flex-shrink: 0; }
+.ef-ws-tag .ws-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ef-ws-tag .ws-status { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+.ef-ws-tag--loading { opacity: .5; pointer-events: none; }
+.ef-ws-tag--loading .ws-title { background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%); background-size: 200% 100%; animation: wsShimmer 1.2s infinite; border-radius: 3px; min-width: 50px; height: 10px; }
+@keyframes wsShimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+#ws-instant-tip { position: fixed; z-index: 99999; pointer-events: none; background: #1e293b; color: #f8fafc; font-size: 11px; line-height: 1.4; padding: 8px 12px; border-radius: 8px; max-width: 420px; box-shadow: 0 4px 16px rgba(0,0,0,.3); opacity: 0; transition: opacity .05s; }
+#ws-instant-tip.visible { opacity: 1; }
+#ws-instant-tip .tip-subj { font-weight: 600; margin-bottom: 3px; font-size: 11.5px; }
+#ws-instant-tip .tip-epic { font-size: 10px; color: #93c5fd; margin-bottom: 3px; display: flex; align-items: center; gap: 4px; }
+#ws-instant-tip .tip-epic::before { content: '\25B8'; font-size: 8px; }
+#ws-instant-tip .tip-row { display: flex; gap: 10px; font-size: 10px; color: #94a3b8; }
+#ws-instant-tip .tip-row span { display: inline-flex; align-items: center; gap: 3px; }
+#ws-instant-tip .tip-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
 
 .mtile-flyout-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.3); z-index: 9998; opacity: 0; transition: opacity .2s; pointer-events: none; }
 .mtile-flyout-backdrop.open { opacity: 1; pointer-events: auto; }
@@ -613,7 +627,9 @@ body { font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe
 
 .pva-eng-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 6px; }
 .pva-eng-item { background: var(--card-white); border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; }
-.pva-eng-item .pei-name { font-weight: 700; font-size: 11px; margin-bottom: 3px; }
+.pva-eng-item .pei-name { font-weight: 700; font-size: 11px; margin-bottom: 3px; display: flex; align-items: center; gap: 6px; }
+.pva-eng-item .pei-photo { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 1.5px solid #e2e8f0; }
+.pva-eng-item .pei-initials { width: 24px; height: 24px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 800; color: #64748b; flex-shrink: 0; }
 .pva-eng-item .pei-bar { height: 6px; border-radius: 3px; background: #e2e8f0; overflow: hidden; margin: 4px 0; }
 .pva-eng-item .pei-bar .fill { height: 100%; border-radius: 3px; }
 .pva-eng-item .pei-stats { font-size: 10px; color: #475569; display: flex; gap: 6px; }
@@ -877,6 +893,34 @@ body { font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe
    UTILITIES
    ================================================================ */
 function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+
+function computeOverallStatus(healthCounts) {
+  const blocked = healthCounts['Blocked'] || 0;
+  const watch = healthCounts['Watch'] || 0;
+  const onTrack = healthCounts['On Track'] || 0;
+  const completed = healthCounts['Completed'] || 0;
+  const total = Object.values(healthCounts).reduce((s, v) => s + v, 0);
+  if (total === 0) return { label: 'No Data', color: '#94a3b8', bg: '#f1f5f9' };
+  if (blocked > 0 || (watch + blocked) > total * 0.3) return { label: 'At Risk', color: '#dc2626', bg: '#fee2e2' };
+  if (watch > 0) return { label: 'Watch', color: '#d97706', bg: '#fef3c7' };
+  if (completed === total) return { label: 'Completed', color: '#0176d3', bg: '#dbeafe' };
+  return { label: 'On Track', color: '#16a34a', bg: '#dcfce7' };
+}
+
+function buildEpicTooltip(epics, healthFilter) {
+  const filtered = healthFilter ? epics.filter(e => (e.Health__c || 'Not Started') === healthFilter) : epics;
+  if (!filtered.length) return '';
+  return filtered.map(e => {
+    const name = (EPIC_NAMES[e.Id] || e.Name || e.Id).replace(/^\[.*?\]\s*/, '');
+    const h = e.Health__c || 'Not Started';
+    return `${name} [${h}]`;
+  }).join('\n');
+}
+
+function buildEpicTooltipFromTeamData(teamData, healthFilter) {
+  const allEpics = teamData.flatMap(td => td.epics || []);
+  return buildEpicTooltip(allEpics, healthFilter);
+}
 function openModal(id) { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 function showToast(msg, type = 'info', id) {
@@ -948,6 +992,75 @@ async function gusApi(action, data = {}) {
   return result;
 }
 
+/* Workstream subject cache — maps W-number → { id, subject } */
+const WS_SUBJECT_CACHE = {};
+let _wsFetchPromise = null;
+
+async function fetchWsSubjects(wNumbers) {
+  const missing = wNumbers.filter(w => !WS_SUBJECT_CACHE[w]);
+  if (!missing.length) return;
+  const batchSize = 80;
+  for (let i = 0; i < missing.length; i += batchSize) {
+    const batch = missing.slice(i, i + batchSize);
+    const inList = batch.map(w => `'${w}'`).join(',');
+    try {
+      const soql = `SELECT Id, Name, Subject__c, Status__c, Priority__c, Story_Points__c, Epic__c, Epic__r.Name FROM ADM_Work__c WHERE Name IN (${inList}) LIMIT 200`;
+      const result = await gusApi('query', { soql });
+      const records = result?.records || result || [];
+      records.forEach(r => {
+        const epicId = r.Epic__c;
+        const epicName = r.Epic__r?.Name || (epicId && EPIC_NAMES[epicId]) || '';
+        WS_SUBJECT_CACHE[r.Name] = { id: r.Id, subject: r.Subject__c || r.Name, status: r.Status__c, priority: r.Priority__c, sp: r.Story_Points__c || 0, epicId, epicName };
+      });
+    } catch (e) { console.warn('WS subject fetch failed:', e); }
+  }
+}
+
+/* Post–forecast churn (heuristic): new epics + WI whose subject looks like a workstream vs first snapshot in this browser.
+   Official scope movement after forecast is also on ADM_Planned_Release__c (see GUS rollup tiles + Work Backlog). */
+const CHURN_BASELINE_STORAGE_KEY = 'cfs_fc_churn_baseline_v1';
+
+function isWorkstreamSubject(subj) {
+  if (!subj) return false;
+  const s = String(subj).trim();
+  if (/^\[?\s*Workstream\b/i.test(s)) return true;
+  if (/\bWorkstream\s*\d+/i.test(s)) return true;
+  return /^Workstream\b/i.test(s);
+}
+
+function loadChurnBaselines() {
+  try { return JSON.parse(localStorage.getItem(CHURN_BASELINE_STORAGE_KEY)) || {}; } catch (e) { return {}; }
+}
+function saveChurnBaselines(map) {
+  try { localStorage.setItem(CHURN_BASELINE_STORAGE_KEY, JSON.stringify(map)); } catch (e) {}
+}
+
+function ensureForecastChurnBaseline(releaseId, epics, allWorkItems) {
+  if (!releaseId || !epics || !epics.length) return null;
+  const baselines = loadChurnBaselines();
+  if (baselines[releaseId]) return baselines[releaseId];
+  const epicIds = epics.map(e => e.Id);
+  const workstreamKeys = (allWorkItems || []).filter(w => isWorkstreamSubject(w.Subject__c)).map(w => `${w.Epic__c}|${w.Name}`);
+  const row = { epicIds, workstreamKeys, capturedAt: new Date().toISOString() };
+  baselines[releaseId] = row;
+  saveChurnBaselines(baselines);
+  return row;
+}
+
+function computeForecastChurnDelta(baseline, epics, allWorkItems) {
+  if (!baseline) return { newEpics: [], newWorkstreams: [] };
+  const epicSet = new Set(baseline.epicIds || []);
+  const wsSet = new Set(baseline.workstreamKeys || []);
+  const newEpics = (epics || []).filter(e => !epicSet.has(e.Id));
+  const newWorkstreams = (allWorkItems || []).filter(w => isWorkstreamSubject(w.Subject__c) && !wsSet.has(`${w.Epic__c}|${w.Name}`));
+  return { newEpics, newWorkstreams };
+}
+
+function gusWorkBacklogUrl(teamId) {
+  if (!teamId) return '';
+  return `https://gus.lightning.force.com/lightning/n/ADM_Work_Backlog?c__teamId=${encodeURIComponent(teamId)}`;
+}
+
 /* ================================================================
    MODEL
    ================================================================ */
@@ -1000,7 +1113,7 @@ class GUSModel {
   async fetchReleases(teamIds) {
     const inClause = teamIds.map(id => `'${id}'`).join(',');
     try {
-      return await this._serverQuery(`SELECT Id, Name, Start_Date__c, End_Date__c, Forecast_Items__c, Forecast_Items_Completed__c, Number_Forecast_Work_Items__c, Number_Forecast_Work_Items_Completed__c, Number_Forecast_Story_Points__c, Goals_Objectives__c, Team__r.Name FROM ADM_Planned_Release__c WHERE Team__c IN (${inClause}) AND Name LIKE '%264%' ORDER BY Start_Date__c DESC LIMIT 10`);
+      return await this._serverQuery(`SELECT Id, Name, Start_Date__c, End_Date__c, Forecast_Items__c, Forecast_Items_Completed__c, Number_Forecast_Work_Items__c, Number_Forecast_Work_Items_Completed__c, Number_Forecast_Story_Points__c, Goals_Objectives__c, Team__c, Team__r.Name FROM ADM_Planned_Release__c WHERE Team__c IN (${inClause}) AND Name LIKE '%264%' ORDER BY Start_Date__c DESC LIMIT 10`);
     } catch (e) {
       console.warn('Server query failed for releases, using fallback:', e);
       const all = [];
@@ -1036,7 +1149,7 @@ class GUSModel {
     const epicFields = `SELECT Id, Name, Description__c, Health__c, Epic_Health_Comments__c, Path_to_Green__c, Slippage_Comments__c, Category__c, Committed_Story_Points_on_Epic__c, Actual_Story_Points_on_Epic__c, Planned_Story_Points__c, Storypoints_Closed__c, Storypoints_In_Progress__c, Storypoints_New__c, Storypoints_In_Waiting__c, Workitems_Closed__c, WorkItems_In_Progress__c, Workitems_New__c, Workitems_in_Waiting__c, Remaining_Story_Points__c, Remaining_Work_Items__c, Percent_Of_Work_Items_Complete__c, Additional_Work_Items__c, Subtracted_Work_Items__c, Additional_Story_Points__c, Subtracted_Story_Points__c, Committed_Work_Items_on_Epic__c, Actual_Work_Items_on_Epic__c, Project__r.Name, Project__r.Id, Project__r.V2MOM_Method__c, Team__r.Name, Start_Date__c, End_Date__c, Planned_Start_Date__c, Planned_End_Date__c, Committed_By_Team__c`;
     try {
       const [releases, epics] = await Promise.all([
-        this._serverQuery(`SELECT Id, Name, Start_Date__c, End_Date__c, Goals_Objectives__c, Forecast_Items__c, Forecast_Items_Completed__c, Number_Forecast_Work_Items__c, Number_Forecast_Work_Items_Completed__c, Number_Forecast_Story_Points__c, Number_Epics_Added__c, Number_Forecast_Epics_Removed__c, Number_Work_Items_Added__c, Number_Forecast_Work_Items_Removed__c, Team__r.Name FROM ADM_Planned_Release__c WHERE Id = '${releaseId}'`),
+        this._serverQuery(`SELECT Id, Name, Start_Date__c, End_Date__c, Goals_Objectives__c, Forecast_Items__c, Forecast_Items_Completed__c, Number_Forecast_Work_Items__c, Number_Forecast_Work_Items_Completed__c, Number_Forecast_Story_Points__c, Number_Epics_Added__c, Number_Forecast_Epics_Removed__c, Number_Work_Items_Added__c, Number_Forecast_Work_Items_Removed__c, Team__c, Team__r.Name FROM ADM_Planned_Release__c WHERE Id = '${releaseId}'`),
         this._serverQuery(`${epicFields} FROM ADM_Epic__c WHERE Planned_Release__c = '${releaseId}' LIMIT 200`)
       ]);
       if (epics.length > 0) return { release: releases[0] || null, epics };
@@ -1068,6 +1181,17 @@ class GUSModel {
       return MOCK.workItems[epicId] || MOCK.defaultWorkItems;
     }
   }
+
+  async fetchWorkItemsForChurn(epicIds) {
+    if (!epicIds || !epicIds.length) return [];
+    const idList = epicIds.slice(0, 200).map(id => `'${id}'`).join(',');
+    try {
+      return await this._serverQuery(`SELECT Id, Name, Subject__c, Epic__c FROM ADM_Work__c WHERE Epic__c IN (${idList}) AND Status__c != null LIMIT 3000`);
+    } catch (e) {
+      console.warn('fetchWorkItemsForChurn failed:', e);
+      return [];
+    }
+  }
   _mockQuery() { return []; }
 }
 
@@ -1082,6 +1206,7 @@ class DashboardController {
     this.currentRelease = null;
     this.currentEpics = [];
     this.releaseMonths = [];
+    this._churnContext = null;
   }
 
   async init() {
@@ -1092,10 +1217,13 @@ class DashboardController {
       this._renderTeamTabs();
       this.view.hideLoading();
       const saved = this._loadState();
-      if (saved && saved.activeTab) {
-        this._switchTab(saved.activeTab, true);
-      } else {
-        this._switchTab('__all__', true);
+      const targetTab = (saved && saved.activeTab) || '__all__';
+      await this._switchTab(targetTab, true);
+      if (saved?.pvaTab && saved.pvaTab !== 'epic-tracking') {
+        requestAnimationFrame(() => switchPvaTab(saved.pvaTab));
+      }
+      if (saved?.flyout) {
+        requestAnimationFrame(() => openEngFlyout(saved.flyout));
       }
     } catch (e) {
       console.error('Init failed:', e);
@@ -1131,7 +1259,9 @@ class DashboardController {
 
   async _switchTab(tabId, isInit = false) {
     this._activeTab = tabId;
-    this._saveState({ activeTab: tabId });
+    const stateUpdate = { activeTab: tabId };
+    if (!isInit) { stateUpdate.pvaTab = null; stateUpdate.flyout = null; }
+    this._saveState(stateUpdate);
     document.querySelectorAll('.team-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tabId));
 
     if (tabId === '__all__') {
@@ -1148,11 +1278,33 @@ class DashboardController {
     }
   }
 
-  _saveState(state) {
-    try { localStorage.setItem('cfs_dash_state', JSON.stringify(state)); } catch (e) {}
+  _saveState(partial) {
+    try {
+      const cur = JSON.parse(localStorage.getItem('cfs_dash_state') || '{}');
+      const merged = Object.assign(cur, partial);
+      localStorage.setItem('cfs_dash_state', JSON.stringify(merged));
+      const h = [];
+      if (merged.activeTab && merged.activeTab !== '__all__') h.push('team=' + encodeURIComponent(merged.activeTab));
+      else if (merged.activeTab === '__all__') h.push('team=all');
+      if (merged.pvaTab && merged.pvaTab !== 'epic-tracking') h.push('pva=' + encodeURIComponent(merged.pvaTab));
+      if (merged.flyout) h.push('eng=' + encodeURIComponent(merged.flyout));
+      history.replaceState(null, '', h.length ? '#' + h.join('&') : location.pathname + location.search);
+    } catch (e) {}
   }
   _loadState() {
-    try { return JSON.parse(localStorage.getItem('cfs_dash_state') || 'null'); } catch (e) { return null; }
+    try {
+      const hash = location.hash.replace(/^#/, '');
+      if (hash) {
+        const params = {};
+        hash.split('&').forEach(p => { const [k, v] = p.split('='); if (k && v) params[k] = decodeURIComponent(v); });
+        const state = {};
+        if (params.team) state.activeTab = params.team === 'all' ? '__all__' : params.team;
+        if (params.pva) state.pvaTab = params.pva;
+        if (params.eng) state.flyout = params.eng;
+        if (Object.keys(state).length) { localStorage.setItem('cfs_dash_state', JSON.stringify(state)); return state; }
+      }
+      return JSON.parse(localStorage.getItem('cfs_dash_state') || 'null');
+    } catch (e) { return null; }
   }
 
   onCloudChange(cloudName) {
@@ -1207,10 +1359,30 @@ class DashboardController {
       this.currentRelease = release;
       this.currentEpics = epics;
       this.releaseMonths = this._getReleaseMonths(release);
-      const hierarchy = this._buildHierarchy(epics);
+      const plan = TEAM_PLANS[releaseId];
+      const hierarchy = this._buildHierarchy(epics, plan);
       this._lastHierarchy = hierarchy;
       const healthCounts = this._countHealth(epics);
       const totals = this._computeTotals(epics);
+      this._churnContext = null;
+      if (release && release.Forecast_Items__c != null && epics.length) {
+        try {
+          const wiRows = await this.model.fetchWorkItemsForChurn(epics.map(e => e.Id));
+          const baseline = ensureForecastChurnBaseline(release.Id, epics, wiRows);
+          const { newEpics, newWorkstreams } = computeForecastChurnDelta(baseline, epics, wiRows);
+          const wsCountByEpic = {};
+          newWorkstreams.forEach(w => {
+            wsCountByEpic[w.Epic__c] = (wsCountByEpic[w.Epic__c] || 0) + 1;
+          });
+          this._churnContext = {
+            baseline,
+            newEpicIds: new Set(newEpics.map(e => e.Id)),
+            newWsKeys: new Set(newWorkstreams.map(w => `${w.Epic__c}|${w.Name}`)),
+            counts: { newEpics: newEpics.length, newWorkstreams: newWorkstreams.length },
+            _wsCountByEpic: wsCountByEpic
+          };
+        } catch (e) { console.warn('Churn baseline / delta failed:', e); }
+      }
       this.view.renderDashboard({ release, epics, hierarchy, healthCounts, totals, months: this.releaseMonths });
       this.view.updateTimestamp();
       this.view.hideLoading();
@@ -1260,15 +1432,27 @@ class DashboardController {
     const wiNew = epic.Workitems_New__c || 0;
     const wiWait = epic.Workitems_in_Waiting__c || 0;
     const totalWI = wiClosed + wiInProg + wiNew + wiWait;
-    const churn = (epic.Additional_Work_Items__c || 0) + (epic.Additional_Story_Points__c || 0) + (epic.Subtracted_Work_Items__c || 0) + (epic.Subtracted_Story_Points__c || 0);
+    let churn;
+    if (ctrl._churnContext && ctrl.currentRelease?.Forecast_Items__c != null) {
+      const epicChurn = ctrl._churnContext.newEpicIds.has(epic.Id) ? 1 : 0;
+      const wsChurn = ctrl._churnContext._wsCountByEpic?.[epic.Id] || 0;
+      churn = epicChurn + wsChurn;
+    } else {
+      churn = (epic.Additional_Work_Items__c || 0) + (epic.Additional_Story_Points__c || 0) + (epic.Subtracted_Work_Items__c || 0) + (epic.Subtracted_Story_Points__c || 0);
+    }
     const effortDev = planned > 0 ? ((actual - planned) / planned * 100).toFixed(1) : 0;
     const burndownRate = actual > 0 ? ((closed / actual) * 100).toFixed(1) : 0;
     return { planned, actual, closed, pctComplete, wiClosed, wiInProg, wiNew, wiWait, totalWI, churn, effortDev, burndownRate };
   }
 
   /* NEW: Build hierarchy from epic records: Method -> Measure -> Epic */
-  _buildHierarchy(epics) {
+  _buildHierarchy(epics, plan) {
     const measureMap = {};
+    const methodLabelFor = (mn) => {
+      const n = parseInt(mn, 10);
+      if (plan && plan.v2momMethods && n >= 1 && n <= plan.v2momMethods.length) return plan.v2momMethods[n - 1].method;
+      return METHOD_LABELS[mn] || 'Other';
+    };
     epics.forEach(e => {
       let v2mom = (e.Project__r && e.Project__r.V2MOM_Method__c) || '';
       let projName = (e.Project__r && e.Project__r.Name) || '';
@@ -1300,7 +1484,7 @@ class DashboardController {
     Object.values(measureMap).forEach(m => {
       const mn = m.methodNum;
       if (!methodMap[mn]) {
-        methodMap[mn] = { methodNum: mn, methodLabel: METHOD_LABELS[mn] || 'Other', measures: [] };
+        methodMap[mn] = { methodNum: mn, methodLabel: methodLabelFor(mn), measures: [] };
       }
       methodMap[mn].measures.push(m);
     });
@@ -1512,10 +1696,24 @@ class DashboardView {
 
     let html = '';
 
-    // Header — matches individual team PvA header style
-    html += `<div class="pva-header" style="border-radius:10px;margin-bottom:12px;">
-      <h2 style="font-size:20px;">HRP Planned &amp; Forecast Status &mdash; R264</h2>
-      <p style="margin:0;opacity:.85;">Aggregated across ${totalTeams} CFS teams &middot; Apr 2026 – Jul 2026</p>
+    const overallStatus = computeOverallStatus(aggHealthCounts);
+    const allEpics = teamData.flatMap(td => td.epics || []);
+    const allEpicTooltip = allEpics.map(e => {
+      const name = (EPIC_NAMES[e.Id] || e.Name || e.Id).replace(/^\[.*?\]\s*/, '');
+      return `${name} [${e.Health__c || 'Not Started'}]`;
+    }).join('\n');
+
+    html += `<div class="pva-header" style="border-radius:10px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <h2 style="font-size:20px;">HRP Planned &amp; Forecast Status &mdash; R264</h2>
+        <p style="margin:0;opacity:.85;">Aggregated across ${totalTeams} CFS teams &middot; Apr 2026 – Jul 2026</p>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div style="text-align:right;">
+          <div style="font-size:10px;font-weight:600;opacity:.8;">April Status</div>
+          <div style="padding:6px 18px;border-radius:8px;font-size:15px;font-weight:800;background:${overallStatus.bg};color:${overallStatus.color};border:2px solid ${overallStatus.color};">${overallStatus.label}</div>
+        </div>
+      </div>
     </div>`;
 
     // KPI Row 1: Planned Baseline (same 8-tile format as individual team view)
@@ -1523,7 +1721,7 @@ class DashboardView {
       <div style="flex:1;min-width:200px;">
         <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#7c3aed;margin-bottom:4px;">&#9632; Planned (Baseline from Planning Sheets)</div>
         <div class="kpi-row" style="margin-bottom:0;">
-          <div class="kpi kpi-default" style="border-top-color:#7c3aed"><div class="kpi-num">${aggPlannedEpics || aggEpics}</div><div class="kpi-label">Planned Epics</div></div>
+          <div class="kpi kpi-default" style="border-top-color:#7c3aed;cursor:help;" title="${esc(allEpicTooltip)}"><div class="kpi-num">${aggPlannedEpics || aggEpics}</div><div class="kpi-label">Planned Epics</div></div>
           <div class="kpi kpi-default" style="border-top-color:#7c3aed"><div class="kpi-num">${aggPlannedWS || aggWI}</div><div class="kpi-label">Workstreams</div><div class="kpi-sub">P0:${aggP0} P1:${aggP1}</div></div>
           <div class="kpi kpi-default" style="border-top-color:#7c3aed"><div class="kpi-num">${aggEngineers || '—'}</div><div class="kpi-label">Engineers</div></div>
           <div class="kpi kpi-default" style="border-top-color:#16a34a"><div class="kpi-num">${aggNetAvail || '—'}</div><div class="kpi-label">Net Avail Days</div></div>
@@ -1545,7 +1743,7 @@ class DashboardView {
       <div style="flex:1;min-width:200px;">
         <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:${forecastColor};margin-bottom:4px;">${forecastLabel}</div>
         <div class="kpi-row" style="margin-bottom:0;">
-          <div class="kpi kpi-default" style="border-top-color:${forecastColor}"><div class="kpi-num">${aggEpics}</div><div class="kpi-label">Epics</div><div class="kpi-sub">${aggEpicsDone} done (${aggEpics > 0 ? Math.round(aggEpicsDone/aggEpics*100) : 0}%)</div></div>
+          <div class="kpi kpi-default" style="border-top-color:${forecastColor};cursor:help;" title="${esc(allEpicTooltip)}"><div class="kpi-num">${aggEpics}</div><div class="kpi-label">Epics</div><div class="kpi-sub">${aggEpicsDone} done (${aggEpics > 0 ? Math.round(aggEpicsDone/aggEpics*100) : 0}%)</div></div>
           <div class="kpi kpi-default" style="border-top-color:${forecastColor}"><div class="kpi-num">${aggWI}</div><div class="kpi-label">Work Items</div><div class="kpi-sub">${aggWIClosed} closed (${pctWIDone}%)</div></div>
           <div class="kpi kpi-default" style="border-top-color:${forecastColor}"><div class="kpi-num">${aggSPTotal}</div><div class="kpi-label">Planned SP</div><div class="kpi-sub">${aggSPClosed} closed (${pctSPDone}%)</div></div>
           <div class="kpi kpi-default" style="border-top-color:${forecastColor}"><div class="kpi-num">${aggSPInProg}</div><div class="kpi-label">SP In Progress</div><div class="kpi-sub">${aggSPTotal - aggSPClosed - aggSPInProg} remaining</div></div>
@@ -1553,13 +1751,18 @@ class DashboardView {
       </div>
     </div>`;
 
-    // Health summary tiles
+    const ttOnTrack = buildEpicTooltipFromTeamData(teamData, 'On Track');
+    const ttWatch = buildEpicTooltipFromTeamData(teamData, 'Watch');
+    const ttBlocked = buildEpicTooltipFromTeamData(teamData, 'Blocked');
+    const ttCompleted = buildEpicTooltipFromTeamData(teamData, 'Completed');
+    const ttNotStarted = allEpics.filter(e => (e.Health__c || 'Not Started') === 'Not Started' || (e.Health__c || '') === 'On Hold').map(e => (EPIC_NAMES[e.Id] || e.Id).replace(/^\[.*?\]\s*/, '') + ' [' + (e.Health__c || 'Not Started') + ']').join('\n');
+
     html += `<div class="kpi-row" style="margin-bottom:16px;">
-      <div class="kpi kpi-default" style="border-top:3px solid #16a34a;"><div class="kpi-num" style="color:#16a34a;">${aggHealthCounts['On Track']}</div><div class="kpi-label">On Track</div></div>
-      <div class="kpi kpi-default" style="border-top:3px solid #d97706;"><div class="kpi-num" style="color:#d97706;">${aggHealthCounts['Watch']}</div><div class="kpi-label">Watch</div></div>
-      <div class="kpi kpi-default" style="border-top:3px solid #dc2626;"><div class="kpi-num" style="color:#dc2626;">${aggHealthCounts['Blocked']}</div><div class="kpi-label">Blocked</div></div>
-      <div class="kpi kpi-default" style="border-top:3px solid #16a34a;"><div class="kpi-num" style="color:#16a34a;">${aggHealthCounts['Completed']}</div><div class="kpi-label">Completed</div></div>
-      <div class="kpi kpi-default" style="border-top:3px solid #94a3b8;"><div class="kpi-num" style="color:#94a3b8;">${aggHealthCounts['On Hold'] + aggHealthCounts['Not Started']}</div><div class="kpi-label">On Hold / Not Started</div></div>
+      <div class="kpi kpi-default" style="border-top:3px solid #16a34a;cursor:help;" title="${esc(ttOnTrack)}"><div class="kpi-num" style="color:#16a34a;">${aggHealthCounts['On Track']}</div><div class="kpi-label">On Track</div></div>
+      <div class="kpi kpi-default" style="border-top:3px solid #d97706;cursor:help;" title="${esc(ttWatch)}"><div class="kpi-num" style="color:#d97706;">${aggHealthCounts['Watch']}</div><div class="kpi-label">Watch</div></div>
+      <div class="kpi kpi-default" style="border-top:3px solid #dc2626;cursor:help;" title="${esc(ttBlocked)}"><div class="kpi-num" style="color:#dc2626;">${aggHealthCounts['Blocked']}</div><div class="kpi-label">Blocked</div></div>
+      <div class="kpi kpi-default" style="border-top:3px solid #16a34a;cursor:help;" title="${esc(ttCompleted)}"><div class="kpi-num" style="color:#16a34a;">${aggHealthCounts['Completed']}</div><div class="kpi-label">Completed</div></div>
+      <div class="kpi kpi-default" style="border-top:3px solid #94a3b8;cursor:help;" title="${esc(ttNotStarted)}"><div class="kpi-num" style="color:#94a3b8;">${aggHealthCounts['On Hold'] + aggHealthCounts['Not Started']}</div><div class="kpi-label">On Hold / Not Started</div></div>
       <div class="kpi kpi-default" style="border-top:3px solid #0176d3;"><div class="kpi-num" style="color:#0176d3;">${pctWIDone}%</div><div class="kpi-label">WI Complete</div><div class="kpi-sub">${aggWIClosed}/${aggWI}</div></div>
       <div class="kpi kpi-default" style="border-top:3px solid #7c3aed;"><div class="kpi-num" style="color:#7c3aed;">${pctSPDone}%</div><div class="kpi-label">SP Closed</div><div class="kpi-sub">${aggSPClosed}/${aggSPTotal}</div></div>
     </div>`;
@@ -1578,12 +1781,17 @@ class DashboardView {
         : fc
           ? '<span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;">Forecast Confirmed</span>'
           : '<span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;background:#fffbeb;color:#d97706;border:1px solid #fde68a;">Forecast Not Confirmed</span>';
+      const teamHC = td.healthCounts || {};
+      const teamStatus = computeOverallStatus(teamHC);
+      const teamEpicTT = buildEpicTooltip(td.epics || []);
+      const aprilBadge = `<span style="display:inline-block;padding:2px 10px;border-radius:4px;font-size:10px;font-weight:700;background:${teamStatus.bg};color:${teamStatus.color};border:1px solid ${teamStatus.color};" title="${esc(teamEpicTT)}">Apr: ${teamStatus.label}</span>`;
       const dates = rel ? `${rel.Start_Date__c || ''} – ${rel.End_Date__c || ''}` : '—';
 
       html += `<div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;margin-bottom:10px;overflow:hidden;cursor:pointer;" onclick="switchTeamTab('${esc(team.id)}')">
         <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border-bottom:1px solid #e2e8f0;">
           <div style="font-weight:700;font-size:13px;color:#1e293b;flex:1;">${esc(team.name)}</div>
           <div style="font-size:11px;color:#64748b;">HyperForce Runtime Platform</div>
+          ${aprilBadge}
           ${statusBadge}
           <div style="font-size:12px;font-weight:600;color:#0176d3;">${esc(relName)}</div>
           <div style="font-size:11px;color:#94a3b8;">${dates}</div>
@@ -1606,8 +1814,8 @@ class DashboardView {
             <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px;">
               <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#64748b;margin-bottom:4px;">&#9632; Epics</div>
               <div style="display:flex;gap:14px;align-items:baseline;">
-                <div><div style="font-size:10px;color:#94a3b8;">Total Epics</div><div style="font-size:20px;font-weight:800;color:#1e293b;">${t.epicCount}</div></div>
-                <div><div style="font-size:10px;color:#94a3b8;">Completed</div><div style="font-size:20px;font-weight:800;color:#16a34a;">${epicsDone}</div></div>
+                <div style="cursor:help;" title="${esc(teamEpicTT)}"><div style="font-size:10px;color:#94a3b8;">Total Epics</div><div style="font-size:20px;font-weight:800;color:#1e293b;">${t.epicCount}</div></div>
+                <div style="cursor:help;" title="${esc(buildEpicTooltip(td.epics || [], 'Completed'))}"><div style="font-size:10px;color:#94a3b8;">Completed</div><div style="font-size:20px;font-weight:800;color:#16a34a;">${epicsDone}</div></div>
                 <div><div style="font-size:10px;color:#94a3b8;">% Done</div><div style="font-size:20px;font-weight:800;color:#0176d3;">${epicPct}%</div></div>
               </div>
               <div style="margin-top:4px;height:4px;border-radius:2px;background:#e2e8f0;"><div style="height:100%;border-radius:2px;background:#16a34a;width:${epicPct}%;"></div></div>
@@ -1687,20 +1895,34 @@ class DashboardView {
     const pctSP = totals.actualSP > 0 ? ((totals.closedSP / totals.actualSP) * 100).toFixed(0) : 0;
     let html = '';
 
-    // Main dashboard heading — R264 Planned vs Actual
+    const teamDashStatus = computeOverallStatus(healthCounts);
+    const teamDashEpicTT = buildEpicTooltip(epics);
+
     if (plan) {
-      html += `<div class="pva-header" style="border-radius:10px;margin-bottom:8px;">
-        <h2 style="font-size:18px;">R264 Planned vs Actual</h2>
-        <p style="margin:0;opacity:.85;">${esc(plan.release)} &middot; ${esc(plan.period)} &middot; Source: <a href="${esc(plan.sheetUrl)}" target="_blank" style="color:#93c5fd;text-decoration:underline;">Planning Sheet</a> &middot; GUS: <a href="https://gus.my.salesforce.com/lightning/r/ADM_Planned_Release__c/${release?.Id || plan.gusPlannedReleaseId}/view" target="_blank" style="color:#93c5fd;text-decoration:underline;">${esc(relName)}</a></p>
+      html += `<div class="pva-header" style="border-radius:10px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <h2 style="font-size:18px;">R264 Planned vs Actual</h2>
+          <p style="margin:0;opacity:.85;">${esc(plan.release)} &middot; ${esc(plan.period)} &middot; Source: <a href="${esc(plan.sheetUrl)}" target="_blank" style="color:#93c5fd;text-decoration:underline;">Planning Sheet</a> &middot; GUS: <a href="https://gus.my.salesforce.com/lightning/r/ADM_Planned_Release__c/${release?.Id || plan.gusPlannedReleaseId}/view" target="_blank" style="color:#93c5fd;text-decoration:underline;">${esc(relName)}</a></p>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:10px;font-weight:600;opacity:.8;">April Status</div>
+          <div style="padding:5px 16px;border-radius:8px;font-size:14px;font-weight:800;background:${teamDashStatus.bg};color:${teamDashStatus.color};border:2px solid ${teamDashStatus.color};cursor:help;" title="${esc(teamDashEpicTT)}">${teamDashStatus.label}</div>
+        </div>
       </div>`;
     } else {
-      html += `<div class="release-banner">
-        <h2>${esc(relName)}</h2>
-        <div class="release-meta">
-          <span><strong>Period:</strong> ${esc((release?.Start_Date__c || '') + ' to ' + (release?.End_Date__c || ''))}</span>
-          <span><strong>Forecast Epics:</strong> ${baselineEpics}</span>
-          <span><strong>Workstreams:</strong> ${baselineWS}</span>
-          <span><strong>Planned Days:</strong> ${baselineSP}</span>
+      html += `<div class="release-banner" style="display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <h2>${esc(relName)}</h2>
+          <div class="release-meta">
+            <span><strong>Period:</strong> ${esc((release?.Start_Date__c || '') + ' to ' + (release?.End_Date__c || ''))}</span>
+            <span><strong>Forecast Epics:</strong> ${baselineEpics}</span>
+            <span><strong>Workstreams:</strong> ${baselineWS}</span>
+            <span><strong>Planned Days:</strong> ${baselineSP}</span>
+          </div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:10px;font-weight:600;color:#64748b;">April Status</div>
+          <div style="padding:5px 16px;border-radius:8px;font-size:14px;font-weight:800;background:${teamDashStatus.bg};color:${teamDashStatus.color};border:2px solid ${teamDashStatus.color};cursor:help;" title="${esc(teamDashEpicTT)}">${teamDashStatus.label}</div>
         </div>
       </div>`;
     }
@@ -1743,7 +1965,27 @@ class DashboardView {
       const fcColor = forecastConfirmed ? '#0176d3' : '#d97706';
 
       if (!forecastConfirmed) {
-        html += `<div style="display:flex;align-items:center;gap:6px;padding:6px 12px;margin-bottom:8px;background:linear-gradient(90deg,#fffbeb,#fef3c7);border:1px solid #fde68a;border-radius:6px;font-size:11px;color:#92400e;"><strong>&#9888;</strong> Actuals from epic data. Confirm forecast on <a href="https://gus.my.salesforce.com/lightning/r/ADM_Planned_Release__c/${release?.Id || plan.gusPlannedReleaseId}/view" target="_blank" style="color:#92400e;font-weight:700;text-decoration:underline;">GUS Planned Release</a> for official tracking.</div>`;
+        const teamIdEsc = esc(release?.Team__c || '');
+        const wbUrl = release?.Team__c ? gusWorkBacklogUrl(release.Team__c) : '';
+        html += `<div style="display:flex;align-items:center;gap:6px;padding:6px 12px;margin-bottom:8px;background:linear-gradient(90deg,#fffbeb,#fef3c7);border:1px solid #fde68a;border-radius:6px;font-size:11px;color:#92400e;"><strong>&#9888;</strong> Actuals from epic data. Confirm forecast on <a href="https://gus.my.salesforce.com/lightning/r/ADM_Planned_Release__c/${release?.Id || plan.gusPlannedReleaseId}/view" target="_blank" style="color:#92400e;font-weight:700;text-decoration:underline;">GUS Planned Release</a> for official tracking.${wbUrl ? ` <a href="${esc(wbUrl)}" target="_blank" style="color:#92400e;font-weight:600;">Work Backlog</a> <span style="opacity:.85;">(team ${teamIdEsc})</span>` : ''}</div>`;
+      }
+      if (forecastConfirmed) {
+        const ea = release.Number_Epics_Added__c != null ? release.Number_Epics_Added__c : '—';
+        const er = release.Number_Forecast_Epics_Removed__c != null ? release.Number_Forecast_Epics_Removed__c : '—';
+        const wia = release.Number_Work_Items_Added__c != null ? release.Number_Work_Items_Added__c : '—';
+        const wir = release.Number_Forecast_Work_Items_Removed__c != null ? release.Number_Forecast_Work_Items_Removed__c : '—';
+        const wbUrl = release.Team__c ? gusWorkBacklogUrl(release.Team__c) : '';
+        html += `<div style="display:flex;align-items:flex-start;gap:8px;padding:6px 12px;margin-bottom:8px;background:linear-gradient(90deg,#f0fdf4,#eff6ff);border:1px solid #86efac;border-radius:6px;font-size:11px;color:#14532d;line-height:1.45;">
+          <strong style="flex-shrink:0;">GUS</strong>
+          <span>Rollups on the planned release (same for everyone): <b>Epics added</b> ${ea}, <b>Epics removed</b> ${er}, <b>Work items added</b> ${wia}, <b>Work items removed</b> ${wir}. Sourced live from <a href="https://gus.my.salesforce.com/lightning/r/ADM_Planned_Release__c/${esc(release.Id)}/view" target="_blank" style="color:#166534;font-weight:700;">ADM_Planned_Release__c</a>${wbUrl ? ` · <a href="${esc(wbUrl)}" target="_blank" style="color:#166534;font-weight:700;">ADM Work Backlog</a>` : ''}.</span>
+        </div>`;
+      }
+      if (forecastConfirmed && ctrl._churnContext) {
+        const ch = ctrl._churnContext.counts;
+        html += `<div style="display:flex;align-items:flex-start;gap:8px;padding:6px 12px;margin-bottom:8px;background:linear-gradient(90deg,#eff6ff,#fff7ed);border:1px solid #93c5fd;border-radius:6px;font-size:11px;color:#1e3a8a;line-height:1.45;">
+          <strong style="flex-shrink:0;">Heuristic</strong>
+          <span><b>New epics</b> and <b>new work items whose subject looks like a workstream</b> vs. the first snapshot stored in <i>this browser</i> after forecast was confirmed (not stored in GUS). Current delta: <b>${ch.newEpics}</b> new epic(s), <b>${ch.newWorkstreams}</b> new workstream(s). Prefer GUS rollups above for shared scope change.</span>
+        </div>`;
       }
 
       html += `<div class="metric-strip">
@@ -1768,6 +2010,8 @@ class DashboardView {
             <div class="mt-health-row"><span class="mt-hdot" style="background:#0176d3;"></span><span class="mt-hcount">${healthCounts['Completed']}</span><span class="mt-hlabel">Done</span></div>
             <div class="mt-health-row"><span class="mt-hdot" style="background:#94a3b8;"></span><span class="mt-hcount">${healthCounts['On Hold'] + healthCounts['Not Started']}</span><span class="mt-hlabel">Pending</span></div>
           </div>
+          ${forecastConfirmed && ctrl._churnContext ? `<div class="metric-tile mt-blue" style="border:2px solid #f97316;background:linear-gradient(180deg,#fff7ed,#ffedd5);"><div class="mt-val" style="color:#c2410c;">${ctrl._churnContext.counts.newEpics}</div><div class="mt-label" style="color:#9a3412;">Churn: New Epics</div><div class="mt-sub" style="color:#b45309;">post-forecast</div></div>
+          <div class="metric-tile mt-blue" style="border:2px solid #f97316;background:linear-gradient(180deg,#fff7ed,#ffedd5);"><div class="mt-val" style="color:#c2410c;">${ctrl._churnContext.counts.newWorkstreams}</div><div class="mt-label" style="color:#9a3412;">Churn: New WS</div><div class="mt-sub" style="color:#b45309;">workstream titles</div></div>` : ''}
         </div>
       </div>`;
     } else {
@@ -2124,6 +2368,8 @@ class DashboardView {
           const em = getEpicMeta(epic.Id);
           const gusHasLink = em.gusLink ? '' : 'empty';
           const docHasLink = em.docLink ? '' : 'empty';
+          const isNewEpicRow = ctrl._churnContext?.newEpicIds?.has(epic.Id);
+          const newEpicBadge = isNewEpicRow ? '<span class="pva-new-flag">NEW</span>' : '';
 
           const commentCells = comments.map((c, ci) => {
             const hidden = ci !== activeMonth ? ' col-hidden' : '';
@@ -2133,7 +2379,7 @@ class DashboardView {
 
           html += `<tr class="pva-epic-row pva-hidden" data-pva-method="${mi}" data-pva-measure="${mi}-${msIdx}" data-epic-id="${esc(epic.Id)}" data-health="${esc(epic.Health__c || 'Not Started')}" data-owner="${esc(em.owner)}" data-search-text="${esc((epicName + ' ' + projName + ' ' + (em.owner||'') + ' ' + (em.priority||'') + ' ' + (epic.Health__c||'') + ' ' + (em.sprintTarget||'')).toLowerCase())}">
             <td>
-              <div style="font-weight:600;font-size:11px;line-height:1.3;" title="${esc(epicName)}">${esc(epicName)}</div>
+              ${newEpicBadge}<div style="font-weight:600;font-size:11px;line-height:1.3;" title="${esc(epicName)}">${esc(epicName)}</div>
             </td>
             <td class="pva-owner-cell"><input class="pva-cell-input" type="text" value="${esc(em.owner)}" data-epic-id="${esc(epic.Id)}" data-field="owner" onblur="savePvaField(this)" placeholder="Owner…"></td>
             <td style="text-align:center;">
@@ -2152,6 +2398,7 @@ class DashboardView {
               <div style="font-size:11px;font-weight:700;">${metrics.planned}/${metrics.actual}</div>
               <div class="pva-progress-bar"><div class="fill" style="width:${pct}%;background:${pctColor}"></div></div>
               <div style="font-size:9px;color:var(--muted);">Cl:${metrics.closed}</div>
+              ${ctrl.currentRelease?.Forecast_Items__c != null && ctrl._churnContext && metrics.churn > 0 ? `<div style="font-size:8px;font-weight:700;color:#c2410c;margin-top:2px;">Churn: ${metrics.churn}</div>` : ''}
             </td>
             <td style="text-align:center;">
               <a class="pva-link-icon ${gusHasLink}" href="${esc(em.gusLink)}" target="_blank" title="Open in GUS" id="gus-a-${esc(epic.Id)}">&#128279;</a>
@@ -2265,14 +2512,33 @@ class DashboardView {
       }
     });
 
-    let totalAdditional = 0, totalSubtracted = 0;
-    allEpics.forEach(e => {
-      totalAdditional += (e.Additional_Work_Items__c || 0);
-      totalSubtracted += (e.Subtracted_Work_Items__c || 0);
-    });
-    const totalWI = allEpics.reduce((s, e) => s + (e.Workitems_Closed__c||0) + (e.WorkItems_In_Progress__c||0) + (e.Workitems_New__c||0) + (e.Workitems_in_Waiting__c||0), 0);
-    if (totalAdditional > totalWI * 0.2 && totalWI > 10) {
-      risks.push(`High work item churn: ${totalAdditional} added / ${totalSubtracted} removed against ${totalWI} total`);
+    const fcRel = ctrl.currentRelease?.Forecast_Items__c != null;
+    const rel = ctrl.currentRelease;
+    if (fcRel && rel) {
+      const gea = rel.Number_Epics_Added__c || 0;
+      const ger = rel.Number_Forecast_Epics_Removed__c || 0;
+      const gwa = rel.Number_Work_Items_Added__c || 0;
+      const gwr = rel.Number_Forecast_Work_Items_Removed__c || 0;
+      if (gea + ger + gwa + gwr > 0) {
+        risks.push(`GUS planned-release scope rollups: +${gea} epics added, −${ger} epics removed, +${gwa} work items added, −${gwr} work items removed (live from GUS).`);
+      }
+    }
+    if (fcRel && ctrl._churnContext) {
+      const { newEpics, newWorkstreams } = ctrl._churnContext.counts;
+      if (newEpics + newWorkstreams > 0) {
+        risks.push(`Heuristic post-forecast delta (browser snapshot): ${newEpics} new epic(s), ${newWorkstreams} new workstream-style work item(s) — see GUS rollups for official shared numbers.`);
+      }
+    }
+    if (!fcRel) {
+      let totalAdditional = 0, totalSubtracted = 0;
+      allEpics.forEach(e => {
+        totalAdditional += (e.Additional_Work_Items__c || 0);
+        totalSubtracted += (e.Subtracted_Work_Items__c || 0);
+      });
+      const totalWI = allEpics.reduce((s, e) => s + (e.Workitems_Closed__c||0) + (e.WorkItems_In_Progress__c||0) + (e.Workitems_New__c||0) + (e.Workitems_in_Waiting__c||0), 0);
+      if (totalAdditional > totalWI * 0.2 && totalWI > 10) {
+        risks.push(`High work item churn: ${totalAdditional} added / ${totalSubtracted} removed against ${totalWI} total`);
+      }
     }
 
     return risks;
@@ -2365,7 +2631,7 @@ class DashboardView {
       totActWIClosed += a.wiClosed;
 
       html += `<tr>
-        <td style="font-weight:600;cursor:pointer;" ondblclick="openEngFlyout('${esc(eng.name.replace(/'/g,"\\'"))}')">${esc(eng.name)}</td>
+        <td style="font-weight:600;cursor:pointer;" ondblclick="openEngFlyout('${esc(eng.name.replace(/'/g,"\\'"))}')"><span style="display:inline-flex;align-items:center;gap:6px;">${ENGINEER_PHOTOS[eng.name] ? `<img src="${esc(ENGINEER_PHOTOS[eng.name])}" style="width:22px;height:22px;border-radius:50%;object-fit:cover;border:1.5px solid #e2e8f0;" loading="lazy">` : ''}${esc(eng.name)}</span></td>
         <td style="text-align:center">${eng.total}</td>
         <td style="text-align:center">${(eng.leave||0) + (eng.relPlan||0)}</td>
         <td style="text-align:center">${eng.bauDays || 0}</td>
@@ -2412,8 +2678,12 @@ class DashboardView {
         <div class="pva-eng-grid">`;
     [...p.engineers].sort((a,b)=>b.pct-a.pct).forEach(e => {
       const barColor = e.pct > 85 ? '#dc2626' : e.pct > 75 ? '#d97706' : '#16a34a';
+      const photo = ENGINEER_PHOTOS[e.name];
+      const avatarHtml = photo
+        ? `<img class="pei-photo" src="${esc(photo)}" alt="${esc(e.name)}" loading="lazy">`
+        : `<span class="pei-initials">${e.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)}</span>`;
       html += `<div class="pva-eng-item" style="cursor:pointer;" ondblclick="openEngFlyout('${esc(e.name.replace(/'/g,"\\'"))}')">
-        <div class="pei-name">${esc(e.name)}</div>
+        <div class="pei-name">${avatarHtml}${esc(e.name)}</div>
         <div class="pei-bar"><div class="fill" style="width:${Math.min(e.pct,100)}%;background:${barColor}"></div></div>
         <div class="pei-stats"><b style="color:${barColor}">${e.pct}%</b> &middot; ${e.planned}/${e.net}d &middot; ${e.epics} epics</div>
       </div>`;
@@ -3008,6 +3278,42 @@ const SHEET_EPIC_META = {
   'a3QEE000002JWuH2AW': { owner:'Pankaj Sachan', priority:'P1', sprintTarget:'', status:'Not Started', gusLink:'https://gus.my.salesforce.com/a3QEE000002JWuH2AW', docLink:'', wsLinks:['W-22003065','W-22003067','W-22003068','W-22003069'] },
   'a3QEE000002JWvt2AG': { owner:'Himdyuti Sandilya', priority:'P0', sprintTarget:'', status:'Not Started', gusLink:'https://gus.my.salesforce.com/a3QEE000002JWvt2AG', docLink:'', wsLinks:['W-22003070','W-22003071','W-22003073','W-22003074'] },
 };
+const ENGINEER_PHOTOS = {
+  'Anoop Hallur': 'https://avatars.slack-edge.com/2023-03-05/4892060104006_fabcd222bdcd7ac1ae98_original.jpg',
+  'Azeem Mohammad': 'https://avatars.slack-edge.com/2019-05-03/613858502498_805c8aa61df9c40c7a21_original.jpg',
+  'Himangshu Deka': 'https://avatars.slack-edge.com/2024-05-16/7111363785175_80a8d295121b79a03bb7_original.jpg',
+  'Md Sarfarazul Haque': 'https://avatars.slack-edge.com/2025-08-04/9296650600917_5291fe17a1786aad212c_original.jpg',
+  'Nancy': 'https://avatars.slack-edge.com/2025-09-12/9519574857441_5f79d0b0ef1038e2caa7_original.png',
+  'Nisha M': 'https://avatars.slack-edge.com/2024-11-04/7981293457508_c18dbda4e2b2b4aca07f_original.jpg',
+  'Rachita Saha': 'https://avatars.slack-edge.com/2023-08-18/5761841458067_caba5aaf2afb3686e5fb_original.jpg',
+  'Rajat Surana': 'https://avatars.slack-edge.com/2025-08-21/9373842489415_9319458b8ace23e0b156_original.png',
+  'Sandeep Kumar Perumalla': 'https://avatars.slack-edge.com/2020-08-20/1325726554913_876b5c41b6c169d4e01e_original.jpg',
+  'Shivam Vaish': 'https://avatars.slack-edge.com/2025-01-08/8259891054613_4fcaa2ef968e88e9a13e_original.jpg',
+  'Sreedhar Reddy Kallu': 'https://secure.gravatar.com/avatar/cab80405d09632e98ae56fb0228fc33e.jpg?s=512&d=https%3A%2F%2Fa.slack-edge.com%2Fdf10d%2Fimg%2Favatars%2Fava_0008-512.png',
+  'Terance Dias': 'https://secure.gravatar.com/avatar/81dfc9f769abda94d1e049c05a11b967.jpg?s=512&d=https%3A%2F%2Fa.slack-edge.com%2Fdf10d%2Fimg%2Favatars%2Fava_0014-512.png',
+  'Vaibhav Vashist': 'https://secure.gravatar.com/avatar/05302100acc24e65a3761f35dd17f348.jpg?s=512&d=https%3A%2F%2Fa.slack-edge.com%2Fdf10d%2Fimg%2Favatars%2Fava_0018-512.png',
+  'Aayush Goyal': 'https://avatars.slack-edge.com/2025-02-12/8438837832549_a09d49c17d80a4ee3c90_original.png',
+  'Anusha Mittal': 'https://avatars.slack-edge.com/2025-06-17/9083980015072_7f6751ad4f8ff2e5d834_original.jpg',
+  'Gowtham Swarup Reddy': 'https://avatars.slack-edge.com/2022-05-11/3507461344226_f0baddd9d0ef4bb5e814_original.jpg',
+  'Reshma Kalivarapu': 'https://avatars.slack-edge.com/2021-04-26/2012209511793_cbfeca54d6d325cce488_original.jpg',
+  'Utkarsh Deorah': 'https://avatars.slack-edge.com/2023-05-30/5341824566210_36af54d3a150b670c69e_original.jpg',
+  'Yashasvi Chennawar': 'https://avatars.slack-edge.com/2025-07-21/9240918412881_dd5047a81603f4c05247_original.jpg',
+  'Ram Narsimhamurty Mantri Pragada': 'https://avatars.slack-edge.com/2022-07-05/3781842643008_a124988bd6cc8abaf7ba_original.jpg',
+  'Ram Narsimhamurty': 'https://avatars.slack-edge.com/2022-07-05/3781842643008_a124988bd6cc8abaf7ba_original.jpg',
+  'Jayant Kumar': 'https://secure.gravatar.com/avatar/c326830b07f6052fe60dfa4a182a0558.jpg?s=512&d=https%3A%2F%2Fa.slack-edge.com%2F7fa9%2Fimg%2Favatars%2Fava_0000-512.png',
+  'Aman Yadav': 'https://avatars.slack-edge.com/2024-07-16/7416191761351_307287cdbe7a34aa5504_original.png',
+  'Ashish Mittal': 'https://secure.gravatar.com/avatar/8d082ae2801f40501861f24d503ed6a4.jpg?s=512&d=https%3A%2F%2Fa.slack-edge.com%2Fdf10d%2Fimg%2Favatars%2Fava_0012-512.png',
+  'Guru Raj Vaishnav Akuthota': 'https://avatars.slack-edge.com/2025-12-29/10229306468944_0416311e3f7ed9993d67_original.png',
+  'Himdyuti Sandilya': 'https://avatars.slack-edge.com/2024-05-28/7170298871735_bca0a306559194814bc2_original.jpg',
+  'Ikshwak Srirangam': 'https://avatars.slack-edge.com/2024-08-05/7542735302817_e96f0809315e73890de0_original.jpg',
+  'Karan Bajaj': 'https://avatars.slack-edge.com/2023-07-06/5559014276320_80f0723dc448ff458da5_original.png',
+  'Pankaj Sachan': 'https://avatars.slack-edge.com/2023-04-07/5073394456485_1b8067983f388350c51e_original.jpg',
+  'Partha Sarathy Maripini': 'https://avatars.slack-edge.com/2021-11-24/2764591483586_7810271ebda777aa0213_original.jpg',
+  'Shubham Mudgal': 'https://avatars.slack-edge.com/2025-05-05/8849331617123_76506ae42fd7e8d5bc6b_original.jpg',
+  'Sudheer Sana': 'https://avatars.slack-edge.com/2021-10-04/2576141349185_23e1950e76f68e3672f8_original.jpg',
+  'Vishwas Agarwal': 'https://avatars.slack-edge.com/2022-06-14/3664729065749_bf710316c4552c077d57_original.jpg',
+};
+
 const EPIC_NAMES = {
   'a3QEE000002JRD32AO': '[Caching 264] Support for 3pp/Vulns Tracking, Fixes and Rollouts',
   'a3QEE000002JRGH2A4': '[Caching 264] Planned Trust (Trust + on-call distributed amongst all)',
@@ -3100,11 +3406,85 @@ function getEpicMeta(epicId) { return SHEET_EPIC_META[epicId] || { owner:'', pri
   const mapsIds = [], mqIds = [];
   for (const eid of Object.keys(SHEET_EPIC_META)) {
     if (vegaSet.has(eid)) continue;
-    if (eid.startsWith('a3QEE000002JS')) mapsIds.push(eid);
+    const title = EPIC_NAMES[eid] || '';
+    if (title.includes('[MAPS 264]')) mapsIds.push(eid);
+    else if (title.includes('[MQ 264]')) mqIds.push(eid);
+    else if (eid.startsWith('a3QEE000002JS')) mapsIds.push(eid);
     else if (eid.startsWith('a3QEE000002JW')) mqIds.push(eid);
   }
   PLAN_MAPS_264.epicIds = mapsIds;
   PLAN_MQ_264.epicIds = mqIds;
+})();
+
+/* Team-specific V2MOM measure rows (numeric prefix for sorting) + epic fallbacks when GUS Project__r is empty */
+(function initTeamV2momHierarchy() {
+  function addPlanMeasures(prefix, p) {
+    if (!p || !p.v2momMethods) return;
+    p.v2momMethods.forEach((row, mi) => {
+      const mNum = mi + 1;
+      row.measures.forEach((label, xi) => {
+        const key = `${prefix}-${mNum}-${xi + 1}`;
+        const measureNum = `${mNum}.${xi + 1}`;
+        V2MOM_MEASURES[key] = { Name: label, V2MOM_Method__c: `${measureNum} ${label}` };
+      });
+    });
+  }
+  addPlanMeasures('MAPS', PLAN_MAPS_264);
+  addPlanMeasures('MQ', PLAN_MQ_264);
+
+  const EPIC_TEAM_V2MOM = {
+    'a3QEE000002JRHu2AO': 'MAPS-3-5',
+    'a3QEE000002JSCL2A4': 'MAPS-1-1',
+    'a3QEE000002JSDx2AO': 'MAPS-1-1',
+    'a3QEE000002JSFZ2A4': 'MAPS-1-2',
+    'a3QEE000002JSFa2AO': 'MAPS-3-6',
+    'a3QEE000002JSIn2AO': 'MAPS-1-4',
+    'a3QEE000002JSKP2A4': 'MAPS-1-3',
+    'a3QEE000002JSM12AO': 'MAPS-1-5',
+    'a3QEE000002JSNd2AO': 'MAPS-2-1',
+    'a3QEE000002JSPF2A4': 'MAPS-2-2',
+    'a3QEE000002JSVh2AO': 'MAPS-5-3',
+    'a3QEE000002JSXJ2A4': 'MAPS-5-1',
+    'a3QEE000002JSYv2AO': 'MAPS-5-2',
+    'a3QEE000002JSaX2AW': 'MAPS-5-5',
+    'a3QEE000002JSc92AG': 'MAPS-3-6',
+    'a3QEE000002JSdl2AG': 'MAPS-3-6',
+    'a3QEE000002JSfN2AW': 'MAPS-3-3',
+    'a3QEE000002JSgz2AG': 'MAPS-3-1',
+    'a3QEE000002JSib2AG': 'MAPS-3-2',
+    'a3QEE000002JSkD2AW': 'MAPS-3-4',
+    'a3QEE000002JSlp2AG': 'MAPS-3-6',
+    'a3QEE000002JSp32AG': 'MAPS-3-6',
+    'a3QEE000002JSqf2AG': 'MAPS-3-7',
+    'a3QEE000002JSsH2AW': 'MAPS-3-8',
+    'a3QEE000002JStt2AG': 'MAPS-5-4',
+    'a3QEE000002J4Mv2AK': 'MQ-2-1',
+    'a3QEE000002JW9V2AW': 'MQ-1-2',
+    'a3QEE000002JWHZ2A4': 'MQ-1-1',
+    'a3QEE000002JWJB2A4': 'MQ-1-3',
+    'a3QEE000002JWMP2A4': 'MQ-1-8',
+    'a3QEE000002JWO12AO': 'MQ-1-4',
+    'a3QEE000002JWPd2AO': 'MQ-4-3',
+    'a3QEE000002JWRF2A4': 'MQ-2-4',
+    'a3QEE000002JWSr2AO': 'MQ-1-5',
+    'a3QEE000002JWUT2A4': 'MQ-1-6',
+    'a3QEE000002JWW52AO': 'MQ-3-1',
+    'a3QEE000002JWXh2AO': 'MQ-4-1',
+    'a3QEE000002JWZJ2A4': 'MQ-4-5',
+    'a3QEE000002JWcX2AW': 'MQ-1-1',
+    'a3QEE000002JWe92AG': 'MQ-4-2',
+    'a3QEE000002JWfl2AG': 'MQ-4-4',
+    'a3QEE000002JWhN2AW': 'MQ-4-5',
+    'a3QEE000002JWiz2AG': 'MQ-4-6',
+    'a3QEE000002JWkb2AG': 'MQ-1-7',
+    'a3QEE000002JWnp2AG': 'MQ-1-8',
+    'a3QEE000002JWpR2AW': 'MQ-1-8',
+    'a3QEE000002JWr32AG': 'MQ-5-3',
+    'a3QEE000002JWsf2AG': 'MQ-4-8',
+    'a3QEE000002JWuH2AW': 'MQ-4-7',
+    'a3QEE000002JWvt2AG': 'MQ-5-1',
+  };
+  Object.assign(EPIC_V2MOM_MAP, EPIC_TEAM_V2MOM);
 })();
 
 /* ================================================================
@@ -3900,6 +4280,7 @@ function switchPvaTab(tabId) {
   if (panel) panel.classList.add('pva-tab-visible');
   const btn = document.querySelector(`.pva-tab[data-tab="${tabId}"]`);
   if (btn) btn.classList.add('pva-tab-active');
+  ctrl._saveState({ pvaTab: tabId });
   if (tabId === 'capacity-planning') renderCapacityCharts();
   if (tabId === 'epic-tracking') requestAnimationFrame(() => {
     document.querySelectorAll('.comment-preview').forEach(el => checkOverflow(el));
@@ -4448,6 +4829,7 @@ function openEngFlyout(engName) {
   if (!plan) return;
   const eng = plan.engineers.find(e => e.name === engName);
   if (!eng) return;
+  ctrl._saveState({ flyout: engName });
   const epics = ctrl.currentEpics || [];
   const myEpics = epics.filter(ep => {
     const meta = SHEET_EPIC_META[ep.Id];
@@ -4457,15 +4839,21 @@ function openEngFlyout(engName) {
   const barColor = eng.pct > 85 ? '#dc2626' : eng.pct > 75 ? '#d97706' : '#16a34a';
   const healthLabel = eng.pct > 85 ? 'High Load' : eng.pct > 75 ? 'Watch' : 'Healthy';
   const initials = engName.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
-
-  document.getElementById('ef-avatar').textContent = initials;
+  const photoUrl = ENGINEER_PHOTOS[engName];
+  const avatarEl = document.getElementById('ef-avatar');
+  if (photoUrl) {
+    avatarEl.innerHTML = `<img src="${photoUrl}" alt="${esc(initials)}" loading="lazy">`;
+  } else {
+    avatarEl.textContent = initials;
+  }
   document.getElementById('ef-name').textContent = engName;
-  document.getElementById('ef-subtitle').textContent = `${eng.epics} planned epics · ${eng.planned}/${eng.net} days · ${myEpics.length} GUS epics`;
+  document.getElementById('ef-subtitle').textContent = `${eng.epics} planned epics (sheet) · ${myEpics.length} owned (GUS) · ${eng.planned}/${eng.net} days`;
   document.getElementById('eng-flyout-hdr').style.background = `linear-gradient(135deg, ${barColor}cc, ${barColor})`;
 
   let totalSP = 0, closedSP = 0, inProgSP = 0, totalWI = 0, closedWI = 0;
   const healthMap = {};
   const wsSet = new Set();
+  const wsToEpic = {};
   myEpics.forEach(ep => {
     totalSP += ep.Actual_Story_Points_on_Epic__c || 0;
     closedSP += ep.Storypoints_Closed__c || 0;
@@ -4476,7 +4864,7 @@ function openEngFlyout(engName) {
     const h = ep.Health__c || 'Not Started';
     healthMap[h] = (healthMap[h] || 0) + 1;
     const meta = SHEET_EPIC_META[ep.Id];
-    if (meta?.wsLinks) meta.wsLinks.forEach(w => wsSet.add(w));
+    if (meta?.wsLinks) meta.wsLinks.forEach(w => { wsSet.add(w); wsToEpic[w] = ep.Id; });
   });
   const spPct = totalSP > 0 ? Math.round((closedSP / totalSP) * 100) : 0;
   const wiPct = totalWI > 0 ? Math.round((closedWI / totalWI) * 100) : 0;
@@ -4523,11 +4911,26 @@ function openEngFlyout(engName) {
     </div>
   </div>`;
 
-  // Epics list
-  myEpics.sort((a, b) => (b.Actual_Story_Points_on_Epic__c || 0) - (a.Actual_Story_Points_on_Epic__c || 0));
-  body += `<div class="ef-section"><h4>Epics <span class="ef-badge">${myEpics.length}</span></h4>`;
+  // Epics list — sort: at-risk/blocked first, then priority P0>P1>P2
+  const _healthOrder = { 'Blocked': 0, 'Watch': 1, 'On Hold': 2, 'Not Started': 3, 'On Track': 4, 'Completed': 5, 'Canceled': 6 };
+  const _prioOrder = { 'P0': 0, 'P1': 1, 'P2': 2, 'P3': 3 };
+  myEpics.sort((a, b) => {
+    const ha = _healthOrder[a.Health__c || 'Not Started'] ?? 3;
+    const hb = _healthOrder[b.Health__c || 'Not Started'] ?? 3;
+    if (ha !== hb) return ha - hb;
+    const pa = _prioOrder[(SHEET_EPIC_META[a.Id]?.priority || 'P2')] ?? 2;
+    const pb = _prioOrder[(SHEET_EPIC_META[b.Id]?.priority || 'P2')] ?? 2;
+    if (pa !== pb) return pa - pb;
+    return (b.Actual_Story_Points_on_Epic__c || 0) - (a.Actual_Story_Points_on_Epic__c || 0);
+  });
+  const epicGap = eng.epics - myEpics.length;
+  body += `<div class="ef-section"><h4>Epics <span class="ef-badge">${myEpics.length}${epicGap > 0 ? ` / ${eng.epics} planned` : ''}</span></h4>`;
+  if (epicGap > 0) {
+    body += `<div style="display:flex;align-items:center;gap:6px;padding:6px 10px;margin-bottom:8px;background:#fffbeb;border:1px solid #fde68a;border-radius:6px;font-size:10px;color:#92400e;line-height:1.4;">
+      <strong style="flex-shrink:0;">&#9432;</strong> ${eng.epics} epics planned (sheet) but ${myEpics.length} owned in GUS. The remaining ${epicGap} are epics where this engineer contributes but is not the primary owner.</div>`;
+  }
   if (myEpics.length === 0) {
-    body += `<div style="padding:16px;text-align:center;color:#94a3b8;font-size:12px;background:#f8fafc;border-radius:8px;">No GUS epics found for this engineer.</div>`;
+    body += `<div style="padding:16px;text-align:center;color:#94a3b8;font-size:12px;background:#f8fafc;border-radius:8px;">No GUS epics owned by this engineer.</div>`;
   }
   myEpics.forEach(ep => {
     const meta = SHEET_EPIC_META[ep.Id] || {};
@@ -4544,10 +4947,11 @@ function openEngFlyout(engName) {
     const projName = ep.Project__r?.Name || '';
     const barW = Math.min(pctDone, 100);
     const barFill = pctDone >= 80 ? '#16a34a' : pctDone >= 40 ? '#d97706' : '#dc2626';
+    const epicNewFly = ctrl._churnContext?.newEpicIds?.has(ep.Id) ? '<span class="pva-new-flag" style="margin-bottom:4px;">NEW</span>' : '';
 
     body += `<div class="ef-epic-card" style="border-left:3px solid ${hm.color || '#94a3b8'};">
       <div class="ef-epic-top">
-        <div class="ef-epic-name"><a href="${esc(gusLink)}" target="_blank" title="${esc(epicName)}">${esc(epicName)}</a></div>
+        <div class="ef-epic-name">${epicNewFly}<a href="${esc(gusLink)}" target="_blank" title="${esc(epicName)}">${esc(epicName)}</a></div>
         <span class="ef-health-pill" style="background:${hm.bg||'#f1f5f9'};color:${hm.color||'#64748b'};">${esc(h)}</span>
       </div>
       <div class="ef-epic-meta">
@@ -4561,14 +4965,54 @@ function openEngFlyout(engName) {
   });
   body += `</div>`;
 
-  // Workstream items
+  // Workstream items — render as titled tag/labels
   const wsLinks = [...wsSet];
   if (wsLinks.length > 0) {
-    body += `<div class="ef-section"><h4>Work Items / Workstreams <span class="ef-badge">${wsLinks.length}</span></h4><div class="ef-ws-grid">`;
+    body += `<div class="ef-section"><h4>Work Items / Workstreams <span class="ef-badge">${wsLinks.length}</span></h4><div id="ws-tags-container" class="ef-ws-grid">`;
     wsLinks.forEach(w => {
-      body += `<div class="ef-ws-chip"><span class="ef-ws-dot" style="background:#0176d3;"></span><a href="https://gus.my.salesforce.com/${esc(w)}" target="_blank">${esc(w)}</a></div>`;
+      const epIdForW = wsToEpic[w];
+      const wsNew = epIdForW && ctrl._churnContext?.newWsKeys?.has(`${epIdForW}|${w}`);
+      const wsNewBadge = wsNew ? '<span class="ef-ws-new-flag">NEW</span>' : '';
+      const cached = WS_SUBJECT_CACHE[w];
+      if (cached) {
+        const stColor = (cached.status === 'Closed' || cached.status === 'Fixed') ? '#16a34a' : cached.status === 'In Progress' ? '#0176d3' : '#d97706';
+        body += `<a class="ef-ws-tag" href="https://gus.my.salesforce.com/${esc(cached.id)}" target="_blank">`
+          + wsNewBadge
+          + `<span class="ws-status" style="background:${stColor};"></span>`
+          + `<span class="ws-title">${esc(cached.subject)}</span>`
+          + `<span class="ws-num">${esc(w)}</span></a>`;
+      } else {
+        body += `<a class="ef-ws-tag ef-ws-tag--loading" data-ws="${esc(w)}" href="https://gus.my.salesforce.com/lightning/r/ADM_Work__c/Name/${esc(w)}/view" target="_blank">`
+          + wsNewBadge
+          + `<span class="ws-status" style="background:#94a3b8;"></span>`
+          + `<span class="ws-title"></span>`
+          + `<span class="ws-num">${esc(w)}</span></a>`;
+      }
     });
     body += `</div></div>`;
+
+    // Async-load missing subjects
+    const toFetch = wsLinks.filter(w => !WS_SUBJECT_CACHE[w]);
+    if (toFetch.length > 0) {
+      fetchWsSubjects(toFetch).then(() => {
+        const container = document.getElementById('ws-tags-container');
+        if (!container) return;
+        container.querySelectorAll('.ef-ws-tag--loading').forEach(el => {
+          const w = el.getAttribute('data-ws');
+          const c = WS_SUBJECT_CACHE[w];
+          if (c) {
+            const stColor = (c.status === 'Closed' || c.status === 'Fixed') ? '#16a34a' : c.status === 'In Progress' ? '#0176d3' : '#d97706';
+            el.href = `https://gus.my.salesforce.com/${c.id}`;
+            el.classList.remove('ef-ws-tag--loading');
+            el.querySelector('.ws-status').style.background = stColor;
+            el.querySelector('.ws-title').textContent = c.subject;
+          } else {
+            el.classList.remove('ef-ws-tag--loading');
+            el.querySelector('.ws-title').textContent = w;
+          }
+        });
+      });
+    }
   }
 
   document.getElementById('eng-flyout-body').innerHTML = body;
@@ -4579,6 +5023,7 @@ function openEngFlyout(engName) {
 function closeEngFlyout() {
   document.getElementById('eng-backdrop').classList.remove('open');
   document.getElementById('eng-flyout').classList.remove('open');
+  ctrl._saveState({ flyout: null });
 }
 
 function togglePvaMethod(mi) {
@@ -4710,5 +5155,39 @@ ctrl.init();
   </div>
   <div class="eng-flyout-body" id="eng-flyout-body"></div>
 </div>
+<div id="ws-instant-tip"></div>
+<script>
+(function() {
+  const tip = document.getElementById('ws-instant-tip');
+  let currentTag = null;
+  document.addEventListener('mouseover', e => {
+    const tag = e.target.closest('.ef-ws-tag');
+    if (!tag || tag.classList.contains('ef-ws-tag--loading')) { if (currentTag) { tip.classList.remove('visible'); currentTag = null; } return; }
+    if (tag === currentTag) return;
+    currentTag = tag;
+    const w = tag.querySelector('.ws-num')?.textContent || '';
+    const c = WS_SUBJECT_CACHE[w];
+    if (c) {
+      const stColor = (c.status === 'Closed' || c.status === 'Fixed') ? '#4ade80' : c.status === 'In Progress' ? '#60a5fa' : '#fbbf24';
+      const epicLine = c.epicName ? `<div class="tip-epic">${esc(c.epicName)}</div>` : '';
+      tip.innerHTML = `<div class="tip-subj">${esc(c.subject)}</div>${epicLine}<div class="tip-row"><span><span class="tip-dot" style="background:${stColor};"></span>${esc(c.status || 'New')}</span><span>${esc(c.priority || '—')}</span><span>${c.sp || 0} SP</span><span style="color:#64748b;">${esc(w)}</span></div>`;
+    } else {
+      tip.innerHTML = `<div class="tip-subj">${esc(tag.querySelector('.ws-title')?.textContent || w)}</div><div class="tip-row"><span style="color:#64748b;">${esc(w)}</span></div>`;
+    }
+    const r = tag.getBoundingClientRect();
+    let left = r.left, top = r.bottom + 6;
+    if (left + 420 > window.innerWidth) left = window.innerWidth - 430;
+    if (top + 80 > window.innerHeight) top = r.top - 70;
+    tip.style.left = Math.max(4, left) + 'px';
+    tip.style.top = top + 'px';
+    tip.classList.add('visible');
+  });
+  document.addEventListener('mouseout', e => {
+    const tag = e.target.closest('.ef-ws-tag');
+    if (tag === currentTag) { tip.classList.remove('visible'); currentTag = null; }
+  });
+  document.addEventListener('scroll', () => { tip.classList.remove('visible'); currentTag = null; }, true);
+})();
+</script>
 </body>
 </html>
