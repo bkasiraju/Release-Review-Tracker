@@ -964,6 +964,7 @@ class GUSModel {
     return (data.records || []).map(r => { const copy = {...r}; delete copy.attributes; return copy; });
   }
   async query(soql) {
+    if (IS_GUS_APPS) return this._serverQuery(soql);
     if (!this.useMock) {
       const url = `${this.instanceUrl}/services/data/${this.apiVersion}/query?q=${encodeURIComponent(soql)}`;
       const resp = await fetch(url, { headers: { 'Authorization': `Bearer ${this.token}`, 'Content-Type': 'application/json' } });
@@ -974,6 +975,11 @@ class GUSModel {
     return this._serverQuery(soql);
   }
   async patchEpic(epicId, fields) {
+    if (IS_GUS_APPS) {
+      const updates = Object.entries(fields).map(([k, v]) => ({ field: k, value: v }));
+      for (const u of updates) await gusApi('update', { epicId, ...u });
+      return true;
+    }
     if (this.useMock) { showToast('Mock mode: edit saved locally only', 'info'); return true; }
     const url = `${this.instanceUrl}/services/data/${this.apiVersion}/sobjects/ADM_Epic__c/${epicId}`;
     const resp = await fetch(url, { method: 'PATCH', headers: { 'Authorization': `Bearer ${this.token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(fields) });
