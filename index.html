@@ -1716,6 +1716,10 @@ class DashboardView {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
           Capacity Planning
         </button>
+        <button class="pva-tab" data-tab="ai-summarise" onclick="switchPvaTab('ai-summarise')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          AI Summarise
+        </button>
       </div>`;
     }
 
@@ -1799,6 +1803,11 @@ class DashboardView {
     // === TAB: Capacity Planning ===
     if (plan) {
       html += this.renderCapacityTab(plan, totals, epics);
+    }
+
+    // === TAB: AI Summarise ===
+    if (plan) {
+      html += this.renderAISummariseTab(hierarchy, epics);
     }
 
     this.main.innerHTML = html;
@@ -2417,6 +2426,45 @@ class DashboardView {
     </div>`;
 
     html += '</div>'; // close tab-capacity-planning
+    return html;
+  }
+
+  renderAISummariseTab(hierarchy, epics) {
+    let html = `<div id="tab-ai-summarise" class="pva-tab-panel">`;
+    html += `<div style="padding:16px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <div>
+          <h2 style="font-size:18px;font-weight:700;color:#1e293b;margin:0;">V2MOM Executive Summary</h2>
+          <p style="font-size:12px;color:#64748b;margin:4px 0 0;">Generates an executive-ready summary of monthly updates grouped by Method and Measure.</p>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <select id="ai-month-select" style="padding:6px 12px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;font-weight:600;">
+            <option value="Apr">April</option>
+            <option value="May">May</option>
+            <option value="Jun">June</option>
+            <option value="Jul">July</option>
+          </select>
+          <button onclick="runAISummarise()" style="padding:8px 20px;background:linear-gradient(135deg,#1e40af,#7c3aed);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .15s;box-shadow:0 2px 8px rgba(30,64,175,.3);"
+            onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 4px 12px rgba(30,64,175,.4)';"
+            onmouseout="this.style.transform='';this.style.boxShadow='0 2px 8px rgba(30,64,175,.3)';">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+            Summarise
+          </button>
+          <button id="ai-copy-btn" onclick="copyAISummary()" style="display:none;padding:8px 16px;background:#f1f5f9;color:#1e293b;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;"
+            onmouseover="this.style.background='#e2e8f0';"
+            onmouseout="this.style.background='#f1f5f9';">
+            &#128203; Copy Table
+          </button>
+        </div>
+      </div>
+      <div id="ai-summary-output" style="min-height:200px;border:1px solid #e2e8f0;border-radius:8px;padding:16px;background:#f8fafc;">
+        <div style="text-align:center;color:#94a3b8;padding:40px 0;">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="1.5" style="margin:0 auto 12px;display:block;"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          Select a month and click <strong>Summarise</strong> to generate an executive summary of V2MOM updates.
+        </div>
+      </div>
+    </div>`;
+    html += '</div>'; // close tab-ai-summarise
     return html;
   }
 
@@ -3856,6 +3904,223 @@ function switchPvaTab(tabId) {
   if (tabId === 'epic-tracking') requestAnimationFrame(() => {
     document.querySelectorAll('.comment-preview').forEach(el => checkOverflow(el));
   });
+}
+
+/* ================================================================
+   AI SUMMARISE
+   ================================================================ */
+const LLM_ENDPOINT = 'https://eng-ai-model-gateway.sfproxy.devx-preprod.aws-esvc1-useast2.aws.sfdc.cl/chat/completions';
+const LLM_KEY = 'sk-GrosAKvQHWUydayrQ5o5NA';
+const LLM_MODEL = 'gemini-2.0-flash';
+
+function gatherMonthUpdates(monthShort) {
+  const table = document.getElementById('pva-epic-table');
+  if (!table) return [];
+  const rows = table.querySelectorAll('tr.pva-epic-row');
+  const epicUpdates = [];
+  rows.forEach(row => {
+    const epicId = row.dataset.epicId;
+    const epicName = (EPIC_NAMES[epicId] || '').replace(/^\[.*?\]\s*/, '');
+    const health = row.dataset.health || 'Not Started';
+    const meta = SHEET_EPIC_META[epicId] || {};
+    const commentCell = row.querySelector(`td[data-field="month-${monthShort}"]`);
+    const raw = commentCell ? (commentCell.dataset.raw || '') : '';
+    const methodRow = row.closest('tbody')?.querySelector(`tr.pva-method-row`);
+    let methodId = row.dataset.pvaMethod;
+    let measureId = row.dataset.pvaMeasure;
+    epicUpdates.push({ epicId, epicName, health, owner: meta.owner || '', priority: meta.priority || '', raw, methodId, measureId });
+  });
+  return epicUpdates;
+}
+
+function buildHierarchyFromUpdates(updates) {
+  const methods = {};
+  const mRows = document.querySelectorAll('tr.pva-method-row');
+  const msRows = document.querySelectorAll('tr.pva-measure-row');
+  const methodLabels = {};
+  const measureLabels = {};
+  mRows.forEach(r => { const td = r.querySelector('td'); if (td) methodLabels[r.dataset.pvaMethod] = td.textContent.replace(/[▼▶]\s*/, '').replace(/\s*\(\d+.*/, '').trim(); });
+  msRows.forEach(r => { const td = r.querySelector('td'); if (td) measureLabels[r.dataset.pvaMeasure] = td.textContent.replace(/[▼▶]\s*/, '').replace(/\s*\(\d+.*/, '').trim(); });
+
+  updates.forEach(u => {
+    if (!u.raw.trim()) return;
+    const mk = u.methodId || '99';
+    if (!methods[mk]) methods[mk] = { label: methodLabels[mk] || 'Other', measures: {} };
+    const msk = u.measureId || mk + '-ungrouped';
+    if (!methods[mk].measures[msk]) methods[mk].measures[msk] = { label: measureLabels[msk] || 'General', epics: [] };
+    methods[mk].measures[msk].epics.push(u);
+  });
+  return methods;
+}
+
+function execSummaryFromRaw(text) {
+  if (!text || !text.trim()) return '';
+  let s = text.trim();
+  s = s.replace(/^[-•*]\s*/gm, '');
+  s = s.replace(/\n{3,}/g, '\n\n');
+  const lines = s.split(/\n/).map(l => l.trim()).filter(Boolean);
+  const cleaned = lines.map(l => {
+    l = l.replace(/^(?:update|status|note|info|fyi|done|wip|todo|completed|in progress)[:\s-]*/i, '');
+    if (l && l[0] === l[0].toLowerCase()) l = l[0].toUpperCase() + l.slice(1);
+    if (l && !/[.!?]$/.test(l)) l += '.';
+    return l;
+  }).filter(l => l.length > 2);
+  return cleaned.join(' ');
+}
+
+function buildLocalSummary(hierarchy, monthFull) {
+  let rows = [];
+  const sortedMethods = Object.entries(hierarchy).sort((a, b) => Number(a[0]) - Number(b[0]));
+  for (const [mk, method] of sortedMethods) {
+    const sortedMeasures = Object.entries(method.measures).sort((a, b) => a[0].localeCompare(b[0]));
+    for (const [msk, measure] of sortedMeasures) {
+      const epicSummaries = measure.epics.map(e => {
+        const summary = execSummaryFromRaw(e.raw);
+        return { name: e.epicName, health: e.health, owner: e.owner, priority: e.priority, summary };
+      }).filter(e => e.summary);
+      if (epicSummaries.length === 0) continue;
+      const combined = epicSummaries.map(e => e.summary).join(' ');
+      const healthCounts = {};
+      epicSummaries.forEach(e => { healthCounts[e.health] = (healthCounts[e.health] || 0) + 1; });
+      const healthSummary = Object.entries(healthCounts).map(([h, c]) => `${c} ${h}`).join(', ');
+      rows.push({ method: method.label, measure: measure.label, epicCount: epicSummaries.length, healthSummary, combined, epics: epicSummaries });
+    }
+  }
+  return rows;
+}
+
+async function callLLM(prompt) {
+  try {
+    const resp = await fetch(LLM_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${LLM_KEY}` },
+      body: JSON.stringify({ model: LLM_MODEL, messages: [
+        { role: 'system', content: 'You are an executive communications writer for Salesforce engineering. Rewrite raw engineering updates into concise, polished executive summaries. Each summary should be 2-4 sentences. Focus on outcomes, progress, and risks. Use professional language suitable for VP/SVP leadership.' },
+        { role: 'user', content: prompt }
+      ]})
+    });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error.message || 'LLM error');
+    return data.choices?.[0]?.message?.content || '';
+  } catch (e) {
+    console.warn('LLM call failed, using local summarisation:', e.message);
+    return null;
+  }
+}
+
+async function runAISummarise() {
+  const out = document.getElementById('ai-summary-output');
+  const copyBtn = document.getElementById('ai-copy-btn');
+  const monthShort = document.getElementById('ai-month-select')?.value || 'Apr';
+  const monthFull = { Apr: 'April', May: 'May', Jun: 'June', Jul: 'July' }[monthShort] || monthShort;
+
+  out.innerHTML = `<div style="text-align:center;padding:40px 0;"><div class="loading-subtext" style="color:#1e40af;font-size:14px;font-weight:600;">Analysing ${monthFull} updates across all methods and measures...</div></div>`;
+  copyBtn.style.display = 'none';
+
+  await new Promise(r => setTimeout(r, 100));
+
+  const updates = gatherMonthUpdates(monthShort);
+  const withContent = updates.filter(u => u.raw.trim());
+  if (withContent.length === 0) {
+    out.innerHTML = `<div style="text-align:center;color:#94a3b8;padding:40px 0;">No ${monthFull} updates found. Ensure epic comments are populated for this month.</div>`;
+    return;
+  }
+
+  const hierarchy = buildHierarchyFromUpdates(updates);
+  const localRows = buildLocalSummary(hierarchy, monthFull);
+
+  let llmSucceeded = false;
+  const prompt = localRows.map(r =>
+    `Method: ${r.method}\nMeasure: ${r.measure}\nRaw updates from ${r.epicCount} epic(s):\n${r.combined}\n`
+  ).join('\n---\n');
+
+  const llmResult = await callLLM(
+    `Summarise the following ${monthFull} engineering updates into executive-ready summaries. For EACH method+measure pair, write a concise 2-4 sentence executive summary. Return ONLY a JSON array where each item has: {"method":"...","measure":"...","summary":"..."}\n\n${prompt}`
+  );
+
+  let finalRows = localRows;
+  if (llmResult) {
+    try {
+      const jsonMatch = llmResult.match(/\[[\s\S]*\]/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          finalRows = localRows.map((lr, i) => {
+            const match = parsed.find(p => p.measure && lr.measure.includes(p.measure.split(' ')[0])) || parsed[i];
+            return { ...lr, combined: match?.summary || lr.combined };
+          });
+          llmSucceeded = true;
+        }
+      }
+    } catch (e) { console.warn('LLM parse failed:', e); }
+  }
+
+  let tableHtml = `<div style="margin-bottom:12px;display:flex;align-items:center;gap:8px;">
+    <span style="font-size:14px;font-weight:700;color:#1e293b;">Executive Summary &mdash; ${monthFull} Updates</span>
+    <span style="font-size:11px;padding:2px 8px;border-radius:4px;font-weight:600;${llmSucceeded ? 'background:#dcfce7;color:#166534;' : 'background:#dbeafe;color:#1e40af;'}">${llmSucceeded ? 'AI Enhanced' : 'Structured Summary'}</span>
+    <span style="font-size:11px;color:#94a3b8;">${withContent.length} epic updates processed</span>
+  </div>`;
+
+  tableHtml += `<table id="ai-summary-table" style="width:100%;border-collapse:collapse;font-size:12px;">
+    <thead><tr style="background:#1e293b;color:#fff;">
+      <th style="padding:10px 12px;text-align:left;font-weight:700;border-radius:6px 0 0 0;">Method</th>
+      <th style="padding:10px 12px;text-align:left;font-weight:700;">Measure</th>
+      <th style="padding:10px 12px;text-align:center;font-weight:700;">Epics</th>
+      <th style="padding:10px 12px;text-align:center;font-weight:700;">Health</th>
+      <th style="padding:10px 12px;text-align:left;font-weight:700;border-radius:0 6px 0 0;">${monthFull} Summary</th>
+    </tr></thead><tbody>`;
+
+  let prevMethod = '';
+  finalRows.forEach((r, i) => {
+    const methodCell = r.method !== prevMethod
+      ? `<td style="padding:10px 12px;font-weight:700;color:#1e293b;background:#f1f5f9;border-bottom:1px solid #e2e8f0;vertical-align:top;" rowspan="${finalRows.filter(x => x.method === r.method).length}">${esc(r.method)}</td>`
+      : '';
+    prevMethod = r.method;
+    const stripe = i % 2 === 0 ? '' : 'background:#f8fafc;';
+    tableHtml += `<tr style="${stripe}border-bottom:1px solid #e2e8f0;">
+      ${methodCell}
+      <td style="padding:10px 12px;font-weight:600;color:#334155;">${esc(r.measure)}</td>
+      <td style="padding:10px 12px;text-align:center;font-weight:600;">${r.epicCount}</td>
+      <td style="padding:10px 12px;text-align:center;font-size:11px;">${esc(r.healthSummary)}</td>
+      <td style="padding:10px 12px;color:#475569;line-height:1.5;">${esc(r.combined)}</td>
+    </tr>`;
+  });
+  tableHtml += `</tbody></table>`;
+
+  out.innerHTML = tableHtml;
+  copyBtn.style.display = 'inline-flex';
+}
+
+function copyAISummary() {
+  const table = document.getElementById('ai-summary-table');
+  if (!table) return;
+  const rows = table.querySelectorAll('tr');
+  let tsv = '';
+  rows.forEach(row => {
+    const cells = row.querySelectorAll('th, td');
+    const vals = [];
+    cells.forEach(c => vals.push(c.textContent.trim().replace(/\t/g, ' ')));
+    tsv += vals.join('\t') + '\n';
+  });
+  const blob = new Blob([tsv], { type: 'text/plain' });
+  const htmlBlob = new Blob([table.outerHTML], { type: 'text/html' });
+  if (navigator.clipboard && navigator.clipboard.write) {
+    navigator.clipboard.write([new ClipboardItem({ 'text/plain': blob, 'text/html': htmlBlob })]).then(() => {
+      showToast('Summary copied — paste into Slack, Sheets, or Quip', 'success');
+    }).catch(() => fallbackCopy(tsv));
+  } else {
+    fallbackCopy(tsv);
+  }
+}
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  document.body.appendChild(ta);
+  ta.select();
+  document.execCommand('copy');
+  ta.remove();
+  showToast('Summary copied as tab-separated text', 'success');
 }
 
 const _capCharts = [];
