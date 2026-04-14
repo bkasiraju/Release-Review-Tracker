@@ -347,6 +347,8 @@ body { font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe
 .toast-success { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
 .toast-error { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
 .toast-info { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
+.toast-progress { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; animation: slideIn .3s ease, pulse-toast 1.2s ease-in-out infinite; }
+@keyframes pulse-toast { 0%,100%{ opacity:1; } 50%{ opacity:.7; } }
 @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
 /* ===== EMPTY STATE ===== */
@@ -877,13 +879,17 @@ body { font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe
 function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
 function openModal(id) { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-function showToast(msg, type = 'info') {
+function showToast(msg, type = 'info', id) {
   const c = document.getElementById('toast-container');
+  if (id) { const prev = document.getElementById('toast-' + id); if (prev) prev.remove(); }
   const t = document.createElement('div');
   t.className = `toast toast-${type}`;
-  t.textContent = msg;
+  if (id) t.id = 'toast-' + id;
+  const icon = type === 'progress' ? '&#9696; ' : type === 'success' ? '&#10003; ' : type === 'error' ? '&#10007; ' : '';
+  t.innerHTML = icon + msg;
   c.appendChild(t);
-  setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity .3s'; setTimeout(() => t.remove(), 300); }, 4000);
+  if (type !== 'progress') setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity .3s'; setTimeout(() => t.remove(), 300); }, 3000);
+  return t;
 }
 
 const HEALTH_MAP = {
@@ -3339,8 +3345,11 @@ function saveCommentEditor() {
 
   if (GUS_WRITEBACK_FIELDS.has(field)) {
     td.style.borderColor = '#fbbf24';
+    const tid = 'gus-' + epicId.slice(-6) + '-' + field;
+    showToast(`Updating GUS: ${field}...`, 'progress', tid);
     pushToGUS(epicId, field, val).then(ok => {
       td.style.borderColor = ok ? '#22c55e' : '#ef4444';
+      showToast(ok ? `Saved to GUS: ${field}` : `GUS save failed: ${field}`, ok ? 'success' : 'error', tid);
       setTimeout(() => { td.style.borderColor = 'transparent'; }, 2000);
     });
   } else {
@@ -3411,10 +3420,11 @@ function savePvaField(el) {
 
   if (GUS_WRITEBACK_FIELDS.has(field)) {
     el.style.borderColor = '#fbbf24';
+    const tid = 'gus-' + epicId.slice(-6) + '-' + field;
+    showToast(`Updating GUS: ${field}...`, 'progress', tid);
     pushToGUS(epicId, field, val).then(ok => {
       el.style.borderColor = ok ? '#16a34a' : '#dc2626';
-      if (ok) showToast(`Saved to GUS: ${field}`, 'success');
-      else showToast(`GUS save failed: ${field}`, 'error');
+      showToast(ok ? `Saved to GUS: ${field}` : `GUS save failed: ${field}`, ok ? 'success' : 'error', tid);
       setTimeout(() => { el.style.borderColor = ''; }, 2000);
     });
   } else {
@@ -3426,6 +3436,7 @@ function savePvaField(el) {
 async function pushToGUS(epicId, field, value) {
   try {
     const data = await gusApi('update', { epicId, field, value });
+    if (data.status !== 'ok') console.warn('GUS update response:', JSON.stringify(data));
     return data.status === 'ok';
   } catch (e) {
     console.error('GUS write-back error:', e);
@@ -3446,15 +3457,15 @@ async function pushAllEditsToGUS() {
   }
   if (updates.length === 0) { showToast('No GUS-writable changes to push', 'info'); return; }
 
-  showToast(`Pushing ${updates.length} epic(s) to GUS...`, 'info');
+  showToast(`Pushing ${updates.length} epic(s) to GUS...`, 'progress', 'batch-push');
   try {
     const data = await gusApi('batchUpdate', { updates });
     const ok = (data.results || []).filter(r => r.status === 'ok').length;
     const fail = (data.results || []).filter(r => r.status === 'error').length;
-    showToast(`GUS: ${ok} updated, ${fail} failed`, ok > 0 && fail === 0 ? 'success' : 'error');
+    showToast(`GUS: ${ok} updated, ${fail} failed`, ok > 0 && fail === 0 ? 'success' : 'error', 'batch-push');
   } catch (e) {
     console.error('Batch GUS error:', e);
-    showToast('Batch GUS push failed', 'error');
+    showToast('Batch GUS push failed', 'error', 'batch-push');
   }
 }
 function savePvaLink(el) {
@@ -3825,7 +3836,8 @@ gusSyncEngine.restore();
 
 if (IS_GUS_APPS) {
   const hubLink = document.getElementById('hub-link');
-  if (hubLink) hubLink.style.display = 'block';
+  if (hubLink) hubLink.style.display = 'flex';
+  gusApi('debug', {}).then(d => console.log('[GUS-APPS SF DEBUG]', JSON.stringify(d))).catch(e => console.warn('debug probe failed:', e));
 }
 
 function switchPvaTab(tabId) {

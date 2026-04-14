@@ -29,35 +29,31 @@ function mergeMonthComment(existing, monthLabel, newText) {
 
 async function sfUpdateRecord(sf, objectName, recordId, fields) {
   const record = { Id: recordId, ...fields };
+  const errors = [];
 
-  // Approach 1: jsforce-style sf.sobject(name).update(record)
   if (typeof sf.sobject === 'function') {
     try {
       const r = await sf.sobject(objectName).update(record);
-      if (r && (r.id || r.success !== false)) return { ok: true, result: r };
-    } catch (e) { /* fall through */ }
+      if (r && (r.id || r.success !== false)) return { ok: true, result: r, method: 'sobject' };
+    } catch (e) { errors.push({ method: 'sobject', error: e.message || String(e) }); }
   }
 
-  // Approach 2: sf.update(objectName, { Id, ...fields })
   try {
     const r = await sf.update(objectName, record);
-    if (r && (r.id || r.success !== false)) return { ok: true, result: r };
-  } catch (e) { /* fall through */ }
+    if (r && (r.id || r.success !== false)) return { ok: true, result: r, method: 'update-2arg' };
+  } catch (e) { errors.push({ method: 'update-2arg', error: e.message || String(e) }); }
 
-  // Approach 3: sf.update(objectName, [{ Id, ...fields }]) (batch array format)
   try {
     const r = await sf.update(objectName, [record]);
     const item = Array.isArray(r) ? r[0] : r;
-    if (item && (item.id || item.success !== false)) return { ok: true, result: item };
-  } catch (e) { /* fall through */ }
+    if (item && (item.id || item.success !== false)) return { ok: true, result: item, method: 'update-array' };
+  } catch (e) { errors.push({ method: 'update-array', error: e.message || String(e) }); }
 
-  // Approach 4: sf.update(objectName, recordId, fields) (3-arg)
   try {
     const r = await sf.update(objectName, recordId, fields);
-    if (r && (r.id || r.success !== false)) return { ok: true, result: r };
-  } catch (e) { /* fall through */ }
+    if (r && (r.id || r.success !== false)) return { ok: true, result: r, method: 'update-3arg' };
+  } catch (e) { errors.push({ method: 'update-3arg', error: e.message || String(e) }); }
 
-  // Approach 5: sf.request — raw REST API PATCH
   if (typeof sf.request === 'function') {
     try {
       const r = await sf.request({
@@ -66,11 +62,25 @@ async function sfUpdateRecord(sf, objectName, recordId, fields) {
         body: JSON.stringify(fields),
         headers: { 'Content-Type': 'application/json' }
       });
-      return { ok: true, result: r || { id: recordId, success: true } };
-    } catch (e) { /* fall through */ }
+      return { ok: true, result: r || { id: recordId, success: true }, method: 'request-patch' };
+    } catch (e) { errors.push({ method: 'request-patch', error: e.message || String(e) }); }
   }
 
-  return { ok: false, error: 'All update approaches failed' };
+  return { ok: false, error: 'All update approaches failed', details: errors };
+}
+
+function inspectSf(sf) {
+  const info = { type: typeof sf, keys: [], methods: [], hasQuery: false, hasUpdate: false, hasSobject: false, hasRequest: false };
+  if (sf && typeof sf === 'object') {
+    info.keys = Object.keys(sf);
+    info.methods = Object.keys(sf).filter(k => typeof sf[k] === 'function');
+    info.hasQuery = typeof sf.query === 'function';
+    info.hasUpdate = typeof sf.update === 'function';
+    info.hasSobject = typeof sf.sobject === 'function';
+    info.hasRequest = typeof sf.request === 'function';
+    if (sf.constructor) info.constructorName = sf.constructor.name;
+  }
+  return info;
 }
 
 module.exports.handleRequest = async (ctx) => {
@@ -78,6 +88,13 @@ module.exports.handleRequest = async (ctx) => {
   const sf = ctx.sf || {};
   const body = req.body || req;
   const action = body.action;
+
+  if (action === 'debug') {
+    const sfInfo = inspectSf(sf);
+    const ctxKeys = Object.keys(ctx);
+    const reqKeys = req ? Object.keys(req) : [];
+    return { ok: true, payload: { sfInfo, ctxKeys, reqKeys, bodyKeys: Object.keys(body) } };
+  }
 
   if (action === 'query') {
     const { soql } = body;
@@ -121,7 +138,7 @@ module.exports.handleRequest = async (ctx) => {
     const upd = await sfUpdateRecord(sf, 'ADM_Epic__c', epicId, { [gusField]: gusValue });
     return {
       ok: true,
-      payload: { status: upd.ok ? 'ok' : 'error', epicId, gusField, error: upd.error || null }
+      payload: { status: upd.ok ? 'ok' : 'error', epicId, gusField, method: upd.method || null, error: upd.error || null, details: upd.details || null }
     };
   }
 
@@ -163,7 +180,7 @@ module.exports.handleRequest = async (ctx) => {
       if (Object.keys(gusUpdates).length) {
         try {
           const r = await sfUpdateRecord(sf, 'ADM_Epic__c', epicId, gusUpdates);
-          results.push({ epicId, status: r.ok ? 'ok' : 'error', error: r.error || null, fields: Object.keys(gusUpdates) });
+          results.push({ epicId, status: r.ok ? 'ok' : 'error', method: r.method || null, error: r.error || null, details: r.details || null, fields: Object.keys(gusUpdates) });
         } catch (e) {
           results.push({ epicId, status: 'error', error: e.message });
         }
