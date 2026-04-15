@@ -566,8 +566,9 @@ body { font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe
 .pva-sp-burn-fill { position: absolute; bottom: 0; left: 0; right: 0; border-radius: 0 0 2px 2px; min-height: 0; background: linear-gradient(180deg,#4ade80,#16a34a); transition: height .22s ease; }
 .pva-progress-bar { height: 5px; border-radius: 3px; background: #e8e6df; overflow: hidden; margin-top: 3px; }
 .pva-progress-bar .fill { height: 100%; border-radius: 3px; transition: width .4s; }
-.pva-table-panel { width: 100%; max-width: 100%; overflow-x: auto; overflow-y: hidden; margin-top: 8px; -webkit-overflow-scrolling: touch; position: relative; box-sizing: border-box; background: transparent; border: none; box-shadow: none; }
-.pva-table-panel-card { display: inline-block; vertical-align: top; width: max-content; max-width: 100%; position: relative; box-sizing: border-box; background: linear-gradient(180deg, #ffffff 0%, #fafcff 55%, #f5faff 100%); border: 1px solid #e0f2fe; border-radius: 8px; box-shadow: 0 1px 3px rgba(14, 116, 144, .06); }
+/* Shrink-wrap to table: avoid a full-width scroll strip with empty area right of the card (was width:100%). */
+.pva-table-panel { display: inline-block; vertical-align: top; width: auto; max-width: 100%; overflow-x: auto; overflow-y: hidden; margin-top: 8px; -webkit-overflow-scrolling: touch; position: relative; box-sizing: border-box; background: transparent; border: none; box-shadow: none; }
+.pva-table-panel-card { display: block; width: max-content; max-width: 100%; position: relative; box-sizing: border-box; background: linear-gradient(180deg, #ffffff 0%, #fafcff 55%, #f5faff 100%); border: 1px solid #e0f2fe; border-radius: 8px; box-shadow: 0 1px 3px rgba(14, 116, 144, .06); }
 .pva-table-panel-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; border-radius: 8px 8px 0 0; background: linear-gradient(90deg, #bae6fd 0%, #7dd3fc 35%, #a5b4fc 70%, #c4b5fd 100%); opacity: .85; pointer-events: none; }
 
 /* AI Executive summary tab */
