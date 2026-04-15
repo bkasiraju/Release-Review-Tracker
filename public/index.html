@@ -406,8 +406,8 @@ body { font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe
 @media (max-width: 900px) { .pva-risks-grid { grid-template-columns: 1fr; } }
 .pva-chart-container { height: 220px; }
 
-/* PVA Summary Table — width: max-content avoids phantom column slack; panel uses fit-content so no empty strip right of the table. */
-.pva-epic-table { width: max-content; border-collapse: collapse; table-layout: fixed; --pva-col-me-width: 320px; }
+/* PVA Summary Table — auto layout + display:none hidden months avoids phantom columns; outer panel scrolls, inner card hugs table width. */
+.pva-epic-table { width: max-content; border-collapse: collapse; table-layout: auto; --pva-col-me-width: 320px; }
 .pva-epic-table th.pva-col-me,
 .pva-epic-table td.pva-col-me { width: var(--pva-col-me-width); min-width: var(--pva-col-me-width); max-width: var(--pva-col-me-width); box-sizing: border-box; }
 .pva-epic-table th.pva-col-owner,
@@ -566,8 +566,9 @@ body { font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe
 .pva-sp-burn-fill { position: absolute; bottom: 0; left: 0; right: 0; border-radius: 0 0 2px 2px; min-height: 0; background: linear-gradient(180deg,#4ade80,#16a34a); transition: height .22s ease; }
 .pva-progress-bar { height: 5px; border-radius: 3px; background: #e8e6df; overflow: hidden; margin-top: 3px; }
 .pva-progress-bar .fill { height: 100%; border-radius: 3px; transition: width .4s; }
-.pva-table-panel { background: linear-gradient(180deg, #ffffff 0%, #fafcff 55%, #f5faff 100%); border: 1px solid #e0f2fe; border-radius: 8px; box-shadow: 0 1px 3px rgba(14, 116, 144, .06); overflow-x: auto; overflow-y: hidden; position: relative; margin-top: 8px; -webkit-overflow-scrolling: touch; width: -webkit-fit-content; width: fit-content; max-width: 100%; box-sizing: border-box; }
-.pva-table-panel::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #bae6fd 0%, #7dd3fc 35%, #a5b4fc 70%, #c4b5fd 100%); opacity: .85; }
+.pva-table-panel { width: 100%; max-width: 100%; overflow-x: auto; overflow-y: hidden; margin-top: 8px; -webkit-overflow-scrolling: touch; position: relative; box-sizing: border-box; background: transparent; border: none; box-shadow: none; }
+.pva-table-panel-card { display: inline-block; vertical-align: top; width: max-content; max-width: 100%; position: relative; box-sizing: border-box; background: linear-gradient(180deg, #ffffff 0%, #fafcff 55%, #f5faff 100%); border: 1px solid #e0f2fe; border-radius: 8px; box-shadow: 0 1px 3px rgba(14, 116, 144, .06); }
+.pva-table-panel-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; border-radius: 8px 8px 0 0; background: linear-gradient(90deg, #bae6fd 0%, #7dd3fc 35%, #a5b4fc 70%, #c4b5fd 100%); opacity: .85; pointer-events: none; }
 
 /* AI Executive summary tab */
 .ai-summary-outline { border: 1px solid #bae6fd; border-radius: 8px; background: linear-gradient(180deg, #f8fafc, #fff); padding: 10px 12px; margin-bottom: 14px; font-size: 12px; }
@@ -987,6 +988,22 @@ body { font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe
    UTILITIES
    ================================================================ */
 function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+
+/** V2MOM method row number from plan entry (stable vs. table row order). */
+function v2momMethodNumFromPlanEntry(m, planIdx) {
+  const mm = (m && m.method || '').match(/^M\s*(\d+)/i);
+  if (mm) return mm[1];
+  return String((planIdx | 0) + 1);
+}
+
+/** Avoid "M1 — M1 – …" when plan `method` already starts with M{n}. */
+function pvaStripDuplicateMethodPrefix(methodNum, methodLabel) {
+  if (!methodLabel) return '';
+  const mn = String(methodNum);
+  const re = new RegExp('^\\s*M\\s*' + mn.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s*[\\u2013\\u2014\\-]\\s*', 'i');
+  const s = String(methodLabel).replace(re, '').trim();
+  return s || methodLabel;
+}
 
 function buildEpicByEpicProgressChartOption(hierarchy) {
   if (!hierarchy || !hierarchy.length) return null;
@@ -2416,13 +2433,14 @@ class DashboardView {
       </div>
       <div class="pva-method-grid">`;
     p.v2momMethods.forEach((m, mi) => {
+      const methodNum = v2momMethodNumFromPlanEntry(m, mi);
       const priTotal = (m.p0||0) + (m.p1||0) + (m.p2||0) || 1;
       const p0w = ((m.p0||0)/priTotal*100).toFixed(0);
       const p1w = ((m.p1||0)/priTotal*100).toFixed(0);
       const p2w = ((m.p2||0)/priTotal*100).toFixed(0);
       const daysPct = ((m.days / totalDays) * 100).toFixed(0);
       const measCount = (m.measures || []).length;
-      html += `<div class="pva-method-item" data-method-idx="${mi}" onclick="filterByMethodTile(${mi})" ondblclick="openMtileFlyout(${mi})">
+      html += `<div class="pva-method-item" data-method-num="${esc(methodNum)}" onclick='filterByMethodTile(${JSON.stringify(methodNum)})' ondblclick='openMtileFlyout(${JSON.stringify(methodNum)})'>
         <div class="pmi-name" title="${esc(m.method)}">${esc(m.method)}</div>
         <div class="pmi-metrics">
           <div class="pmi-metric"><div class="pmi-metric-val" style="color:#7c3aed;">${m.epics}</div><div class="pmi-metric-lbl">Epics</div></div>
@@ -2622,7 +2640,7 @@ class DashboardView {
       </div>
     </div>`;
 
-    html += `<div class="pva-table-panel"><table class="pva-epic-table" id="pva-epic-table">
+    html += `<div class="pva-table-panel"><div class="pva-table-panel-card"><table class="pva-epic-table" id="pva-epic-table">
       <thead><tr>
         <th class="pva-col-me" style="text-align:left;">Measure / Epic</th>
         <th class="pva-col-owner" style="text-align:left;">Owner</th>
@@ -2636,13 +2654,15 @@ class DashboardView {
         ${monthHeaders}
       </tr></thead><tbody>`;
 
-    hierarchy.forEach((mg, mi) => {
+    hierarchy.forEach((mg) => {
+      const mNum = String(mg.methodNum);
       const allEpics = mg.measures.flatMap(m => m.epics);
       const mhc = this._miniCount(allEpics.map(e => e.Health__c));
       const mBadges = Object.entries(mhc).map(([h, c]) => miniBadge(c, HEALTH_MAP[h]?.color || '#94a3b8', HEALTH_MAP[h]?.bg || '#f1f5f9')).join('');
       const methodOwners = [...new Set(allEpics.map(e => getEpicMeta(e.Id).owner).filter(Boolean))].join(' ');
-      html += `<tr class="pva-method-row collapsed" data-pva-method="${mi}" data-search-text="${esc(('M' + mg.methodNum + ' ' + mg.methodLabel + ' ' + methodOwners).toLowerCase())}" onclick="togglePvaMethod(${mi})">
-        <td colspan="${totalCols}"><span class="chevron">&#9660;</span>M${esc(mg.methodNum)} &mdash; ${esc(mg.methodLabel)} <span style="font-weight:400;opacity:.8;margin-left:4px;">(${allEpics.length} epics, ${mg.measures.length} measures)</span><span class="group-badges" style="margin-left:8px;">${mBadges}</span></td>
+      const methodRowTitle = pvaStripDuplicateMethodPrefix(mg.methodNum, mg.methodLabel);
+      html += `<tr class="pva-method-row collapsed" data-pva-method="${esc(mNum)}" data-search-text="${esc(('M' + mg.methodNum + ' ' + mg.methodLabel + ' ' + methodOwners).toLowerCase())}" onclick='togglePvaMethod(${JSON.stringify(mNum)})'>
+        <td colspan="${totalCols}"><span class="chevron">&#9660;</span>M${esc(mg.methodNum)} &mdash; ${esc(methodRowTitle)} <span style="font-weight:400;opacity:.8;margin-left:4px;">(${allEpics.length} epics, ${mg.measures.length} measures)</span><span class="group-badges" style="margin-left:8px;">${mBadges}</span></td>
       </tr>`;
 
       mg.measures.forEach((meas, msIdx) => {
@@ -2650,11 +2670,11 @@ class DashboardView {
         const msBadges = Object.entries(msHc).map(([h, c]) => miniBadge(c, HEALTH_MAP[h]?.color || '#94a3b8', HEALTH_MAP[h]?.bg || '#f1f5f9')).join('');
         const msHealthDots = Object.entries(msHc).map(([h, c]) => {
           const col = HEALTH_MAP[h]?.color || '#94a3b8';
-          return `<span class="ms-health-dot" style="background:${col};" data-health-val="${esc(h)}" onclick="event.stopPropagation();filterMeasureByHealth('${mi}-${msIdx}','${esc(h)}',this)" title="${esc(h)}: ${c}"></span>`;
+          return `<span class="ms-health-dot" style="background:${col};" data-health-val="${esc(h)}" onclick='event.stopPropagation();filterMeasureByHealth(${JSON.stringify(mNum + '-' + msIdx)},${JSON.stringify(h)},this)' title="${esc(h)}: ${c}"></span>`;
         }).join('');
         const shortLabel = meas.measureLabel.replace(/^\d+(?:\.\d+)*\s*/, '');
         const measOwners = [...new Set(meas.epics.map(e => getEpicMeta(e.Id).owner).filter(Boolean))].join(' ');
-        html += `<tr class="pva-measure-row pva-hidden collapsed" data-pva-method="${mi}" data-pva-measure="${mi}-${msIdx}" data-search-text="${esc((meas.measureNum + ' ' + shortLabel + ' ' + meas.measureLabel + ' ' + measOwners).toLowerCase())}" onclick="togglePvaMeasure(${mi},${msIdx})">
+        html += `<tr class="pva-measure-row pva-hidden collapsed" data-pva-method="${esc(mNum)}" data-pva-measure="${esc(mNum)}-${msIdx}" data-search-text="${esc((meas.measureNum + ' ' + shortLabel + ' ' + meas.measureLabel + ' ' + measOwners).toLowerCase())}" onclick='togglePvaMeasure(${JSON.stringify(mNum)},${msIdx})'>
           <td colspan="${totalCols}"><span class="chevron">&#9660;</span>${esc(meas.measureNum)} &mdash; ${esc(shortLabel)} (${meas.epics.length} epic${meas.epics.length !== 1 ? 's' : ''})<span class="group-badges" style="margin-left:6px;">${msBadges}</span><span style="margin-left:6px;display:inline-flex;gap:3px;vertical-align:middle;">${msHealthDots}</span></td>
         </tr>`;
 
@@ -2673,7 +2693,7 @@ class DashboardView {
             return `<td class="pva-comment-cell cell-month-update pva-month-col${hidden}" data-month-idx="${ci}" data-epic-id="${esc(epic.Id)}" data-field="month-${r264Months[ci].short}" data-raw="${esc(c)}" onclick="openCommentEditor(this)" title="Click to edit"><div class="comment-preview">${rendered}</div></td>`;
           }).join('');
 
-          html += `<tr class="pva-epic-row pva-hidden" data-pva-method="${mi}" data-pva-measure="${mi}-${msIdx}" data-epic-id="${esc(epic.Id)}" data-health="${esc(epic.Health__c || 'Not Started')}" data-owner="${esc(em.owner)}" data-search-text="${esc((epicName + ' ' + projName + ' ' + (em.owner||'') + ' ' + (em.priority||'') + ' ' + (epic.Health__c||'') + ' ' + (em.sprintTarget||'')).toLowerCase())}">
+          html += `<tr class="pva-epic-row pva-hidden" data-pva-method="${esc(mNum)}" data-pva-measure="${esc(mNum)}-${msIdx}" data-epic-id="${esc(epic.Id)}" data-health="${esc(epic.Health__c || 'Not Started')}" data-owner="${esc(em.owner)}" data-search-text="${esc((epicName + ' ' + projName + ' ' + (em.owner||'') + ' ' + (em.priority||'') + ' ' + (epic.Health__c||'') + ' ' + (em.sprintTarget||'')).toLowerCase())}">
             <td class="pva-col-me pva-epic-name-cell" style="text-align:left;">
               <div class="pva-epic-name-row" data-full-name="${esc(epicName)}">
                 ${newEpicBadge}
@@ -2701,7 +2721,7 @@ class DashboardView {
       });
     });
 
-    html += `</tbody></table></div>`;
+    html += `</tbody></table></div></div>`;
 
     html += `</div>`;
 
@@ -3887,8 +3907,8 @@ function getEpicMeta(epicId) { return SHEET_EPIC_META[epicId] || { owner:'', pri
 })();
 
 /**
- * Static / GitHub Pages: when GUS is unavailable, still show plausible P/A/C and WI counts
- * (deterministic from epic id + wsLinks count — not live GUS).
+ * Static / GitHub Pages fallback: epic shell from sheet + V2MOM map.
+ * Story point and work-item rollups stay at 0 unless loaded from GUS (no fabricated “closed” or delivery).
  */
 function buildOfflineEpicFromSheet(eid) {
   const em = SHEET_EPIC_META[eid] || {};
@@ -3897,25 +3917,8 @@ function buildOfflineEpicFromSheet(eid) {
   const measure = mk && V2MOM_MEASURES[mk];
   const projectR = measure ? { Name: measure.Name, V2MOM_Method__c: measure.V2MOM_Method__c } : { Name: em.measures || '', V2MOM_Method__c: '' };
 
-  let h = 2166136261;
-  for (let i = 0; i < eid.length; i++) h = Math.imul(h ^ eid.charCodeAt(i), 16777619);
-  const u = (n) => Math.abs(n >>> 0);
-  const ws = (em.wsLinks || []).length;
-  const planned = Math.max(5, Math.min(140, 12 + u(h) % 90 + ws * 3));
-  const actual = Math.max(Math.max(0, planned - 8), Math.min(planned + 25, planned - 5 + u(h >> 8) % 28));
-  const closed = Math.min(actual, Math.floor(actual * (0.28 + (u(h >> 16) % 45) / 100)));
-
   const statusRaw = (em.status || 'Not Started').trim();
   const health = HEALTH_MAP[statusRaw] ? statusRaw : 'Not Started';
-
-  const ipSP = Math.min(15, u(h >> 4) % 7);
-  const nSP = Math.min(10, u(h >> 12) % 6);
-  const wC = Math.max(0, u(h) % 35 + ws);
-  const wIP = u(h >> 6) % 9;
-  const wN = u(h >> 14) % 7;
-  const wW = u(h >> 20) % 5;
-  const wipTotal = Math.max(1, wC + wIP + wN + wW);
-  const pct = Math.min(100, Math.round((wC / wipTotal) * 100));
 
   return {
     Id: eid,
@@ -3925,32 +3928,32 @@ function buildOfflineEpicFromSheet(eid) {
     Epic_Health_Comments__c: '',
     Path_to_Green__c: null,
     Slippage_Comments__c: null,
-    Planned_Story_Points__c: planned,
-    Actual_Story_Points_on_Epic__c: actual,
-    Storypoints_Closed__c: closed,
-    Storypoints_In_Progress__c: ipSP,
-    Storypoints_New__c: nSP,
+    Planned_Story_Points__c: 0,
+    Actual_Story_Points_on_Epic__c: 0,
+    Storypoints_Closed__c: 0,
+    Storypoints_In_Progress__c: 0,
+    Storypoints_New__c: 0,
     Storypoints_In_Waiting__c: 0,
-    Workitems_Closed__c: wC,
-    WorkItems_In_Progress__c: wIP,
-    Workitems_New__c: wN,
-    Workitems_in_Waiting__c: wW,
-    Remaining_Story_Points__c: Math.max(0, actual - closed),
-    Remaining_Work_Items__c: wIP + wN + wW,
-    Percent_Of_Work_Items_Complete__c: pct,
-    Committed_Story_Points_on_Epic__c: planned,
-    Committed_Work_Items_on_Epic__c: Math.max(wC, Math.floor(planned / 10) || 1),
-    Actual_Work_Items_on_Epic__c: wipTotal,
-    Additional_Work_Items__c: u(h >> 2) % 4,
-    Subtracted_Work_Items__c: u(h >> 10) % 3,
-    Additional_Story_Points__c: u(h >> 18) % 8,
-    Subtracted_Story_Points__c: u(h >> 22) % 5,
+    Workitems_Closed__c: 0,
+    WorkItems_In_Progress__c: 0,
+    Workitems_New__c: 0,
+    Workitems_in_Waiting__c: 0,
+    Remaining_Story_Points__c: 0,
+    Remaining_Work_Items__c: 0,
+    Percent_Of_Work_Items_Complete__c: 0,
+    Committed_Story_Points_on_Epic__c: 0,
+    Committed_Work_Items_on_Epic__c: 0,
+    Actual_Work_Items_on_Epic__c: 0,
+    Additional_Work_Items__c: 0,
+    Subtracted_Work_Items__c: 0,
+    Additional_Story_Points__c: 0,
+    Subtracted_Story_Points__c: 0,
     Project__r: projectR,
     Team__r: { Name: '' }
   };
 }
 
-/** GitHub Pages: GUS may return epic shells with null SP; fill from sheet-backed synthetic when all SP are zero. */
+/** GitHub Pages: GUS may omit Project__r on epic shells; fill V2MOM from sheet only — never invent SP/WI. */
 function isGithubPagesHost() {
   const h = (typeof location !== 'undefined' && location.hostname) || '';
   return /\.github\.io$/i.test(h);
@@ -3960,30 +3963,9 @@ function mergeSyntheticStoryPointsIntoEpics(epics) {
   if (!isGithubPagesHost() || !epics || !epics.length) return epics;
   for (const e of epics) {
     if (!e || !e.Id || !SHEET_EPIC_META[e.Id]) continue;
-    const spSum = (Number(e.Planned_Story_Points__c) || 0) + (Number(e.Actual_Story_Points_on_Epic__c) || 0) + (Number(e.Storypoints_Closed__c) || 0);
-    if (spSum > 0) continue;
+    if (e.Project__r && (e.Project__r.Name || e.Project__r.V2MOM_Method__c)) continue;
     const syn = buildOfflineEpicFromSheet(e.Id);
-    e.Planned_Story_Points__c = syn.Planned_Story_Points__c;
-    e.Actual_Story_Points_on_Epic__c = syn.Actual_Story_Points_on_Epic__c;
-    e.Storypoints_Closed__c = syn.Storypoints_Closed__c;
-    e.Storypoints_In_Progress__c = syn.Storypoints_In_Progress__c;
-    e.Storypoints_New__c = syn.Storypoints_New__c;
-    e.Storypoints_In_Waiting__c = syn.Storypoints_In_Waiting__c;
-    e.Workitems_Closed__c = syn.Workitems_Closed__c;
-    e.WorkItems_In_Progress__c = syn.WorkItems_In_Progress__c;
-    e.Workitems_New__c = syn.Workitems_New__c;
-    e.Workitems_in_Waiting__c = syn.Workitems_in_Waiting__c;
-    e.Remaining_Story_Points__c = syn.Remaining_Story_Points__c;
-    e.Remaining_Work_Items__c = syn.Remaining_Work_Items__c;
-    e.Percent_Of_Work_Items_Complete__c = syn.Percent_Of_Work_Items_Complete__c;
-    e.Committed_Story_Points_on_Epic__c = syn.Committed_Story_Points_on_Epic__c;
-    e.Committed_Work_Items_on_Epic__c = syn.Committed_Work_Items_on_Epic__c;
-    e.Actual_Work_Items_on_Epic__c = syn.Actual_Work_Items_on_Epic__c;
-    if (e.Additional_Work_Items__c == null) e.Additional_Work_Items__c = syn.Additional_Work_Items__c;
-    if (e.Subtracted_Work_Items__c == null) e.Subtracted_Work_Items__c = syn.Subtracted_Work_Items__c;
-    if (e.Additional_Story_Points__c == null) e.Additional_Story_Points__c = syn.Additional_Story_Points__c;
-    if (e.Subtracted_Story_Points__c == null) e.Subtracted_Story_Points__c = syn.Subtracted_Story_Points__c;
-    if (!e.Project__r || (!e.Project__r.Name && !e.Project__r.V2MOM_Method__c)) e.Project__r = syn.Project__r;
+    e.Project__r = syn.Project__r;
   }
   return epics;
 }
@@ -5482,11 +5464,11 @@ function _clearMethodTileSelection() {
 function _applyMethodTileFilter() {
   if (_activeMethodTileSet.size === 0) return;
   document.querySelectorAll('tr.pva-method-row').forEach(r => {
-    const sel = _activeMethodTileSet.has(+r.dataset.pvaMethod);
+    const sel = _activeMethodTileSet.has(String(r.dataset.pvaMethod || ''));
     r.classList.toggle('collapsed', !sel);
   });
   document.querySelectorAll('tr.pva-measure-row').forEach(r => {
-    const sel = _activeMethodTileSet.has(+r.dataset.pvaMethod);
+    const sel = _activeMethodTileSet.has(String(r.dataset.pvaMethod || ''));
     r.classList.toggle('pva-hidden', !sel);
     r.classList.add('collapsed');
   });
@@ -5581,7 +5563,7 @@ function _applyAllFilters() {
 
   let visibleCount = 0;
   document.querySelectorAll('tr.pva-epic-row').forEach(row => {
-    const mi = +row.dataset.pvaMethod;
+    const mi = String(row.dataset.pvaMethod || '');
     const inMethod = !methodFilterOn || _activeMethodTileSet.has(mi);
     const matchH = !healthVal || (row.dataset.health || '') === healthVal;
     const matchO = !ownerVal || (row.dataset.owner || '') === ownerVal;
@@ -5592,7 +5574,7 @@ function _applyAllFilters() {
   });
 
   document.querySelectorAll('tr.pva-measure-row').forEach(row => {
-    const mi = +row.dataset.pvaMethod;
+    const mi = String(row.dataset.pvaMethod || '');
     if (methodFilterOn && !_activeMethodTileSet.has(mi)) {
       row.classList.add('pva-hidden');
       row.classList.add('collapsed');
@@ -5607,8 +5589,8 @@ function _applyAllFilters() {
   });
 
   document.querySelectorAll('tr.pva-method-row').forEach(row => {
-    const mi = row.dataset.pvaMethod;
-    if (methodFilterOn && !_activeMethodTileSet.has(+mi)) {
+    const mi = String(row.dataset.pvaMethod || '');
+    if (methodFilterOn && !_activeMethodTileSet.has(mi)) {
       row.classList.add('collapsed');
       return;
     }
@@ -5638,27 +5620,32 @@ function filterMeasureByHealth(measureKey, health, dotEl) {
 }
 
 /* ===== METHOD TILE CLICK-TO-FILTER (multi-select) ===== */
-function filterByMethodTile(mi) {
+function filterByMethodTile(methodNum) {
+  const mn = String(methodNum);
   const tiles = document.querySelectorAll('.pva-method-item');
-  if (_activeMethodTileSet.has(mi)) _activeMethodTileSet.delete(mi);
-  else _activeMethodTileSet.add(mi);
+  if (_activeMethodTileSet.has(mn)) _activeMethodTileSet.delete(mn);
+  else _activeMethodTileSet.add(mn);
   tiles.forEach(t => {
-    const idx = +t.dataset.methodIdx;
-    t.classList.toggle('mtile-active', _activeMethodTileSet.has(idx));
+    const id = String(t.dataset.methodNum || '');
+    t.classList.toggle('mtile-active', _activeMethodTileSet.has(id));
   });
   _applyAllFilters();
 }
 
 /* ===== METHOD TILE DOUBLE-CLICK FLYOUT ===== */
 const _mtileColors = ['#1e40af','#7c3aed','#059669','#d97706','#dc2626','#0e7490'];
-function openMtileFlyout(mi) {
+function openMtileFlyout(methodNum) {
+  const mn = String(methodNum);
   const relId = ctrl._lastReleaseId || document.getElementById('sel-release')?.value;
   const plan = relId ? TEAM_PLANS[relId] : (ctrl._activeTab ? TEAM_PLANS[ctrl._activeTab] : null);
-  if (!plan || !plan.v2momMethods[mi]) return;
-  const m = plan.v2momMethods[mi];
-  const color = _mtileColors[mi % _mtileColors.length];
+  if (!plan || !plan.v2momMethods) return;
+  const planIdx = plan.v2momMethods.findIndex((x, i) => v2momMethodNumFromPlanEntry(x, i) === mn);
+  const m = planIdx >= 0 ? plan.v2momMethods[planIdx] : null;
+  if (!m) return;
+  const colorIdx = Math.max(0, parseInt(mn, 10) - 1);
+  const color = _mtileColors[colorIdx % _mtileColors.length];
   const hierarchy = ctrl._lastHierarchy || [];
-  const mg = hierarchy[mi];
+  const mg = hierarchy.find(h => String(h.methodNum) === mn);
 
   document.getElementById('mf-title').textContent = m.method;
   const measCount = (m.measures || []).length;
@@ -5709,8 +5696,20 @@ function openMtileFlyout(mi) {
 
   if (m.measures && m.measures.length > 0) {
     body += `<div class="mtile-flyout-section"><h4>Measures (${m.measures.length})</h4>`;
-    m.measures.forEach((ms, msIdx) => {
-      const msEpics = mg?.measures[msIdx]?.epics || [];
+    m.measures.forEach((ms) => {
+      const msStr = String(ms);
+      const pNum = (msStr.match(/^(\d+(?:\.\d+)*)/) || [])[1];
+      let hMeas = null;
+      if (mg && pNum) hMeas = mg.measures.find(me => String(me.measureNum) === pNum);
+      if (!hMeas && mg) {
+        const low = msStr.toLowerCase();
+        hMeas = mg.measures.find(me => {
+          const lab = (me.measureLabel || '').toLowerCase();
+          const num = String(me.measureNum);
+          return lab.includes(low.slice(0, 28)) || low.includes(num);
+        });
+      }
+      const msEpics = hMeas ? hMeas.epics : [];
       const msSP = msEpics.reduce((s,e) => s + (e.Actual_Story_Points_on_Epic__c||0), 0);
       const msClosed = msEpics.reduce((s,e) => s + (e.Storypoints_Closed__c||0), 0);
       body += `<div class="mf-measure-row"><span class="mfm-name">${esc(ms)}</span><span class="mfm-stat">${msEpics.length} epics · ${msClosed}/${msSP} SP</span></div>`;
@@ -5946,12 +5945,13 @@ function closeEngFlyout() {
   ctrl._saveState({ flyout: null });
 }
 
-function togglePvaMethod(mi) {
-  const row = document.querySelector(`tr.pva-method-row[data-pva-method="${mi}"]`);
+function togglePvaMethod(methodNum) {
+  const mn = String(methodNum);
+  const row = document.querySelector(`tr.pva-method-row[data-pva-method="${mn}"]`);
   if (!row) return;
   const isCollapsed = row.classList.toggle('collapsed');
-  const measures = document.querySelectorAll(`tr.pva-measure-row[data-pva-method="${mi}"]`);
-  const epics = document.querySelectorAll(`tr.pva-epic-row[data-pva-method="${mi}"]`);
+  const measures = document.querySelectorAll(`tr.pva-measure-row[data-pva-method="${mn}"]`);
+  const epics = document.querySelectorAll(`tr.pva-epic-row[data-pva-method="${mn}"]`);
   if (isCollapsed) {
     measures.forEach(r => { r.classList.add('pva-hidden'); r.classList.add('collapsed'); });
     epics.forEach(r => r.classList.add('pva-hidden'));
@@ -5961,8 +5961,9 @@ function togglePvaMethod(mi) {
   }
 }
 
-function togglePvaMeasure(mi, msIdx) {
-  const key = `${mi}-${msIdx}`;
+function togglePvaMeasure(methodNum, msIdx) {
+  const mn = String(methodNum);
+  const key = `${mn}-${msIdx}`;
   const row = document.querySelector(`tr.pva-measure-row[data-pva-measure="${key}"]`);
   if (!row) return;
   const isCollapsed = row.classList.toggle('collapsed');
