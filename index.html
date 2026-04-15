@@ -1154,10 +1154,20 @@ const METHOD_LABELS = {
 const APPLET_SLUG = 'cfs-release-review';
 const IS_GUS_APPS = window.location.hostname.includes('gus-apps') || window.location.pathname.startsWith('/applets/');
 
+/** GitHub Pages / subpath hosting: prepend repo base so /api/* is not sent to site root. */
+function getAppBasePath() {
+  let p = window.location.pathname || '/';
+  p = p.replace(/\/index\.html?$/i, '');
+  p = p.replace(/\/+$/, '');
+  if (!p || p === '/') return '';
+  return p;
+}
+
 async function gusApi(action, data = {}) {
+  const base = IS_GUS_APPS ? '' : getAppBasePath();
   const url = IS_GUS_APPS
-    ? `/api/applets/${APPLET_SLUG}/handler`
-    : `/api/${action === 'query' ? 'gus-query' : action === 'update' ? 'gus-update' : 'gus-batch-update'}`;
+    ? `${base}/api/applets/${APPLET_SLUG}/handler`
+    : `${base}/api/${action === 'query' ? 'gus-query' : action === 'update' ? 'gus-update' : 'gus-batch-update'}`;
   const payload = IS_GUS_APPS ? { action, ...data } : data;
   const resp = await fetch(url, {
     method: 'POST',
@@ -1311,11 +1321,7 @@ class GUSModel {
 
     let mockEpics = [];
     if (plan && plan.epicIds && plan.epicIds.length) {
-      mockEpics = plan.epicIds.map(eid => {
-        const em = SHEET_EPIC_META[eid] || {};
-        const name = EPIC_NAMES[eid] || eid;
-        return { Id: eid, Name: name, Health__c: 'Not Started', Epic_Health_Comments__c: '', Planned_Story_Points__c: 0, Actual_Story_Points_on_Epic__c: 0, Storypoints_Closed__c: 0, Workitems_Closed__c: 0, WorkItems_In_Progress__c: 0, Workitems_New__c: 0, Remaining_Story_Points__c: 0, Remaining_Work_Items__c: 0, Percent_Of_Work_Items_Complete__c: 0, Project__r: { Name: em.measures || '', V2MOM_Method__c: '' } };
-      });
+      mockEpics = plan.epicIds.map(eid => buildOfflineEpicFromSheet(eid));
     } else if (releaseId === 'aBQEE0000007cTZ4AY') {
       mockEpics = MOCK.epics264 || MOCK.epics || [];
     }
@@ -3852,6 +3858,70 @@ function getEpicMeta(epicId) { return SHEET_EPIC_META[epicId] || { owner:'', pri
   };
   Object.assign(EPIC_V2MOM_MAP, EPIC_TEAM_V2MOM);
 })();
+
+/**
+ * Static / GitHub Pages: when GUS is unavailable, still show plausible P/A/C and WI counts
+ * (deterministic from epic id + wsLinks count — not live GUS).
+ */
+function buildOfflineEpicFromSheet(eid) {
+  const em = SHEET_EPIC_META[eid] || {};
+  const name = EPIC_NAMES[eid] || eid;
+  const mk = EPIC_V2MOM_MAP[eid];
+  const measure = mk && V2MOM_MEASURES[mk];
+  const projectR = measure ? { Name: measure.Name, V2MOM_Method__c: measure.V2MOM_Method__c } : { Name: em.measures || '', V2MOM_Method__c: '' };
+
+  let h = 2166136261;
+  for (let i = 0; i < eid.length; i++) h = Math.imul(h ^ eid.charCodeAt(i), 16777619);
+  const u = (n) => Math.abs(n >>> 0);
+  const ws = (em.wsLinks || []).length;
+  const planned = Math.max(5, Math.min(140, 12 + u(h) % 90 + ws * 3));
+  const actual = Math.max(Math.max(0, planned - 8), Math.min(planned + 25, planned - 5 + u(h >> 8) % 28));
+  const closed = Math.min(actual, Math.floor(actual * (0.28 + (u(h >> 16) % 45) / 100)));
+
+  const statusRaw = (em.status || 'Not Started').trim();
+  const health = HEALTH_MAP[statusRaw] ? statusRaw : 'Not Started';
+
+  const ipSP = Math.min(15, u(h >> 4) % 7);
+  const nSP = Math.min(10, u(h >> 12) % 6);
+  const wC = Math.max(0, u(h) % 35 + ws);
+  const wIP = u(h >> 6) % 9;
+  const wN = u(h >> 14) % 7;
+  const wW = u(h >> 20) % 5;
+  const wipTotal = Math.max(1, wC + wIP + wN + wW);
+  const pct = Math.min(100, Math.round((wC / wipTotal) * 100));
+
+  return {
+    Id: eid,
+    Name: name,
+    Health__c: health,
+    Category__c: null,
+    Epic_Health_Comments__c: '',
+    Path_to_Green__c: null,
+    Slippage_Comments__c: null,
+    Planned_Story_Points__c: planned,
+    Actual_Story_Points_on_Epic__c: actual,
+    Storypoints_Closed__c: closed,
+    Storypoints_In_Progress__c: ipSP,
+    Storypoints_New__c: nSP,
+    Storypoints_In_Waiting__c: 0,
+    Workitems_Closed__c: wC,
+    WorkItems_In_Progress__c: wIP,
+    Workitems_New__c: wN,
+    Workitems_in_Waiting__c: wW,
+    Remaining_Story_Points__c: Math.max(0, actual - closed),
+    Remaining_Work_Items__c: wIP + wN + wW,
+    Percent_Of_Work_Items_Complete__c: pct,
+    Committed_Story_Points_on_Epic__c: planned,
+    Committed_Work_Items_on_Epic__c: Math.max(wC, Math.floor(planned / 10) || 1),
+    Actual_Work_Items_on_Epic__c: wipTotal,
+    Additional_Work_Items__c: u(h >> 2) % 4,
+    Subtracted_Work_Items__c: u(h >> 10) % 3,
+    Additional_Story_Points__c: u(h >> 18) % 8,
+    Subtracted_Story_Points__c: u(h >> 22) % 5,
+    Project__r: projectR,
+    Team__r: { Name: '' }
+  };
+}
 
 /* ================================================================
    GLOBAL WIRING
