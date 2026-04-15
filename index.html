@@ -184,7 +184,7 @@ body { font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe
 .charts-drawer-toggle .cdt-pills { display: flex; gap: 4px; margin-left: auto; }
 .charts-drawer-toggle .cdt-pill { font-size: 9px; padding: 2px 8px; border-radius: 10px; background: #e2e8f0; color: #475569; font-weight: 600; }
 .charts-drawer-body { max-height: 0; overflow: hidden; transition: max-height .35s cubic-bezier(.4,0,.2,1), opacity .25s; opacity: 0; }
-.charts-drawer-body.open { max-height: 1200px; opacity: 1; padding-top: 8px; }
+.charts-drawer-body.open { max-height: 2600px; opacity: 1; padding-top: 8px; }
 
 /* ===== CHARTS ROW ===== */
 .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
@@ -219,10 +219,10 @@ body { font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe
 /* ===== FULLSCREEN TABLE ===== */
 .fullscreen-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9999; background: #fff; overflow: auto; padding: 12px; display: none; }
 .fullscreen-overlay.open { display: block; }
-.fullscreen-bar { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: linear-gradient(135deg,#1e293b,#334155); border-radius: 8px; margin-bottom: 8px; color: #fff; }
-.fullscreen-bar h3 { font-size: 14px; font-weight: 700; }
-.fullscreen-bar .btn-exit-fs { background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.2); color: #fff; font-size: 11px; font-weight: 600; padding: 5px 14px; border-radius: 6px; cursor: pointer; font-family: inherit; transition: all .15s; }
-.fullscreen-bar .btn-exit-fs:hover { background: rgba(255,255,255,.25); }
+.fullscreen-bar { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #dbeafe 100%); border-radius: 8px; margin-bottom: 8px; color: #0f172a; border: 1px solid #bae6fd; }
+.fullscreen-bar h3 { font-size: 14px; font-weight: 700; color: #0c4a6e; }
+.fullscreen-bar .btn-exit-fs { background: #fff; border: 1px solid #93c5fd; color: #0369a1; font-size: 11px; font-weight: 600; padding: 5px 14px; border-radius: 6px; cursor: pointer; font-family: inherit; transition: all .15s; }
+.fullscreen-bar .btn-exit-fs:hover { background: #eff6ff; border-color: #60a5fa; }
 
 /* ===== FILTER TOOLBAR ===== */
 .filter-toolbar { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: var(--card-white); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 10px; flex-wrap: wrap; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
@@ -240,8 +240,8 @@ body { font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe
 
 /* ===== METHOD / MEASURE / EPIC CARDS ===== */
 .method-section { margin-bottom: 10px; border-radius: 10px; overflow: hidden; box-shadow: var(--shadow); border: 1px solid var(--border); }
-.method-header { display: flex; align-items: center; gap: 10px; padding: 11px 16px; background: linear-gradient(135deg, #1e3a5f 0%, #1e40af 100%); color: #fff; cursor: pointer; user-select: none; transition: background .15s; }
-.method-header:hover { background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%); }
+.method-header { display: flex; align-items: center; gap: 10px; padding: 11px 16px; background: linear-gradient(135deg, #f8fafc 0%, #f0f9ff 40%, #e0f2fe 100%); color: #0f172a; border-bottom: 1px solid #e0f2fe; cursor: pointer; user-select: none; transition: background .15s, box-shadow .15s; }
+.method-header:hover { background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 45%, #dbeafe 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,.8); }
 .method-header .chevron { font-size: 10px; transition: transform .2s; flex-shrink: 0; }
 .method-header.collapsed .chevron { transform: rotate(-90deg); }
 .method-header .mh-label { font-weight: 700; font-size: 13px; flex: 1; }
@@ -251,12 +251,12 @@ body { font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe
 .method-body.collapsed { display: none; }
 
 .measure-section { margin-bottom: 6px; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; background: var(--card-white); }
-.measure-header { display: flex; align-items: center; gap: 8px; padding: 9px 14px; background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); cursor: pointer; user-select: none; transition: background .12s; border-bottom: 1px solid #e2e8f0; }
-.measure-header:hover { background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); }
-.measure-header .chevron { font-size: 10px; transition: transform .2s; flex-shrink: 0; color: #1e40af; }
+.measure-header { display: flex; align-items: center; gap: 8px; padding: 9px 14px; background: linear-gradient(135deg, #fafcff 0%, #f0f9ff 50%, #ecfeff 100%); cursor: pointer; user-select: none; transition: background .12s; border-bottom: 1px solid #e0f2fe; }
+.measure-header:hover { background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 40%, #dbeafe 100%); }
+.measure-header .chevron { font-size: 10px; transition: transform .2s; flex-shrink: 0; color: #64748b; }
 .measure-header.collapsed .chevron { transform: rotate(-90deg); }
-.measure-header .ms-num { font-weight: 800; font-size: 12px; color: #1e40af; min-width: 36px; }
-.measure-header .ms-label { font-weight: 600; font-size: 12px; color: #0b4a8b; flex: 1; }
+.measure-header .ms-num { font-weight: 800; font-size: 12px; color: #0369a1; min-width: 36px; }
+.measure-header .ms-label { font-weight: 600; font-size: 12px; color: #334155; flex: 1; }
 .measure-header .ms-meta { font-size: 10px; color: #64748b; white-space: nowrap; }
 .measure-header .group-badges { display: inline-flex; gap: 3px; flex-shrink: 0; }
 .measure-body { padding: 6px 10px; }
@@ -359,10 +359,27 @@ body { font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe
 
 /* ===== PVA SECTION ===== */
 .pva-section { margin-bottom: 10px; }
-.pva-header { background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 40%, #0e7490 100%); border-radius: 10px 10px 0 0; padding: 12px 20px; color: #fff; }
-.pva-header h2 { font-size: 18px; font-weight: 700; margin-bottom: 2px; }
-.pva-header p { font-size: 12px; opacity: .85; }
-.pva-body { background: var(--card-white); border: 1px solid var(--border); border-top: none; border-radius: 0 0 10px 10px; padding: 12px 16px; box-shadow: var(--shadow); }
+.pva-header { background: linear-gradient(135deg, #fafcff 0%, #f0f9ff 40%, #e0f2fe 100%); border-radius: 10px 10px 0 0; padding: 12px 20px; color: #0f172a; border: 1px solid #e0f2fe; border-bottom: none; }
+.pva-header h2 { font-size: 18px; font-weight: 700; margin-bottom: 2px; color: #0c4a6e; }
+.pva-header p { font-size: 12px; color: #475569; }
+.pva-header a { color: #0369a1; }
+.pva-april-status { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 6px; font-size: 12px; line-height: 1.35; color: #475569; font-weight: 600; white-space: nowrap; }
+.pva-april-status .pva-april-status-label { color: #64748b; font-weight: 600; font-size: 11px; letter-spacing: 0.02em; }
+.pva-april-status .pva-april-status-value { font-weight: 700; font-size: 12px; padding: 2px 10px; border-radius: 6px; border: 1px solid transparent; cursor: help; }
+.release-banner .pva-april-status { font-size: 12px; }
+.release-banner .pva-april-status .pva-april-status-label { font-size: 11px; color: #64748b; }
+.release-banner .pva-april-status .pva-april-status-value { font-size: 12px; }
+.chart-fs-overlay { position: fixed; inset: 0; z-index: 10040; background: #f8fafc; display: none; flex-direction: column; }
+.chart-fs-overlay.open { display: flex; }
+.chart-fs-bar { flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 14px; background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #dbeafe 100%); border-bottom: 1px solid #bae6fd; color: #0f172a; }
+.chart-fs-bar h3 { margin: 0; font-size: 13px; font-weight: 700; color: #0c4a6e; }
+.chart-fs-bar .btn-exit-chart-fs { background: #fff; border: 1px solid #93c5fd; color: #0369a1; font-size: 11px; font-weight: 600; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-family: inherit; }
+.chart-fs-bar .btn-exit-chart-fs:hover { background: #eff6ff; border-color: #60a5fa; }
+.chart-fs-host { flex: 1; min-height: 0; padding: 8px 12px 16px; }
+.pva-chart-fs-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-bottom: 6px; }
+.pva-chart-fs-btn { font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 6px; border: 1px solid #93c5fd; background: #fff; color: #0369a1; cursor: pointer; font-family: inherit; }
+.pva-chart-fs-btn:hover { background: #eff6ff; }
+.pva-body { background: linear-gradient(180deg, #ffffff 0%, #fafcff 100%); border: 1px solid #e0f2fe; border-top: none; border-radius: 0 0 10px 10px; padding: 12px 16px; box-shadow: 0 1px 3px rgba(14, 116, 144, .05); }
 .pva-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
 .pva-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; position: relative; overflow: hidden; }
 .pva-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
@@ -390,9 +407,25 @@ body { font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe
 .pva-chart-container { height: 220px; }
 
 /* PVA Summary Table */
-.pva-epic-table { width: 100%; border-collapse: collapse; table-layout: auto; }
-.pva-epic-table th { background: #f8fafc; color: #495057; text-align: left; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .3px; padding: 6px 6px; border-bottom: 2px solid #dee2e6; vertical-align: middle; position: sticky; top: 0; z-index: 2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.pva-epic-table td { padding: 5px 6px; border-bottom: 1px solid #f0f0f0; vertical-align: top; font-size: 11px; overflow: hidden; text-overflow: ellipsis; }
+.pva-epic-table { width: 100%; border-collapse: collapse; table-layout: fixed; --pva-col-me-width: 320px; }
+.pva-epic-table th.pva-col-me,
+.pva-epic-table td.pva-col-me { width: var(--pva-col-me-width); min-width: var(--pva-col-me-width); box-sizing: border-box; }
+.pva-epic-table th.pva-col-owner,
+.pva-epic-table td.pva-col-owner { width: 9%; min-width: 72px; }
+.pva-epic-table th.pva-col-pri,
+.pva-epic-table td.pva-col-pri { width: 48px; max-width: 54px; padding-left: 4px; padding-right: 4px; box-sizing: border-box; }
+.pva-epic-table th.pva-col-sprint,
+.pva-epic-table td.pva-col-sprint { width: 68px; max-width: 76px; box-sizing: border-box; }
+.pva-epic-table th.pva-col-health,
+.pva-epic-table td.pva-col-health { width: 108px; max-width: 120px; box-sizing: border-box; }
+.pva-epic-table th.pva-th-sp-delivery,
+.pva-epic-table td.cell-sp { width: 15%; min-width: 158px; }
+.pva-col-health .pva-cell-select { max-width: 100%; font-size: 9px; padding: 1px 2px; }
+.pva-col-sprint .pva-cell-input { font-size: 9px !important; padding: 2px 3px !important; }
+.pva-epic-table th { background: linear-gradient(180deg, #fafcff 0%, #f0f9ff 55%, #e8f4fc 100%); color: #475569; text-align: left; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .3px; padding: 6px 6px; border-bottom: 1px solid #bae6fd; vertical-align: middle; position: sticky; top: 0; z-index: 2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pva-epic-table td { padding: 5px 6px; border-bottom: 1px solid #f0f9ff; vertical-align: top; font-size: 11px; overflow: hidden; text-overflow: ellipsis; }
+.pva-epic-row > td { vertical-align: middle !important; }
+.pva-epic-row > td.pva-comment-cell { vertical-align: top !important; }
 .pva-epic-table .col-hidden { width: 0 !important; min-width: 0 !important; max-width: 0 !important; padding: 0 !important; border: 0 !important; overflow: hidden !important; font-size: 0 !important; line-height: 0 !important; white-space: nowrap !important; visibility: hidden !important; }
 .pva-epic-table .col-hidden * { width: 0 !important; min-width: 0 !important; max-width: 0 !important; padding: 0 !important; margin: 0 !important; border: 0 !important; font-size: 0 !important; visibility: hidden !important; }
 .pva-tabs { display:flex; gap:0; }
@@ -414,23 +447,32 @@ body { font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe
 .pva-month-toggle:hover { background: #eff6ff; border-color: #93c5fd; color: #1e40af; }
 .month-chip { display:inline-flex; align-items:center; padding:3px 10px; border-radius:6px; border:1px solid #e2e8f0; background:#f8fafc; font-size:11px; font-weight:600; color:#94a3b8; cursor:pointer; user-select:none; transition:all .15s; }
 .month-chip:hover { border-color:#93c5fd; background:#eff6ff; }
-.month-chip-active { background:#1e40af; color:#fff; border-color:#1e40af; }
-.month-chip-active:hover { background:#1e3a8a; border-color:#1e3a8a; }
+.month-chip-active { background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); color: #0c4a6e; border-color: #93c5fd; font-weight: 700; }
+.month-chip-active:hover { background: linear-gradient(135deg, #bfdbfe 0%, #93c5fd 100%); border-color: #7dd3fc; color: #082f49; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .gus-loading svg { animation: spin 1s linear infinite; }
-.pva-method-row { background: linear-gradient(135deg, #1e3a5f 0%, #1e40af 100%); cursor: pointer; user-select: none; }
-.pva-method-row:hover { background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%); }
-.pva-method-row td { font-weight: 700; color: #fff; padding: 10px 14px; font-size: 12px; }
-.pva-method-row .chevron { display: inline-block; transition: transform .2s; margin-right: 6px; font-size: 10px; }
+.pva-method-row { background: linear-gradient(90deg, #dbeafe 0%, #e0f2fe 14%, #f0f9ff 42%, #f8fafc 100%); border-bottom: 1px solid #93c5fd; border-left: 4px solid #0369a1; cursor: pointer; user-select: none; box-shadow: inset 0 1px 0 rgba(255,255,255,.65); }
+.pva-method-row:hover { background: linear-gradient(90deg, #bfdbfe 0%, #dbeafe 18%, #e0f2fe 50%, #f8fafc 100%); }
+.pva-method-row td { font-weight: 700; color: #0f172a; padding: 10px 14px 10px 10px; font-size: 12px; }
+.pva-method-row .chevron { display: inline-block; transition: transform .2s; margin-right: 6px; font-size: 10px; color: #64748b; }
 .pva-method-row.collapsed .chevron { transform: rotate(-90deg); }
-.pva-measure-row { background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); cursor: pointer; user-select: none; }
-.pva-measure-row:hover { background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); }
-.pva-measure-row td { font-weight: 700; color: #0b4a8b; padding: 8px 12px 8px 28px; font-size: 12px; }
-.pva-measure-row .chevron { display: inline-block; transition: transform .2s; margin-right: 6px; font-size: 10px; }
+.pva-measure-row { background: linear-gradient(90deg, #ede9fe 0%, #f5f3ff 12%, #ecfeff 38%, #fafcff 100%); border-bottom: 1px solid #c4b5fd; border-left: 3px solid #7c3aed; cursor: pointer; user-select: none; box-shadow: inset 0 1px 0 rgba(255,255,255,.55); }
+.pva-measure-row:hover { background: linear-gradient(90deg, #ddd6fe 0%, #ede9fe 15%, #e0f2fe 45%, #f8fafc 100%); }
+.pva-measure-row td { font-weight: 700; color: #334155; padding: 8px 12px 8px 24px; font-size: 12px; }
+.pva-measure-row .chevron { display: inline-block; transition: transform .2s; margin-right: 6px; font-size: 10px; color: #94a3b8; }
 .pva-measure-row.collapsed .chevron { transform: rotate(-90deg); }
-.pva-epic-row { transition: background .15s; }
-.pva-epic-row:hover { background: #fafbfc; }
+.pva-epic-row { transition: background .15s; background: linear-gradient(90deg, #ffffff 0%, #f8fafc 55%, #f1f5f9 100%); border-left: 2px solid #cbd5e1; }
+.pva-epic-row:hover { background: linear-gradient(90deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%); }
+.pva-epic-name-cell { vertical-align: middle !important; }
+.pva-epic-name-row { display: flex; align-items: center; flex-wrap: nowrap; gap: 6px; min-width: 0; min-height: 30px; }
+.pva-epic-links-stack { display: inline-flex; flex-direction: row; flex-wrap: nowrap; align-items: center; gap: 4px; flex-shrink: 0; }
+.pva-epic-link { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 6px; color: #0369a1; background: linear-gradient(180deg, #eff6ff, #dbeafe); border: 1px solid #93c5fd; text-decoration: none; transition: transform .12s, box-shadow .12s, border-color .12s; box-shadow: 0 1px 2px rgba(3,105,161,.12); flex-shrink: 0; }
+.pva-epic-link:hover { border-color: #3b82f6; transform: translateY(-1px); box-shadow: 0 2px 6px rgba(3,105,161,.18); }
+.pva-epic-link.empty { opacity: .22; pointer-events: none; background: transparent; border-color: transparent; box-shadow: none; }
+.pva-epic-title { font-weight: 600; font-size: 11px; line-height: 1.25; min-width: 0; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pva-epic-name-tooltip { position: fixed; z-index: 10060; display: none; max-width: min(560px, calc(100vw - 20px)); padding: 6px 10px; font-size: 11px; font-weight: 600; line-height: 1.4; color: #0f172a; background: #fff; border: 1px solid #94a3b8; border-radius: 6px; box-shadow: 0 10px 28px rgba(15, 23, 42, 0.18); pointer-events: none; word-break: break-word; }
 .pva-new-flag { display: block; width: max-content; font-size: 8px; font-weight: 800; letter-spacing: .4px; color: #fff; background: #ea580c; padding: 1px 6px; border-radius: 3px; margin-bottom: 3px; line-height: 1.2; }
+.pva-new-flag.pva-new-flag--inline { display: inline-flex; align-items: center; margin: 0; flex-shrink: 0; align-self: center; }
 .ef-ws-new-flag { position: absolute; top: -8px; left: 50%; transform: translateX(-50%); font-size: 7px; font-weight: 800; color: #fff; background: #ea580c; padding: 0 5px; border-radius: 3px; letter-spacing: .3px; z-index: 1; white-space: nowrap; }
 .pva-epic-row.pva-hidden, .pva-measure-row.pva-hidden { display: none; }
 .pva-comment-cell { font-size: 11px; color: #475569; line-height: 1.4; word-break: break-word; cursor: pointer; border: 1px solid transparent; border-radius: 4px; padding: 6px 8px; transition: border-color .15s, background .15s; min-height: 28px; position: relative; }
@@ -503,10 +545,43 @@ body { font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe
 .pva-metric-cell { font-size: 11px; text-align: center; }
 .pva-metric-cell .metric-val { font-size: 14px; font-weight: 700; }
 .pva-metric-cell .metric-label { font-size: 9px; color: var(--muted); }
+/* Epic row: P/A/C/churn + burn strip — single row; GUS/doc live beside epic name */
+.pva-sp-cell { padding: 4px 6px !important; vertical-align: middle !important; text-align: left !important; }
+.pva-th-sp-delivery { text-transform: none !important; letter-spacing: 0 !important; vertical-align: bottom !important; }
+.pva-sp-cell-inner { display: flex; flex-direction: row; align-items: center; justify-content: flex-start; flex-wrap: nowrap; gap: 5px; max-width: none; margin: 0; }
+.pva-sp-signal { display: inline-flex; align-items: center; justify-content: flex-start; gap: 3px; flex-shrink: 0; }
+.pva-sp-signal--up .pva-sp-ico--actual { box-shadow: 0 0 0 1px #f59e0b; }
+.pva-sp-signal--under .pva-sp-ico--planned { box-shadow: 0 0 0 1px #38bdf8; }
+.pva-sp-ico { display: inline-flex; flex-direction: row; align-items: center; justify-content: center; gap: 3px; min-width: 0; padding: 2px 5px; border-radius: 6px; background: #f8fafc; border: 1px solid #e2e8f0; cursor: default; }
+.pva-sp-ico--planned { color: #64748b; }
+.pva-sp-ico--actual { color: #0176d3; background: #eff6ff; border-color: #bfdbfe; }
+.pva-sp-ico--closed { color: #15803d; background: #f0fdf4; border-color: #bbf7d0; }
+.pva-sp-ico--churn { color: #64748b; background: #f8fafc; border-color: #e2e8f0; }
+.pva-sp-ico--churn.pva-sp-ico--churn-hot { color: #c2410c; background: #fff7ed; border-color: #fdba74; }
+.pva-sp-ico-val { font-size: 9px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.pva-sp-burn { flex-shrink: 0; width: 5px; height: 22px; border-radius: 3px; background: #e2e8f0; overflow: hidden; position: relative; align-self: center; }
+.pva-sp-burn-fill { position: absolute; bottom: 0; left: 0; right: 0; border-radius: 0 0 2px 2px; min-height: 0; background: linear-gradient(180deg,#4ade80,#16a34a); transition: height .22s ease; }
 .pva-progress-bar { height: 5px; border-radius: 3px; background: #e8e6df; overflow: hidden; margin-top: 3px; }
 .pva-progress-bar .fill { height: 100%; border-radius: 3px; transition: width .4s; }
-.pva-table-panel { background: var(--card-white); border: 1px solid var(--border); border-radius: 8px; box-shadow: var(--shadow); overflow: hidden; position: relative; margin-top: 8px; }
-.pva-table-panel::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--gradient); }
+.pva-table-panel { background: linear-gradient(180deg, #ffffff 0%, #fafcff 55%, #f5faff 100%); border: 1px solid #e0f2fe; border-radius: 8px; box-shadow: 0 1px 3px rgba(14, 116, 144, .06); overflow: hidden; position: relative; margin-top: 8px; }
+.pva-table-panel::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #bae6fd 0%, #7dd3fc 35%, #a5b4fc 70%, #c4b5fd 100%); opacity: .85; }
+
+/* AI Executive summary tab */
+.ai-summary-outline { border: 1px solid #bae6fd; border-radius: 8px; background: linear-gradient(180deg, #f8fafc, #fff); padding: 10px 12px; margin-bottom: 14px; font-size: 12px; }
+.ai-summary-outline .ai-outline-head { font-weight: 800; color: #0c4a6e; margin-bottom: 8px; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+.ai-summary-outline ol { margin: 0; padding-left: 18px; color: #334155; }
+.ai-summary-outline li { margin: 4px 0; line-height: 1.35; }
+.ai-summary-outline a { color: #0369a1; font-weight: 600; text-decoration: none; }
+.ai-summary-outline a:hover { text-decoration: underline; }
+.ai-summary-outline .ai-outline-measures { list-style: lower-alpha; margin: 4px 0 0 0; padding-left: 18px; font-weight: 500; color: #475569; }
+.ai-q-summary strong { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: .04em; color: #0c4a6e; margin-top: 8px; }
+.ai-q-summary strong:first-child { margin-top: 0; }
+.ai-q-summary p { margin: 4px 0 0; color: #334155; line-height: 1.45; font-size: 12px; }
+.ai-epic-count-cell { text-align: center !important; vertical-align: middle !important; }
+.ai-epic-count-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; border-radius: 8px; background: linear-gradient(180deg, #e0f2fe, #bae6fd); color: #0c4a6e; font-weight: 800; font-size: 13px; border: 1px solid #7dd3fc; cursor: default; }
+#ai-summary-table thead th { background: linear-gradient(180deg, #e0f2fe 0%, #f0f9ff 100%) !important; color: #0f172a !important; border-bottom: 2px solid #93c5fd !important; }
+#ai-summary-table thead th:first-child { border-radius: 8px 0 0 0; }
+#ai-summary-table thead th:last-child { border-radius: 0 8px 0 0; }
 
 /* PVA method tiles */
 .pva-method-grid { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
@@ -529,9 +604,16 @@ body { font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe
 .pmi-health-dots span { height: 4px; border-radius: 2px; transition: width .3s; }
 .pmi-pri-bar { display: flex; height: 5px; border-radius: 3px; overflow: hidden; gap: 1px; }
 .pmi-pri-bar span { height: 100%; border-radius: 3px; }
-.pmi-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 5px; }
+.pmi-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 5px; flex-wrap: wrap; gap: 6px 8px; }
 .pmi-footer-stat { font-size: 10px; font-weight: 600; color: #64748b; }
 .pmi-footer-stat b { color: #0f172a; font-weight: 700; }
+.pmi-footer-pri { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
+.pmi-pri-chip { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 999px; font-size: 9px; font-weight: 800; letter-spacing: 0.02em; border: 1px solid transparent; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06); }
+.pmi-pri-chip-lbl { opacity: 0.92; font-weight: 800; }
+.pmi-pri-chip-val { font-size: 10px; font-weight: 800; line-height: 1; min-width: 1ch; text-align: center; }
+.pmi-pri-chip--p0 { background: linear-gradient(135deg, #fecaca 0%, #fee2e2 55%, #fef2f2 100%); color: #991b1b; border-color: #f87171; }
+.pmi-pri-chip--p1 { background: linear-gradient(135deg, #fde68a 0%, #fef3c7 50%, #fffbeb 100%); color: #92400e; border-color: #fbbf24; }
+.pmi-pri-chip--p2 { background: linear-gradient(135deg, #bbf7d0 0%, #dcfce7 55%, #ecfdf5 100%); color: #14532d; border-color: #4ade80; }
 
 /* Method detail flyout */
 /* Engineer flyout */
@@ -769,6 +851,7 @@ body { font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe
       <div class="form-group"><label>Salesforce Instance URL</label><input type="url" id="sf-instance" placeholder="https://gus.my.salesforce.com" value="https://gus.my.salesforce.com"></div>
       <div class="form-group"><label>Access Token</label><input type="password" id="sf-token" placeholder="Paste your Salesforce session token"></div>
       <div style="font-size:11px;color:var(--muted);margin-top:8px;">Leave blank to use mock data. Token is stored in sessionStorage only.</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:10px;line-height:1.45;max-width:440px;"><strong>How to get a session token:</strong> In a browser where you are logged into GUS, open DevTools → Application → Cookies → select your instance host (e.g. <code style="font-size:10px;">gus.my.salesforce.com</code>) → copy the <code style="font-size:10px;">sid</code> cookie value. Or run <code style="font-size:10px;">sf org display --json</code> after <code style="font-size:10px;">sf org login web</code> and use <code style="font-size:10px;">result.accessToken</code> for that org.</div>
     </div>
     <div class="modal-footer">
       <button class="btn-secondary" onclick="closeModal('modal-settings')">Cancel</button>
@@ -847,6 +930,15 @@ body { font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe
   <div id="fullscreen-table-container"></div>
 </div>
 
+<!-- ===== FULLSCREEN EPIC PROGRESS CHART ===== -->
+<div class="chart-fs-overlay" id="chart-fs-overlay" aria-hidden="true">
+  <div class="chart-fs-bar">
+    <h3>All epics — story point progress</h3>
+    <button type="button" class="btn-exit-chart-fs" onclick="closeEpicProgressChartFullscreen()">Exit fullscreen</button>
+  </div>
+  <div class="chart-fs-host" id="chart-fs-chart-host"></div>
+</div>
+
 <!-- ===== CONFIGURATION MODAL ===== -->
 <div class="modal-overlay" id="modal-config">
   <div class="modal" style="max-width:600px;">
@@ -893,6 +985,96 @@ body { font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe
    UTILITIES
    ================================================================ */
 function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+
+function buildEpicByEpicProgressChartOption(hierarchy) {
+  if (!hierarchy || !hierarchy.length) return null;
+  const flat = hierarchy.flatMap(mg => mg.measures.flatMap(m => m.epics.map(epic => {
+    const full = ctrl._stripLink(epic.Name || '') || '—';
+    const short = full.length > 44 ? full.slice(0, 42) + '…' : full;
+    return { epic, short, full };
+  })));
+  if (!flat.length) return null;
+  flat.sort((a, b) => (b.epic.Actual_Story_Points_on_Epic__c || 0) - (a.epic.Actual_Story_Points_on_Epic__c || 0));
+  const names = flat.map(x => x.short);
+  const planned = flat.map(x => x.epic.Planned_Story_Points__c || 0);
+  const actual = flat.map(x => x.epic.Actual_Story_Points_on_Epic__c || 0);
+  const closed = flat.map(x => x.epic.Storypoints_Closed__c || 0);
+  const n = flat.length;
+  const zoomEnd = n > 16 ? Math.round((16 / n) * 100) : 100;
+  return {
+    animation: false,
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: { type: 'shadow' },
+      confine: true,
+      formatter(ps) {
+        if (!ps || !ps.length) return '';
+        const idx = ps[0].dataIndex;
+        const row = flat[idx];
+        const ep = row.epic;
+        const m = ctrl.computeMetrics(ep);
+        const burn = m.actual > 0 ? Math.round((m.closed / m.actual) * 100) : 0;
+        let h = `<div style="font-weight:700;margin-bottom:4px;max-width:420px;white-space:normal;word-break:break-word;">${esc(row.full)}</div>`;
+        h += ps.map(p => `${p.marker} ${p.seriesName}: <b>${p.value}</b> SP`).join('<br/>');
+        h += `<br/><span style="color:#64748b;font-size:10px;">Churn (count): <b>${m.churn || 0}</b> · Burn: <b>${burn}%</b> · ${esc(ep.Health__c || '—')}</span>`;
+        return h;
+      }
+    },
+    legend: { top: 2, textStyle: { fontSize: 10 } },
+    grid: { left: 4, right: n > 16 ? 36 : 12, top: 30, bottom: 4, containLabel: true },
+    dataZoom: n > 16 ? [{
+      type: 'slider',
+      yAxisIndex: 0,
+      filterMode: 'filter',
+      width: 16,
+      right: 6,
+      start: 0,
+      end: zoomEnd
+    }] : [],
+    yAxis: { type: 'category', data: names, inverse: true, axisLabel: { fontSize: 9, color: '#475569' } },
+    xAxis: { type: 'value', splitLine: { lineStyle: { type: 'dashed', color: '#e2e8f0' } }, axisLabel: { fontSize: 9 } },
+    series: [
+      { name: 'Planned', type: 'bar', data: planned, itemStyle: { color: '#cbd5e1' }, barMaxWidth: 11, emphasis: { focus: 'series' } },
+      { name: 'Actual', type: 'bar', data: actual, itemStyle: { color: '#2563eb' }, barMaxWidth: 11, emphasis: { focus: 'series' } },
+      { name: 'Closed', type: 'bar', data: closed, itemStyle: { color: '#16a34a' }, barMaxWidth: 11, emphasis: { focus: 'series' } }
+    ]
+  };
+}
+
+function openEpicProgressChartFullscreen() {
+  const overlay = document.getElementById('chart-fs-overlay');
+  const host = document.getElementById('chart-fs-chart-host');
+  if (!overlay || !host || typeof ctrl === 'undefined' || !ctrl._lastHierarchy?.length) return;
+  overlay.classList.add('open');
+  overlay.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+  host.style.height = 'calc(100vh - 52px)';
+  host.style.minHeight = '280px';
+  requestAnimationFrame(() => {
+    const opt = buildEpicByEpicProgressChartOption(ctrl._lastHierarchy);
+    if (!opt) return;
+    if (ctrl.view.chartInstances['pva-epic-by-epic-fs']) { try { ctrl.view.chartInstances['pva-epic-by-epic-fs'].dispose(); } catch (e) {} }
+    const chart = echarts.init(host);
+    ctrl.view.chartInstances['pva-epic-by-epic-fs'] = chart;
+    chart.setOption(opt);
+    chart.resize();
+  });
+}
+
+function closeEpicProgressChartFullscreen() {
+  const overlay = document.getElementById('chart-fs-overlay');
+  if (overlay) {
+    overlay.classList.remove('open');
+    overlay.setAttribute('aria-hidden', 'true');
+  }
+  document.body.style.overflow = '';
+  if (typeof ctrl !== 'undefined' && ctrl.view.chartInstances['pva-epic-by-epic-fs']) {
+    try { ctrl.view.chartInstances['pva-epic-by-epic-fs'].dispose(); } catch (e) {}
+    delete ctrl.view.chartInstances['pva-epic-by-epic-fs'];
+  }
+  const inst = typeof ctrl !== 'undefined' && ctrl.view.chartInstances['pva-epic-by-epic'];
+  if (inst) requestAnimationFrame(() => { try { inst.resize(); } catch (e) {} });
+}
 
 function computeOverallStatus(healthCounts) {
   const blocked = healthCounts['Blocked'] || 0;
@@ -1216,6 +1398,8 @@ class DashboardController {
       this.view.populateCloudDropdown(data.clouds);
       this._renderTeamTabs();
       this.view.hideLoading();
+      initPvaEpicNameTooltipDelegation();
+      initPvaEpicColumnResizeListener();
       const saved = this._loadState();
       const targetTab = (saved && saved.activeTab) || '__all__';
       await this._switchTab(targetTab, true);
@@ -1644,7 +1828,11 @@ class DashboardView {
     document.getElementById('loading-inline')?.remove();
     this.main.querySelectorAll('.content-mask').forEach(c => { c.classList.remove('content-mask'); c.classList.add('content-mask-reveal'); });
   }
-  clearContent() { this.main.innerHTML = ''; this._disposeCharts(); }
+  clearContent() {
+    if (typeof closeEpicProgressChartFullscreen === 'function') closeEpicProgressChartFullscreen();
+    this.main.innerHTML = '';
+    this._disposeCharts();
+  }
   showPlaceholder(msg) {
     this.main.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:300px;color:#64748b;text-align:center;">
       <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1"/></svg>
@@ -1708,11 +1896,9 @@ class DashboardView {
         <h2 style="font-size:20px;">HRP Planned &amp; Forecast Status &mdash; R264</h2>
         <p style="margin:0;opacity:.85;">Aggregated across ${totalTeams} CFS teams &middot; Apr 2026 – Jul 2026</p>
       </div>
-      <div style="display:flex;align-items:center;gap:12px;">
-        <div style="text-align:right;">
-          <div style="font-size:10px;font-weight:600;opacity:.8;">April Status</div>
-          <div style="padding:6px 18px;border-radius:8px;font-size:15px;font-weight:800;background:${overallStatus.bg};color:${overallStatus.color};border:2px solid ${overallStatus.color};">${overallStatus.label}</div>
-        </div>
+      <div class="pva-april-status" title="${esc(allEpicTooltip)}">
+        <span class="pva-april-status-label">April Status:</span>
+        <span class="pva-april-status-value" style="background:${overallStatus.bg};color:${overallStatus.color};border-color:${overallStatus.color};">${overallStatus.label}</span>
       </div>
     </div>`;
 
@@ -1902,11 +2088,11 @@ class DashboardView {
       html += `<div class="pva-header" style="border-radius:10px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">
         <div>
           <h2 style="font-size:18px;">R264 Planned vs Actual</h2>
-          <p style="margin:0;opacity:.85;">${esc(plan.release)} &middot; ${esc(plan.period)} &middot; Source: <a href="${esc(plan.sheetUrl)}" target="_blank" style="color:#93c5fd;text-decoration:underline;">Planning Sheet</a> &middot; GUS: <a href="https://gus.my.salesforce.com/lightning/r/ADM_Planned_Release__c/${release?.Id || plan.gusPlannedReleaseId}/view" target="_blank" style="color:#93c5fd;text-decoration:underline;">${esc(relName)}</a></p>
+          <p style="margin:0;">${esc(plan.release)} &middot; ${esc(plan.period)} &middot; Source: <a href="${esc(plan.sheetUrl)}" target="_blank" style="text-decoration:underline;">Planning Sheet</a> &middot; GUS: <a href="https://gus.my.salesforce.com/lightning/r/ADM_Planned_Release__c/${release?.Id || plan.gusPlannedReleaseId}/view" target="_blank" style="text-decoration:underline;">${esc(relName)}</a></p>
         </div>
-        <div style="text-align:right;">
-          <div style="font-size:10px;font-weight:600;opacity:.8;">April Status</div>
-          <div style="padding:5px 16px;border-radius:8px;font-size:14px;font-weight:800;background:${teamDashStatus.bg};color:${teamDashStatus.color};border:2px solid ${teamDashStatus.color};cursor:help;" title="${esc(teamDashEpicTT)}">${teamDashStatus.label}</div>
+        <div class="pva-april-status" title="${esc(teamDashEpicTT)}">
+          <span class="pva-april-status-label">April Status:</span>
+          <span class="pva-april-status-value" style="background:${teamDashStatus.bg};color:${teamDashStatus.color};border-color:${teamDashStatus.color};">${teamDashStatus.label}</span>
         </div>
       </div>`;
     } else {
@@ -1920,9 +2106,9 @@ class DashboardView {
             <span><strong>Planned Days:</strong> ${baselineSP}</span>
           </div>
         </div>
-        <div style="text-align:right;">
-          <div style="font-size:10px;font-weight:600;color:#64748b;">April Status</div>
-          <div style="padding:5px 16px;border-radius:8px;font-size:14px;font-weight:800;background:${teamDashStatus.bg};color:${teamDashStatus.color};border:2px solid ${teamDashStatus.color};cursor:help;" title="${esc(teamDashEpicTT)}">${teamDashStatus.label}</div>
+        <div class="pva-april-status" title="${esc(teamDashEpicTT)}">
+          <span class="pva-april-status-label">April Status:</span>
+          <span class="pva-april-status-value" style="background:${teamDashStatus.bg};color:${teamDashStatus.color};border-color:${teamDashStatus.color};">${teamDashStatus.label}</span>
         </div>
       </div>`;
     }
@@ -1965,9 +2151,12 @@ class DashboardView {
       const fcColor = forecastConfirmed ? '#0176d3' : '#d97706';
 
       if (!forecastConfirmed) {
-        const teamIdEsc = esc(release?.Team__c || '');
         const wbUrl = release?.Team__c ? gusWorkBacklogUrl(release.Team__c) : '';
-        html += `<div style="display:flex;align-items:center;gap:6px;padding:6px 12px;margin-bottom:8px;background:linear-gradient(90deg,#fffbeb,#fef3c7);border:1px solid #fde68a;border-radius:6px;font-size:11px;color:#92400e;"><strong>&#9888;</strong> Actuals from epic data. Confirm forecast on <a href="https://gus.my.salesforce.com/lightning/r/ADM_Planned_Release__c/${release?.Id || plan.gusPlannedReleaseId}/view" target="_blank" style="color:#92400e;font-weight:700;text-decoration:underline;">GUS Planned Release</a> for official tracking.${wbUrl ? ` <a href="${esc(wbUrl)}" target="_blank" style="color:#92400e;font-weight:600;">Work Backlog</a> <span style="opacity:.85;">(team ${teamIdEsc})</span>` : ''}</div>`;
+        const wbLabel = (release?.Team__r && release.Team__r.Name)
+          ? release.Team__r.Name
+          : (ctrl._stripLink(release?.Name || '') || (plan && plan.release) || '').trim();
+        const wbLabelEsc = wbLabel ? esc(wbLabel) : '';
+        html += `<div style="display:flex;align-items:center;gap:6px;padding:6px 12px;margin-bottom:8px;background:linear-gradient(90deg,#fffbeb,#fef3c7);border:1px solid #fde68a;border-radius:6px;font-size:11px;color:#92400e;"><strong>&#9888;</strong> Actuals from epic data. Confirm forecast on <a href="https://gus.my.salesforce.com/lightning/r/ADM_Planned_Release__c/${release?.Id || plan.gusPlannedReleaseId}/view" target="_blank" style="color:#92400e;font-weight:700;text-decoration:underline;">GUS Planned Release</a> for official tracking.${wbUrl ? ` <a href="${esc(wbUrl)}" target="_blank" style="color:#92400e;font-weight:600;">Work Backlog</a>${wbLabelEsc ? ` <span style="opacity:.85;">(${wbLabelEsc})</span>` : ''}` : ''}</div>`;
       }
       if (forecastConfirmed) {
         const ea = release.Number_Epics_Added__c != null ? release.Number_Epics_Added__c : '—';
@@ -2059,8 +2248,14 @@ class DashboardView {
     // Activate default tab
     if (plan) switchPvaTab('epic-tracking');
 
+    if (plan) {
+      requestAnimationFrame(() => {
+        adjustPvaMeasureEpicColumnWidth();
+      });
+    }
+
     this._renderSummaryCharts(healthCounts, hierarchy);
-    if (plan) this.renderPlanVsActualCharts(plan);
+    if (plan) this.renderPlanVsActualCharts(plan, hierarchy);
   }
 
   _renderSimpleEpicTable(epics, hierarchy) {
@@ -2184,7 +2379,7 @@ class DashboardView {
     const totalDays = p.v2momMethods.reduce((s, m) => s + m.days, 0) || 1;
     html += `<div style="margin-top:8px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-        <h3 style="font-size:11px;font-weight:700;color:#475569;"><span class="tag tag-plan">Plan</span> V2MOM Methods <span style="font-weight:400;color:#94a3b8;">(click to filter, double-click for details)</span></h3>
+        <h3 style="font-size:11px;font-weight:700;color:#475569;"><span class="tag tag-plan">Plan</span> V2MOM Methods <span style="font-weight:400;color:#94a3b8;">(click methods to show only those measures; multi-select; double-click for details)</span></h3>
       </div>
       <div class="pva-method-grid">`;
     p.v2momMethods.forEach((m, mi) => {
@@ -2205,11 +2400,15 @@ class DashboardView {
         <div class="pmi-pri-bar">
           ${m.p0 ? `<span style="width:${p0w}%;background:#dc2626;" title="P0: ${m.p0}"></span>` : ''}
           ${m.p1 ? `<span style="width:${p1w}%;background:#d97706;" title="P1: ${m.p1}"></span>` : ''}
-          ${m.p2 ? `<span style="width:${p2w}%;background:#94a3b8;" title="P2: ${m.p2}"></span>` : ''}
+          ${m.p2 ? `<span style="width:${p2w}%;background:linear-gradient(90deg,#22c55e,#16a34a);" title="P2: ${m.p2}"></span>` : ''}
         </div>
         <div class="pmi-footer">
           <span class="pmi-footer-stat">${measCount} measure${measCount !== 1 ? 's' : ''}</span>
-          <span class="pmi-footer-stat">P0:<b>${m.p0||0}</b> P1:<b>${m.p1||0}</b> P2:<b>${m.p2||0}</b></span>
+          <span class="pmi-footer-pri" aria-label="Priority breakdown">
+            <span class="pmi-pri-chip pmi-pri-chip--p0" title="P0 — highest priority"><span class="pmi-pri-chip-lbl">P0</span><span class="pmi-pri-chip-val">${m.p0 || 0}</span></span>
+            <span class="pmi-pri-chip pmi-pri-chip--p1" title="P1 — high priority"><span class="pmi-pri-chip-lbl">P1</span><span class="pmi-pri-chip-val">${m.p1 || 0}</span></span>
+            <span class="pmi-pri-chip pmi-pri-chip--p2" title="P2 — lower priority"><span class="pmi-pri-chip-lbl">P2</span><span class="pmi-pri-chip-val">${m.p2 || 0}</span></span>
+          </span>
         </div>
       </div>`;
     });
@@ -2219,18 +2418,85 @@ class DashboardView {
       <div class="charts-drawer-toggle" onclick="toggleChartsDrawer(this)">
         <span class="cdt-chevron">&#9660;</span>
         <span class="cdt-label">Charts &amp; Analytics</span>
-        <div class="cdt-pills"><span class="cdt-pill">Effort Allocation</span><span class="cdt-pill">Story Points</span><span class="cdt-pill">Priority</span><span class="cdt-pill">Sprint Days</span></div>
+        <div class="cdt-pills"><span class="cdt-pill">Effort Allocation</span><span class="cdt-pill">Story Points</span><span class="cdt-pill">Priority</span><span class="cdt-pill">Sprint Days</span><span class="cdt-pill">Epic portfolio</span><span class="cdt-pill">All epics</span></div>
       </div>
       <div class="charts-drawer-body" id="charts-drawer-body">
         <div class="pva-grid" style="grid-template-columns:repeat(4, 1fr);gap:10px;">
           <div class="pva-card plan-card" style="padding:10px;"><h3 style="font-size:11px;margin-bottom:2px;">Effort Allocation by Method</h3><div class="pva-chart-container" id="pva-chart-method" style="height:210px;"></div></div>
-          <div class="pva-card plan-card" style="padding:10px;"><h3 style="font-size:11px;margin-bottom:2px;">Story Points by Method</h3><div class="pva-chart-container" id="chart-sp-method" style="height:210px;"></div></div>
+          <div class="pva-card plan-card" style="padding:10px;"><h3 style="font-size:11px;margin-bottom:2px;">Story Points by Method</h3><div class="pva-chart-container" id="pva-drawer-chart-sp-method" style="height:210px;"></div></div>
           <div class="pva-card plan-card" style="padding:10px;"><h3 style="font-size:11px;margin-bottom:2px;">Priority Distribution</h3><div class="pva-chart-container" id="pva-chart-priority" style="height:210px;"></div></div>
           <div class="pva-card plan-card" style="padding:10px;"><h3 style="font-size:11px;margin-bottom:2px;">Sprint Day Allocation</h3><div class="pva-chart-container" id="pva-chart-sprint" style="height:210px;"></div></div>
+        </div>
+        <div class="pva-card plan-card" style="padding:10px;margin-top:10px;">
+          <h3 style="font-size:11px;margin-bottom:2px;">Epic portfolio — planned, actual, closed, churn &amp; burn</h3>
+          <p style="font-size:9px;color:#64748b;margin:0 0 6px;line-height:1.35;">Totals across epics in this view. <strong>Burn</strong> = closed SP ÷ actual SP. <strong>Churn</strong> matches the grid (post-forecast heuristic or GUS rollups).</p>
+          <div class="pva-chart-container" id="pva-chart-epic-portfolio" style="height:248px;"></div>
+        </div>
+        <div class="pva-card plan-card" style="padding:10px;margin-top:10px;">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+            <div style="flex:1;min-width:180px;">
+              <h3 style="font-size:11px;margin:0 0 2px;">All epics — planned, actual, closed &amp; burn (per epic)</h3>
+              <p style="font-size:9px;color:#64748b;margin:0;line-height:1.35;">One row per epic (sorted by actual SP). <strong>Burn</strong> = closed ÷ actual SP. <strong>Churn</strong> in tooltip. Use the slider when there are many epics.</p>
+            </div>
+            <div class="pva-chart-fs-actions">
+              <button type="button" class="pva-chart-fs-btn" onclick="openEpicProgressChartFullscreen()">Fullscreen chart</button>
+            </div>
+          </div>
+          <div class="pva-chart-container" id="pva-chart-epic-by-epic" style="height:400px;"></div>
         </div>
       </div>
     </div>`;
     return html;
+  }
+
+  _epicQuickLinksHtml(epic, em) {
+    const gusHas = em.gusLink ? '' : 'empty';
+    const docHas = em.docLink ? '' : 'empty';
+    const tipGus = 'GUS — open this epic in Salesforce (new tab). Set URL via row config if empty.';
+    const tipDoc = 'Document — open the linked doc, runbook, or spec (new tab). Set URL via row config if empty.';
+    const svgLink = '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 13a5 5 0 0 1 0-7l1-1a5 5 0 0 1 7 7l-1 1"/><path d="M14 11a5 5 0 0 1 0 7l-1 1a5 5 0 0 1-7-7l1-1"/></svg>';
+    const svgDoc = '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8M16 17H8M10 9H8"/></svg>';
+    return `<div class="pva-epic-links-stack">
+      <a class="pva-epic-link ${gusHas}" href="${esc(em.gusLink)}" target="_blank" rel="noopener" title="${esc(tipGus)}" aria-label="${esc(tipGus)}" id="gus-a-${esc(epic.Id)}">${svgLink}</a>
+      <a class="pva-epic-link ${docHas}" href="${esc(em.docLink)}" target="_blank" rel="noopener" title="${esc(tipDoc)}" aria-label="${esc(tipDoc)}" id="doc-a-${esc(epic.Id)}">${svgDoc}</a>
+    </div>`;
+  }
+
+  _epicSpDeliveryTd(epic, metrics) {
+    const planned = metrics.planned;
+    const actual = metrics.actual;
+    const closed = metrics.closed;
+    const churnNum = metrics.churn || 0;
+    const burnPct = actual > 0 ? Math.min(100, Math.round((closed / actual) * 100)) : 0;
+    let signalClass = 'pva-sp-signal';
+    if (actual > planned && planned > 0) signalClass += ' pva-sp-signal--up';
+    if (actual < planned && planned > 0) signalClass += ' pva-sp-signal--under';
+    const churnHeuristic = !!(ctrl._churnContext && ctrl.currentRelease?.Forecast_Items__c != null);
+    const tipChurn = churnHeuristic
+      ? (churnNum > 0
+        ? `Churn (post-forecast): ${churnNum} — new epic and/or workstream-shaped work items added after forecast was confirmed (count, not SP).`
+        : `Churn (post-forecast): 0 — no matching scope events in this heuristic.`)
+      : `Churn / scope movement (GUS rollups on epic): ${churnNum} — sum of Additional/Subtracted work items and story points when the post-forecast heuristic is unavailable.`;
+    const churnIcoClass = 'pva-sp-ico pva-sp-ico--churn' + (churnNum > 0 ? ' pva-sp-ico--churn-hot' : '');
+    const tipP = `Planned story points — baseline scope on this epic (${planned} SP). Field: Planned_Story_Points__c.`;
+    const tipA = `Actual story points — total SP currently on the epic (${actual} SP). Field: Actual_Story_Points_on_Epic__c.`;
+    const tipC = `Closed story points — SP from completed work (${closed} SP). Field: Storypoints_Closed__c.`;
+    const tipBurn = `Delivery strip — ${closed} of ${actual} SP closed (${burnPct}% of actual). Fills upward as delivery progresses.`;
+    const svgP = '<svg viewBox="0 0 24 24" width="9" height="9" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>';
+    const svgA = '<svg viewBox="0 0 24 24" width="9" height="9" aria-hidden="true"><path d="M12 20V9M18 20V5M6 20v-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+    const svgC = '<svg viewBox="0 0 24 24" width="9" height="9" aria-hidden="true"><path d="M20 6L9 17l-5-5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    const svgChurn = '<svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 16l4-6 4 5 4-10 4 8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    return `<td class="cell-sp pva-sp-cell">
+      <div class="pva-sp-cell-inner">
+        <div class="${signalClass}">
+          <span class="pva-sp-ico pva-sp-ico--planned" title="${esc(tipP)}" aria-label="${esc(tipP)}">${svgP}<span class="pva-sp-ico-val" data-sp="planned">${planned}</span></span>
+          <span class="pva-sp-ico pva-sp-ico--actual" title="${esc(tipA)}" aria-label="${esc(tipA)}">${svgA}<span class="pva-sp-ico-val" data-sp="actual">${actual}</span></span>
+          <span class="pva-sp-ico pva-sp-ico--closed" title="${esc(tipC)}" aria-label="${esc(tipC)}">${svgC}<span class="pva-sp-ico-val" data-sp="closed">${closed}</span></span>
+          <span class="${churnIcoClass}" title="${esc(tipChurn)}" aria-label="${esc(tipChurn)}">${svgChurn}<span class="pva-sp-ico-val" data-sp="churn">${churnNum}</span></span>
+        </div>
+        <div class="pva-sp-burn" role="img" title="${esc(tipBurn)}" aria-label="${esc(tipBurn)}"><span class="pva-sp-burn-fill" style="height:${burnPct}%"></span></div>
+      </div>
+    </td>`;
   }
 
   renderPlanVsActual(plan, hierarchy) {
@@ -2250,10 +2516,10 @@ class DashboardView {
     const activeMonthIdx = r264Months.findIndex(m => m.short === curMonthShort);
     const activeMonth = activeMonthIdx >= 0 ? activeMonthIdx : 0;
 
-    const totalCols = 8 + r264Months.length;
+    const totalCols = 6 + r264Months.length;
     const monthHeaders = r264Months.map((m, mi) => {
       const hidden = mi !== activeMonth ? ' col-hidden' : '';
-      return `<th class="pva-month-col${hidden}" data-month-idx="${mi}">${esc(m.full)} Update</th>`;
+      return `<th class="pva-month-col${hidden}" data-month-idx="${mi}" style="text-align:left;">${esc(m.full)} Update</th>`;
     }).join('');
 
     const monthCheckboxes = r264Months.map((m, mi) => {
@@ -2325,14 +2591,15 @@ class DashboardView {
 
     html += `<div class="pva-table-panel" style="overflow-x:auto;"><table class="pva-epic-table" id="pva-epic-table">
       <thead><tr>
-        <th style="width:22%">Measure / Epic</th>
-        <th style="width:9%">Owner</th>
-        <th style="width:3%;text-align:center;">Pri</th>
-        <th style="width:5%;text-align:center;">Sprint</th>
-        <th style="width:7%;text-align:center;">Health</th>
-        <th style="width:5%;text-align:center;">SP</th>
-        <th style="width:3%;text-align:center;">GUS</th>
-        <th style="width:3%;text-align:center;">Doc</th>
+        <th class="pva-col-me" style="text-align:left;">Measure / Epic</th>
+        <th class="pva-col-owner" style="text-align:left;">Owner</th>
+        <th class="pva-col-pri" style="text-align:left;">Pri</th>
+        <th class="pva-col-sprint" style="text-align:left;">Sprint</th>
+        <th class="pva-col-health" style="text-align:left;">Health</th>
+        <th class="pva-th-sp-delivery" style="text-align:left;padding-top:8px;" title="Planned, actual, and closed story points (GUS), scope churn signal, and closed-vs-actual delivery strip">
+          <span style="display:block;font-size:10px;font-weight:800;color:#0c4a6e;line-height:1.15;">Story points &amp; delivery</span>
+          <span style="display:block;font-size:8px;font-weight:600;color:#64748b;margin-top:3px;line-height:1.2;">P · A · C · churn · burn</span>
+        </th>
         ${monthHeaders}
       </tr></thead><tbody>`;
 
@@ -2363,13 +2630,9 @@ class DashboardView {
           const comments = ctrl.parseMonthlyComments(epic.Epic_Health_Comments__c, r264Months);
           const epicName = ctrl._stripLink(epic.Name || '');
           const projName = ctrl._stripLink(epic.Project__r?.Name || '');
-          const pct = metrics.pctComplete || 0;
-          const pctColor = pct >= 80 ? 'var(--green)' : pct >= 50 ? 'var(--amber)' : 'var(--red)';
           const em = getEpicMeta(epic.Id);
-          const gusHasLink = em.gusLink ? '' : 'empty';
-          const docHasLink = em.docLink ? '' : 'empty';
           const isNewEpicRow = ctrl._churnContext?.newEpicIds?.has(epic.Id);
-          const newEpicBadge = isNewEpicRow ? '<span class="pva-new-flag">NEW</span>' : '';
+          const newEpicBadge = isNewEpicRow ? '<span class="pva-new-flag pva-new-flag--inline">NEW</span>' : '';
 
           const commentCells = comments.map((c, ci) => {
             const hidden = ci !== activeMonth ? ' col-hidden' : '';
@@ -2378,34 +2641,27 @@ class DashboardView {
           }).join('');
 
           html += `<tr class="pva-epic-row pva-hidden" data-pva-method="${mi}" data-pva-measure="${mi}-${msIdx}" data-epic-id="${esc(epic.Id)}" data-health="${esc(epic.Health__c || 'Not Started')}" data-owner="${esc(em.owner)}" data-search-text="${esc((epicName + ' ' + projName + ' ' + (em.owner||'') + ' ' + (em.priority||'') + ' ' + (epic.Health__c||'') + ' ' + (em.sprintTarget||'')).toLowerCase())}">
-            <td>
-              ${newEpicBadge}<div style="font-weight:600;font-size:11px;line-height:1.3;" title="${esc(epicName)}">${esc(epicName)}</div>
+            <td class="pva-col-me pva-epic-name-cell" style="text-align:left;">
+              <div class="pva-epic-name-row" data-full-name="${esc(epicName)}">
+                ${newEpicBadge}
+                ${this._epicQuickLinksHtml(epic, em)}
+                <div class="pva-epic-title">${esc(epicName)}</div>
+              </div>
             </td>
-            <td class="pva-owner-cell"><input class="pva-cell-input" type="text" value="${esc(em.owner)}" data-epic-id="${esc(epic.Id)}" data-field="owner" onblur="savePvaField(this)" placeholder="Owner…"></td>
-            <td style="text-align:center;">
+            <td class="pva-col-owner pva-owner-cell" style="text-align:left;"><input class="pva-cell-input" type="text" value="${esc(em.owner)}" data-epic-id="${esc(epic.Id)}" data-field="owner" onblur="savePvaField(this)" placeholder="Owner…"></td>
+            <td class="pva-col-pri" style="text-align:left;">
               <select class="pva-cell-select" data-epic-id="${esc(epic.Id)}" data-field="priority" onchange="savePvaField(this)">
                 <option value="">–</option>
                 ${['P0','P1','P2','P3'].map(p=>`<option value="${p}"${em.priority===p?' selected':''}>${p}</option>`).join('')}
               </select>
             </td>
-            <td><input class="pva-cell-input" type="text" value="${esc(em.sprintTarget)}" data-epic-id="${esc(epic.Id)}" data-field="sprintTarget" onblur="savePvaField(this)" placeholder="Sprint…" style="font-size:10px;"></td>
-            <td class="cell-health">
+            <td class="pva-col-sprint" style="text-align:left;"><input class="pva-cell-input" type="text" value="${esc(em.sprintTarget)}" data-epic-id="${esc(epic.Id)}" data-field="sprintTarget" onblur="savePvaField(this)" placeholder="Sprint…" style="font-size:10px;"></td>
+            <td class="pva-col-health cell-health" style="text-align:left;">
               <select class="pva-cell-select" data-epic-id="${esc(epic.Id)}" data-field="health" onchange="savePvaField(this)" style="font-size:10px;padding:2px 4px;">
                 ${['On Track','Watch','Blocked','Not Started','On Hold','Completed','Canceled'].map(h=>`<option value="${h}"${(epic.Health__c||'Not Started')===h?' selected':''}>${h}</option>`).join('')}
               </select>
             </td>
-            <td class="cell-sp pva-metric-cell" style="text-align:center;">
-              <div style="font-size:11px;font-weight:700;">${metrics.planned}/${metrics.actual}</div>
-              <div class="pva-progress-bar"><div class="fill" style="width:${pct}%;background:${pctColor}"></div></div>
-              <div style="font-size:9px;color:var(--muted);">Cl:${metrics.closed}</div>
-              ${ctrl.currentRelease?.Forecast_Items__c != null && ctrl._churnContext && metrics.churn > 0 ? `<div style="font-size:8px;font-weight:700;color:#c2410c;margin-top:2px;">Churn: ${metrics.churn}</div>` : ''}
-            </td>
-            <td style="text-align:center;">
-              <a class="pva-link-icon ${gusHasLink}" href="${esc(em.gusLink)}" target="_blank" title="Open in GUS" id="gus-a-${esc(epic.Id)}">&#128279;</a>
-            </td>
-            <td style="text-align:center;">
-              <a class="pva-link-icon ${docHasLink}" href="${esc(em.docLink)}" target="_blank" title="Open Doc" id="doc-a-${esc(epic.Id)}">&#128196;</a>
-            </td>
+            ${this._epicSpDeliveryTd(epic, metrics)}
             ${commentCells}
           </tr>`;
         });
@@ -2705,9 +2961,14 @@ class DashboardView {
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
         <div>
           <h2 style="font-size:18px;font-weight:700;color:#1e293b;margin:0;">V2MOM Executive Summary</h2>
-          <p style="font-size:12px;color:#64748b;margin:4px 0 0;">Generates an executive-ready summary of monthly updates grouped by Method and Measure.</p>
+          <p style="font-size:12px;color:#64748b;margin:4px 0 0;">Outline and table summaries by <strong>month</strong> or <strong>quarter</strong> (Apr–Jul). Quarterly mode uses all month comments plus Path to Green and slippage fields, then AI structures Accomplished / Blockers / Path to green.</p>
         </div>
-        <div style="display:flex;gap:8px;align-items:center;">
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <label style="font-size:11px;font-weight:700;color:#475569;">Period</label>
+          <select id="ai-period-select" onchange="toggleAiPeriodControls()" style="padding:6px 12px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;font-weight:600;">
+            <option value="month">Monthly</option>
+            <option value="quarter">Quarterly</option>
+          </select>
           <select id="ai-month-select" style="padding:6px 12px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;font-weight:600;">
             <option value="Apr">April</option>
             <option value="May">May</option>
@@ -2738,7 +2999,7 @@ class DashboardView {
     return html;
   }
 
-  renderPlanVsActualCharts(plan) {
+  renderPlanVsActualCharts(plan, hierarchy) {
     const p = plan;
     const priEl = document.getElementById('pva-chart-priority');
     if (priEl) {
@@ -2797,6 +3058,111 @@ class DashboardView {
           }))
         }]
       });
+    }
+
+    const spDrawerEl = document.getElementById('pva-drawer-chart-sp-method');
+    if (spDrawerEl && hierarchy && hierarchy.length) {
+      if (this.chartInstances['pva-drawer-sp-method']) { try { this.chartInstances['pva-drawer-sp-method'].dispose(); } catch (e) {} }
+      const chartSp = echarts.init(spDrawerEl);
+      this.chartInstances['pva-drawer-sp-method'] = chartSp;
+      const labels = hierarchy.map(mg => `M${mg.methodNum}`);
+      const planned = hierarchy.map(mg => mg.measures.flatMap(m => m.epics).reduce((s, e) => s + (e.Planned_Story_Points__c || 0), 0));
+      const actual = hierarchy.map(mg => mg.measures.flatMap(m => m.epics).reduce((s, e) => s + (e.Actual_Story_Points_on_Epic__c || 0), 0));
+      const closed = hierarchy.map(mg => mg.measures.flatMap(m => m.epics).reduce((s, e) => s + (e.Storypoints_Closed__c || 0), 0));
+      chartSp.setOption({
+        tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+        legend: { top: 0, textStyle: { fontSize: 10 } },
+        grid: { top: 30, right: 20, bottom: 10, left: 10, containLabel: true },
+        yAxis: { type: 'category', data: labels, axisLabel: { fontSize: 11, fontWeight: 700 }, inverse: true },
+        xAxis: { type: 'value', axisLabel: { fontSize: 10 } },
+        series: [
+          { name: 'Planned', type: 'bar', data: planned, itemStyle: { color: '#cbd5e1' }, barMaxWidth: 16, barGap: '30%', label: { show: true, position: 'right', fontSize: 9, color: '#94a3b8' } },
+          { name: 'Actual', type: 'bar', data: actual, itemStyle: { color: '#0176d3' }, barMaxWidth: 16, label: { show: true, position: 'right', fontSize: 9, color: '#0176d3' } },
+          { name: 'Closed', type: 'bar', data: closed, itemStyle: { color: '#16a34a' }, barMaxWidth: 16, label: { show: true, position: 'right', fontSize: 9, color: '#16a34a' } }
+        ]
+      });
+    }
+
+    const portEl = document.getElementById('pva-chart-epic-portfolio');
+    if (portEl && hierarchy && hierarchy.length) {
+      if (this.chartInstances['pva-epic-portfolio']) { try { this.chartInstances['pva-epic-portfolio'].dispose(); } catch (e) {} }
+      const flat = hierarchy.flatMap(mg => mg.measures.flatMap(m => m.epics));
+      let totP = 0; let totA = 0; let totC = 0; let totChurn = 0;
+      flat.forEach(ep => {
+        totP += ep.Planned_Story_Points__c || 0;
+        totA += ep.Actual_Story_Points_on_Epic__c || 0;
+        totC += ep.Storypoints_Closed__c || 0;
+        totChurn += ctrl.computeMetrics(ep).churn || 0;
+      });
+      const burnPct = totA > 0 ? Math.round((totC / totA) * 100) : 0;
+      const cPort = echarts.init(portEl);
+      this.chartInstances['pva-epic-portfolio'] = cPort;
+      cPort.setOption({
+        title: {
+          text: `Portfolio burn: ${burnPct}% of actual SP closed (${totC} / ${totA} SP)`,
+          left: 'center',
+          top: 2,
+          textStyle: { fontSize: 11, fontWeight: 700, color: '#334155' }
+        },
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: { type: 'shadow' },
+          formatter(params) {
+            if (!params || !params.length) return '';
+            return params.map(p => {
+              if (p.value == null || p.value === '') return '';
+              const u = p.seriesName === 'Churn (count)' ? ' (count)' : ' SP';
+              return `${p.marker} ${p.seriesName}: <b>${p.value}</b>${u}`;
+            }).filter(Boolean).join('<br/>');
+          }
+        },
+        legend: { bottom: 2, textStyle: { fontSize: 10 } },
+        grid: { top: 40, right: 52, bottom: 36, left: 52, containLabel: false },
+        xAxis: {
+          type: 'category',
+          data: ['Planned', 'Actual', 'Closed', 'Churn'],
+          axisLabel: { fontSize: 10, fontWeight: 600, color: '#475569' }
+        },
+        yAxis: [
+          { type: 'value', name: 'Story points', nameTextStyle: { fontSize: 10, color: '#64748b' }, axisLabel: { fontSize: 10 } },
+          { type: 'value', name: 'Churn', nameTextStyle: { fontSize: 10, color: '#c2410c' }, axisLabel: { fontSize: 10, color: '#9a3412' }, splitLine: { show: false } }
+        ],
+        series: [
+          {
+            name: 'Story points',
+            type: 'bar',
+            yAxisIndex: 0,
+            data: [
+              { value: totP, itemStyle: { color: '#94a3b8' } },
+              { value: totA, itemStyle: { color: '#2563eb' } },
+              { value: totC, itemStyle: { color: '#16a34a' } },
+              '-'
+            ],
+            barMaxWidth: 40,
+            label: { show: true, position: 'top', fontSize: 10, fontWeight: 700, formatter: (p) => (p.value === '-' || p.value == null ? '' : p.value) }
+          },
+          {
+            name: 'Churn (count)',
+            type: 'bar',
+            yAxisIndex: 1,
+            data: ['-', '-', '-', totChurn],
+            itemStyle: { color: '#ea580c', borderRadius: [4, 4, 0, 0] },
+            barMaxWidth: 40,
+            label: { show: true, position: 'top', fontSize: 10, fontWeight: 700, formatter: (p) => (p.value === '-' || p.value == null ? '' : p.value) }
+          }
+        ]
+      });
+    }
+
+    const byEpicEl = document.getElementById('pva-chart-epic-by-epic');
+    if (byEpicEl && hierarchy && hierarchy.length) {
+      if (this.chartInstances['pva-epic-by-epic']) { try { this.chartInstances['pva-epic-by-epic'].dispose(); } catch (e) {} }
+      const opt = buildEpicByEpicProgressChartOption(hierarchy);
+      if (opt) {
+        const cBy = echarts.init(byEpicEl);
+        this.chartInstances['pva-epic-by-epic'] = cBy;
+        cBy.setOption(opt);
+      }
     }
   }
 }
@@ -3962,10 +4328,16 @@ function toggleTableFullscreen() {
     overlay.classList.add('open');
     document.body.style.overflow = 'hidden';
   }
+  requestAnimationFrame(() => adjustPvaMeasureEpicColumnWidth());
 }
 
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
+    const chartFs = document.getElementById('chart-fs-overlay');
+    if (chartFs?.classList.contains('open')) {
+      closeEpicProgressChartFullscreen();
+      return;
+    }
     const overlay = document.getElementById('fullscreen-overlay');
     if (overlay?.classList.contains('open')) toggleTableFullscreen();
   }
@@ -4008,6 +4380,61 @@ function _setBtnState(btn, label, color, borderColor, loading) {
   if (borderColor) btn.style.borderColor = borderColor;
 }
 
+function syncEpicSpProgressDom(cell, ep) {
+  if (!cell || !ep) return;
+  const planned = ep.Planned_Story_Points__c || 0;
+  const actual = ep.Actual_Story_Points_on_Epic__c || 0;
+  const closed = ep.Storypoints_Closed__c || 0;
+  const tips = {
+    planned: (v) => `Planned story points — baseline scope on this epic (${v} SP). Field: Planned_Story_Points__c.`,
+    actual: (v) => `Actual story points — total SP currently on the epic (${v} SP). Field: Actual_Story_Points_on_Epic__c.`,
+    closed: (v) => `Closed story points — SP from completed work (${v} SP). Field: Storypoints_Closed__c.`
+  };
+  const setVal = (field, val) => {
+    const el = cell.querySelector(`[data-sp="${field}"]`);
+    if (el) el.textContent = val;
+    const ico = cell.querySelector(`.pva-sp-ico--${field}`);
+    if (ico) {
+      const t = tips[field](val);
+      ico.title = t;
+      ico.setAttribute('aria-label', t);
+    }
+  };
+  setVal('planned', planned);
+  setVal('actual', actual);
+  setVal('closed', closed);
+  const metrics = ctrl.computeMetrics(ep);
+  const churnNum = metrics.churn || 0;
+  const churnValEl = cell.querySelector('[data-sp="churn"]');
+  if (churnValEl) churnValEl.textContent = churnNum;
+  const churnHeuristic = !!(ctrl._churnContext && ctrl.currentRelease?.Forecast_Items__c != null);
+  const tipChurn = churnHeuristic
+    ? (churnNum > 0
+      ? `Churn (post-forecast): ${churnNum} — new epic and/or workstream-shaped work items added after forecast was confirmed (count, not SP).`
+      : `Churn (post-forecast): 0 — no matching scope events in this heuristic.`)
+    : `Churn / scope movement (GUS rollups on epic): ${churnNum} — sum of Additional/Subtracted work items and story points when the post-forecast heuristic is unavailable.`;
+  const icoChurn = cell.querySelector('.pva-sp-ico--churn');
+  if (icoChurn) {
+    icoChurn.title = tipChurn;
+    icoChurn.setAttribute('aria-label', tipChurn);
+    icoChurn.classList.toggle('pva-sp-ico--churn-hot', churnNum > 0);
+  }
+  const burnPct = actual > 0 ? Math.min(100, Math.round((closed / actual) * 100)) : 0;
+  const fill = cell.querySelector('.pva-sp-burn-fill');
+  if (fill) fill.style.height = burnPct + '%';
+  const burn = cell.querySelector('.pva-sp-burn');
+  if (burn) {
+    const tb = `Delivery strip — ${closed} of ${actual} SP closed (${burnPct}% of actual). Fills upward as delivery progresses.`;
+    burn.title = tb;
+    burn.setAttribute('aria-label', tb);
+  }
+  const sig = cell.querySelector('.pva-sp-signal');
+  if (sig) {
+    sig.classList.toggle('pva-sp-signal--up', actual > planned && planned > 0);
+    sig.classList.toggle('pva-sp-signal--under', actual < planned && planned > 0);
+  }
+}
+
 async function refreshEpicDataFromGUS() {
   const btn = document.getElementById('btn-gus-refresh');
   if (!btn) return;
@@ -4044,15 +4471,7 @@ async function refreshEpicDataFromGUS() {
       if (healthSel) healthSel.value = ep.Health__c || 'Not Started';
 
       const spCell = row.querySelector('.cell-sp');
-      if (spCell) {
-        const actual = ep.Actual_Story_Points_on_Epic__c || 0;
-        const closed = ep.Storypoints_Closed__c || 0;
-        const pct = actual > 0 ? Math.round((closed/actual)*100) : 0;
-        const pctColor = pct >= 80 ? '#16a34a' : pct >= 40 ? '#d97706' : '#64748b';
-        spCell.querySelector('.pva-metric-cell') || spCell;
-        const metricDiv = spCell.querySelector('div');
-        if (metricDiv) metricDiv.innerHTML = `<div style="font-size:11px;font-weight:700;">${closed}/${actual}</div><div class="pva-progress-bar"><div class="fill" style="width:${pct}%;background:${pctColor}"></div></div><div style="font-size:9px;color:var(--muted);">Cl:${closed} IP:${ep.Storypoints_In_Progress__c||0}</div>`;
-      }
+      if (spCell) syncEpicSpProgressDom(spCell, ep);
 
       const comments = ep.Epic_Health_Comments__c || '';
       if (comments) {
@@ -4282,6 +4701,7 @@ function switchPvaTab(tabId) {
   if (btn) btn.classList.add('pva-tab-active');
   ctrl._saveState({ pvaTab: tabId });
   if (tabId === 'capacity-planning') renderCapacityCharts();
+  if (tabId === 'ai-summarise') setTimeout(() => { if (typeof toggleAiPeriodControls === 'function') toggleAiPeriodControls(); }, 0);
   if (tabId === 'epic-tracking') requestAnimationFrame(() => {
     document.querySelectorAll('.comment-preview').forEach(el => checkOverflow(el));
   });
@@ -4293,6 +4713,15 @@ function switchPvaTab(tabId) {
 const LLM_ENDPOINT = 'https://eng-ai-model-gateway.sfproxy.devx-preprod.aws-esvc1-useast2.aws.sfdc.cl/chat/completions';
 const LLM_KEY = 'sk-GrosAKvQHWUydayrQ5o5NA';
 const LLM_MODEL = 'gemini-2.0-flash';
+
+function enrichUpdatesFromGusEpics(updates) {
+  const byId = new Map((ctrl.currentEpics || []).map(e => [e.Id, e]));
+  updates.forEach(u => {
+    const ep = byId.get(u.epicId);
+    u.pathToGreen = (ep && ep.Path_to_Green__c) || '';
+    u.slippage = (ep && ep.Slippage_Comments__c) || '';
+  });
+}
 
 function gatherMonthUpdates(monthShort) {
   const table = document.getElementById('pva-epic-table');
@@ -4306,11 +4735,36 @@ function gatherMonthUpdates(monthShort) {
     const meta = SHEET_EPIC_META[epicId] || {};
     const commentCell = row.querySelector(`td[data-field="month-${monthShort}"]`);
     const raw = commentCell ? (commentCell.dataset.raw || '') : '';
-    const methodRow = row.closest('tbody')?.querySelector(`tr.pva-method-row`);
     let methodId = row.dataset.pvaMethod;
     let measureId = row.dataset.pvaMeasure;
     epicUpdates.push({ epicId, epicName, health, owner: meta.owner || '', priority: meta.priority || '', raw, methodId, measureId });
   });
+  enrichUpdatesFromGusEpics(epicUpdates);
+  return epicUpdates;
+}
+
+function gatherMultiMonthUpdates(monthShorts) {
+  const table = document.getElementById('pva-epic-table');
+  if (!table) return [];
+  const rows = table.querySelectorAll('tr.pva-epic-row');
+  const epicUpdates = [];
+  rows.forEach(row => {
+    const epicId = row.dataset.epicId;
+    const epicName = (EPIC_NAMES[epicId] || '').replace(/^\[.*?\]\s*/, '');
+    const health = row.dataset.health || 'Not Started';
+    const meta = SHEET_EPIC_META[epicId] || {};
+    const chunks = [];
+    monthShorts.forEach(m => {
+      const commentCell = row.querySelector(`td[data-field="month-${m}"]`);
+      const raw = commentCell ? (commentCell.dataset.raw || '').trim() : '';
+      if (raw) chunks.push(`[${m}] ${raw}`);
+    });
+    const raw = chunks.join('\n\n');
+    const methodId = row.dataset.pvaMethod;
+    const measureId = row.dataset.pvaMeasure;
+    epicUpdates.push({ epicId, epicName, health, owner: meta.owner || '', priority: meta.priority || '', raw, methodId, measureId });
+  });
+  enrichUpdatesFromGusEpics(epicUpdates);
   return epicUpdates;
 }
 
@@ -4349,25 +4803,110 @@ function execSummaryFromRaw(text) {
   return cleaned.join(' ');
 }
 
-function buildLocalSummary(hierarchy, monthFull) {
-  let rows = [];
+/** Collapse month-tagged dumps into a short executive narrative (deduped sentences, no [Apr] prefixes in output). */
+function synthesizeFromRawUpdates(text, opts = {}) {
+  const maxSentences = opts.maxSentences != null ? opts.maxSentences : 5;
+  const stripMonthTags = opts.stripMonthTags !== false;
+  if (!text || !text.trim()) return '';
+  let t = text.trim();
+  if (stripMonthTags) {
+    t = t.replace(/\[(?:Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|Jan|Feb|Mar)\]\s*/gi, '');
+  }
+  t = t.replace(/\u00a0/g, ' ').replace(/\n+/g, ' ').replace(/\s+/g, ' ').trim();
+  const chunks = t.split(/(?<=[.!?])\s+/).map(s => s.trim()).filter(s => s.length > 8);
+  const out = [];
+  const seen = new Set();
+  for (const s0 of chunks) {
+    let s = s0.replace(/^[-•*]\s*/, '').trim();
+    if (s.length < 10) continue;
+    const key = s.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').slice(0, 88);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    if (s && !/[.!?]$/.test(s)) s += '.';
+    out.push(s);
+    if (out.length >= maxSentences) break;
+  }
+  if (out.length > 0) return out.join(' ');
+  const flat = t.replace(/^[-•*]\s*/gm, '').slice(0, 420);
+  return flat + (t.length > 420 ? '…' : '');
+}
+
+function buildExecSummaryRows(hierarchy, quarterly) {
+  const rows = [];
   const sortedMethods = Object.entries(hierarchy).sort((a, b) => Number(a[0]) - Number(b[0]));
   for (const [mk, method] of sortedMethods) {
     const sortedMeasures = Object.entries(method.measures).sort((a, b) => a[0].localeCompare(b[0]));
     for (const [msk, measure] of sortedMeasures) {
       const epicSummaries = measure.epics.map(e => {
-        const summary = execSummaryFromRaw(e.raw);
-        return { name: e.epicName, health: e.health, owner: e.owner, priority: e.priority, summary };
-      }).filter(e => e.summary);
+        const summary = synthesizeFromRawUpdates(e.raw || '', { maxSentences: quarterly ? 4 : 3, stripMonthTags: true });
+        return {
+          name: e.epicName,
+          health: e.health,
+          owner: e.owner,
+          priority: e.priority,
+          summary,
+          raw: e.raw || '',
+          pathToGreen: e.pathToGreen || '',
+          slippage: e.slippage || ''
+        };
+      }).filter(e => quarterly ? ((e.raw || '').trim() || e.pathToGreen || e.slippage) : (e.raw || '').trim());
       if (epicSummaries.length === 0) continue;
-      const combined = epicSummaries.map(e => e.summary).join(' ');
+      const measureRawBlob = epicSummaries.map(e => e.raw || '').filter(Boolean).join('\n\n');
+      const combined = synthesizeFromRawUpdates(measureRawBlob, { maxSentences: quarterly ? 7 : 5, stripMonthTags: true });
       const healthCounts = {};
       epicSummaries.forEach(e => { healthCounts[e.health] = (healthCounts[e.health] || 0) + 1; });
       const healthSummary = Object.entries(healthCounts).map(([h, c]) => `${c} ${h}`).join(', ');
-      rows.push({ method: method.label, measure: measure.label, epicCount: epicSummaries.length, healthSummary, combined, epics: epicSummaries });
+      const accomplished = combined;
+      let blockers = epicSummaries.map(e => e.slippage).filter(Boolean).join(' ');
+      let pathToGreen = epicSummaries.map(e => e.pathToGreen).filter(Boolean).join(' ');
+      if (quarterly) {
+        if (!blockers) blockers = 'None noted in GUS slippage fields for these epics.';
+        if (!pathToGreen) pathToGreen = 'Not specified in GUS Path to Green for these epics.';
+      }
+      const llmPayload = epicSummaries.map(e => {
+        const bits = [`Epic: ${e.name} [${e.health}]`];
+        if (e.raw) bits.push(`Month comments:\n${e.raw}`);
+        if (e.pathToGreen) bits.push(`Path to green: ${e.pathToGreen}`);
+        if (e.slippage) bits.push(`Slippage / blockers: ${e.slippage}`);
+        return bits.join('\n');
+      }).join('\n\n---\n\n');
+      rows.push({
+        method: method.label,
+        measure: measure.label,
+        epicCount: epicSummaries.length,
+        healthSummary,
+        epics: epicSummaries,
+        combined,
+        llmPayload,
+        accomplished,
+        blockers,
+        pathToGreen,
+        quarterly
+      });
     }
   }
   return rows;
+}
+
+function buildLocalSummary(hierarchy, monthFull) {
+  return buildExecSummaryRows(hierarchy, false);
+}
+
+/** Match LLM JSON row to grid row when method/measure strings differ slightly. */
+function matchLlmParsedRow(parsed, lr) {
+  if (!Array.isArray(parsed) || !parsed.length) return null;
+  const mNeed = (lr.method || '').trim().toLowerCase();
+  const measNeed = (lr.measure || '').trim().toLowerCase();
+  const normMeas = s => s.replace(/^m\d+[.\s]*\d*\s*[—-]\s*/i, '').replace(/\s+/g, ' ').trim().toLowerCase();
+  const a = normMeas(measNeed);
+  for (const p of parsed) {
+    const pm = (p.method || '').trim().toLowerCase();
+    const pmeas = normMeas(p.measure || '');
+    if (pm && mNeed && pm !== mNeed) continue;
+    if (!pmeas) continue;
+    if (a === pmeas || a.includes(pmeas.slice(0, 16)) || pmeas.includes(a.slice(0, 16))) return p;
+  }
+  return null;
 }
 
 async function callLLM(prompt) {
@@ -4398,66 +4937,166 @@ async function callLLM(prompt) {
   }
 }
 
+function toggleAiPeriodControls() {
+  const p = document.getElementById('ai-period-select')?.value || 'month';
+  const m = document.getElementById('ai-month-select');
+  if (m) m.style.display = p === 'month' ? '' : 'none';
+}
+
+function buildEpicHoverTitle(epics) {
+  return epics.map(e => {
+    const one = (e.summary || e.raw || '').replace(/\s+/g, ' ').trim().slice(0, 200);
+    return `${e.name} — ${one}${one.length >= 200 ? '…' : ''}`;
+  }).join('\n\n');
+}
+
+function buildOutlineHtml(finalRows, outlineTitle) {
+  const byMethod = {};
+  finalRows.forEach((r, idx) => {
+    if (!byMethod[r.method]) byMethod[r.method] = [];
+    byMethod[r.method].push({ measure: r.measure, idx, epicCount: r.epicCount });
+  });
+  let h = `<nav class="ai-summary-outline" aria-label="Summary outline"><div class="ai-outline-head">${esc(outlineTitle)}</div><ol style="list-style:decimal;">`;
+  Object.keys(byMethod).forEach(meth => {
+    h += `<li style="margin:6px 0;"><strong>${esc(meth)}</strong><ol class="ai-outline-measures">`;
+    byMethod[meth].forEach(({ measure, idx, epicCount }) => {
+      h += `<li><a href="#ai-sum-row-${idx}">${esc(measure)}</a> <span style="color:#94a3b8;font-weight:500;">(${epicCount} epics)</span></li>`;
+    });
+    h += `</ol></li>`;
+  });
+  h += `</ol></nav>`;
+  return h;
+}
+
+function renderQuarterlySummaryCell(r) {
+  return `<div class="ai-q-summary">
+    <strong>Accomplished</strong><p>${esc(r.accomplished || '—')}</p>
+    <strong>Blockers</strong><p>${esc(r.blockers || '—')}</p>
+    <strong>Path to green</strong><p>${esc(r.pathToGreen || '—')}</p>
+  </div>`;
+}
+
 async function runAISummarise() {
   const out = document.getElementById('ai-summary-output');
   const copyBtn = document.getElementById('ai-copy-btn');
+  const period = document.getElementById('ai-period-select')?.value || 'month';
   const monthShort = document.getElementById('ai-month-select')?.value || 'Apr';
-  const monthFull = { Apr: 'April', May: 'May', Jun: 'June', Jul: 'July' }[monthShort] || monthShort;
+  const monthFullMap = { Apr: 'April', May: 'May', Jun: 'June', Jul: 'July' };
+  const monthFull = monthFullMap[monthShort] || monthShort;
+  const isQuarter = period === 'quarter';
+  const headline = isQuarter ? 'Quarterly (April–July)' : `${monthFull} (monthly)`;
+  const summaryColTitle = isQuarter ? 'Quarterly summary' : `${monthFull} summary`;
 
-  out.innerHTML = `<div style="text-align:center;padding:40px 0;"><div class="loading-subtext" style="color:#1e40af;font-size:14px;font-weight:600;">Analysing ${monthFull} updates across all methods and measures...</div></div>`;
+  out.innerHTML = `<div style="text-align:center;padding:40px 0;"><div class="loading-subtext" style="color:#1e40af;font-size:14px;font-weight:600;">Analysing ${headline} across methods and measures…</div></div>`;
   copyBtn.style.display = 'none';
 
   await new Promise(r => setTimeout(r, 100));
 
-  const updates = gatherMonthUpdates(monthShort);
-  const withContent = updates.filter(u => u.raw.trim());
+  const updates = isQuarter ? gatherMultiMonthUpdates(['Apr', 'May', 'Jun', 'Jul']) : gatherMonthUpdates(monthShort);
+  const withContent = updates.filter(u => (u.raw || '').trim());
   if (withContent.length === 0) {
-    out.innerHTML = `<div style="text-align:center;color:#94a3b8;padding:40px 0;">No ${monthFull} updates found. Ensure epic comments are populated for this month.</div>`;
+    out.innerHTML = `<div style="text-align:center;color:#94a3b8;padding:40px 0;">No ${isQuarter ? 'April–July' : monthFull} updates found. Populate epic month columns on the Epic Tracking table first.</div>`;
     return;
   }
 
   const hierarchy = buildHierarchyFromUpdates(updates);
-  const localRows = buildLocalSummary(hierarchy, monthFull);
+  const localRows = buildExecSummaryRows(hierarchy, isQuarter);
 
   let llmSucceeded = false;
-  const prompt = localRows.map(r =>
-    `Method: ${r.method}\nMeasure: ${r.measure}\nRaw updates from ${r.epicCount} epic(s):\n${r.combined}\n`
-  ).join('\n---\n');
-
-  const llmResult = await callLLM(
-    `Summarise the following ${monthFull} engineering updates into executive-ready summaries. For EACH method+measure pair, write a concise 2-4 sentence executive summary. Return ONLY a JSON array where each item has: {"method":"...","measure":"...","summary":"..."}\n\n${prompt}`
-  );
-
   let finalRows = localRows;
-  if (llmResult) {
-    try {
-      const jsonMatch = llmResult.match(/\[[\s\S]*\]/);
-      if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0]);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          finalRows = localRows.map((lr, i) => {
-            const match = parsed.find(p => p.measure && lr.measure.includes(p.measure.split(' ')[0])) || parsed[i];
-            return { ...lr, combined: match?.summary || lr.combined };
-          });
-          llmSucceeded = true;
+
+  if (isQuarter) {
+    const prompt = localRows.map(r =>
+      `Method: ${r.method}\nMeasure: ${r.measure} (${r.epicCount} epics)\n${r.llmPayload}\n`
+    ).join('\n========\n');
+
+    const llmResult = await callLLM(
+      `You are an executive communications writer for Salesforce engineering.
+
+Synthesize the following material into ONE brief per method+measure. Inputs may include April–July month comments, GUS Path to Green, and slippage/blocker notes.
+
+CRITICAL: Do NOT paste or enumerate month-by-month comments. Integrate themes into a cohesive quarterly narrative. Omit duplicate or test noise. If multiple epics, summarize the measure as a whole.
+
+Return ONLY a JSON array. Each object MUST have these keys (strings), with method/measure copied EXACTLY from each data block header:
+{"method":"...","measure":"...","accomplished":"2–6 sentences: outcomes, delivery, momentum across the quarter","blockers":"1–4 sentences: dependencies, risks, moratoria, or cross-team issues. Use 'None noted.' if absent.","pathToGreen":"1–4 sentences: remediation, next steps, confidence to green. Use 'Not specified.' if absent."}
+
+Data:
+${prompt}`
+    );
+
+    if (llmResult) {
+      try {
+        const jsonMatch = llmResult.match(/\[[\s\S]*\]/);
+        if (jsonMatch) {
+          const parsed = JSON.parse(jsonMatch[0]);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            finalRows = localRows.map((lr, i) => {
+              const match = matchLlmParsedRow(parsed, lr) || parsed[i];
+              return {
+                ...lr,
+                accomplished: (match && match.accomplished) ? match.accomplished : lr.accomplished,
+                blockers: (match && match.blockers) ? match.blockers : lr.blockers,
+                pathToGreen: (match && match.pathToGreen) ? match.pathToGreen : lr.pathToGreen
+              };
+            });
+            llmSucceeded = true;
+          }
         }
-      }
-    } catch (e) { console.warn('LLM parse failed:', e); }
+      } catch (e) { console.warn('Quarterly LLM parse failed:', e); }
+    }
+  } else {
+    const prompt = localRows.map(r =>
+      `Method: ${r.method}\nMeasure: ${r.measure} (${r.epicCount} epics)\n${r.llmPayload}\n`
+    ).join('\n---\n');
+
+    const llmResult = await callLLM(
+      `You are an executive communications writer for Salesforce engineering.
+
+Summarise the following ${monthFull} engineering notes into executive-ready text. For EACH method+measure block, write ONE cohesive 2–4 sentence paragraph for the whole measure.
+
+CRITICAL: Do NOT paste month tags ([Apr], [May], etc.) or replay comments line-by-line. Merge duplicate or test noise; integrate themes across epics.
+
+Return ONLY a JSON array. Each object MUST have: {"method":"...","measure":"...","summary":"..."} with method/measure copied EXACTLY from each block header.
+
+Data:
+${prompt}`
+    );
+
+    if (llmResult) {
+      try {
+        const jsonMatch = llmResult.match(/\[[\s\S]*\]/);
+        if (jsonMatch) {
+          const parsed = JSON.parse(jsonMatch[0]);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            finalRows = localRows.map((lr, i) => {
+              const match = matchLlmParsedRow(parsed, lr) || parsed[i];
+              return { ...lr, combined: (match && match.summary) ? match.summary : lr.combined };
+            });
+            llmSucceeded = true;
+          }
+        }
+      } catch (e) { console.warn('LLM parse failed:', e); }
+    }
   }
 
-  let tableHtml = `<div style="margin-bottom:12px;display:flex;align-items:center;gap:8px;">
-    <span style="font-size:14px;font-weight:700;color:#1e293b;">Executive Summary &mdash; ${monthFull} Updates</span>
-    <span style="font-size:11px;padding:2px 8px;border-radius:4px;font-weight:600;${llmSucceeded ? 'background:#dcfce7;color:#166534;' : 'background:#dbeafe;color:#1e40af;'}">${llmSucceeded ? 'AI Enhanced' : 'Structured Summary'}</span>
-    <span style="font-size:11px;color:#94a3b8;">${withContent.length} epic updates processed</span>
+  const outlineTitle = isQuarter ? 'Quarterly outline (Apr–Jul)' : `Monthly outline — ${monthFull}`;
+  const outlineHtml = buildOutlineHtml(finalRows, outlineTitle);
+
+  let tableHtml = `<div style="margin-bottom:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+    <span style="font-size:14px;font-weight:700;color:#1e293b;">Executive Summary — ${esc(headline)}</span>
+    <span style="font-size:11px;padding:2px 8px;border-radius:4px;font-weight:600;${llmSucceeded ? 'background:#dcfce7;color:#166534;' : 'background:#dbeafe;color:#1e40af;'}">${llmSucceeded ? 'AI enhanced' : 'Synthesised (local)'}</span>
+    <span style="font-size:11px;color:#94a3b8;">${withContent.length} epic rows with content</span>
   </div>`;
 
+  tableHtml += outlineHtml;
+
   tableHtml += `<table id="ai-summary-table" style="width:100%;border-collapse:collapse;font-size:12px;">
-    <thead><tr style="background:#1e293b;color:#fff;">
-      <th style="padding:10px 12px;text-align:left;font-weight:700;border-radius:6px 0 0 0;">Method</th>
+    <thead><tr>
+      <th style="padding:10px 12px;text-align:left;font-weight:700;">Method</th>
       <th style="padding:10px 12px;text-align:left;font-weight:700;">Measure</th>
-      <th style="padding:10px 12px;text-align:center;font-weight:700;">Epics</th>
       <th style="padding:10px 12px;text-align:center;font-weight:700;">Health</th>
-      <th style="padding:10px 12px;text-align:left;font-weight:700;border-radius:0 6px 0 0;">${monthFull} Summary</th>
+      <th style="padding:10px 12px;text-align:left;font-weight:700;">${esc(summaryColTitle)}</th>
+      <th style="padding:10px 12px;text-align:center;font-weight:700;">Epics</th>
     </tr></thead><tbody>`;
 
   let prevMethod = '';
@@ -4467,12 +5106,14 @@ async function runAISummarise() {
       : '';
     prevMethod = r.method;
     const stripe = i % 2 === 0 ? '' : 'background:#f8fafc;';
-    tableHtml += `<tr style="${stripe}border-bottom:1px solid #e2e8f0;">
+    const epicTitle = buildEpicHoverTitle(r.epics);
+    const summaryInner = r.quarterly ? renderQuarterlySummaryCell(r) : esc(r.combined);
+    tableHtml += `<tr id="ai-sum-row-${i}" style="${stripe}border-bottom:1px solid #e2e8f0;">
       ${methodCell}
       <td style="padding:10px 12px;font-weight:600;color:#334155;">${esc(r.measure)}</td>
-      <td style="padding:10px 12px;text-align:center;font-weight:600;">${r.epicCount}</td>
       <td style="padding:10px 12px;text-align:center;font-size:11px;">${esc(r.healthSummary)}</td>
-      <td style="padding:10px 12px;color:#475569;line-height:1.5;">${esc(r.combined)}</td>
+      <td style="padding:10px 12px;color:#475569;line-height:1.5;vertical-align:top;">${summaryInner}</td>
+      <td class="ai-epic-count-cell" title="${esc(epicTitle)}"><span class="ai-epic-count-badge">${r.epicCount}</span></td>
     </tr>`;
   });
   tableHtml += `</tbody></table>`;
@@ -4568,7 +5209,122 @@ function renderCapacityCharts() {
   _capCharts.push(c2);
 }
 
+let _pvaEpicNameMeasureCanvas;
+function _getPvaEpicNameMeasureCtx() {
+  if (!_pvaEpicNameMeasureCanvas) _pvaEpicNameMeasureCanvas = document.createElement('canvas');
+  const ctx = _pvaEpicNameMeasureCanvas.getContext('2d');
+  ctx.font = '600 11px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+  return ctx;
+}
+
+function adjustPvaMeasureEpicColumnWidth() {
+  const table = document.getElementById('pva-epic-table');
+  if (!table) return;
+  const titles = table.querySelectorAll('.pva-epic-title');
+  if (!titles.length) return;
+  const ctx = _getPvaEpicNameMeasureCtx();
+  let maxText = 0;
+  titles.forEach(t => {
+    const raw = (t.textContent || '').trim();
+    if (!raw) return;
+    const w = ctx.measureText(raw).width;
+    if (w > maxText) maxText = w;
+  });
+  const LINKS_AND_BADGE = 124;
+  const CELL_PAD = 32;
+  const MIN_W = 260;
+  const MAX_W = Math.min(760, Math.max(340, Math.floor(window.innerWidth * 0.55)));
+  const colW = Math.max(MIN_W, Math.min(MAX_W, Math.ceil(maxText + LINKS_AND_BADGE + CELL_PAD)));
+  table.style.setProperty('--pva-col-me-width', colW + 'px');
+}
+
+let _pvaEpicTipEl;
+let _pvaEpicTipActiveRow = null;
+let _pvaEpicTipMoveRaf = 0;
+
+function _ensurePvaEpicTipEl() {
+  if (_pvaEpicTipEl) return _pvaEpicTipEl;
+  _pvaEpicTipEl = document.createElement('div');
+  _pvaEpicTipEl.id = 'pva-epic-name-tooltip';
+  _pvaEpicTipEl.className = 'pva-epic-name-tooltip';
+  _pvaEpicTipEl.setAttribute('role', 'tooltip');
+  _pvaEpicTipEl.style.display = 'none';
+  document.body.appendChild(_pvaEpicTipEl);
+  return _pvaEpicTipEl;
+}
+
+function _hidePvaEpicNameTooltip() {
+  _pvaEpicTipActiveRow = null;
+  if (_pvaEpicTipEl) _pvaEpicTipEl.style.display = 'none';
+}
+
+function _positionPvaEpicNameTooltip(clientX, clientY) {
+  const tip = _ensurePvaEpicTipEl();
+  const margin = 12;
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  tip.style.display = 'block';
+  const tw = tip.offsetWidth;
+  const th = tip.offsetHeight;
+  let x = clientX + margin;
+  let y = clientY + margin;
+  if (x + tw > vw - 8) x = Math.max(8, clientX - tw - margin);
+  if (y + th > vh - 8) y = Math.max(8, clientY - th - margin);
+  tip.style.left = x + 'px';
+  tip.style.top = y + 'px';
+}
+
+function initPvaEpicNameTooltipDelegation() {
+  if (window.__pvaEpicTipDeleg) return;
+  window.__pvaEpicTipDeleg = true;
+  const root = document.getElementById('main-content');
+  if (!root) return;
+  root.addEventListener('mouseover', (e) => {
+    const t = e.target;
+    const el = (t && t.nodeType === 3 ? t.parentElement : t)?.closest?.('.pva-epic-name-row[data-full-name]');
+    if (!el || !el.closest('#pva-epic-table')) return;
+    const full = el.getAttribute('data-full-name');
+    if (!full) return;
+    if (_pvaEpicTipActiveRow === el) return;
+    _pvaEpicTipActiveRow = el;
+    const tip = _ensurePvaEpicTipEl();
+    tip.textContent = full;
+    requestAnimationFrame(() => _positionPvaEpicNameTooltip(e.clientX, e.clientY));
+  }, true);
+  root.addEventListener('mousemove', (e) => {
+    if (!_pvaEpicTipActiveRow || !_pvaEpicTipActiveRow.isConnected) {
+      _hidePvaEpicNameTooltip();
+      return;
+    }
+    if (!_pvaEpicTipActiveRow.contains(e.target)) return;
+    if (_pvaEpicTipMoveRaf) return;
+    _pvaEpicTipMoveRaf = requestAnimationFrame(() => {
+      _pvaEpicTipMoveRaf = 0;
+      if (_pvaEpicTipActiveRow) _positionPvaEpicNameTooltip(e.clientX, e.clientY);
+    });
+  }, true);
+  root.addEventListener('mouseout', (e) => {
+    const t = e.target;
+    const el = (t && t.nodeType === 3 ? t.parentElement : t)?.closest?.('.pva-epic-name-row[data-full-name]');
+    if (!el || el !== _pvaEpicTipActiveRow) return;
+    const rt = e.relatedTarget;
+    if (rt && el.contains(rt)) return;
+    _hidePvaEpicNameTooltip();
+  }, true);
+}
+
+let __pvaColResizeTimer;
+function initPvaEpicColumnResizeListener() {
+  if (window.__pvaColResizeListener) return;
+  window.__pvaColResizeListener = true;
+  window.addEventListener('resize', () => {
+    clearTimeout(__pvaColResizeTimer);
+    __pvaColResizeTimer = setTimeout(() => adjustPvaMeasureEpicColumnWidth(), 120);
+  });
+}
+
 function pvaExpandAll() {
+  _clearMethodTileSelection();
   document.querySelectorAll('tr.pva-method-row.collapsed').forEach(r => r.classList.remove('collapsed'));
   document.querySelectorAll('tr.pva-measure-row.pva-hidden').forEach(r => r.classList.remove('pva-hidden'));
   document.querySelectorAll('tr.pva-measure-row.collapsed').forEach(r => r.classList.remove('collapsed'));
@@ -4577,6 +5333,27 @@ function pvaExpandAll() {
 function pvaCollapseAll() {
   document.querySelectorAll('tr.pva-method-row').forEach(r => r.classList.add('collapsed'));
   document.querySelectorAll('tr.pva-measure-row').forEach(r => { r.classList.add('pva-hidden'); r.classList.add('collapsed'); });
+  document.querySelectorAll('tr.pva-epic-row').forEach(r => r.classList.add('pva-hidden'));
+}
+
+const _activeMethodTileSet = new Set();
+
+function _clearMethodTileSelection() {
+  _activeMethodTileSet.clear();
+  document.querySelectorAll('.pva-method-item').forEach(t => t.classList.remove('mtile-active'));
+}
+
+function _applyMethodTileFilter() {
+  if (_activeMethodTileSet.size === 0) return;
+  document.querySelectorAll('tr.pva-method-row').forEach(r => {
+    const sel = _activeMethodTileSet.has(+r.dataset.pvaMethod);
+    r.classList.toggle('collapsed', !sel);
+  });
+  document.querySelectorAll('tr.pva-measure-row').forEach(r => {
+    const sel = _activeMethodTileSet.has(+r.dataset.pvaMethod);
+    r.classList.toggle('pva-hidden', !sel);
+    r.classList.add('collapsed');
+  });
   document.querySelectorAll('tr.pva-epic-row').forEach(r => r.classList.add('pva-hidden'));
 }
 
@@ -4609,6 +5386,7 @@ function clearAllFilters() {
   document.querySelectorAll('#filter-owner, #fs-filter-owner').forEach(s => s.value = '');
   document.querySelectorAll('#inline-usearch, #fs-usearch').forEach(s => s.value = '');
   document.querySelectorAll('.ms-health-dot.active').forEach(d => d.classList.remove('active'));
+  _clearMethodTileSelection();
   pvaCollapseAll();
   _updateSearchCounts(0, 0);
 }
@@ -4638,7 +5416,8 @@ function _applyAllFilters() {
   const healthVal = (document.getElementById('filter-health')?.value || document.getElementById('fs-filter-health')?.value || '').trim();
   const ownerVal = (document.getElementById('filter-owner')?.value || document.getElementById('fs-filter-owner')?.value || '').trim();
   const search = _searchTerm;
-  const hasAny = healthVal || ownerVal || search;
+  const hasTextFilters = !!(healthVal || ownerVal || search);
+  const methodFilterOn = _activeMethodTileSet.size > 0;
 
   // Also dim/highlight method tiles based on search
   if (search) {
@@ -4652,23 +5431,37 @@ function _applyAllFilters() {
 
   const totalEpics = document.querySelectorAll('tr.pva-epic-row').length;
 
-  if (!hasAny) {
+  if (!hasTextFilters && !methodFilterOn) {
     pvaCollapseAll();
+    _updateSearchCounts(0, totalEpics);
+    return;
+  }
+
+  if (!hasTextFilters && methodFilterOn) {
+    _applyMethodTileFilter();
     _updateSearchCounts(0, totalEpics);
     return;
   }
 
   let visibleCount = 0;
   document.querySelectorAll('tr.pva-epic-row').forEach(row => {
+    const mi = +row.dataset.pvaMethod;
+    const inMethod = !methodFilterOn || _activeMethodTileSet.has(mi);
     const matchH = !healthVal || (row.dataset.health || '') === healthVal;
     const matchO = !ownerVal || (row.dataset.owner || '') === ownerVal;
     const matchS = !search || _wordMatch(row.dataset.searchText || '', search);
-    const visible = matchH && matchO && matchS;
+    const visible = inMethod && matchH && matchO && matchS;
     row.classList.toggle('pva-hidden', !visible);
     if (visible) visibleCount++;
   });
 
   document.querySelectorAll('tr.pva-measure-row').forEach(row => {
+    const mi = +row.dataset.pvaMethod;
+    if (methodFilterOn && !_activeMethodTileSet.has(mi)) {
+      row.classList.add('pva-hidden');
+      row.classList.add('collapsed');
+      return;
+    }
     const key = row.dataset.pvaMeasure;
     const matchS = !search || _wordMatch(row.dataset.searchText || '', search);
     const hasVisibleEpic = !!document.querySelector(`tr.pva-epic-row[data-pva-measure="${key}"]:not(.pva-hidden)`);
@@ -4679,6 +5472,10 @@ function _applyAllFilters() {
 
   document.querySelectorAll('tr.pva-method-row').forEach(row => {
     const mi = row.dataset.pvaMethod;
+    if (methodFilterOn && !_activeMethodTileSet.has(+mi)) {
+      row.classList.add('collapsed');
+      return;
+    }
     const matchS = !search || _wordMatch(row.dataset.searchText || '', search);
     const hasVisibleChild = !!document.querySelector(`tr.pva-measure-row[data-pva-method="${mi}"]:not(.pva-hidden)`);
     row.classList.toggle('collapsed', !(hasVisibleChild || matchS));
@@ -4704,29 +5501,16 @@ function filterMeasureByHealth(measureKey, health, dotEl) {
   if (msRow) msRow.classList.remove('collapsed');
 }
 
-/* ===== METHOD TILE CLICK-TO-FILTER ===== */
-let _activeMethodTile = -1;
+/* ===== METHOD TILE CLICK-TO-FILTER (multi-select) ===== */
 function filterByMethodTile(mi) {
   const tiles = document.querySelectorAll('.pva-method-item');
-  if (_activeMethodTile === mi) {
-    _activeMethodTile = -1;
-    tiles.forEach(t => t.classList.remove('mtile-active'));
-    pvaCollapseAll();
-    return;
-  }
-  _activeMethodTile = mi;
-  tiles.forEach(t => t.classList.toggle('mtile-active', +t.dataset.methodIdx === mi));
-
-  document.querySelectorAll('tr.pva-method-row').forEach(r => {
-    const isMi = +r.dataset.pvaMethod === mi;
-    r.classList.toggle('collapsed', !isMi);
+  if (_activeMethodTileSet.has(mi)) _activeMethodTileSet.delete(mi);
+  else _activeMethodTileSet.add(mi);
+  tiles.forEach(t => {
+    const idx = +t.dataset.methodIdx;
+    t.classList.toggle('mtile-active', _activeMethodTileSet.has(idx));
   });
-  document.querySelectorAll('tr.pva-measure-row').forEach(r => {
-    const isMi = +r.dataset.pvaMethod === mi;
-    r.classList.toggle('pva-hidden', !isMi);
-    r.classList.add('collapsed');
-  });
-  document.querySelectorAll('tr.pva-epic-row').forEach(r => r.classList.add('pva-hidden'));
+  _applyAllFilters();
 }
 
 /* ===== METHOD TILE DOUBLE-CLICK FLYOUT ===== */
