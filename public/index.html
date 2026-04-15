@@ -429,8 +429,8 @@ body { font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe
 .pva-epic-table td { padding: 5px 6px; border-bottom: 1px solid #f0f9ff; vertical-align: top; font-size: 11px; overflow: hidden; text-overflow: ellipsis; }
 .pva-epic-row > td { vertical-align: middle !important; }
 .pva-epic-row > td.pva-comment-cell { vertical-align: top !important; }
-.pva-epic-table .col-hidden { width: 0 !important; min-width: 0 !important; max-width: 0 !important; padding: 0 !important; border: 0 !important; overflow: hidden !important; font-size: 0 !important; line-height: 0 !important; white-space: nowrap !important; visibility: hidden !important; }
-.pva-epic-table .col-hidden * { width: 0 !important; min-width: 0 !important; max-width: 0 !important; padding: 0 !important; margin: 0 !important; border: 0 !important; font-size: 0 !important; visibility: hidden !important; }
+/* display:none removes hidden month cols from the table column grid (visibility:hidden still reserved phantom columns). */
+.pva-epic-table .col-hidden { display: none !important; }
 .pva-tabs { display:flex; gap:0; }
 .pva-tab { display:inline-flex; align-items:center; gap:6px; padding:10px 20px; font-size:13px; font-weight:600; color:#64748b; background:transparent; border:none; border-bottom:3px solid transparent; cursor:pointer; transition:all .15s; }
 .pva-tab:hover { color:#1e40af; background:#f1f5f9; }
@@ -2569,6 +2569,8 @@ class DashboardView {
     const activeMonth = activeMonthIdx >= 0 ? activeMonthIdx : 0;
 
     const totalCols = 6 + r264Months.length;
+    const pvaVisibleMonthCount = r264Months.reduce((n, _, mi) => n + (mi === activeMonth ? 1 : 0), 0);
+    const groupRowColspan = 6 + pvaVisibleMonthCount;
     const monthHeaders = r264Months.map((m, mi) => {
       const hidden = mi !== activeMonth ? ' col-hidden' : '';
       return `<th class="pva-month-col${hidden}" data-month-idx="${mi}" style="text-align:left;">${esc(m.full)} Update</th>`;
@@ -2663,7 +2665,7 @@ class DashboardView {
       const methodOwners = [...new Set(allEpics.map(e => getEpicMeta(e.Id).owner).filter(Boolean))].join(' ');
       const methodRowTitle = pvaStripDuplicateMethodPrefix(mg.methodNum, mg.methodLabel);
       html += `<tr class="pva-method-row collapsed" data-pva-method="${esc(mNum)}" data-search-text="${esc(('M' + mg.methodNum + ' ' + mg.methodLabel + ' ' + methodOwners).toLowerCase())}" onclick='togglePvaMethod(${JSON.stringify(mNum)})'>
-        <td colspan="${totalCols}"><span class="chevron">&#9660;</span>M${esc(mg.methodNum)} &mdash; ${esc(methodRowTitle)} <span style="font-weight:400;opacity:.8;margin-left:4px;">(${allEpics.length} epics, ${mg.measures.length} measures)</span><span class="group-badges" style="margin-left:8px;">${mBadges}</span></td>
+        <td class="pva-group-row-td" colspan="${groupRowColspan}"><span class="chevron">&#9660;</span>M${esc(mg.methodNum)} &mdash; ${esc(methodRowTitle)} <span style="font-weight:400;opacity:.8;margin-left:4px;">(${allEpics.length} epics, ${mg.measures.length} measures)</span><span class="group-badges" style="margin-left:8px;">${mBadges}</span></td>
       </tr>`;
 
       mg.measures.forEach((meas, msIdx) => {
@@ -2676,7 +2678,7 @@ class DashboardView {
         const shortLabel = meas.measureLabel.replace(/^\d+(?:\.\d+)*\s*/, '');
         const measOwners = [...new Set(meas.epics.map(e => getEpicMeta(e.Id).owner).filter(Boolean))].join(' ');
         html += `<tr class="pva-measure-row pva-hidden collapsed" data-pva-method="${esc(mNum)}" data-pva-measure="${esc(mNum)}-${msIdx}" data-search-text="${esc((meas.measureNum + ' ' + shortLabel + ' ' + meas.measureLabel + ' ' + measOwners).toLowerCase())}" onclick='togglePvaMeasure(${JSON.stringify(mNum)},${msIdx})'>
-          <td colspan="${totalCols}"><span class="chevron">&#9660;</span>${esc(meas.measureNum)} &mdash; ${esc(shortLabel)} (${meas.epics.length} epic${meas.epics.length !== 1 ? 's' : ''})<span class="group-badges" style="margin-left:6px;">${msBadges}</span><span style="margin-left:6px;display:inline-flex;gap:3px;vertical-align:middle;">${msHealthDots}</span></td>
+          <td class="pva-group-row-td" colspan="${groupRowColspan}"><span class="chevron">&#9660;</span>${esc(meas.measureNum)} &mdash; ${esc(shortLabel)} (${meas.epics.length} epic${meas.epics.length !== 1 ? 's' : ''})<span class="group-badges" style="margin-left:6px;">${msBadges}</span><span style="margin-left:6px;display:inline-flex;gap:3px;vertical-align:middle;">${msHealthDots}</span></td>
         </tr>`;
 
         meas.epics.forEach(epic => {
@@ -4469,6 +4471,15 @@ function toggleLinkEdit(epicId, field) {
   if (inp) { inp.style.display = inp.style.display === 'none' ? '' : 'none'; if (inp.style.display !== 'none') inp.focus(); }
 }
 
+/** Keep method/measure header colspan aligned with visible month columns (avoids empty grid columns on the right). */
+function updatePvaGroupRowColspan() {
+  const tbl = document.getElementById('pva-epic-table');
+  if (!tbl) return;
+  const monthShown = tbl.querySelectorAll('thead th.pva-month-col:not(.col-hidden)').length;
+  const span = 6 + monthShown;
+  tbl.querySelectorAll('td.pva-group-row-td').forEach(td => { td.colSpan = span; });
+}
+
 function toggleMonthCol(monthIdx, visible) {
   const tbl = document.getElementById('pva-epic-table');
   if (!tbl) return;
@@ -4477,6 +4488,7 @@ function toggleMonthCol(monthIdx, visible) {
   });
   const chip = document.querySelector(`.month-chip[data-month-idx="${monthIdx}"]`);
   if (chip) chip.classList.toggle('month-chip-active', visible);
+  updatePvaGroupRowColspan();
 }
 
 function selectAllMonths(show) {
