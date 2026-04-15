@@ -1,0 +1,21 @@
+#!/bin/sh
+# Before pushing main, ensure local master matches (covers merges, cherry-picks, etc.).
+remote="$1"
+url="$2"
+zero=0000000000000000000000000000000000000000
+
+while read local_ref local_sha remote_ref remote_sha
+do
+  case "$local_ref" in
+    refs/heads/main)
+      if [ "$local_sha" != "$zero" ]; then
+        m_main=$(git rev-parse main 2>/dev/null) || exit 0
+        m_master=$(git rev-parse master 2>/dev/null) || exit 0
+        if [ "$m_main" != "$m_master" ]; then
+          git branch -f master main >/dev/null
+          echo "pre-push: synced local master -> main (was behind)"
+        fi
+      fi
+      ;;
+  esac
+done

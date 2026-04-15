@@ -11,7 +11,7 @@ import urllib.parse
 import os
 import sys
 
-PORT = 8282
+PORT = int(os.environ.get('SERVER_PORT', '8282'))
 STATIC_DIR = os.path.dirname(os.path.abspath(__file__))
 
 FIELD_MAP = {

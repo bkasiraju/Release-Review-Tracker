@@ -1,0 +1,5 @@
+#!/bin/sh
+# After each commit on main, move local master to the same commit.
+branch=$(git symbolic-ref --short HEAD 2>/dev/null) || exit 0
+[ "$branch" = main ] || exit 0
+git branch -f master main >/dev/null
