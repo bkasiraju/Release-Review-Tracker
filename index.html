@@ -423,6 +423,9 @@ body { font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe
 .pva-epic-table td.cell-sp { width: 158px; min-width: 146px; max-width: 172px; box-sizing: border-box; }
 .pva-epic-table th.pva-month-col:not(.col-hidden),
 .pva-epic-table td.pva-month-col:not(.col-hidden) { width: 188px; min-width: 160px; max-width: 200px; box-sizing: border-box; }
+/* Collapse hidden month columns at the grid level (with td/th display:none) to avoid phantom columns after April / month toggles. */
+.pva-epic-table col.pva-month-colg { width: 188px; }
+.pva-epic-table col.pva-month-colg.col-hidden { visibility: collapse; width: 0 !important; min-width: 0 !important; max-width: 0 !important; }
 .pva-owner-cell .pva-cell-input { max-width: 100%; box-sizing: border-box; }
 .pva-col-health .pva-cell-select { max-width: 100%; font-size: 9px; padding: 1px 2px; }
 .pva-col-sprint .pva-cell-input { font-size: 9px !important; padding: 2px 3px !important; }
@@ -2312,6 +2315,7 @@ class DashboardView {
     if (plan) {
       requestAnimationFrame(() => {
         adjustPvaMeasureEpicColumnWidth();
+        if (typeof updatePvaGroupRowColspan === 'function') updatePvaGroupRowColspan();
       });
     }
 
@@ -2704,7 +2708,12 @@ class DashboardView {
       </div>
     </div>`;
 
+    const monthColgroup = r264Months.map((_, mi) => {
+      const hidden = mi !== activeMonth ? ' col-hidden' : '';
+      return `<col class="pva-month-colg${hidden}" data-month-idx="${mi}" />`;
+    }).join('');
     html += `<div class="pva-table-panel"><div class="pva-table-panel-card"><table class="pva-epic-table" id="pva-epic-table">
+      <colgroup><col span="6">${monthColgroup}</colgroup>
       <thead><tr>
         <th class="pva-col-me" style="text-align:left;">Measure / Epic</th>
         <th class="pva-col-owner" style="text-align:left;">Owner</th>
@@ -4547,6 +4556,9 @@ function toggleMonthCol(monthIdx, visible) {
   tbl.querySelectorAll(`.pva-month-col[data-month-idx="${monthIdx}"]`).forEach(el => {
     el.classList.toggle('col-hidden', !visible);
   });
+  tbl.querySelectorAll(`col.pva-month-colg[data-month-idx="${monthIdx}"]`).forEach(el => {
+    el.classList.toggle('col-hidden', !visible);
+  });
   const chip = document.querySelector(`.month-chip[data-month-idx="${monthIdx}"]`);
   if (chip) chip.classList.toggle('month-chip-active', visible);
   updatePvaGroupRowColspan();
@@ -4674,8 +4686,14 @@ async function refreshEpicDataFromGUS() {
           const regex = new RegExp(month + '[:\\s]*([\\s\\S]*?)(?=(?:April|May|June|July)[:\\s]|$)', 'i');
           const match = comments.match(regex);
           if (match && match[1] && match[1].trim()) {
-            cell.textContent = match[1].trim();
-            cell.style.color = '#1e293b';
+            const v = match[1].trim();
+            const preview = cell.querySelector('.comment-preview');
+            if (preview) {
+              preview.innerHTML = fmtComment(v);
+              if (typeof checkOverflow === 'function') checkOverflow(preview);
+            } else {
+              cell.innerHTML = `<div class="comment-preview">${fmtComment(v)}</div>`;
+            }
           }
         });
       }
