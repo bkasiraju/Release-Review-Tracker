@@ -1,0 +1,23 @@
+# Keep `master` identical to `main` so either branch name stays valid for clones and defaults.
+name: Sync master with main
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  sync-master:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Fast-forward master to main and push
+        run: |
+          git branch -f master main
+          git push origin master
