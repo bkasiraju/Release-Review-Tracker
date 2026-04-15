@@ -425,7 +425,13 @@ body { font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe
 .pva-epic-table td.pva-month-col:not(.col-hidden) { width: 188px; min-width: 160px; max-width: 200px; box-sizing: border-box; }
 /* Collapse hidden month columns at the grid level (with td/th display:none) to avoid phantom columns after April / month toggles. */
 .pva-epic-table col.pva-month-colg { width: 188px; }
-.pva-epic-table col.pva-month-colg.col-hidden { visibility: collapse; width: 0 !important; min-width: 0 !important; max-width: 0 !important; }
+.pva-epic-table col.pva-month-colg.col-hidden {
+  display: none !important;
+  visibility: collapse;
+  width: 0 !important;
+  min-width: 0 !important;
+  max-width: 0 !important;
+}
 .pva-owner-cell .pva-cell-input { max-width: 100%; box-sizing: border-box; }
 .pva-col-health .pva-cell-select { max-width: 100%; font-size: 9px; padding: 1px 2px; }
 .pva-col-sprint .pva-cell-input { font-size: 9px !important; padding: 2px 3px !important; }
@@ -4540,12 +4546,19 @@ function toggleLinkEdit(epicId, field) {
   if (inp) { inp.style.display = inp.style.display === 'none' ? '' : 'none'; if (inp.style.display !== 'none') inp.focus(); }
 }
 
-/** Keep method/measure header colspan aligned with visible month columns (avoids empty grid columns on the right). */
+/** Keep method/measure header colspan aligned with the *body* column grid (avoids dummy May–Jul columns when only April shows). */
 function updatePvaGroupRowColspan() {
   const tbl = document.getElementById('pva-epic-table');
   if (!tbl) return;
-  const monthShown = tbl.querySelectorAll('thead th.pva-month-col:not(.col-hidden)').length;
-  const span = 6 + monthShown;
+  const sample = tbl.querySelector('tr.pva-epic-row:not(.pva-hidden)') || tbl.querySelector('tr.pva-epic-row');
+  let span;
+  if (sample) {
+    span = sample.querySelectorAll('td:not(.col-hidden)').length;
+  } else {
+    const monthShown = tbl.querySelectorAll('thead th.pva-month-col:not(.col-hidden)').length;
+    span = 6 + monthShown;
+  }
+  span = Math.max(6, span);
   tbl.querySelectorAll('td.pva-group-row-td').forEach(td => { td.colSpan = span; });
 }
 
