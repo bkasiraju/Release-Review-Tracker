@@ -387,6 +387,7 @@ body { font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe
 .pva-card h3 { font-size: 13px; font-weight: 700; color: #334155; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
 .pva-card h3 .tag { font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 700; text-transform: uppercase; letter-spacing: .3px; }
 .tag-plan { background: #ede9fe; color: #7c3aed; }
+.tag-actual { background: #dbeafe; color: #0369a1; }
 .tag-gus { background: #dbeafe; color: #0176d3; }
 .pva-stat-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
 .pva-stat { flex: 1 1 100px; text-align: center; background: var(--card-white); border: 1px solid var(--border); border-radius: 6px; padding: 10px 8px; }
@@ -590,7 +591,7 @@ body { font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe
 
 /* PVA method tiles */
 .pva-method-grid { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
-.pva-method-item { flex: 1 1 180px; max-width: 260px; min-width: 170px; background: var(--card-white); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; position: relative; overflow: hidden; cursor: pointer; user-select: none; transition: all .2s; }
+.pva-method-item { flex: 1 1 200px; max-width: 280px; min-width: 188px; background: var(--card-white); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; position: relative; overflow: hidden; cursor: pointer; user-select: none; transition: all .2s; }
 .pva-method-item::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; border-radius: 10px 10px 0 0; }
 .pva-method-item:nth-child(1)::before { background: #1e40af; }
 .pva-method-item:nth-child(2)::before { background: #7c3aed; }
@@ -605,6 +606,14 @@ body { font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe
 .pmi-metric { flex: 1; text-align: center; padding: 3px 0; }
 .pmi-metric-val { font-size: 16px; font-weight: 800; line-height: 1.1; }
 .pmi-metric-lbl { font-size: 9px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: .3px; margin-top: 1px; }
+.pmi-metrics-pva { display: flex; gap: 5px; margin-bottom: 6px; }
+.pmi-metric-pva { flex: 1; min-width: 0; text-align: center; padding: 4px 2px; border-radius: 6px; background: #f8fafc; border: 1px solid #f1f5f9; }
+.pmi-metric-pva .pmi-metric-lbl { font-size: 8px; margin-bottom: 3px; letter-spacing: .02em; }
+.pmi-pva-pair { display: flex; align-items: baseline; justify-content: center; gap: 3px; font-size: 11px; font-weight: 800; line-height: 1.25; }
+.pmi-pva-k { font-size: 7px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: .02em; }
+.pmi-pva-v--plan { color: #6d28d9; font-variant-numeric: tabular-nums; }
+.pmi-pva-v--act { color: #0369a1; font-variant-numeric: tabular-nums; }
+.pmi-pva-v--act-muted { color: #64748b; font-weight: 700; font-size: 10px; }
 .pmi-health-dots { display: flex; gap: 2px; margin-bottom: 3px; }
 .pmi-health-dots span { height: 4px; border-radius: 2px; transition: width .3s; }
 .pmi-pri-bar { display: flex; height: 5px; border-radius: 3px; overflow: hidden; gap: 1px; }
@@ -2270,7 +2279,7 @@ class DashboardView {
 
     // V2MOM + Priority + charts panels (plan only)
     if (plan) {
-      html += this._renderPlanPanels(plan);
+      html += this._renderPlanPanels(plan, hierarchy);
     } else {
       html += `<div class="charts-row">
         <div class="chart-card"><h3>Story Points by Method</h3><div class="chart-container" id="chart-sp-method"></div></div>
@@ -2419,7 +2428,27 @@ class DashboardView {
     this.chartInstances = {};
   }
 
-  _renderPlanPanels(plan) {
+  _aggregateActualByMethod(hierarchy) {
+    const map = {};
+    if (!hierarchy || !hierarchy.length) return map;
+    hierarchy.forEach(mg => {
+      const key = String(mg.methodNum);
+      const epicIds = new Set();
+      let totalWI = 0;
+      let actualSP = 0;
+      mg.measures.forEach(ms => {
+        ms.epics.forEach(e => {
+          epicIds.add(e.Id);
+          totalWI += (e.Workitems_Closed__c || 0) + (e.WorkItems_In_Progress__c || 0) + (e.Workitems_New__c || 0) + (e.Workitems_in_Waiting__c || 0);
+          actualSP += e.Actual_Story_Points_on_Epic__c || 0;
+        });
+      });
+      map[key] = { epicCount: epicIds.size, totalWI, actualSP };
+    });
+    return map;
+  }
+
+  _renderPlanPanels(plan, hierarchy) {
     const p = plan;
     let html = '';
     if (!p.v2momMethods || p.v2momMethods.length === 0) {
@@ -2429,9 +2458,18 @@ class DashboardView {
       return html;
     }
     const totalDays = p.v2momMethods.reduce((s, m) => s + m.days, 0) || 1;
+    const actualByM = this._aggregateActualByMethod(hierarchy);
+    const totalActualSP = Object.values(actualByM).reduce((s, x) => s + (x.actualSP || 0), 0);
+    const fmtSpAct = (n) => {
+      const x = Number(n) || 0;
+      if (x === 0) return '0';
+      if (x >= 10000) return (x / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
+      if (x >= 1000) return (x / 1000).toFixed(1) + 'k';
+      return Number.isInteger(x) ? String(x) : x.toFixed(1);
+    };
     html += `<div style="margin-top:8px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-        <h3 style="font-size:11px;font-weight:700;color:#475569;"><span class="tag tag-plan">Plan</span> V2MOM Methods <span style="font-weight:400;color:#94a3b8;">(click methods to show only those measures; multi-select; double-click for details)</span></h3>
+        <h3 style="font-size:11px;font-weight:700;color:#475569;"><span class="tag tag-plan">Plan</span><span class="tag tag-actual" style="margin-left:4px;">Actual</span> V2MOM Methods <span style="font-weight:400;color:#94a3b8;">P = sheet · A = GUS epics in this view (click to filter; double-click details)</span></h3>
       </div>
       <div class="pva-method-grid">`;
     p.v2momMethods.forEach((m, mi) => {
@@ -2442,13 +2480,35 @@ class DashboardView {
       const p2w = ((m.p2||0)/priTotal*100).toFixed(0);
       const daysPct = ((m.days / totalDays) * 100).toFixed(0);
       const measCount = (m.measures || []).length;
+      const act = actualByM[String(methodNum)] || { epicCount: 0, totalWI: 0, actualSP: 0 };
+      const actSpPct = totalActualSP > 0 ? ((act.actualSP / totalActualSP) * 100).toFixed(0) : '—';
+      const tipEpics = 'Planned epics (sheet) vs actual epics linked to this method in GUS.';
+      const tipScope = 'Planned workstreams (sheet) vs total work items on those epics (GUS).';
+      const tipEffort = 'Planned sprint days (sheet) vs actual story points on epics (GUS).';
+      const tipShare = 'Share of planned sprint days vs share of actual SP across methods in this view.';
       html += `<div class="pva-method-item" data-method-num="${esc(methodNum)}" onclick='filterByMethodTile(${JSON.stringify(methodNum)})' ondblclick='openMtileFlyout(${JSON.stringify(methodNum)})'>
         <div class="pmi-name" title="${esc(m.method)}">${esc(m.method)}</div>
-        <div class="pmi-metrics">
-          <div class="pmi-metric"><div class="pmi-metric-val" style="color:#7c3aed;">${m.epics}</div><div class="pmi-metric-lbl">Epics</div></div>
-          <div class="pmi-metric"><div class="pmi-metric-val" style="color:#0176d3;">${m.workstreams}</div><div class="pmi-metric-lbl">WS</div></div>
-          <div class="pmi-metric"><div class="pmi-metric-val" style="color:#0e7490;">${m.days}<span style="font-size:8px;">d</span></div><div class="pmi-metric-lbl">Days</div></div>
-          <div class="pmi-metric"><div class="pmi-metric-val" style="color:#475569;">${daysPct}%</div><div class="pmi-metric-lbl">% Effort</div></div>
+        <div class="pmi-metrics-pva">
+          <div class="pmi-metric-pva" title="${esc(tipEpics)}">
+            <div class="pmi-metric-lbl">Epics</div>
+            <div class="pmi-pva-pair"><span class="pmi-pva-k">P</span><span class="pmi-pva-v--plan">${m.epics}</span></div>
+            <div class="pmi-pva-pair"><span class="pmi-pva-k">A</span><span class="pmi-pva-v--act">${act.epicCount}</span></div>
+          </div>
+          <div class="pmi-metric-pva" title="${esc(tipScope)}">
+            <div class="pmi-metric-lbl">WS / WI</div>
+            <div class="pmi-pva-pair"><span class="pmi-pva-k">P</span><span class="pmi-pva-v--plan">${m.workstreams}</span></div>
+            <div class="pmi-pva-pair"><span class="pmi-pva-k">A</span><span class="pmi-pva-v--act">${act.totalWI}</span></div>
+          </div>
+          <div class="pmi-metric-pva" title="${esc(tipEffort)}">
+            <div class="pmi-metric-lbl">Effort</div>
+            <div class="pmi-pva-pair"><span class="pmi-pva-k">P</span><span class="pmi-pva-v--plan">${m.days}<span style="font-size:7px;font-weight:800;">d</span></span></div>
+            <div class="pmi-pva-pair"><span class="pmi-pva-k">A</span><span class="pmi-pva-v--act">${fmtSpAct(act.actualSP)}<span style="font-size:7px;font-weight:800;opacity:.85;">SP</span></span></div>
+          </div>
+          <div class="pmi-metric-pva" title="${esc(tipShare)}">
+            <div class="pmi-metric-lbl">% mix</div>
+            <div class="pmi-pva-pair"><span class="pmi-pva-k">P</span><span class="pmi-pva-v--plan">${daysPct}%</span></div>
+            <div class="pmi-pva-pair"><span class="pmi-pva-k">A</span><span class="pmi-pva-v--act">${actSpPct === '—' ? '<span class="pmi-pva-v--act-muted">—</span>' : actSpPct + '%'}</span></div>
+          </div>
         </div>
         <div class="pmi-pri-bar">
           ${m.p0 ? `<span style="width:${p0w}%;background:#dc2626;" title="P0: ${m.p0}"></span>` : ''}
