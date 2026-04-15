@@ -406,8 +406,8 @@ body { font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe
 @media (max-width: 900px) { .pva-risks-grid { grid-template-columns: 1fr; } }
 .pva-chart-container { height: 220px; }
 
-/* PVA Summary Table — width: max-content avoids browser stretching columns to fill 100% (phantom gaps before Owner / after April). */
-.pva-epic-table { width: max-content; border-collapse: collapse; table-layout: fixed; --pva-col-me-width: 260px; }
+/* PVA Summary Table — width: max-content avoids phantom column slack; panel uses fit-content so no empty strip right of the table. */
+.pva-epic-table { width: max-content; border-collapse: collapse; table-layout: fixed; --pva-col-me-width: 320px; }
 .pva-epic-table th.pva-col-me,
 .pva-epic-table td.pva-col-me { width: var(--pva-col-me-width); min-width: var(--pva-col-me-width); max-width: var(--pva-col-me-width); box-sizing: border-box; }
 .pva-epic-table th.pva-col-owner,
@@ -472,7 +472,7 @@ body { font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe
 .pva-epic-link { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 6px; color: #0369a1; background: linear-gradient(180deg, #eff6ff, #dbeafe); border: 1px solid #93c5fd; text-decoration: none; transition: transform .12s, box-shadow .12s, border-color .12s; box-shadow: 0 1px 2px rgba(3,105,161,.12); flex-shrink: 0; }
 .pva-epic-link:hover { border-color: #3b82f6; transform: translateY(-1px); box-shadow: 0 2px 6px rgba(3,105,161,.18); }
 .pva-epic-link.empty { opacity: .22; pointer-events: none; background: transparent; border-color: transparent; box-shadow: none; }
-.pva-epic-title { font-weight: 600; font-size: 11px; line-height: 1.25; min-width: 0; flex: 0 1 auto; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pva-epic-title { font-weight: 600; font-size: 11px; line-height: 1.25; min-width: 0; flex: 1 1 auto; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pva-epic-name-tooltip { position: fixed; z-index: 10060; display: none; max-width: min(560px, calc(100vw - 20px)); padding: 6px 10px; font-size: 11px; font-weight: 600; line-height: 1.4; color: #0f172a; background: #fff; border: 1px solid #94a3b8; border-radius: 6px; box-shadow: 0 10px 28px rgba(15, 23, 42, 0.18); pointer-events: none; word-break: break-word; }
 .pva-new-flag { display: block; width: max-content; font-size: 8px; font-weight: 800; letter-spacing: .4px; color: #fff; background: #ea580c; padding: 1px 6px; border-radius: 3px; margin-bottom: 3px; line-height: 1.2; }
 .pva-new-flag.pva-new-flag--inline { display: inline-flex; align-items: center; margin: 0; flex-shrink: 0; align-self: center; }
@@ -566,7 +566,7 @@ body { font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe
 .pva-sp-burn-fill { position: absolute; bottom: 0; left: 0; right: 0; border-radius: 0 0 2px 2px; min-height: 0; background: linear-gradient(180deg,#4ade80,#16a34a); transition: height .22s ease; }
 .pva-progress-bar { height: 5px; border-radius: 3px; background: #e8e6df; overflow: hidden; margin-top: 3px; }
 .pva-progress-bar .fill { height: 100%; border-radius: 3px; transition: width .4s; }
-.pva-table-panel { background: linear-gradient(180deg, #ffffff 0%, #fafcff 55%, #f5faff 100%); border: 1px solid #e0f2fe; border-radius: 8px; box-shadow: 0 1px 3px rgba(14, 116, 144, .06); overflow-x: auto; overflow-y: hidden; position: relative; margin-top: 8px; -webkit-overflow-scrolling: touch; }
+.pva-table-panel { background: linear-gradient(180deg, #ffffff 0%, #fafcff 55%, #f5faff 100%); border: 1px solid #e0f2fe; border-radius: 8px; box-shadow: 0 1px 3px rgba(14, 116, 144, .06); overflow-x: auto; overflow-y: hidden; position: relative; margin-top: 8px; -webkit-overflow-scrolling: touch; width: -webkit-fit-content; width: fit-content; max-width: 100%; box-sizing: border-box; }
 .pva-table-panel::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #bae6fd 0%, #7dd3fc 35%, #a5b4fc 70%, #c4b5fd 100%); opacity: .85; }
 
 /* AI Executive summary tab */
@@ -5366,11 +5366,11 @@ function adjustPvaMeasureEpicColumnWidth() {
     const w = ctx.measureText(raw).width;
     if (w > maxText) maxText = w;
   });
-  const LINKS_AND_BADGE = 96;
-  const CELL_PAD = 22;
-  const MIN_W = 168;
-  /* Tight content cap — table uses width:max-content so slack is not redistributed into other columns. */
-  const MAX_W = Math.min(360, Math.max(220, Math.floor(window.innerWidth * 0.26)));
+  const LINKS_AND_BADGE = 108;
+  const CELL_PAD = 26;
+  const MIN_W = 240;
+  /* Wider Measure/Epic cap; table + panel are max-content / fit-content so extra width does not create ghost columns. */
+  const MAX_W = Math.min(560, Math.max(300, Math.floor(window.innerWidth * 0.40)));
   const colW = Math.max(MIN_W, Math.min(MAX_W, Math.ceil(maxText + LINKS_AND_BADGE + CELL_PAD)));
   table.style.setProperty('--pva-col-me-width', colW + 'px');
 }
