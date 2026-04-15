@@ -1555,7 +1555,12 @@ class DashboardController {
         if (params.team) state.activeTab = params.team === 'all' ? '__all__' : params.team;
         if (params.pva) state.pvaTab = params.pva;
         if (params.eng) state.flyout = params.eng;
-        if (Object.keys(state).length) { localStorage.setItem('cfs_dash_state', JSON.stringify(state)); return state; }
+        if (Object.keys(state).length) {
+          const cur = JSON.parse(localStorage.getItem('cfs_dash_state') || '{}');
+          Object.assign(cur, state);
+          localStorage.setItem('cfs_dash_state', JSON.stringify(cur));
+          return cur;
+        }
       }
       return JSON.parse(localStorage.getItem('cfs_dash_state') || 'null');
     } catch (e) { return null; }
@@ -1637,7 +1642,8 @@ class DashboardController {
           };
         } catch (e) { console.warn('Churn baseline / delta failed:', e); }
       }
-      this.view.renderDashboard({ release, epics, hierarchy, healthCounts, totals, months: this.releaseMonths });
+      this._dashboardCache = { release, epics, hierarchy, healthCounts, totals, months: this.releaseMonths };
+      this.view.renderDashboard(this._dashboardCache);
       this.view.updateTimestamp();
       this.view.hideLoading();
     } catch (e) {
@@ -1645,6 +1651,28 @@ class DashboardController {
       showToast('Failed to load release: ' + e.message, 'error');
       this.view.hideLoading();
     }
+  }
+
+  /** Which PvA month columns (0–3 = Apr–Jul) are shown; persisted in cfs_dash_state.pvaMonths */
+  getPvaTableMonthIndices(r264Len, defaultIdx) {
+    const saved = this._loadState();
+    const arr = saved && saved.pvaMonths;
+    if (Array.isArray(arr) && arr.length) {
+      const u = [...new Set(arr.map(Number).filter(i => i >= 0 && i < r264Len))].sort((a, b) => a - b);
+      if (u.length) return u;
+    }
+    return [Math.max(0, Math.min(Number(defaultIdx) || 0, r264Len - 1))];
+  }
+
+  setPvaTableMonthIndices(indices) {
+    this._saveState({ pvaMonths: [...indices].sort((a, b) => a - b) });
+  }
+
+  redrawCachedDashboard() {
+    if (!this._dashboardCache) return;
+    const tab = this._loadState()?.pvaTab;
+    this.view.renderDashboard(this._dashboardCache);
+    if (tab && tab !== 'epic-tracking') requestAnimationFrame(() => switchPvaTab(tab));
   }
 
   _getReleaseMonths(release) {
@@ -2638,18 +2666,18 @@ class DashboardView {
     const curMonthShort = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][now.getMonth()];
     const activeMonthIdx = r264Months.findIndex(m => m.short === curMonthShort);
     const activeMonth = activeMonthIdx >= 0 ? activeMonthIdx : 0;
-
-    const totalCols = 6 + r264Months.length;
-    const pvaVisibleMonthCount = r264Months.reduce((n, _, mi) => n + (mi === activeMonth ? 1 : 0), 0);
-    const groupRowColspan = 6 + pvaVisibleMonthCount;
-    const monthHeaders = r264Months.map((m, mi) => {
-      const hidden = mi !== activeMonth ? ' col-hidden' : '';
-      return `<th class="pva-month-col${hidden}" data-month-idx="${mi}" style="text-align:left;">${esc(m.full)} Update</th>`;
+    ctrl._pvaTableDefaultMonth = activeMonth;
+    const visibleMonthIdx = ctrl.getPvaTableMonthIndices(r264Months.length, activeMonth);
+    const groupRowColspan = 6 + visibleMonthIdx.length;
+    const monthHeaders = visibleMonthIdx.map((mi) => {
+      const m = r264Months[mi];
+      return `<th class="pva-month-col" data-month-idx="${mi}" style="text-align:left;">${esc(m.full)} Update</th>`;
     }).join('');
 
     const monthCheckboxes = r264Months.map((m, mi) => {
-      const checked = mi === activeMonth ? ' checked' : '';
-      return `<label class="month-chip${mi === activeMonth ? ' month-chip-active' : ''}" data-month-idx="${mi}"><input type="checkbox" onchange="toggleMonthCol(${mi}, this.checked)"${checked} style="display:none;"><span>${esc(m.short)}</span></label>`;
+      const on = visibleMonthIdx.includes(mi);
+      const checked = on ? ' checked' : '';
+      return `<label class="month-chip${on ? ' month-chip-active' : ''}" data-month-idx="${mi}"><input type="checkbox" onchange="toggleMonthCol(${mi}, this.checked)"${checked} style="display:none;"><span>${esc(m.short)}</span></label>`;
     }).join('');
 
     // Collect unique owners and health values for filter dropdowns
@@ -2659,7 +2687,7 @@ class DashboardView {
 
     html += `<div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;margin-bottom:6px;flex-wrap:wrap;gap:6px;">
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-        <div style="font-size:13px;font-weight:700;color:#1e293b;">Epic Tracking &mdash; ${esc(r264Months[activeMonth].full)} ${r264Months[activeMonth].year}</div>
+        <div style="font-size:13px;font-weight:700;color:#1e293b;">Epic Tracking &mdash; ${visibleMonthIdx.length === 1 ? esc(r264Months[visibleMonthIdx[0]].full) + ' ' + r264Months[visibleMonthIdx[0]].year : esc(visibleMonthIdx.map(i => r264Months[i].full).join(' · ')) + ' ' + r264Months[0].year}</div>
         <div class="usearch-wrap" style="max-width:260px;">
           <svg class="usearch-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           <input class="usearch-input" id="inline-usearch" type="text" placeholder="Search methods, epics, owners..." oninput="universalSearch(this.value, false)">
@@ -2714,10 +2742,7 @@ class DashboardView {
       </div>
     </div>`;
 
-    const monthColgroup = r264Months.map((_, mi) => {
-      const hidden = mi !== activeMonth ? ' col-hidden' : '';
-      return `<col class="pva-month-colg${hidden}" data-month-idx="${mi}" />`;
-    }).join('');
+    const monthColgroup = visibleMonthIdx.map((mi) => `<col class="pva-month-colg" data-month-idx="${mi}" />`).join('');
     html += `<div class="pva-table-panel"><div class="pva-table-panel-card"><table class="pva-epic-table" id="pva-epic-table">
       <colgroup><col span="6">${monthColgroup}</colgroup>
       <thead><tr>
@@ -2766,10 +2791,10 @@ class DashboardView {
           const isNewEpicRow = ctrl._churnContext?.newEpicIds?.has(epic.Id);
           const newEpicBadge = isNewEpicRow ? '<span class="pva-new-flag pva-new-flag--inline">NEW</span>' : '';
 
-          const commentCells = comments.map((c, ci) => {
-            const hidden = ci !== activeMonth ? ' col-hidden' : '';
+          const commentCells = visibleMonthIdx.map((ci) => {
+            const c = comments[ci];
             const rendered = c ? fmtComment(c) : `<span class="comment-empty">Add ${r264Months[ci].full} update…</span>`;
-            return `<td class="pva-comment-cell cell-month-update pva-month-col${hidden}" data-month-idx="${ci}" data-epic-id="${esc(epic.Id)}" data-field="month-${r264Months[ci].short}" data-raw="${esc(c)}" onclick="openCommentEditor(this)" title="Click to edit"><div class="comment-preview">${rendered}</div></td>`;
+            return `<td class="pva-comment-cell cell-month-update pva-month-col" data-month-idx="${ci}" data-epic-id="${esc(epic.Id)}" data-field="month-${r264Months[ci].short}" data-raw="${esc(c)}" onclick="openCommentEditor(this)" title="Click to edit"><div class="comment-preview">${rendered}</div></td>`;
           }).join('');
 
           html += `<tr class="pva-epic-row pva-hidden" data-pva-method="${esc(mNum)}" data-pva-measure="${esc(mNum)}-${msIdx}" data-epic-id="${esc(epic.Id)}" data-health="${esc(epic.Health__c || 'Not Started')}" data-owner="${esc(em.owner)}" data-search-text="${esc((epicName + ' ' + projName + ' ' + (em.owner||'') + ' ' + (em.priority||'') + ' ' + (epic.Health__c||'') + ' ' + (em.sprintTarget||'')).toLowerCase())}">
@@ -4564,27 +4589,22 @@ function updatePvaGroupRowColspan() {
 }
 
 function toggleMonthCol(monthIdx, visible) {
-  const tbl = document.getElementById('pva-epic-table');
-  if (!tbl) return;
-  tbl.querySelectorAll(`.pva-month-col[data-month-idx="${monthIdx}"]`).forEach(el => {
-    el.classList.toggle('col-hidden', !visible);
-  });
-  tbl.querySelectorAll(`col.pva-month-colg[data-month-idx="${monthIdx}"]`).forEach(el => {
-    el.classList.toggle('col-hidden', !visible);
-  });
-  const chip = document.querySelector(`.month-chip[data-month-idx="${monthIdx}"]`);
-  if (chip) chip.classList.toggle('month-chip-active', visible);
-  updatePvaGroupRowColspan();
+  if (!ctrl._dashboardCache) return;
+  const def = typeof ctrl._pvaTableDefaultMonth === 'number' ? ctrl._pvaTableDefaultMonth : 0;
+  const cur = ctrl.getPvaTableMonthIndices(4, def);
+  const set = new Set(cur);
+  if (visible) set.add(monthIdx); else set.delete(monthIdx);
+  if (set.size === 0) set.add(def);
+  ctrl.setPvaTableMonthIndices([...set]);
+  ctrl.redrawCachedDashboard();
 }
 
 function selectAllMonths(show) {
-  document.querySelectorAll('.month-chip').forEach(chip => {
-    const idx = parseInt(chip.dataset.monthIdx);
-    const cb = chip.querySelector('input[type="checkbox"]');
-    if (cb) cb.checked = show;
-    chip.classList.toggle('month-chip-active', show);
-    toggleMonthCol(idx, show);
-  });
+  if (!ctrl._dashboardCache) return;
+  const def = typeof ctrl._pvaTableDefaultMonth === 'number' ? ctrl._pvaTableDefaultMonth : 0;
+  if (show) ctrl.setPvaTableMonthIndices([0, 1, 2, 3]);
+  else ctrl.setPvaTableMonthIndices([def]);
+  ctrl.redrawCachedDashboard();
 }
 
 const _refreshIcon = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>';
@@ -4691,10 +4711,9 @@ async function refreshEpicDataFromGUS() {
 
       const comments = ep.Epic_Health_Comments__c || '';
       if (comments) {
-        const commentCells = row.querySelectorAll('.cell-month-update');
         const months = ['April','May','June','July'];
         months.forEach((month, mi) => {
-          const cell = commentCells[mi];
+          const cell = row.querySelector(`td.cell-month-update[data-month-idx="${mi}"]`);
           if (!cell) return;
           const regex = new RegExp(month + '[:\\s]*([\\s\\S]*?)(?=(?:April|May|June|July)[:\\s]|$)', 'i');
           const match = comments.match(regex);
