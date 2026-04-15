@@ -1176,7 +1176,20 @@ async function gusApi(action, data = {}) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
   });
-  const result = await resp.json();
+  const rawText = await resp.text();
+  if (!resp.ok) {
+    throw new Error(`GUS proxy HTTP ${resp.status}: ${rawText.slice(0, 200)}`);
+  }
+  const ct = (resp.headers.get('content-type') || '').toLowerCase();
+  if (!IS_GUS_APPS && ct && !ct.includes('json')) {
+    throw new Error('GUS proxy returned non-JSON (static host has no /api backend)');
+  }
+  let result;
+  try {
+    result = JSON.parse(rawText);
+  } catch (e) {
+    throw new Error('GUS proxy response was not valid JSON');
+  }
   if (IS_GUS_APPS) {
     if (!result.ok) throw new Error(result.error || 'Request failed');
     const inner = result.payload;
@@ -1342,26 +1355,38 @@ class GUSModel {
         this._serverQuery(`SELECT Id, Name, Start_Date__c, End_Date__c, Goals_Objectives__c, Forecast_Items__c, Forecast_Items_Completed__c, Number_Forecast_Work_Items__c, Number_Forecast_Work_Items_Completed__c, Number_Forecast_Story_Points__c, Number_Epics_Added__c, Number_Forecast_Epics_Removed__c, Number_Work_Items_Added__c, Number_Forecast_Work_Items_Removed__c, Team__c, Team__r.Name FROM ADM_Planned_Release__c WHERE Id = '${releaseId}'`),
         this._serverQuery(`${epicFields} FROM ADM_Epic__c WHERE Planned_Release__c = '${releaseId}' LIMIT 200`)
       ]);
-      if (epics.length > 0) return { release: releases[0] || null, epics };
+      if (epics.length > 0) {
+        mergeSyntheticStoryPointsIntoEpics(epics);
+        return { release: releases[0] || null, epics };
+      }
 
       if (plan && plan.epicIds && plan.epicIds.length) {
         console.warn('Release query returned 0 epics — querying by epic IDs directly');
         const directEpics = await this._queryEpicsByIds(plan.epicIds);
-        if (directEpics.length > 0) return { release: releases[0] || this._buildMockFallback(releaseId).release, epics: directEpics };
+        if (directEpics.length > 0) {
+          mergeSyntheticStoryPointsIntoEpics(directEpics);
+          return { release: releases[0] || this._buildMockFallback(releaseId).release, epics: directEpics };
+        }
       }
 
       console.warn('GUS returned 0 epics for release', releaseId, '— using plan fallback');
       const fb = this._buildMockFallback(releaseId);
+      mergeSyntheticStoryPointsIntoEpics(fb.epics);
       return { release: releases[0] || fb.release, epics: fb.epics };
     } catch (e) {
       console.warn('Server query failed, trying direct epic ID query:', e);
       if (plan && plan.epicIds && plan.epicIds.length) {
         try {
           const directEpics = await this._queryEpicsByIds(plan.epicIds);
-          if (directEpics.length > 0) return { release: this._buildMockFallback(releaseId).release, epics: directEpics };
+          if (directEpics.length > 0) {
+            mergeSyntheticStoryPointsIntoEpics(directEpics);
+            return { release: this._buildMockFallback(releaseId).release, epics: directEpics };
+          }
         } catch (e2) { console.warn('Direct epic query also failed:', e2); }
       }
-      return this._buildMockFallback(releaseId);
+      const fb = this._buildMockFallback(releaseId);
+      mergeSyntheticStoryPointsIntoEpics(fb.epics);
+      return fb;
     }
   }
   async fetchWorkItems(epicId) {
@@ -3923,6 +3948,44 @@ function buildOfflineEpicFromSheet(eid) {
     Project__r: projectR,
     Team__r: { Name: '' }
   };
+}
+
+/** GitHub Pages: GUS may return epic shells with null SP; fill from sheet-backed synthetic when all SP are zero. */
+function isGithubPagesHost() {
+  const h = (typeof location !== 'undefined' && location.hostname) || '';
+  return /\.github\.io$/i.test(h);
+}
+
+function mergeSyntheticStoryPointsIntoEpics(epics) {
+  if (!isGithubPagesHost() || !epics || !epics.length) return epics;
+  for (const e of epics) {
+    if (!e || !e.Id || !SHEET_EPIC_META[e.Id]) continue;
+    const spSum = (Number(e.Planned_Story_Points__c) || 0) + (Number(e.Actual_Story_Points_on_Epic__c) || 0) + (Number(e.Storypoints_Closed__c) || 0);
+    if (spSum > 0) continue;
+    const syn = buildOfflineEpicFromSheet(e.Id);
+    e.Planned_Story_Points__c = syn.Planned_Story_Points__c;
+    e.Actual_Story_Points_on_Epic__c = syn.Actual_Story_Points_on_Epic__c;
+    e.Storypoints_Closed__c = syn.Storypoints_Closed__c;
+    e.Storypoints_In_Progress__c = syn.Storypoints_In_Progress__c;
+    e.Storypoints_New__c = syn.Storypoints_New__c;
+    e.Storypoints_In_Waiting__c = syn.Storypoints_In_Waiting__c;
+    e.Workitems_Closed__c = syn.Workitems_Closed__c;
+    e.WorkItems_In_Progress__c = syn.WorkItems_In_Progress__c;
+    e.Workitems_New__c = syn.Workitems_New__c;
+    e.Workitems_in_Waiting__c = syn.Workitems_in_Waiting__c;
+    e.Remaining_Story_Points__c = syn.Remaining_Story_Points__c;
+    e.Remaining_Work_Items__c = syn.Remaining_Work_Items__c;
+    e.Percent_Of_Work_Items_Complete__c = syn.Percent_Of_Work_Items_Complete__c;
+    e.Committed_Story_Points_on_Epic__c = syn.Committed_Story_Points_on_Epic__c;
+    e.Committed_Work_Items_on_Epic__c = syn.Committed_Work_Items_on_Epic__c;
+    e.Actual_Work_Items_on_Epic__c = syn.Actual_Work_Items_on_Epic__c;
+    if (e.Additional_Work_Items__c == null) e.Additional_Work_Items__c = syn.Additional_Work_Items__c;
+    if (e.Subtracted_Work_Items__c == null) e.Subtracted_Work_Items__c = syn.Subtracted_Work_Items__c;
+    if (e.Additional_Story_Points__c == null) e.Additional_Story_Points__c = syn.Additional_Story_Points__c;
+    if (e.Subtracted_Story_Points__c == null) e.Subtracted_Story_Points__c = syn.Subtracted_Story_Points__c;
+    if (!e.Project__r || (!e.Project__r.Name && !e.Project__r.V2MOM_Method__c)) e.Project__r = syn.Project__r;
+  }
+  return epics;
 }
 
 /* ================================================================
