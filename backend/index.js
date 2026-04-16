@@ -17,29 +17,110 @@ function crossRefHint(msg) {
   return ' This often means the epic Id is not in the org your session targets, or the epic has invalid lookup data; fix in GUS or re-auth to GusProduction.';
 }
 
-/**
- * Prefer a user-scoped JSForce / connection object when the host exposes one, so SOQL
- * respects the browser user’s sharing like Lightning. Falls back to ctx.sf.
- */
-function resolveSalesforceConnection(ctx) {
-  const c = ctx && typeof ctx === 'object' ? ctx : {};
-  const ordered = [
-    ['userConnection', c.userConnection],
-    ['userSf', c.userSf],
-    ['sfAsUser', c.sfAsUser],
-    ['sfUser', c.sfUser],
-    ['connectionAsUser', c.connectionAsUser],
-    ['orgAsUser', c.orgAsUser],
-    ['salesforceUser', c.salesforceUser],
-    ['sf', c.sf],
-  ];
-  for (const [name, val] of ordered) {
-    if (val && typeof val === 'object' && typeof val.query === 'function') {
-      return { sf: val, connectionSource: name };
+function hasQueryableSalesforceClient(obj) {
+  return !!(obj && typeof obj === 'object' && typeof obj.query === 'function');
+}
+
+/** Score ctx property names so generic `sf` loses to `userConnection` when both exist on one object. */
+function connectionPropertyScore(key) {
+  const k = String(key || '').toLowerCase();
+  if (k === 'sf') return 1;
+  if (/user|viewer|asuser|principal|delegat|impersonat|human|sessionuser|oauth.*user/.test(k)) return 100;
+  if (/connection|conn|client|jsforce|datasource|invoc|runtime/.test(k)) return 20;
+  if (/org|instance|api/.test(k)) return 8;
+  return 2;
+}
+
+function gatherCtxRoots(ctx) {
+  const roots = [];
+  const seen = new WeakSet();
+  function add(obj) {
+    if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return;
+    try {
+      if (seen.has(obj)) return;
+      seen.add(obj);
+    } catch {
+      return;
+    }
+    roots.push(obj);
+  }
+  if (!ctx || typeof ctx !== 'object') return roots;
+  add(ctx.request);
+  add(ctx.invocation);
+  add(ctx.runtime);
+  add(ctx.context);
+  add(ctx.applet);
+  add(ctx.auth);
+  add(ctx.user);
+  add(ctx);
+  for (const k of Object.keys(ctx)) {
+    if (k === 'body' || k === 'headers' || k === 'request') continue;
+    const v = ctx[k];
+    if (v && typeof v === 'object' && !Array.isArray(v)) {
+      const nk = Object.keys(v).length;
+      if (nk > 0 && nk <= 64) add(v);
     }
   }
-  const fallback = c.sf || {};
-  return { sf: fallback, connectionSource: typeof fallback.query === 'function' ? 'sf' : 'none' };
+  return roots;
+}
+
+/**
+ * Prefer a user-scoped JSForce / connection when the host exposes one (including nested
+ * ctx.request / invocation), so SOQL respects sharing like Lightning. Falls back to ctx.sf.
+ */
+function resolveSalesforceConnection(ctx) {
+  const preferredKeys = [
+    'userConnection',
+    'userSf',
+    'viewerConnection',
+    'viewerSf',
+    'sfAsUser',
+    'sfUser',
+    'connectionAsUser',
+    'orgAsUser',
+    'salesforceUser',
+    'salesforceConnection',
+    'connection',
+    'conn',
+    'jsforce',
+    'dataService',
+    'org',
+    'sf',
+  ];
+  const roots = gatherCtxRoots(ctx);
+  for (const key of preferredKeys) {
+    for (const root of roots) {
+      const val = root && root[key];
+      if (hasQueryableSalesforceClient(val)) {
+        return { sf: val, connectionSource: key };
+      }
+    }
+  }
+  if (hasQueryableSalesforceClient(ctx)) {
+    return { sf: ctx, connectionSource: 'ctx' };
+  }
+  let bestVal;
+  let bestKey = 'none';
+  let bestScore = -1;
+  for (const root of roots) {
+    for (const key of Object.keys(root)) {
+      const val = root[key];
+      if (!hasQueryableSalesforceClient(val)) continue;
+      const s = connectionPropertyScore(key);
+      if (s > bestScore) {
+        bestScore = s;
+        bestVal = val;
+        bestKey = key;
+      }
+    }
+  }
+  if (bestVal) return { sf: bestVal, connectionSource: bestKey };
+
+  const fallback = (ctx && ctx.sf) || {};
+  return {
+    sf: fallback,
+    connectionSource: hasQueryableSalesforceClient(fallback) ? 'sf' : 'none',
+  };
 }
 
 function mergeMonthComment(existing, monthLabel, newText) {
@@ -109,6 +190,7 @@ module.exports.handleRequest = async (ctx) => {
           status: 'error',
           error: 'Salesforce connection has no query() — check applet runtime wiring.',
           records: [],
+          connectionSource,
         },
       };
     }
@@ -123,12 +205,22 @@ module.exports.handleRequest = async (ctx) => {
           records: rec,
           totalSize,
           done: result ? !!result.done : true,
+          connectionSource,
         },
       };
     } catch (e) {
       const msg = e.message || String(e);
       const code = e.errorCode || e.name || '';
-      return { ok: true, payload: { status: 'error', error: msg, errorCode: code, records: [] } };
+      return {
+        ok: true,
+        payload: {
+          status: 'error',
+          error: msg,
+          errorCode: code,
+          records: [],
+          connectionSource,
+        },
+      };
     }
   }
 

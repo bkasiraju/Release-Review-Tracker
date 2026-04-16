@@ -380,7 +380,7 @@ body { font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe
 .pva-chart-fs-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-bottom: 6px; }
 .pva-chart-fs-btn { font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 6px; border: 1px solid #93c5fd; background: #fff; color: #0369a1; cursor: pointer; font-family: inherit; }
 .pva-chart-fs-btn:hover { background: #eff6ff; }
-.pva-body { background: linear-gradient(180deg, #ffffff 0%, #fafcff 100%); border: 1px solid #e0f2fe; border-top: none; border-radius: 0 0 10px 10px; padding: 12px 16px; box-shadow: 0 1px 3px rgba(14, 116, 144, .05); display: flex; flex-direction: column; align-items: flex-start; max-width: 100%; box-sizing: border-box; }
+.pva-body { background: linear-gradient(180deg, #ffffff 0%, #fafcff 100%); border: 1px solid #e0f2fe; border-top: none; border-radius: 0 0 10px 10px; padding: 12px 16px; box-shadow: 0 1px 3px rgba(14, 116, 144, .05); display: flex; flex-direction: column; align-items: stretch; max-width: 100%; box-sizing: border-box; }
 .pva-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
 .pva-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; position: relative; overflow: hidden; }
 .pva-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
@@ -603,8 +603,8 @@ body { font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe
 #ai-summary-table thead th:last-child { border-radius: 0 8px 0 0; }
 
 /* PVA method tiles */
-.pva-method-grid { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
-.pva-method-item { flex: 1 1 200px; max-width: 280px; min-width: 188px; background: var(--card-white); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; position: relative; overflow: hidden; cursor: pointer; user-select: none; transition: all .2s; }
+.pva-method-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+.pva-method-item { flex: 1 1 200px; min-width: 188px; background: var(--card-white); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; position: relative; overflow: hidden; cursor: pointer; user-select: none; transition: all .2s; }
 .pva-method-item::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; border-radius: 10px 10px 0 0; }
 .pva-method-item:nth-child(1)::before { background: #1e40af; }
 .pva-method-item:nth-child(2)::before { background: #7c3aed; }
@@ -1226,7 +1226,17 @@ function gusQueryRecords(data) {
 function maybeWarnGusAppsSoqlEmpty() {
   if (!IS_GUS_APPS || window.__cfsGusEmptyWarned) return;
   window.__cfsGusEmptyWarned = true;
-  showToast('GUS returned 0 rows for epic/release SOQL (HAR: rows:0, records:[]). The applet’s Salesforce connection cannot read those rows — grant ADM_Epic__c and ADM_Planned_Release__c read to the integration user or run queries in user context.', 'error', 'gus-ols', 22000);
+  const src = (window.__cfsGusConn && window.__cfsGusConn.connectionSource) || '';
+  const integ = !src || src === 'sf' || src === 'none';
+  const tail = integ
+    ? ` Handler connectionSource=${src || 'unknown'} (integration-style). In gus-apps / Spaces admin, enable run as logged-in user for this applet so SOQL uses your identity — or grant Read on ADM_Epic__c and ADM_Planned_Release__c (and related lookups) to the applet integration user.`
+    : ` Handler connectionSource=${src} (user-scoped). If rows are still empty, you likely cannot read those records in Lightning either (OLS/FLS/team) — verify the epic/release Ids exist in GusProduction.`;
+  showToast(
+    'GUS returned 0 rows for epic/release SOQL (rows:0, records:[]).' + tail,
+    'error',
+    'gus-ols',
+    26000
+  );
 }
 
 function maybeWarnGusAppsSoqlError(msg) {
@@ -1274,9 +1284,20 @@ async function gusApi(action, data = {}) {
     if (!result.ok) throw new Error(result.error || 'Request failed');
     const inner = result.payload;
     if (inner && inner.ok === false) throw new Error(inner.error || 'Backend error');
-    return unwrapGusAppsPayload(inner);
+    const unwrapped = unwrapGusAppsPayload(inner);
+    if (action === 'query' && unwrapped && typeof unwrapped.connectionSource === 'string') {
+      window.__cfsGusConn = { connectionSource: unwrapped.connectionSource, at: Date.now() };
+    }
+    if (action === 'debug' && unwrapped && typeof unwrapped.connectionSource === 'string') {
+      window.__cfsGusConn = { connectionSource: unwrapped.connectionSource, at: Date.now(), fromDebug: true };
+    }
+    return unwrapped;
   }
   return result;
+}
+
+if (IS_GUS_APPS) {
+  gusApi('debug', {}).catch(() => {});
 }
 
 /* Workstream subject cache — maps W-number → { id, subject } */
