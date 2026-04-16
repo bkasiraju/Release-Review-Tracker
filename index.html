@@ -1197,6 +1197,31 @@ const METHOD_LABELS = {
 const APPLET_SLUG = 'cfs-release-review';
 const IS_GUS_APPS = window.location.hostname.includes('gus-apps') || window.location.pathname.startsWith('/applets/');
 
+/** gus-apps wraps handler output in one or more { ok, payload } layers — drill until SOQL/tool body. */
+function unwrapGusAppsPayload(inner) {
+  if (inner == null || typeof inner !== 'object') return inner;
+  let p = inner;
+  for (let depth = 0; depth < 12 && p && typeof p === 'object'; depth++) {
+    if (Array.isArray(p.records) || Array.isArray(p.results)) return p;
+    if (p.ok === false) throw new Error(p.error || 'Backend error');
+    if (p.status !== undefined && p.payload === undefined) return p;
+    if (p.payload === undefined) return p;
+    const next = p.payload;
+    if (next === p) break;
+    p = next;
+  }
+  return p;
+}
+
+/** Normalize SOQL query responses from gus-apps / local proxy / REST. */
+function gusQueryRecords(data) {
+  if (!data) return [];
+  if (Array.isArray(data.records)) return data.records;
+  if (Array.isArray(data.result?.records)) return data.result.records;
+  if (Array.isArray(data.payload?.records)) return data.payload.records;
+  return [];
+}
+
 /** GitHub Pages / subpath hosting: prepend repo base so /api/* is not sent to site root. */
 function getAppBasePath() {
   let p = window.location.pathname || '/';
@@ -1235,7 +1260,7 @@ async function gusApi(action, data = {}) {
     if (!result.ok) throw new Error(result.error || 'Request failed');
     const inner = result.payload;
     if (inner && inner.ok === false) throw new Error(inner.error || 'Backend error');
-    return inner && inner.payload !== undefined ? inner.payload : inner;
+    return unwrapGusAppsPayload(inner);
   }
   return result;
 }
@@ -1254,7 +1279,7 @@ async function fetchWsSubjects(wNumbers) {
     try {
       const soql = `SELECT Id, Name, Subject__c, Status__c, Priority__c, Story_Points__c, Epic__c, Epic__r.Name FROM ADM_Work__c WHERE Name IN (${inList}) LIMIT 200`;
       const result = await gusApi('query', { soql });
-      const records = result?.records || result || [];
+      const records = gusQueryRecords(result);
       records.forEach(r => {
         const epicId = r.Epic__c;
         const epicName = r.Epic__r?.Name || (epicId && EPIC_NAMES[epicId]) || '';
@@ -1330,7 +1355,8 @@ class GUSModel {
   async _serverQuery(soql) {
     const data = await gusApi('query', { soql });
     if (data.error) throw new Error(data.error);
-    return (data.records || []).map(r => { const copy = {...r}; delete copy.attributes; return copy; });
+    const rows = gusQueryRecords(data);
+    return rows.map(r => { const copy = {...r}; delete copy.attributes; return copy; });
   }
   async query(soql) {
     if (IS_GUS_APPS) return this._serverQuery(soql);
@@ -1835,7 +1861,7 @@ class DashboardController {
         const data = await gusApi('query', { soql });
         if (data.error) throw new Error(data.error);
         const byId = {};
-        (data.records || []).forEach(rec => {
+        gusQueryRecords(data).forEach(rec => {
           const c = { ...rec };
           delete c.attributes;
           byId[rec.Id] = c;
@@ -4752,7 +4778,7 @@ async function refreshEpicDataFromGUS() {
     if (data.error) throw new Error(data.error);
 
     const epicMap = {};
-    (data.records || []).forEach(ep => { epicMap[ep.Id] = ep; });
+    gusQueryRecords(data).forEach(ep => { epicMap[ep.Id] = ep; });
     await _mergeEpicsFromGusRefreshAndRehydrate(epicMap);
     let updated = 0;
 
