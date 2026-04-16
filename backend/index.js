@@ -65,8 +65,34 @@ module.exports.handleRequest = async (ctx) => {
   if (action === 'query') {
     const { soql } = body;
     if (!soql) return { ok: false, error: 'soql required' };
-    const result = await sf.query(soql);
-    return { ok: true, payload: { status: 'ok', records: result.records || [] } };
+    if (typeof sf.query !== 'function') {
+      return {
+        ok: true,
+        payload: {
+          status: 'error',
+          error: 'Salesforce connection has no query() — check applet runtime wiring.',
+          records: [],
+        },
+      };
+    }
+    try {
+      const result = await sf.query(soql);
+      const rec = result && Array.isArray(result.records) ? result.records : [];
+      const totalSize = result && result.totalSize != null ? result.totalSize : rec.length;
+      return {
+        ok: true,
+        payload: {
+          status: 'ok',
+          records: rec,
+          totalSize,
+          done: result ? !!result.done : true,
+        },
+      };
+    } catch (e) {
+      const msg = e.message || String(e);
+      const code = e.errorCode || e.name || '';
+      return { ok: true, payload: { status: 'error', error: msg, errorCode: code, records: [] } };
+    }
   }
 
   if (action === 'update') {

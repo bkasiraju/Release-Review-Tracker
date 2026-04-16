@@ -1148,7 +1148,7 @@ function buildEpicTooltipFromTeamData(teamData, healthFilter) {
 }
 function openModal(id) { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-function showToast(msg, type = 'info', id) {
+function showToast(msg, type = 'info', id, durationMs) {
   const c = document.getElementById('toast-container');
   if (id) { const prev = document.getElementById('toast-' + id); if (prev) prev.remove(); }
   const t = document.createElement('div');
@@ -1157,7 +1157,8 @@ function showToast(msg, type = 'info', id) {
   const icon = type === 'progress' ? '&#9696; ' : type === 'success' ? '&#10003; ' : type === 'error' ? '&#10007; ' : '';
   t.innerHTML = icon + msg;
   c.appendChild(t);
-  if (type !== 'progress') setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity .3s'; setTimeout(() => t.remove(), 300); }, 3000);
+  const ms = durationMs != null ? durationMs : 3000;
+  if (type !== 'progress') setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity .3s'; setTimeout(() => t.remove(), 300); }, ms);
   return t;
 }
 
@@ -1222,6 +1223,18 @@ function gusQueryRecords(data) {
   return [];
 }
 
+function maybeWarnGusAppsSoqlEmpty() {
+  if (!IS_GUS_APPS || window.__cfsGusEmptyWarned) return;
+  window.__cfsGusEmptyWarned = true;
+  showToast('GUS returned 0 rows for epic/release SOQL (HAR: rows:0, records:[]). The applet’s Salesforce connection cannot read those rows — grant ADM_Epic__c and ADM_Planned_Release__c read to the integration user or run queries in user context.', 'error', 'gus-ols', 22000);
+}
+
+function maybeWarnGusAppsSoqlError(msg) {
+  if (!IS_GUS_APPS || window.__cfsGusSoqlErrWarned) return;
+  window.__cfsGusSoqlErrWarned = true;
+  showToast('GUS SOQL error: ' + String(msg || 'unknown').slice(0, 240), 'error', 'gus-soql', 16000);
+}
+
 /** GitHub Pages / subpath hosting: prepend repo base so /api/* is not sent to site root. */
 function getAppBasePath() {
   let p = window.location.pathname || '/';
@@ -1239,6 +1252,7 @@ async function gusApi(action, data = {}) {
   const payload = IS_GUS_APPS ? { action, ...data } : data;
   const resp = await fetch(url, {
     method: 'POST',
+    credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
   });
@@ -1354,6 +1368,7 @@ class GUSModel {
   }
   async _serverQuery(soql) {
     const data = await gusApi('query', { soql });
+    if (data.status === 'error') throw new Error(data.error || data.errorCode || 'SOQL failed');
     if (data.error) throw new Error(data.error);
     const rows = gusQueryRecords(data);
     return rows.map(r => { const copy = {...r}; delete copy.attributes; return copy; });
@@ -1409,18 +1424,29 @@ class GUSModel {
     }
     return { release: mockRelease, epics: mockEpics };
   }
+  _soqlInListIds(epicIds) {
+    return epicIds.map(id => `'${String(id).replace(/'/g, "''")}'`).join(',');
+  }
   async _queryEpicsByIds(epicIds) {
     if (!epicIds || !epicIds.length) return [];
-    const idList = epicIds.map(id => `'${id}'`).join(',');
+    const idList = this._soqlInListIds(epicIds);
     return this._serverQuery(`SELECT Id, Name, Description__c, Health__c, Epic_Health_Comments__c, Path_to_Green__c, Slippage_Comments__c, Category__c, Committed_Story_Points_on_Epic__c, Actual_Story_Points_on_Epic__c, Planned_Story_Points__c, Storypoints_Closed__c, Storypoints_In_Progress__c, Storypoints_New__c, Storypoints_In_Waiting__c, Workitems_Closed__c, WorkItems_In_Progress__c, Workitems_New__c, Workitems_in_Waiting__c, Remaining_Story_Points__c, Remaining_Work_Items__c, Percent_Of_Work_Items_Complete__c, Committed_Work_Items_on_Epic__c, Actual_Work_Items_on_Epic__c, Project__r.Name, Project__r.Id, Project__r.V2MOM_Method__c, Team__r.Name FROM ADM_Epic__c WHERE Id IN (${idList}) LIMIT 200`);
+  }
+  /** Narrower SELECT when full epic query returns no rows (field-level or relationship issues in some contexts). */
+  async _queryEpicsByIdsMinimal(epicIds) {
+    if (!epicIds || !epicIds.length) return [];
+    const idList = this._soqlInListIds(epicIds);
+    const slim = `SELECT Id, Name, Health__c, Epic_Health_Comments__c, Planned_Story_Points__c, Actual_Story_Points_on_Epic__c, Committed_Story_Points_on_Epic__c, Storypoints_Closed__c, Storypoints_In_Progress__c, Storypoints_New__c, Storypoints_In_Waiting__c, Workitems_Closed__c, WorkItems_In_Progress__c, Workitems_New__c, Workitems_in_Waiting__c FROM ADM_Epic__c WHERE Id IN (${idList}) LIMIT 200`;
+    return this._serverQuery(slim);
   }
   async fetchReleaseData(releaseId) {
     const plan = TEAM_PLANS[releaseId];
     const epicFields = `SELECT Id, Name, Description__c, Health__c, Epic_Health_Comments__c, Path_to_Green__c, Slippage_Comments__c, Category__c, Committed_Story_Points_on_Epic__c, Actual_Story_Points_on_Epic__c, Planned_Story_Points__c, Storypoints_Closed__c, Storypoints_In_Progress__c, Storypoints_New__c, Storypoints_In_Waiting__c, Workitems_Closed__c, WorkItems_In_Progress__c, Workitems_New__c, Workitems_in_Waiting__c, Remaining_Story_Points__c, Remaining_Work_Items__c, Percent_Of_Work_Items_Complete__c, Additional_Work_Items__c, Subtracted_Work_Items__c, Additional_Story_Points__c, Subtracted_Story_Points__c, Committed_Work_Items_on_Epic__c, Actual_Work_Items_on_Epic__c, Project__r.Name, Project__r.Id, Project__r.V2MOM_Method__c, Team__r.Name, Start_Date__c, End_Date__c, Planned_Start_Date__c, Planned_End_Date__c, Committed_By_Team__c`;
+    const rid = String(releaseId).replace(/'/g, "''");
     try {
       const [releases, epics] = await Promise.all([
-        this._serverQuery(`SELECT Id, Name, Start_Date__c, End_Date__c, Goals_Objectives__c, Forecast_Items__c, Forecast_Items_Completed__c, Number_Forecast_Work_Items__c, Number_Forecast_Work_Items_Completed__c, Number_Forecast_Story_Points__c, Number_Epics_Added__c, Number_Forecast_Epics_Removed__c, Number_Work_Items_Added__c, Number_Forecast_Work_Items_Removed__c, Team__c, Team__r.Name FROM ADM_Planned_Release__c WHERE Id = '${releaseId}'`),
-        this._serverQuery(`${epicFields} FROM ADM_Epic__c WHERE Planned_Release__c = '${releaseId}' LIMIT 200`)
+        this._serverQuery(`SELECT Id, Name, Start_Date__c, End_Date__c, Goals_Objectives__c, Forecast_Items__c, Forecast_Items_Completed__c, Number_Forecast_Work_Items__c, Number_Forecast_Work_Items_Completed__c, Number_Forecast_Story_Points__c, Number_Epics_Added__c, Number_Forecast_Epics_Removed__c, Number_Work_Items_Added__c, Number_Forecast_Work_Items_Removed__c, Team__c, Team__r.Name FROM ADM_Planned_Release__c WHERE Id = '${rid}'`),
+        this._serverQuery(`${epicFields} FROM ADM_Epic__c WHERE Planned_Release__c = '${rid}' LIMIT 200`)
       ]);
       if (epics.length > 0) {
         mergeSyntheticStoryPointsIntoEpics(epics);
@@ -1429,7 +1455,12 @@ class GUSModel {
 
       if (plan && plan.epicIds && plan.epicIds.length) {
         console.warn('Release query returned 0 epics — querying by epic IDs directly');
-        const directEpics = await this._queryEpicsByIds(plan.epicIds);
+        let directEpics = await this._queryEpicsByIds(plan.epicIds);
+        if (!directEpics.length) {
+          try {
+            directEpics = await this._queryEpicsByIdsMinimal(plan.epicIds);
+          } catch (e2) { console.warn('Minimal epic Id query failed:', e2); }
+        }
         if (directEpics.length > 0) {
           mergeSyntheticStoryPointsIntoEpics(directEpics);
           return { release: releases[0] || this._buildMockFallback(releaseId).release, epics: directEpics };
@@ -1444,7 +1475,8 @@ class GUSModel {
       console.warn('Server query failed, trying direct epic ID query:', e);
       if (plan && plan.epicIds && plan.epicIds.length) {
         try {
-          const directEpics = await this._queryEpicsByIds(plan.epicIds);
+          let directEpics = await this._queryEpicsByIds(plan.epicIds);
+          if (!directEpics.length) directEpics = await this._queryEpicsByIdsMinimal(plan.epicIds);
           if (directEpics.length > 0) {
             mergeSyntheticStoryPointsIntoEpics(directEpics);
             return { release: this._buildMockFallback(releaseId).release, epics: directEpics };
@@ -1852,16 +1884,28 @@ class DashboardController {
     const uniq = [...new Set(epics.map(e => e && e.Id).filter(Boolean))];
     if (!uniq.length) return;
     const selectFields = `Id, Name, Description__c, Health__c, Epic_Health_Comments__c, Path_to_Green__c, Slippage_Comments__c, Category__c, Committed_Story_Points_on_Epic__c, Actual_Story_Points_on_Epic__c, Planned_Story_Points__c, Storypoints_Closed__c, Storypoints_In_Progress__c, Storypoints_New__c, Storypoints_In_Waiting__c, Workitems_Closed__c, WorkItems_In_Progress__c, Workitems_New__c, Workitems_in_Waiting__c, Remaining_Story_Points__c, Remaining_Work_Items__c, Percent_Of_Work_Items_Complete__c, Committed_Work_Items_on_Epic__c, Actual_Work_Items_on_Epic__c, Project__r.Name, Project__r.Id, Project__r.V2MOM_Method__c, Team__r.Name`;
+    const slimFields = `Id, Name, Health__c, Epic_Health_Comments__c, Planned_Story_Points__c, Actual_Story_Points_on_Epic__c, Committed_Story_Points_on_Epic__c, Storypoints_Closed__c, Storypoints_In_Progress__c, Storypoints_New__c, Storypoints_In_Waiting__c, Workitems_Closed__c, WorkItems_In_Progress__c, Workitems_New__c, Workitems_in_Waiting__c`;
     const chunk = 80;
+    let gotRows = 0;
     try {
       for (let i = 0; i < uniq.length; i += chunk) {
         const slice = uniq.slice(i, i + chunk);
         const idList = slice.map(id => `'${String(id).replace(/'/g, "''")}'`).join(',');
         const soql = `SELECT ${selectFields} FROM ADM_Epic__c WHERE Id IN (${idList}) LIMIT 200`;
-        const data = await gusApi('query', { soql });
+        let data = await gusApi('query', { soql });
+        if (data.status === 'error') throw new Error(data.error || data.errorCode || 'SOQL failed');
         if (data.error) throw new Error(data.error);
+        let rows = gusQueryRecords(data);
+        if (!rows.length && slice.length) {
+          const soqlMin = `SELECT ${slimFields} FROM ADM_Epic__c WHERE Id IN (${idList}) LIMIT 200`;
+          const d2 = await gusApi('query', { soql: soqlMin });
+          if (d2.status === 'error') throw new Error(d2.error || d2.errorCode || 'SOQL failed');
+          if (d2.error) throw new Error(d2.error);
+          rows = gusQueryRecords(d2);
+        }
+        gotRows += rows.length;
         const byId = {};
-        gusQueryRecords(data).forEach(rec => {
+        rows.forEach(rec => {
           const c = { ...rec };
           delete c.attributes;
           byId[rec.Id] = c;
@@ -1881,8 +1925,10 @@ class DashboardController {
           }
         });
       }
+      if (IS_GUS_APPS && gotRows === 0 && uniq.length) maybeWarnGusAppsSoqlEmpty();
     } catch (err) {
       console.warn('mergeGusLiveEpicFields: skipped or failed:', err);
+      maybeWarnGusAppsSoqlError(err.message || String(err));
     }
   }
 
