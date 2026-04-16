@@ -82,46 +82,46 @@ body { font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe
 
 /* ===== LOADING ===== */
 .loading-overlay { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 50px 20px; position: relative; z-index: 5; }
-.loading-scene { width: 100%; max-width: 440px; height: 160px; position: relative; overflow: hidden; background: linear-gradient(180deg, #020617 0%, #0f172a 55%, #1a1a2e 100%); border-radius: 14px; border: 1px solid #1e293b; }
+.loading-scene { width: 100%; max-width: 440px; height: 160px; position: relative; overflow: hidden; background: var(--bg, #f7f6f2); border-radius: 14px; border: 1px solid var(--border, #e8e6df); }
 
-/* Starfield — CSS-only dots via box-shadow, no child elements needed */
+/* Floating data nodes — subtle network dots */
 .ls-stars { position: absolute; inset: 0; }
-.ls-stars::before, .ls-stars::after { content: ''; position: absolute; width: 1px; height: 1px; border-radius: 50%; }
-.ls-stars::before { box-shadow: 30px 12px #fff, 80px 28px rgba(255,255,255,.5), 150px 8px #fff, 210px 35px rgba(255,255,255,.6), 290px 15px #fff, 340px 42px rgba(255,255,255,.4), 380px 6px #fff, 120px 50px rgba(255,255,255,.5), 260px 22px #fff, 55px 45px rgba(255,255,255,.3), 410px 30px #fff, 180px 18px rgba(255,255,255,.6); animation: star-twinkle 3s ease-in-out infinite alternate; }
-.ls-stars::after { box-shadow: 20px 55px rgba(255,255,255,.4), 100px 40px #fff, 170px 58px rgba(255,255,255,.5), 230px 10px #fff, 310px 48px rgba(255,255,255,.3), 370px 20px #fff, 50px 25px rgba(255,255,255,.6), 140px 32px #fff, 280px 52px rgba(255,255,255,.4), 400px 14px #fff; animation: star-twinkle 3s ease-in-out .5s infinite alternate; }
-@keyframes star-twinkle { 0% { opacity: .5; } 100% { opacity: 1; } }
+.ls-stars::before, .ls-stars::after { content: ''; position: absolute; width: 4px; height: 4px; border-radius: 50%; }
+.ls-stars::before { box-shadow: 40px 20px 0 0 rgba(1,118,211,.15), 100px 35px 0 0 rgba(1,118,211,.1), 160px 15px 0 0 rgba(124,58,237,.12), 220px 40px 0 0 rgba(1,118,211,.08), 300px 18px 0 0 rgba(124,58,237,.1), 370px 30px 0 0 rgba(1,118,211,.12), 60px 50px 0 0 rgba(124,58,237,.08), 130px 55px 0 0 rgba(1,118,211,.1), 260px 50px 0 0 rgba(1,118,211,.12), 340px 55px 0 0 rgba(124,58,237,.08); animation: node-drift 4s ease-in-out infinite alternate; }
+.ls-stars::after { box-shadow: 30px 65px 0 0 rgba(1,118,211,.1), 110px 70px 0 0 rgba(124,58,237,.08), 200px 60px 0 0 rgba(1,118,211,.12), 280px 72px 0 0 rgba(124,58,237,.1), 360px 68px 0 0 rgba(1,118,211,.08), 80px 80px 0 0 rgba(1,118,211,.1), 180px 78px 0 0 rgba(124,58,237,.08), 320px 82px 0 0 rgba(1,118,211,.12); animation: node-drift 4s ease-in-out .8s infinite alternate; }
+@keyframes node-drift { 0% { opacity: .5; transform: translateY(0); } 100% { opacity: 1; transform: translateY(-2px); } }
 
-/* UFO ship */
-.ls-ufo { position: absolute; top: 18px; left: 50%; margin-left: -42px; animation: ufo-float 2.5s ease-in-out infinite; filter: drop-shadow(0 4px 16px rgba(56,189,248,.5)); z-index: 3; }
-@keyframes ufo-float { 0%,100% { transform: translateY(0) rotate(-1deg); } 50% { transform: translateY(-6px) rotate(1deg); } }
+/* Cloud icon — centered, professional */
+.ls-ufo { position: absolute; top: 16px; left: 50%; margin-left: -42px; z-index: 3; animation: cloud-bob 3s ease-in-out infinite; filter: drop-shadow(0 2px 8px rgba(1,118,211,.12)); }
+@keyframes cloud-bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
 
-/* Tractor beam — trapezoid glow */
-.ls-beam { position: absolute; top: 58px; left: 50%; margin-left: -15px; width: 30px; height: 90px; z-index: 1; background: linear-gradient(180deg, rgba(56,189,248,.35), rgba(56,189,248,.08) 70%, transparent); clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%); animation: beam-glow 1.5s ease-in-out infinite; }
-@keyframes beam-glow { 0%,100% { opacity: .7; transform: scaleX(1); } 50% { opacity: 1; transform: scaleX(1.3); } }
+/* Data stream — vertical sync pulse */
+.ls-beam { position: absolute; top: 62px; left: 50%; margin-left: -1px; width: 2px; height: 70px; z-index: 1; background: linear-gradient(180deg, rgba(1,118,211,.25), rgba(1,118,211,.04) 80%, transparent); animation: beam-pulse 2s ease-in-out infinite; }
+@keyframes beam-pulse { 0%,100% { opacity: .4; transform: scaleY(.8); } 50% { opacity: 1; transform: scaleY(1); } }
 
-/* Human figure being abducted */
-.ls-human { position: absolute; bottom: 10px; left: 50%; margin-left: -6px; z-index: 2; animation: human-lift 3s ease-in-out infinite; }
-@keyframes human-lift { 0% { transform: translateY(0) rotate(0deg); opacity: 1; } 40% { transform: translateY(-30px) rotate(10deg); opacity: 1; } 60% { transform: translateY(-55px) rotate(-8deg) scale(.85); opacity: .8; } 80% { transform: translateY(-75px) rotate(5deg) scale(.6); opacity: .4; } 100% { transform: translateY(0) rotate(0deg) scale(1); opacity: 1; } }
+/* Server rack — bottom element */
+.ls-human { position: absolute; bottom: 14px; left: 50%; margin-left: -18px; z-index: 2; animation: srv-glow 2s ease-in-out infinite; }
+@keyframes srv-glow { 0%,100% { filter: drop-shadow(0 0 0 transparent); } 50% { filter: drop-shadow(0 0 6px rgba(1,118,211,.2)); } }
 
-/* City silhouette */
+/* Bottom baseline */
 .ls-city { position: absolute; bottom: 0; left: 0; right: 0; height: 28px; z-index: 0; }
 
-/* Moon */
-.ls-moon { position: absolute; top: 14px; right: 28px; width: 22px; height: 22px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #fef9c3, #fde68a 60%, #ca8a04); box-shadow: 0 0 12px 3px rgba(253,230,138,.25); }
+/* Salesforce brand accent orb */
+.ls-moon { position: absolute; top: 18px; right: 30px; width: 18px; height: 18px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #e8e6df, #d4d0c8 60%, #b8b3a8); box-shadow: 0 0 8px 2px rgba(1,118,211,.08); }
 
-/* Sparkle particles in beam */
-.ls-sparkle { position: absolute; width: 3px; height: 3px; border-radius: 50%; background: #7dd3fc; left: 50%; z-index: 2; }
-.ls-sp1 { margin-left: -8px; animation: sparkle-rise 1.4s ease-in infinite; }
-.ls-sp2 { margin-left: 3px; animation: sparkle-rise 1.4s ease-in .5s infinite; }
-.ls-sp3 { margin-left: -2px; animation: sparkle-rise 1.4s ease-in 1s infinite; }
-@keyframes sparkle-rise { 0% { bottom: 20px; opacity: .9; } 100% { bottom: 65px; opacity: 0; } }
+/* Data packets — small dots traveling up the stream */
+.ls-sparkle { position: absolute; width: 4px; height: 4px; border-radius: 50%; background: var(--brand, #0176d3); left: 50%; z-index: 2; }
+.ls-sp1 { margin-left: -1px; animation: packet-up 1.6s ease-out infinite; }
+.ls-sp2 { margin-left: 1px; animation: packet-up 1.6s ease-out .5s infinite; }
+.ls-sp3 { margin-left: -2px; animation: packet-up 1.6s ease-out 1.1s infinite; }
+@keyframes packet-up { 0% { bottom: 30px; opacity: .8; transform: scale(1); } 70% { opacity: .6; } 100% { bottom: 70px; opacity: 0; transform: scale(.5); } }
 
 /* Loading text */
-.loading-text { margin-top: 16px; font-size: 15px; color: #334155; font-weight: 700; letter-spacing: -.2px; }
-.loading-subtext { font-size: 11px; color: #94a3b8; margin-top: 4px; font-weight: 500; animation: txt-pulse 1.5s ease-in-out infinite; }
+.loading-text { margin-top: 16px; font-size: 15px; color: var(--text, #0f172a); font-weight: 700; letter-spacing: -.2px; }
+.loading-subtext { font-size: 11px; color: var(--muted, #6b7280); margin-top: 4px; font-weight: 500; animation: txt-pulse 1.5s ease-in-out infinite; }
 @keyframes txt-pulse { 0%,100% { opacity: .4; } 50% { opacity: 1; } }
-.loading-progress { width: 220px; height: 4px; background: #e2e8f0; border-radius: 4px; margin-top: 12px; overflow: hidden; }
-.loading-progress-bar { height: 100%; width: 30%; background: linear-gradient(90deg, #38bdf8, #7c3aed, #c084fc); border-radius: 4px; animation: prog-slide 2s ease-in-out infinite; }
+.loading-progress { width: 220px; height: 4px; background: var(--border, #e8e6df); border-radius: 4px; margin-top: 12px; overflow: hidden; }
+.loading-progress-bar { height: 100%; width: 30%; background: var(--gradient, linear-gradient(90deg, #0176d3, #7c3aed, #db2777)); border-radius: 4px; animation: prog-slide 2s ease-in-out infinite; }
 @keyframes prog-slide { 0% { width: 8%; margin-left: 0; } 50% { width: 45%; margin-left: 25%; } 100% { width: 8%; margin-left: 92%; } }
 
 .content-mask { opacity: .25; pointer-events: none; filter: blur(2px); transition: all .4s ease; }
@@ -421,6 +421,66 @@ body { font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe
 .pva-alert-danger { background: #fee2e2; border: 1px solid #fca5a5; color: #991b1b; }
 .pva-risks-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; align-self: stretch; width: 100%; max-width: 100%; box-sizing: border-box; }
 @media (max-width: 900px) { .pva-risks-grid { grid-template-columns: 1fr; } }
+
+/* Risk Assessment enhanced styles */
+.risk-kpi-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+.risk-kpi { flex: 1; min-width: 120px; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; text-align: center; border-top: 3px solid #0369a1; }
+.risk-kpi-num { font-size: 22px; font-weight: 800; color: #0c4a6e; }
+.risk-kpi-label { font-size: 9px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: .4px; margin-top: 2px; }
+.risk-kpi.critical { border-top-color: #dc2626; }
+.risk-kpi.critical .risk-kpi-num { color: #dc2626; }
+.risk-kpi.warn { border-top-color: #d97706; }
+.risk-kpi.warn .risk-kpi-num { color: #d97706; }
+.risk-kpi.ok { border-top-color: #16a34a; }
+.risk-kpi.ok .risk-kpi-num { color: #16a34a; }
+
+.risk-section { margin-bottom: 16px; }
+.risk-section-title { font-size: 13px; font-weight: 700; color: #0c4a6e; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+.risk-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; border-left: 4px solid #94a3b8; transition: box-shadow .2s; }
+.risk-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+.risk-card.sev-critical { border-left-color: #dc2626; background: #fef2f2; }
+.risk-card.sev-high { border-left-color: #ea580c; background: #fff7ed; }
+.risk-card.sev-medium { border-left-color: #d97706; background: #fffbeb; }
+.risk-card.sev-low { border-left-color: #16a34a; background: #f0fdf4; }
+.risk-card-header { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.risk-card-title { font-size: 11px; font-weight: 700; color: #1e293b; flex: 1; }
+.risk-sev-badge { font-size: 8px; font-weight: 700; padding: 2px 6px; border-radius: 3px; text-transform: uppercase; letter-spacing: .3px; }
+.risk-sev-badge.critical { background: #dc2626; color: #fff; }
+.risk-sev-badge.high { background: #ea580c; color: #fff; }
+.risk-sev-badge.medium { background: #d97706; color: #fff; }
+.risk-sev-badge.low { background: #16a34a; color: #fff; }
+.risk-card-body { font-size: 10px; color: #475569; line-height: 1.5; }
+.risk-card-action { margin-top: 6px; padding-top: 6px; border-top: 1px dashed #e2e8f0; font-size: 10px; }
+.risk-card-action strong { color: #0369a1; }
+.risk-card-meta { display: flex; gap: 12px; margin-top: 4px; font-size: 9px; color: #94a3b8; }
+
+.risk-matrix { display: grid; grid-template-columns: 28px repeat(5, 1fr); grid-template-rows: repeat(5, 32px) 22px; gap: 2px; max-width: 380px; margin: 8px auto; font-size: 8px; text-align: center; }
+.risk-matrix-cell { display: flex; align-items: center; justify-content: center; border-radius: 3px; font-weight: 700; color: #fff; position: relative; cursor: default; }
+.risk-matrix-cell.rm-green { background: #16a34a; }
+.risk-matrix-cell.rm-yellow { background: #eab308; color: #422006; }
+.risk-matrix-cell.rm-orange { background: #ea580c; }
+.risk-matrix-cell.rm-red { background: #dc2626; }
+.risk-matrix-label { font-size: 8px; color: #64748b; font-weight: 600; display: flex; align-items: center; justify-content: center; }
+.risk-matrix-dot { position: absolute; width: 8px; height: 8px; border-radius: 50%; background: #1e293b; border: 1.5px solid #fff; z-index: 1; }
+
+.risk-register-table { width: 100%; border-collapse: collapse; font-size: 10px; }
+.risk-register-table th { background: #f0f9ff; color: #475569; font-weight: 700; padding: 6px 8px; border-bottom: 2px solid #bae6fd; text-align: left; font-size: 9px; text-transform: uppercase; letter-spacing: .3px; position: sticky; top: 0; z-index: 1; }
+.risk-register-table td { padding: 6px 8px; border-bottom: 1px solid #f0f9ff; vertical-align: top; }
+.risk-register-table tr:hover td { background: #f8fafc; }
+
+.risk-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+@media (max-width: 700px) { .risk-form-grid { grid-template-columns: 1fr; } }
+.risk-form-group { display: flex; flex-direction: column; gap: 3px; }
+.risk-form-group label { font-size: 9px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: .3px; }
+.risk-form-group input, .risk-form-group select, .risk-form-group textarea { font-family: inherit; font-size: 11px; padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 5px; background: #fff; color: #1e293b; }
+.risk-form-group textarea { resize: vertical; min-height: 48px; }
+.risk-form-group.full-width { grid-column: 1 / -1; }
+.risk-form-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 10px; }
+
+.risk-rec-card { background: linear-gradient(135deg, #f0f9ff, #eff6ff); border: 1px solid #bae6fd; border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; }
+.risk-rec-card strong { color: #0369a1; font-size: 11px; }
+.risk-rec-card p { font-size: 10px; color: #475569; margin: 4px 0 0; line-height: 1.5; }
+
 .pva-chart-container { height: 220px; }
 
 /* PVA Summary Table — fixed layout: data columns have strict widths; month columns fill remaining space. */
@@ -498,7 +558,7 @@ body { font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe
 .pva-new-flag { display: block; width: max-content; font-size: 8px; font-weight: 800; letter-spacing: .4px; color: #fff; background: #ea580c; padding: 1px 6px; border-radius: 3px; margin-bottom: 3px; line-height: 1.2; }
 .pva-new-flag.pva-new-flag--inline { display: inline-flex; align-items: center; margin: 0; flex-shrink: 0; align-self: center; }
 .ef-ws-new-flag { position: absolute; top: -8px; left: 50%; transform: translateX(-50%); font-size: 7px; font-weight: 800; color: #fff; background: #ea580c; padding: 0 5px; border-radius: 3px; letter-spacing: .3px; z-index: 1; white-space: nowrap; }
-.pva-epic-row.pva-hidden, .pva-measure-row.pva-hidden { display: none; }
+.pva-epic-row.pva-hidden, .pva-measure-row.pva-hidden, .pva-method-row.pva-hidden { display: none; }
 .pva-comment-cell { font-size: 11px; color: #475569; line-height: 1.4; word-break: break-word; cursor: pointer; border: 1px solid transparent; border-radius: 4px; padding: 6px 8px; transition: border-color .15s, background .15s; min-height: 28px; position: relative; }
 .pva-comment-cell:hover { border-color: #cbd5e1; background: #f8fafc; }
 .pva-comment-cell .comment-empty { color: #94a3b8; font-style: italic; }
@@ -606,6 +666,16 @@ body { font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe
 .ai-q-summary strong { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: .04em; color: #0c4a6e; margin-top: 8px; }
 .ai-q-summary strong:first-child { margin-top: 0; }
 .ai-q-summary p { margin: 4px 0 0; color: #334155; line-height: 1.45; font-size: 12px; }
+.ai-summary-cell { position: relative; }
+.ai-summary-cell .ai-edit-btn { position: absolute; top: 4px; right: 4px; display: none; width: 22px; height: 22px; border-radius: 5px; border: 1px solid #cbd5e1; background: #fff; color: #64748b; cursor: pointer; align-items: center; justify-content: center; font-size: 11px; padding: 0; box-shadow: 0 1px 3px rgba(0,0,0,.08); transition: all .12s; z-index: 2; }
+.ai-summary-cell:hover .ai-edit-btn { display: inline-flex; }
+.ai-summary-cell .ai-edit-btn:hover { background: #f0f9ff; border-color: #0176d3; color: #0176d3; }
+.ai-summary-cell textarea.ai-edit-area { width: 100%; min-height: 80px; font-size: 12px; color: #334155; line-height: 1.5; border: 1px solid #93c5fd; border-radius: 6px; padding: 8px; resize: vertical; font-family: inherit; background: #f8fafc; }
+.ai-summary-cell .ai-edit-actions { display: flex; gap: 4px; margin-top: 4px; justify-content: flex-end; }
+.ai-summary-cell .ai-edit-actions button { padding: 3px 10px; border-radius: 5px; font-size: 10px; font-weight: 700; cursor: pointer; border: 1px solid #cbd5e1; background: #fff; color: #475569; transition: all .12s; }
+.ai-summary-cell .ai-edit-actions button.ai-save-btn { background: #0176d3; color: #fff; border-color: #0176d3; }
+.ai-summary-cell .ai-edit-actions button.ai-save-btn:hover { background: #015eb8; }
+.ai-summary-cell .ai-edit-actions button:hover { background: #f1f5f9; }
 .ai-epic-count-cell { text-align: center !important; vertical-align: middle !important; }
 .ai-epic-count-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; border-radius: 8px; background: linear-gradient(180deg, #e0f2fe, #bae6fd); color: #0c4a6e; font-weight: 800; font-size: 13px; border: 1px solid #7dd3fc; cursor: default; }
 #ai-summary-table thead th { background: linear-gradient(180deg, #e0f2fe 0%, #f0f9ff 100%) !important; color: #0f172a !important; border-bottom: 2px solid #93c5fd !important; }
@@ -812,45 +882,45 @@ body { font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe
       <div class="ls-stars"></div>
       <div class="ls-moon"></div>
       <div class="ls-ufo"><svg width="84" height="44" viewBox="0 0 84 44" fill="none">
-        <ellipse cx="42" cy="34" rx="40" ry="7" fill="url(#iR)"/>
-        <ellipse cx="42" cy="33" rx="34" ry="5.5" fill="#475569"/>
-        <ellipse cx="42" cy="30" rx="20" ry="13" fill="url(#iB)"/>
-        <ellipse cx="42" cy="29" rx="18" ry="11" fill="#64748b"/>
-        <path d="M28 26Q42 12 56 26" fill="url(#iD)"/>
-        <ellipse cx="42" cy="22" rx="9" ry="6" fill="rgba(56,189,248,.15)" stroke="rgba(56,189,248,.3)" stroke-width=".5"/>
-        <circle cx="30" cy="36" r="2.2" fill="#38bdf8"><animate attributeName="opacity" values=".3;1;.3" dur=".7s" repeatCount="indefinite"/></circle>
-        <circle cx="42" cy="38" r="2.2" fill="#a78bfa"><animate attributeName="opacity" values=".3;1;.3" dur=".7s" begin=".23s" repeatCount="indefinite"/></circle>
-        <circle cx="54" cy="36" r="2.2" fill="#34d399"><animate attributeName="opacity" values=".3;1;.3" dur=".7s" begin=".46s" repeatCount="indefinite"/></circle>
-        <defs>
-          <linearGradient id="iR" x1="2" y1="34" x2="82" y2="34"><stop stop-color="#94a3b8"/><stop offset=".5" stop-color="#cbd5e1"/><stop offset="1" stop-color="#94a3b8"/></linearGradient>
-          <linearGradient id="iB" x1="42" y1="17" x2="42" y2="43"><stop stop-color="#94a3b8"/><stop offset="1" stop-color="#64748b"/></linearGradient>
-          <linearGradient id="iD" x1="42" y1="12" x2="42" y2="26"><stop stop-color="#7dd3fc"/><stop offset="1" stop-color="rgba(56,189,248,.25)"/></linearGradient>
-        </defs>
+        <path d="M12 28C12 18 20 10 34 10H50C64 10 72 18 72 28" fill="none" stroke="#0176d3" stroke-width="1.5" opacity=".3"/>
+        <path d="M16 28C16 20 22 13 34 13H50C62 13 68 20 68 28" fill="#fff" stroke="#0176d3" stroke-width="1"/>
+        <path d="M22 28C22 22 27 17 36 17H48C57 17 62 22 62 28" fill="#f7f6f2" stroke="#0176d3" stroke-width=".5" opacity=".5"/>
+        <circle cx="34" cy="22" r="1.5" fill="#0176d3" opacity=".4"/>
+        <circle cx="42" cy="20" r="1.5" fill="#7c3aed" opacity=".4"/>
+        <circle cx="50" cy="22" r="1.5" fill="#0176d3" opacity=".4"/>
+        <line x1="34" y1="24" x2="42" y2="22" stroke="#0176d3" stroke-width=".5" opacity=".2"/>
+        <line x1="42" y1="22" x2="50" y2="24" stroke="#0176d3" stroke-width=".5" opacity=".2"/>
+        <circle cx="42" cy="32" r="3" fill="none" stroke="#0176d3" stroke-width="1" opacity=".2">
+          <animate attributeName="r" values="2;4;2" dur="2s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values=".3;.1;.3" dur="2s" repeatCount="indefinite"/>
+        </circle>
+        <text x="42" y="35" text-anchor="middle" font-size="5" fill="#0176d3" font-family="sans-serif" font-weight="600" opacity=".5">SYNC</text>
       </svg></div>
       <div class="ls-beam"></div>
       <div class="ls-sparkle ls-sp1"></div><div class="ls-sparkle ls-sp2"></div><div class="ls-sparkle ls-sp3"></div>
-      <div class="ls-human"><svg width="12" height="28" viewBox="0 0 12 28" fill="none">
-        <circle cx="6" cy="3" r="3" fill="#fbbf24"/>
-        <line x1="6" y1="6" x2="6" y2="18" stroke="#fbbf24" stroke-width="2" stroke-linecap="round"/>
-        <line x1="6" y1="10" x2="1" y2="15" stroke="#fbbf24" stroke-width="1.5" stroke-linecap="round"/>
-        <line x1="6" y1="10" x2="11" y2="14" stroke="#fbbf24" stroke-width="1.5" stroke-linecap="round"/>
-        <line x1="6" y1="18" x2="2" y2="26" stroke="#fbbf24" stroke-width="1.5" stroke-linecap="round"/>
-        <line x1="6" y1="18" x2="10" y2="26" stroke="#fbbf24" stroke-width="1.5" stroke-linecap="round"/>
+      <div class="ls-human"><svg width="36" height="32" viewBox="0 0 36 32" fill="none">
+        <rect x="2" y="2" width="32" height="28" rx="3" fill="#fff" stroke="#d4d0c8" stroke-width="1"/>
+        <rect x="5" y="5" width="26" height="5" rx="1" fill="#f7f6f2" stroke="#e8e6df" stroke-width=".5"/>
+        <circle cx="8" cy="7.5" r="1.5" fill="#0176d3"><animate attributeName="opacity" values=".3;1;.3" dur="1.2s" repeatCount="indefinite"/></circle>
+        <rect x="12" y="6" width="16" height="1" rx=".5" fill="#e8e6df"/>
+        <rect x="12" y="8" width="10" height="1" rx=".5" fill="#e8e6df"/>
+        <rect x="5" y="13" width="26" height="5" rx="1" fill="#f7f6f2" stroke="#e8e6df" stroke-width=".5"/>
+        <circle cx="8" cy="15.5" r="1.5" fill="#7c3aed"><animate attributeName="opacity" values=".3;1;.3" dur="1.2s" begin=".4s" repeatCount="indefinite"/></circle>
+        <rect x="12" y="14" width="16" height="1" rx=".5" fill="#e8e6df"/>
+        <rect x="12" y="16" width="10" height="1" rx=".5" fill="#e8e6df"/>
+        <rect x="5" y="21" width="26" height="5" rx="1" fill="#f7f6f2" stroke="#e8e6df" stroke-width=".5"/>
+        <circle cx="8" cy="23.5" r="1.5" fill="#16a34a"><animate attributeName="opacity" values=".3;1;.3" dur="1.2s" begin=".8s" repeatCount="indefinite"/></circle>
+        <rect x="12" y="22" width="16" height="1" rx=".5" fill="#e8e6df"/>
+        <rect x="12" y="24" width="10" height="1" rx=".5" fill="#e8e6df"/>
       </svg></div>
       <div class="ls-city"><svg width="440" height="28" viewBox="0 0 440 28" fill="none" preserveAspectRatio="none">
-        <rect x="0" y="14" width="440" height="14" fill="#0f172a"/>
-        <rect x="20" y="8" width="14" height="20" rx="1" fill="#1e293b"/><rect x="23" y="10" width="3" height="3" fill="#fde68a" opacity=".4"/><rect x="28" y="10" width="3" height="3" fill="#38bdf8" opacity=".3"/>
-        <rect x="40" y="4" width="10" height="24" rx="1" fill="#1e293b"/><rect x="42" y="6" width="2" height="2" fill="#fde68a" opacity=".5"/><rect x="46" y="6" width="2" height="2" fill="#fde68a" opacity=".3"/><rect x="42" y="10" width="2" height="2" fill="#38bdf8" opacity=".3"/>
-        <rect x="56" y="10" width="16" height="18" rx="1" fill="#1e293b"/><rect x="59" y="12" width="3" height="3" fill="#fde68a" opacity=".4"/><rect x="65" y="12" width="3" height="3" fill="#fde68a" opacity=".2"/>
-        <rect x="80" y="2" width="8" height="26" rx="1" fill="#1e293b"/><rect x="82" y="4" width="2" height="2" fill="#38bdf8" opacity=".4"/>
-        <rect x="340" y="6" width="12" height="22" rx="1" fill="#1e293b"/><rect x="343" y="8" width="3" height="3" fill="#fde68a" opacity=".4"/>
-        <rect x="360" y="3" width="9" height="25" rx="1" fill="#1e293b"/><rect x="362" y="5" width="2" height="2" fill="#38bdf8" opacity=".4"/><rect x="366" y="5" width="2" height="2" fill="#fde68a" opacity=".3"/>
-        <rect x="376" y="10" width="18" height="18" rx="1" fill="#1e293b"/><rect x="379" y="12" width="3" height="3" fill="#fde68a" opacity=".3"/><rect x="387" y="12" width="3" height="3" fill="#fde68a" opacity=".4"/>
-        <rect x="400" y="6" width="10" height="22" rx="1" fill="#1e293b"/><rect x="402" y="8" width="2" height="2" fill="#fde68a" opacity=".5"/>
+        <line x1="0" y1="27" x2="440" y2="27" stroke="#e8e6df" stroke-width="1"/>
+        <line x1="0" y1="20" x2="440" y2="20" stroke="#e8e6df" stroke-width=".3" stroke-dasharray="4 8"/>
+        <line x1="0" y1="14" x2="440" y2="14" stroke="#e8e6df" stroke-width=".3" stroke-dasharray="4 12"/>
       </svg></div>
     </div>
-    <div class="loading-text" id="loading-msg">Beaming up your data...</div>
-    <div class="loading-subtext">Fetching release data from GUS</div>
+    <div class="loading-text" id="loading-msg">Syncing release data...</div>
+    <div class="loading-subtext">Connecting to GUS &amp; aggregating metrics</div>
     <div class="loading-progress"><div class="loading-progress-bar"></div></div>
   </div>
 </main>
@@ -1192,6 +1262,53 @@ const HEALTH_MAP = {
 function healthBadge(status) {
   const h = HEALTH_MAP[status] || HEALTH_MAP['Not Started'];
   return `<span class="health-badge ${h.cls}"><span class="health-dot"></span>${esc(status || 'Unknown')}</span>`;
+}
+
+/* V2MOM Method Health: Green/Yellow/Red per V2MOM reference rules.
+   Mapping: On Track→G(green), Watch→Y(yellow), Blocked→R(red),
+   Completed→D(blue), On Hold→P(orange/postponed), Not Started→W(white), Canceled→C(gray).
+   Exclude: Not Started, On Hold(Postponed), Canceled from denominator.
+   Green=70%+ green+blue, Yellow=50-70% green+blue+yellow, Red=<50% */
+const V2MOM_HEALTH_CODES = {
+  'On Track':   { code: 'G', label: 'Green',   color: '#16a34a', bg: '#dcfce7', tier: 'green' },
+  'Watch':      { code: 'Y', label: 'Yellow',  color: '#d97706', bg: '#fef3c7', tier: 'yellow' },
+  'Blocked':    { code: 'R', label: 'Red',     color: '#dc2626', bg: '#fee2e2', tier: 'red' },
+  'Completed':  { code: 'D', label: 'Done',    color: '#0176d3', bg: '#dbeafe', tier: 'green' },
+  'On Hold':    { code: 'P', label: 'Postponed',color:'#ea580c', bg: '#fff7ed', tier: 'exclude' },
+  'Not Started':{ code: 'W', label: 'Not Started',color:'#94a3b8',bg:'#f1f5f9', tier: 'exclude' },
+  'Canceled':   { code: 'C', label: 'Canceled', color: '#6b7280', bg: '#f3f4f6', tier: 'exclude' },
+};
+function calcV2momMethodHealth(epics) {
+  const counts = { green: 0, yellow: 0, red: 0, exclude: 0 };
+  (epics || []).forEach(e => {
+    const h = e.Health__c || 'Not Started';
+    const tier = (V2MOM_HEALTH_CODES[h] || V2MOM_HEALTH_CODES['Not Started']).tier;
+    counts[tier] = (counts[tier] || 0) + 1;
+  });
+  const active = counts.green + counts.yellow + counts.red;
+  if (active === 0) return { status: 'Not Started', color: '#94a3b8', bg: '#f1f5f9', pct: 0, counts };
+  const greenBluePct = (counts.green / active) * 100;
+  const gbyPct = ((counts.green + counts.yellow) / active) * 100;
+  if (greenBluePct >= 70) return { status: 'Green', color: '#16a34a', bg: '#dcfce7', pct: Math.round(greenBluePct), counts };
+  if (gbyPct >= 50) return { status: 'Yellow', color: '#d97706', bg: '#fef3c7', pct: Math.round(gbyPct), counts };
+  return { status: 'Red', color: '#dc2626', bg: '#fee2e2', pct: Math.round(gbyPct), counts };
+}
+function v2momHealthBadgeHtml(healthObj) {
+  if (!healthObj) return '';
+  const c = healthObj.counts || {};
+  const tip = `Method Status: ${healthObj.status} (${healthObj.pct}% on-track+done of active measures)&#10;Green+Done: ${c.green||0}, Yellow: ${c.yellow||0}, Red: ${c.red||0}, Excluded: ${c.exclude||0}`;
+  return `<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:6px;font-size:9px;font-weight:800;letter-spacing:.3px;background:${healthObj.bg};color:${healthObj.color};cursor:help;" title="${tip}"><span style="width:7px;height:7px;border-radius:50%;background:${healthObj.color};"></span>${healthObj.status}</span>`;
+}
+function renderV2momHealthCodes(str) {
+  if (!str) return '';
+  const cMap = {G:'#16a34a',Y:'#d97706',R:'#dc2626',D:'#0176d3',P:'#ea580c',W:'#94a3b8',C:'#6b7280'};
+  const lMap = {G:'Green / On Track',Y:'Yellow / Watch',R:'Red / Blocked',D:'Done / Completed',P:'Postponed / On Hold',W:'Not Started',C:'Canceled'};
+  return str.split(' ').map(t => {
+    const m = t.match(/^(\d+)([GYRWDPC])$/);
+    if (!m) return esc(t);
+    const col = cMap[m[2]] || '#94a3b8';
+    return `<span style="display:inline-flex;align-items:center;gap:2px;margin:1px 2px;" title="${m[1]} ${lMap[m[2]] || m[2]}"><span style="width:6px;height:6px;border-radius:50%;background:${col};"></span><strong>${m[1]}</strong>${m[2]}</span>`;
+  }).join('');
 }
 function miniBadge(count, color, bg) {
   return `<span class="mini-badge" style="background:${bg};color:${color}"><span class="tile-dot" style="background:${color}"></span>${count}</span>`;
@@ -2090,7 +2207,7 @@ class DashboardView {
   showLoading(msg) {
     const existing = document.getElementById('loading-inline');
     if (existing) existing.remove();
-    const funMsgs = ['Beaming up your data...','Abducting sprint metrics...','Scanning for epics...','Locking tractor beam...','Warping through releases...','Transmitting from orbit...','Hijacking humans & data...'];
+    const funMsgs = ['Syncing release data...','Aggregating sprint metrics...','Loading epic health...','Fetching GUS records...','Compiling delivery insights...','Processing work items...','Connecting to data sources...'];
     const funMsg = funMsgs[Math.floor(Math.random() * funMsgs.length)];
     const el = document.createElement('div');
     el.id = 'loading-inline';
@@ -2100,41 +2217,41 @@ class DashboardView {
         <div class="ls-stars"></div>
         <div class="ls-moon"></div>
         <div class="ls-ufo"><svg width="84" height="44" viewBox="0 0 84 44" fill="none">
-          <ellipse cx="42" cy="34" rx="40" ry="7" fill="url(#uR)"/>
-          <ellipse cx="42" cy="33" rx="34" ry="5.5" fill="#475569"/>
-          <ellipse cx="42" cy="30" rx="20" ry="13" fill="url(#uB)"/>
-          <ellipse cx="42" cy="29" rx="18" ry="11" fill="#64748b"/>
-          <path d="M28 26Q42 12 56 26" fill="url(#uD)"/>
-          <ellipse cx="42" cy="22" rx="9" ry="6" fill="rgba(56,189,248,.15)" stroke="rgba(56,189,248,.3)" stroke-width=".5"/>
-          <circle cx="30" cy="36" r="2.2" fill="#38bdf8"><animate attributeName="opacity" values=".3;1;.3" dur=".7s" repeatCount="indefinite"/></circle>
-          <circle cx="42" cy="38" r="2.2" fill="#a78bfa"><animate attributeName="opacity" values=".3;1;.3" dur=".7s" begin=".23s" repeatCount="indefinite"/></circle>
-          <circle cx="54" cy="36" r="2.2" fill="#34d399"><animate attributeName="opacity" values=".3;1;.3" dur=".7s" begin=".46s" repeatCount="indefinite"/></circle>
-          <defs>
-            <linearGradient id="uR" x1="2" y1="34" x2="82" y2="34"><stop stop-color="#94a3b8"/><stop offset=".5" stop-color="#cbd5e1"/><stop offset="1" stop-color="#94a3b8"/></linearGradient>
-            <linearGradient id="uB" x1="42" y1="17" x2="42" y2="43"><stop stop-color="#94a3b8"/><stop offset="1" stop-color="#64748b"/></linearGradient>
-            <linearGradient id="uD" x1="42" y1="12" x2="42" y2="26"><stop stop-color="#7dd3fc"/><stop offset="1" stop-color="rgba(56,189,248,.25)"/></linearGradient>
-          </defs>
+          <path d="M12 28C12 18 20 10 34 10H50C64 10 72 18 72 28" fill="none" stroke="#0176d3" stroke-width="1.5" opacity=".3"/>
+          <path d="M16 28C16 20 22 13 34 13H50C62 13 68 20 68 28" fill="#fff" stroke="#0176d3" stroke-width="1"/>
+          <path d="M22 28C22 22 27 17 36 17H48C57 17 62 22 62 28" fill="#f7f6f2" stroke="#0176d3" stroke-width=".5" opacity=".5"/>
+          <circle cx="34" cy="22" r="1.5" fill="#0176d3" opacity=".4"/>
+          <circle cx="42" cy="20" r="1.5" fill="#7c3aed" opacity=".4"/>
+          <circle cx="50" cy="22" r="1.5" fill="#0176d3" opacity=".4"/>
+          <line x1="34" y1="24" x2="42" y2="22" stroke="#0176d3" stroke-width=".5" opacity=".2"/>
+          <line x1="42" y1="22" x2="50" y2="24" stroke="#0176d3" stroke-width=".5" opacity=".2"/>
+          <circle cx="42" cy="32" r="3" fill="none" stroke="#0176d3" stroke-width="1" opacity=".2">
+            <animate attributeName="r" values="2;4;2" dur="2s" repeatCount="indefinite"/>
+            <animate attributeName="opacity" values=".3;.1;.3" dur="2s" repeatCount="indefinite"/>
+          </circle>
+          <text x="42" y="35" text-anchor="middle" font-size="5" fill="#0176d3" font-family="sans-serif" font-weight="600" opacity=".5">SYNC</text>
         </svg></div>
         <div class="ls-beam"></div>
         <div class="ls-sparkle ls-sp1"></div><div class="ls-sparkle ls-sp2"></div><div class="ls-sparkle ls-sp3"></div>
-        <div class="ls-human"><svg width="12" height="28" viewBox="0 0 12 28" fill="none">
-          <circle cx="6" cy="3" r="3" fill="#fbbf24"/>
-          <line x1="6" y1="6" x2="6" y2="18" stroke="#fbbf24" stroke-width="2" stroke-linecap="round"/>
-          <line x1="6" y1="10" x2="1" y2="15" stroke="#fbbf24" stroke-width="1.5" stroke-linecap="round"/>
-          <line x1="6" y1="10" x2="11" y2="14" stroke="#fbbf24" stroke-width="1.5" stroke-linecap="round"/>
-          <line x1="6" y1="18" x2="2" y2="26" stroke="#fbbf24" stroke-width="1.5" stroke-linecap="round"/>
-          <line x1="6" y1="18" x2="10" y2="26" stroke="#fbbf24" stroke-width="1.5" stroke-linecap="round"/>
+        <div class="ls-human"><svg width="36" height="32" viewBox="0 0 36 32" fill="none">
+          <rect x="2" y="2" width="32" height="28" rx="3" fill="#fff" stroke="#d4d0c8" stroke-width="1"/>
+          <rect x="5" y="5" width="26" height="5" rx="1" fill="#f7f6f2" stroke="#e8e6df" stroke-width=".5"/>
+          <circle cx="8" cy="7.5" r="1.5" fill="#0176d3"><animate attributeName="opacity" values=".3;1;.3" dur="1.2s" repeatCount="indefinite"/></circle>
+          <rect x="12" y="6" width="16" height="1" rx=".5" fill="#e8e6df"/>
+          <rect x="12" y="8" width="10" height="1" rx=".5" fill="#e8e6df"/>
+          <rect x="5" y="13" width="26" height="5" rx="1" fill="#f7f6f2" stroke="#e8e6df" stroke-width=".5"/>
+          <circle cx="8" cy="15.5" r="1.5" fill="#7c3aed"><animate attributeName="opacity" values=".3;1;.3" dur="1.2s" begin=".4s" repeatCount="indefinite"/></circle>
+          <rect x="12" y="14" width="16" height="1" rx=".5" fill="#e8e6df"/>
+          <rect x="12" y="16" width="10" height="1" rx=".5" fill="#e8e6df"/>
+          <rect x="5" y="21" width="26" height="5" rx="1" fill="#f7f6f2" stroke="#e8e6df" stroke-width=".5"/>
+          <circle cx="8" cy="23.5" r="1.5" fill="#16a34a"><animate attributeName="opacity" values=".3;1;.3" dur="1.2s" begin=".8s" repeatCount="indefinite"/></circle>
+          <rect x="12" y="22" width="16" height="1" rx=".5" fill="#e8e6df"/>
+          <rect x="12" y="24" width="10" height="1" rx=".5" fill="#e8e6df"/>
         </svg></div>
         <div class="ls-city"><svg width="440" height="28" viewBox="0 0 440 28" fill="none" preserveAspectRatio="none">
-          <rect x="0" y="14" width="440" height="14" fill="#0f172a"/>
-          <rect x="20" y="8" width="14" height="20" rx="1" fill="#1e293b"/><rect x="23" y="10" width="3" height="3" fill="#fde68a" opacity=".4"/><rect x="28" y="10" width="3" height="3" fill="#38bdf8" opacity=".3"/>
-          <rect x="40" y="4" width="10" height="24" rx="1" fill="#1e293b"/><rect x="42" y="6" width="2" height="2" fill="#fde68a" opacity=".5"/><rect x="46" y="6" width="2" height="2" fill="#fde68a" opacity=".3"/><rect x="42" y="10" width="2" height="2" fill="#38bdf8" opacity=".3"/>
-          <rect x="56" y="10" width="16" height="18" rx="1" fill="#1e293b"/><rect x="59" y="12" width="3" height="3" fill="#fde68a" opacity=".4"/><rect x="65" y="12" width="3" height="3" fill="#fde68a" opacity=".2"/>
-          <rect x="80" y="2" width="8" height="26" rx="1" fill="#1e293b"/><rect x="82" y="4" width="2" height="2" fill="#38bdf8" opacity=".4"/>
-          <rect x="340" y="6" width="12" height="22" rx="1" fill="#1e293b"/><rect x="343" y="8" width="3" height="3" fill="#fde68a" opacity=".4"/>
-          <rect x="360" y="3" width="9" height="25" rx="1" fill="#1e293b"/><rect x="362" y="5" width="2" height="2" fill="#38bdf8" opacity=".4"/><rect x="366" y="5" width="2" height="2" fill="#fde68a" opacity=".3"/>
-          <rect x="376" y="10" width="18" height="18" rx="1" fill="#1e293b"/><rect x="379" y="12" width="3" height="3" fill="#fde68a" opacity=".3"/><rect x="387" y="12" width="3" height="3" fill="#fde68a" opacity=".4"/>
-          <rect x="400" y="6" width="10" height="22" rx="1" fill="#1e293b"/><rect x="402" y="8" width="2" height="2" fill="#fde68a" opacity=".5"/>
+          <line x1="0" y1="27" x2="440" y2="27" stroke="#e8e6df" stroke-width="1"/>
+          <line x1="0" y1="20" x2="440" y2="20" stroke="#e8e6df" stroke-width=".3" stroke-dasharray="4 8"/>
+          <line x1="0" y1="14" x2="440" y2="14" stroke="#e8e6df" stroke-width=".3" stroke-dasharray="4 12"/>
         </svg></div>
       </div>
       <div class="loading-text">${esc(funMsg)}</div>
@@ -2751,6 +2868,9 @@ class DashboardView {
       const measCount = (m.measures || []).length;
       const act = actualByM[String(methodNum)] || { epicCount: 0, totalWI: 0, actualSP: 0 };
       const actSpPct = totalActualSP > 0 ? ((act.actualSP / totalActualSP) * 100).toFixed(0) : '—';
+      const hMg = hierarchy.find(h => String(h.methodNum) === String(methodNum));
+      const hAllEpics = hMg ? hMg.measures.flatMap(ms => ms.epics) : [];
+      const methodHealth = calcV2momMethodHealth(hAllEpics);
       const tipEpics = 'Planned epics (sheet) vs actual epics linked to this method in GUS.';
       const tipScope = 'Planned workstreams (sheet) vs total work items on those epics (GUS).';
       const tipEffort = 'Planned sprint days (sheet) vs actual story points on epics (GUS).';
@@ -2786,6 +2906,7 @@ class DashboardView {
         </div>
         <div class="pmi-footer">
           <span class="pmi-footer-stat">${measCount} measure${measCount !== 1 ? 's' : ''}</span>
+          ${v2momHealthBadgeHtml(methodHealth)}
           <span class="pmi-footer-pri" aria-label="Priority breakdown">
             <span class="pmi-pri-chip pmi-pri-chip--p0" title="P0 — highest priority"><span class="pmi-pri-chip-lbl">P0</span><span class="pmi-pri-chip-val">${m.p0 || 0}</span></span>
             <span class="pmi-pri-chip pmi-pri-chip--p1" title="P1 — high priority"><span class="pmi-pri-chip-lbl">P1</span><span class="pmi-pri-chip-val">${m.p1 || 0}</span></span>
@@ -2918,7 +3039,8 @@ class DashboardView {
     const uniqueOwners = [...new Set(allFlatEpics.map(e => getEpicMeta(e.Id).owner).filter(Boolean))].sort();
     const healthValues = ['On Track','Watch','Blocked','Not Started','On Hold','Completed','Canceled'];
 
-    html += `<div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;margin-bottom:6px;flex-wrap:nowrap;gap:6px;white-space:nowrap;overflow-x:auto;">
+    html += `<div id="epic-table-section" style="display:none;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;margin-bottom:6px;flex-wrap:nowrap;gap:6px;white-space:nowrap;overflow-x:auto;">
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:nowrap;flex-shrink:0;">
         <div style="font-size:13px;font-weight:700;color:#1e293b;">Epic Tracking &mdash; ${visibleMonthIdx.length === 1 ? esc(r264Months[visibleMonthIdx[0]].full) + ' ' + r264Months[visibleMonthIdx[0]].year : esc(visibleMonthIdx.map(i => r264Months[i].full).join(' · ')) + ' ' + r264Months[0].year}</div>
         <div class="usearch-wrap" style="max-width:260px;">
@@ -2969,6 +3091,9 @@ class DashboardView {
           </button>
           <div class="sync-progress" id="sync-progress" style="width:0%;"></div>
         </div></div>
+        <span class="pva-month-toggle" id="btn-v2mom-ref" onclick="toggleV2momRefCol()" style="color:#7c3aed;border-color:#c4b5fd;background:#f5f3ff;" title="Show/hide V2MOM method reference column">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 6h16M4 12h10M4 18h14"/></svg> V2MOM Ref
+        </span>
         <span class="pva-month-toggle" onclick="toggleTableFullscreen()" id="btn-fullscreen" style="color:#475569;border-color:#cbd5e1;background:#f8fafc;" title="Fullscreen view">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg> Zoom
         </span>
@@ -2977,16 +3102,17 @@ class DashboardView {
 
     const monthColgroup = visibleMonthIdx.map((mi) => `<col class="pva-month-colg" data-month-idx="${mi}" />`).join('');
     html += `<div class="pva-table-panel"><div class="pva-table-panel-card"><table class="pva-epic-table" id="pva-epic-table">
-      <colgroup><col style="width:320px" /><col style="width:108px" /><col style="width:42px" /><col style="width:82px" /><col style="width:96px" /><col style="width:158px" />${monthColgroup}</colgroup>
+      <colgroup><col style="width:320px" /><col style="width:108px" /><col style="width:42px" /><col style="width:82px" /><col style="width:96px" /><col class="pva-col-v2ref-cg col-hidden" style="width:160px;" /><col style="width:158px" />${monthColgroup}</colgroup>
       <thead><tr>
         <th class="pva-col-me" style="text-align:left;">Measure / Epic</th>
         <th class="pva-col-owner" style="text-align:left;">Owner</th>
         <th class="pva-col-pri" style="text-align:left;">Pri</th>
-        <th class="pva-col-sprint" style="text-align:left;">Planned Sprint</th>
+        <th class="pva-col-sprint" style="text-align:left;">Sprint</th>
         <th class="pva-col-health" style="text-align:left;">Health</th>
+        <th class="pva-col-v2ref col-hidden" style="text-align:left;font-size:10px;">V2MOM Ref</th>
         <th class="pva-th-sp-delivery" style="text-align:left;padding-top:8px;" title="Planned, actual, and closed story points (GUS), scope churn signal, and closed-vs-actual delivery strip">
-          <span style="display:block;font-size:10px;font-weight:800;color:#0c4a6e;line-height:1.15;">Story points &amp; delivery</span>
-          <span style="display:block;font-size:8px;font-weight:600;color:#64748b;margin-top:3px;line-height:1.2;">Google Sheet · A · C · churn · burn</span>
+          <span style="display:block;font-size:10px;font-weight:800;color:#0c4a6e;line-height:1.15;">Plan vs Actual</span>
+          <span style="display:block;font-size:8px;font-weight:600;color:#64748b;margin-top:3px;line-height:1.2;"><span style="color:#0369a1;" title="Planned (Sheet)">P</span> · <span style="color:#16a34a;" title="Actual (GUS)">A</span> · <span style="color:#7c3aed;" title="Closed">C</span> · <span style="color:#d97706;" title="Churn">±</span> · <span style="color:#dc2626;" title="Burn rate">🔥</span></span>
         </th>
         ${monthHeaders}
       </tr></thead><tbody>`;
@@ -2998,8 +3124,9 @@ class DashboardView {
       const mBadges = Object.entries(mhc).map(([h, c]) => miniBadge(c, HEALTH_MAP[h]?.color || '#94a3b8', HEALTH_MAP[h]?.bg || '#f1f5f9')).join('');
       const methodOwners = [...new Set(allEpics.map(e => getEpicMeta(e.Id).owner).filter(Boolean))].join(' ');
       const methodRowTitle = pvaStripDuplicateMethodPrefix(mg.methodNum, mg.methodLabel);
+      const mMethodHealth = calcV2momMethodHealth(allEpics);
       html += `<tr class="pva-method-row collapsed" data-pva-method="${esc(mNum)}" data-search-text="${esc(('M' + mg.methodNum + ' ' + mg.methodLabel + ' ' + methodOwners).toLowerCase())}" onclick='togglePvaMethod(${JSON.stringify(mNum)})'>
-        <td class="pva-group-row-td" colspan="${groupRowColspan}"><span class="chevron">&#9660;</span>M${esc(mg.methodNum)} &mdash; ${esc(methodRowTitle)} <span style="font-weight:400;opacity:.8;margin-left:4px;">(${mg.measures.length} measures, ${allEpics.length} epics)</span><span class="group-badges" style="margin-left:8px;">${mBadges}</span></td>
+        <td class="pva-group-row-td" colspan="${groupRowColspan}"><span class="chevron">&#9660;</span>M${esc(mg.methodNum)} &mdash; ${esc(methodRowTitle)} <span style="font-weight:400;opacity:.8;margin-left:4px;">(${mg.measures.length} measures, ${allEpics.length} epics)</span>${v2momHealthBadgeHtml(mMethodHealth)}<span class="group-badges" style="margin-left:8px;">${mBadges}</span></td>
       </tr>`;
 
       mg.measures.forEach((meas, msIdx) => {
@@ -3052,7 +3179,7 @@ class DashboardView {
             <td class="pva-col-sprint" style="text-align:left;"><span style="font-size:10px;color:#334155;">${esc(em.sprintTarget) || '–'}</span></td>
             <td class="pva-col-health cell-health" style="text-align:left;">
               <select class="pva-cell-select" data-epic-id="${esc(epic.Id)}" data-field="health" onchange="savePvaField(this)" style="font-size:10px;padding:2px 4px;">
-                ${['On Track','Watch','Blocked','Not Started','On Hold','Completed','Canceled'].map(h=>`<option value="${h}"${(epic.Health__c||'Not Started')===h?' selected':''}>${h}</option>`).join('')}
+                ${['On Track','Watch','Blocked','Not Started','On Hold','Completed','Canceled'].map(h=>`<option value="${h}"${(epic.Health__c||'Not Started')===h?' selected':''}>${(V2MOM_HEALTH_CODES[h]||{}).code||'?'} – ${h}</option>`).join('')}
               </select>
             </td>
             ${this._epicSpDeliveryTd(epic, metrics)}
@@ -3067,32 +3194,298 @@ class DashboardView {
     html += `</div>`;
 
     html += `</div>`;
+    html += `</div>`;
     return html;
   }
 
   renderRiskAssessmentTab(plan, hierarchy) {
     const p = plan;
     const execRisks = this._deriveExecutionRisks(hierarchy, p);
+    const allEpics = hierarchy.flatMap(mg => mg.measures.flatMap(m => m.epics));
+
+    // Compute metrics for KPI panel
+    const blockedCount = allEpics.filter(e => e.Health__c === 'Blocked').length;
+    const watchCount = allEpics.filter(e => e.Health__c === 'Watch').length;
+    const p0AtRisk = allEpics.filter(e => { const em = getEpicMeta(e.Id); return em.priority === 'P0' && ['Blocked','Watch'].includes(e.Health__c); }).length;
+    let totalPlanned = 0, totalActual = 0, totalClosed = 0;
+    allEpics.forEach(e => { totalPlanned += ctrl.computeMetrics(e).planned; totalActual += e.Actual_Story_Points_on_Epic__c || 0; totalClosed += e.Storypoints_Closed__c || 0; });
+    const burnPct = totalActual > 0 ? (totalClosed / totalActual * 100).toFixed(0) : 0;
+    const scopeChurn = totalPlanned > 0 ? (((totalActual - totalPlanned) / totalPlanned) * 100).toFixed(0) : 0;
+    const noSprint = allEpics.filter(e => { const em = getEpicMeta(e.Id); return !em.sprintTarget && e.Health__c !== 'Completed' && e.Health__c !== 'Canceled'; }).length;
+    const totalRisks = p.keyRisks.length + execRisks.length;
+
+    // Build categorized risk cards from execution risks with auto-severity
+    const riskCards = [];
+    execRisks.forEach((r, i) => {
+      let sev = 'medium';
+      if (/blocked|P0.*risk|P0.*blocked/i.test(r)) sev = 'critical';
+      else if (/burn rate|scope creep|at risk/i.test(r)) sev = 'high';
+      else if (/watch|not started|no sprint/i.test(r)) sev = 'medium';
+      else sev = 'low';
+      const like = sev === 'critical' ? 5 : sev === 'high' ? 4 : sev === 'medium' ? 3 : 2;
+      const impact = sev === 'critical' ? 5 : sev === 'high' ? 4 : sev === 'medium' ? 3 : 2;
+      riskCards.push({ id: 'exec-' + i, text: r, severity: sev, type: 'Execution', likelihood: like, impact: impact });
+    });
+    p.keyRisks.forEach((r, i) => {
+      let sev = 'medium';
+      if (/capacity|over.*allo/i.test(r)) sev = 'high';
+      else if (/dependency|critical/i.test(r)) sev = 'high';
+      riskCards.push({ id: 'plan-' + i, text: r, severity: sev, type: 'Planning', likelihood: 3, impact: 3 });
+    });
+    riskCards.sort((a, b) => { const ord = { critical: 0, high: 1, medium: 2, low: 3 }; return (ord[a.severity] || 9) - (ord[b.severity] || 9); });
+
+    // Collect team members for POC dropdown
+    const engineers = p.engineers ? p.engineers.map(e => e.name) : [];
+    const sheetOwners = [...new Set(Object.values(SHEET_EPIC_META).map(m => m.owner).filter(Boolean))];
+    const allPOCs = [...new Set([...engineers, ...sheetOwners])].sort();
+
+    // V2MOM methods for reference dropdown
+    const v2methods = p.v2momMethods || [];
 
     let html = `<div id="tab-risk-assessment" class="pva-tab-panel">`;
-    html += `<div style="padding:16px 0;">
-      <div style="font-size:16px;font-weight:700;color:#0c4a6e;margin-bottom:12px;">Risk Assessment &mdash; AI Generated</div>
-      <div class="pva-risks-grid">
-        <div class="pva-alert pva-alert-info" style="align-items:flex-start;">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0;margin-top:2px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-          <div><strong>Planning Risks:</strong><ul style="margin:4px 0 0 16px;padding:0;">
-            ${p.keyRisks.map(r=>`<li style="margin-bottom:2px;">${esc(r)}</li>`).join('')}
-          </ul></div>
+    html += `<div style="padding:16px 0;">`;
+
+    // Title + description
+    html += `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div>
+        <div style="font-size:16px;font-weight:700;color:#0c4a6e;">Risk Assessment &mdash; AI Generated</div>
+        <div style="font-size:10px;color:#64748b;margin-top:2px;">Auto-derived from epic health, story points, sprint coverage & scope churn. Add manual risks via the register below.</div>
+      </div>
+      <button class="btn btn-primary" style="font-size:10px;padding:5px 12px;" onclick="document.getElementById('risk-register-form-section').scrollIntoView({behavior:'smooth'})">+ Add Risk</button>
+    </div>`;
+
+    // KPI Row
+    const criticalCount = riskCards.filter(r => r.severity === 'critical').length;
+    const highCount = riskCards.filter(r => r.severity === 'high').length;
+    html += `<div class="risk-kpi-row">
+      <div class="risk-kpi critical"><div class="risk-kpi-num">${criticalCount}</div><div class="risk-kpi-label">Critical Risks</div></div>
+      <div class="risk-kpi warn"><div class="risk-kpi-num">${highCount}</div><div class="risk-kpi-label">High Risks</div></div>
+      <div class="risk-kpi"><div class="risk-kpi-num">${totalRisks}</div><div class="risk-kpi-label">Total Risks</div></div>
+      <div class="risk-kpi${blockedCount > 0 ? ' critical' : ' ok'}"><div class="risk-kpi-num">${blockedCount}</div><div class="risk-kpi-label">Blocked Epics</div></div>
+      <div class="risk-kpi${p0AtRisk > 0 ? ' critical' : ' ok'}"><div class="risk-kpi-num">${p0AtRisk}</div><div class="risk-kpi-label">P0 At Risk</div></div>
+      <div class="risk-kpi${Number(burnPct) < 30 ? ' warn' : ' ok'}"><div class="risk-kpi-num">${burnPct}%</div><div class="risk-kpi-label">Burn Rate</div></div>
+      <div class="risk-kpi${Number(scopeChurn) > 15 ? ' warn' : ''}"><div class="risk-kpi-num">${scopeChurn > 0 ? '+' : ''}${scopeChurn}%</div><div class="risk-kpi-label">Scope Churn</div></div>
+    </div>`;
+
+    // === Two-column: Risk cards + Heatmap ===
+    html += `<div style="display:grid;grid-template-columns:1fr 360px;gap:16px;align-items:start;">`;
+
+    // Left: Categorized risk cards
+    html += `<div>`;
+
+    // Planning Risks
+    const planCards = riskCards.filter(r => r.type === 'Planning');
+    html += `<div class="risk-section">
+      <div class="risk-section-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1e40af" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        Planning Risks (${planCards.length})
+      </div>`;
+    if (planCards.length) {
+      planCards.forEach(r => {
+        html += `<div class="risk-card sev-${r.severity}">
+          <div class="risk-card-header">
+            <div class="risk-card-title">${esc(r.text)}</div>
+            <span class="risk-sev-badge ${r.severity}">${r.severity}</span>
+          </div>
+          <div class="risk-card-action"><strong>Action:</strong> Review in sprint planning; assign owner and define path-to-green.</div>
+          <div class="risk-card-meta"><span>L:${r.likelihood} I:${r.impact} = ${r.likelihood * r.impact}</span><span>Type: ${r.type}</span></div>
+        </div>`;
+      });
+    } else {
+      html += `<div style="font-size:11px;color:#64748b;padding:8px;">No planning risks identified.</div>`;
+    }
+    html += `</div>`;
+
+    // Execution Risks
+    const execCards = riskCards.filter(r => r.type === 'Execution');
+    html += `<div class="risk-section">
+      <div class="risk-section-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        Release Execution Risks (${execCards.length})
+      </div>`;
+    if (execCards.length) {
+      execCards.forEach(r => {
+        const actionMap = {
+          critical: 'Escalate immediately; assign dedicated owner; daily stand-up tracking.',
+          high: 'Schedule remediation in next sprint; track weekly.',
+          medium: 'Monitor during release reviews; flag if worsens.',
+          low: 'Accept and monitor; revisit if conditions change.'
+        };
+        html += `<div class="risk-card sev-${r.severity}">
+          <div class="risk-card-header">
+            <div class="risk-card-title">${esc(r.text)}</div>
+            <span class="risk-sev-badge ${r.severity}">${r.severity}</span>
+          </div>
+          <div class="risk-card-action"><strong>Recommended Action:</strong> ${actionMap[r.severity]}</div>
+          <div class="risk-card-meta"><span>L:${r.likelihood} I:${r.impact} = ${r.likelihood * r.impact}</span><span>Type: ${r.type}</span></div>
+        </div>`;
+      });
+    } else {
+      html += `<div style="font-size:11px;color:#16a34a;padding:8px;">No execution risks detected.</div>`;
+    }
+    html += `</div>`;
+    html += `</div>`; // end left column
+
+    // Right: Heatmap matrix + method risk breakdown
+    html += `<div>`;
+    html += `<div style="background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:12px;">
+      <div style="font-size:11px;font-weight:700;color:#0c4a6e;margin-bottom:6px;text-align:center;">Risk Heatmap (Likelihood vs Impact)</div>`;
+    // 5x5 matrix: rows = likelihood (5=top), cols = impact (1=left)
+    const matrixColors = [
+      ['rm-green','rm-green','rm-yellow','rm-yellow','rm-orange'],
+      ['rm-green','rm-yellow','rm-yellow','rm-orange','rm-orange'],
+      ['rm-yellow','rm-yellow','rm-orange','rm-orange','rm-red'],
+      ['rm-yellow','rm-orange','rm-orange','rm-red','rm-red'],
+      ['rm-orange','rm-orange','rm-red','rm-red','rm-red']
+    ];
+    const likeLabels = ['5-Frequent','4-Likely','3-Possible','2-Unlikely','1-Rare'];
+    html += `<div class="risk-matrix">`;
+    for (let li = 4; li >= 0; li--) {
+      html += `<div class="risk-matrix-label" style="font-size:7px;writing-mode:horizontal-tb;">${likeLabels[4 - li]}</div>`;
+      for (let ii = 0; ii < 5; ii++) {
+        const score = (li + 1) * (ii + 1);
+        const dotsHere = riskCards.filter(r => r.likelihood === (li + 1) && r.impact === (ii + 1)).length;
+        html += `<div class="risk-matrix-cell ${matrixColors[4 - li][ii]}" title="L${li+1} x I${ii+1} = ${score}${dotsHere ? ' (' + dotsHere + ' risks)' : ''}">${score}${dotsHere ? '<div class="risk-matrix-dot"></div>' : ''}</div>`;
+      }
+    }
+    html += `<div class="risk-matrix-label"></div>`;
+    ['1-Min','2-Minor','3-Mod','4-Major','5-Crit'].forEach(l => { html += `<div class="risk-matrix-label">${l}</div>`; });
+    html += `</div>`;
+    html += `<div style="text-align:center;font-size:8px;color:#64748b;margin-top:2px;">Impact &rarr;</div>`;
+    html += `</div>`;
+
+    // Method risk breakdown mini-chart area
+    html += `<div style="background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:12px;margin-top:10px;">
+      <div style="font-size:11px;font-weight:700;color:#0c4a6e;margin-bottom:8px;">Risk by V2MOM Method</div>`;
+    hierarchy.forEach(mg => {
+      const mEpics = mg.measures.flatMap(m => m.epics);
+      const blocked = mEpics.filter(e => e.Health__c === 'Blocked').length;
+      const watch = mEpics.filter(e => e.Health__c === 'Watch').length;
+      const total = mEpics.length;
+      const unhealthyPct = total > 0 ? ((blocked + watch) / total * 100).toFixed(0) : 0;
+      const barColor = blocked > 0 ? '#dc2626' : watch > 0 ? '#d97706' : '#16a34a';
+      html += `<div style="margin-bottom:6px;">
+        <div style="display:flex;justify-content:space-between;font-size:9px;font-weight:600;color:#334155;margin-bottom:2px;">
+          <span>M${mg.methodNum}</span>
+          <span>${blocked}B ${watch}W / ${total} epics (${unhealthyPct}%)</span>
         </div>
-        <div class="pva-alert pva-alert-danger" style="align-items:flex-start;">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0;margin-top:2px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-          <div><strong>Release Execution Risks:</strong>${execRisks.length ? `<ul style="margin:4px 0 0 16px;padding:0;">
-            ${execRisks.map(r=>`<li style="margin-bottom:2px;">${esc(r)}</li>`).join('')}
-          </ul>` : '<div style="margin-top:4px;opacity:.7;">No execution risks detected.</div>'}</div>
+        <div style="height:5px;background:#e2e8f0;border-radius:3px;overflow:hidden;">
+          <div style="height:100%;width:${unhealthyPct}%;background:${barColor};border-radius:3px;transition:width .3s;"></div>
+        </div>
+      </div>`;
+    });
+    html += `</div>`;
+    html += `</div>`; // end right column
+    html += `</div>`; // end two-column grid
+
+    // === Recommendations Section ===
+    html += `<div class="risk-section" style="margin-top:18px;">
+      <div class="risk-section-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0369a1" stroke-width="2"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg>
+        AI Recommendations &amp; Action Items
+      </div>`;
+    // Generate smart recommendations
+    const recs = [];
+    if (blockedCount > 0) recs.push({ title: 'Unblock Critical Epics', text: `${blockedCount} epic(s) are currently blocked. Schedule a focused unblock session with the epic owners. Previous releases show that epics blocked beyond 2 sprints have a 70% chance of being descoped.` });
+    if (p0AtRisk > 0) recs.push({ title: 'P0 Escalation Required', text: `${p0AtRisk} P0 epic(s) are at risk or blocked. These should be escalated to the release manager immediately. Consider reallocating capacity from lower-priority work.` });
+    if (Number(burnPct) < 30 && totalActual > 0) recs.push({ title: 'Accelerate Delivery Velocity', text: `Burn rate is at ${burnPct}% which is below the expected pace. Review sprint commitments and ensure work items are sized appropriately. Consider splitting large work items.` });
+    if (Number(scopeChurn) > 15) recs.push({ title: 'Scope Creep Mitigation', text: `Actual scope exceeds planned by ${scopeChurn}%. Freeze scope additions for P2 items. Any new P0/P1 additions should follow a formal change request process.` });
+    if (noSprint > allEpics.length * 0.3) recs.push({ title: 'Sprint Planning Gaps', text: `${noSprint} active epics have no sprint target assigned. Complete sprint planning for all active epics by the next review cycle. Unassigned epics historically have 3x higher risk of missing delivery.` });
+    if (watchCount >= 3) recs.push({ title: 'Watch Status Triage', text: `${watchCount} epics are on Watch. Schedule a triage session to determine if any need to be escalated to Blocked or can be moved back to On Track with adjustments.` });
+    if (recs.length === 0) recs.push({ title: 'On Track', text: 'No critical recommendations at this time. Continue monitoring in weekly release reviews. Maintain current velocity and sprint discipline.' });
+    recs.forEach(r => {
+      html += `<div class="risk-rec-card">
+        <strong>${esc(r.title)}</strong>
+        <p>${esc(r.text)}</p>
+      </div>`;
+    });
+    html += `</div>`;
+
+    // === Risk Register: Saved risks table ===
+    html += `<div class="risk-section" style="margin-top:18px;">
+      <div class="risk-section-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0c4a6e" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+        Risk Register
+        <span style="font-size:9px;font-weight:400;color:#94a3b8;margin-left:4px;">(custom risks persisted in browser)</span>
+      </div>
+      <div style="overflow-x:auto;max-height:280px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:8px;">
+        <table class="risk-register-table" id="risk-register-tbody-host">
+          <thead><tr>
+            <th style="width:140px;">Risk Name</th>
+            <th style="width:60px;">Type</th>
+            <th style="width:40px;">L</th>
+            <th style="width:40px;">I</th>
+            <th style="width:50px;">Score</th>
+            <th>Point of Contact</th>
+            <th>Action Plan</th>
+            <th style="width:80px;">V2MOM Ref</th>
+            <th style="width:70px;">Logged</th>
+            <th style="width:50px;"></th>
+          </tr></thead>
+          <tbody id="risk-register-tbody"></tbody>
+        </table>
+      </div>
+      <div id="risk-register-empty" style="display:none;text-align:center;padding:14px;font-size:11px;color:#94a3b8;">No custom risks added yet. Use the form below to add risks.</div>
+    </div>`;
+
+    // === Risk Register Form ===
+    html += `<div class="risk-section" id="risk-register-form-section" style="margin-top:18px;">
+      <div class="risk-section-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0c4a6e" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add New Risk
+      </div>
+      <div style="background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:14px;">
+        <div class="risk-form-grid">
+          <div class="risk-form-group">
+            <label>Risk Name *</label>
+            <input type="text" id="rr-name" placeholder="Short descriptive title" maxlength="120">
+          </div>
+          <div class="risk-form-group">
+            <label>Risk Type</label>
+            <select id="rr-type"><option value="Planning">Planning</option><option value="Execution">Execution</option></select>
+          </div>
+          <div class="risk-form-group full-width">
+            <label>Description</label>
+            <textarea id="rr-desc" placeholder="Detailed summary aligned with governance standards"></textarea>
+          </div>
+          <div class="risk-form-group">
+            <label>Point of Contact *</label>
+            <select id="rr-poc"><option value="">Select...</option>${allPOCs.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join('')}</select>
+          </div>
+          <div class="risk-form-group">
+            <label>V2MOM Reference</label>
+            <select id="rr-v2mom"><option value="">None</option>${v2methods.map((m, i) => `<option value="M${i + 1}">M${i + 1} – ${esc(m.method.substring(0, 50))}</option>`).join('')}</select>
+          </div>
+          <div class="risk-form-group full-width">
+            <label>Action Plan / Mitigation</label>
+            <textarea id="rr-action" placeholder="Remediation or mitigation details"></textarea>
+          </div>
+          <div class="risk-form-group full-width">
+            <label>Path to Green</label>
+            <textarea id="rr-path-green" placeholder="Remediation plan and timeline"></textarea>
+          </div>
+          <div class="risk-form-group">
+            <label>Likelihood (1-5)</label>
+            <select id="rr-likelihood"><option value="1">1 – Rare</option><option value="2">2 – Unlikely</option><option value="3" selected>3 – Possible</option><option value="4">4 – Likely</option><option value="5">5 – Frequent</option></select>
+          </div>
+          <div class="risk-form-group">
+            <label>Impact (1-5)</label>
+            <select id="rr-impact"><option value="1">1 – Minimal</option><option value="2">2 – Minor</option><option value="3" selected>3 – Moderate</option><option value="4">4 – Major</option><option value="5">5 – Critical</option></select>
+          </div>
+        </div>
+        <div style="margin-top:8px;padding:8px;background:#f0f9ff;border-radius:6px;font-size:10px;color:#475569;">
+          <strong>Inherent Risk Score:</strong> <span id="rr-score-preview" style="font-weight:800;color:#0c4a6e;">9</span> (Likelihood × Impact)
+          <span style="margin-left:12px;color:#94a3b8;">Control Effectiveness &amp; Residual Risk calculated after mitigation review.</span>
+        </div>
+        <div class="risk-form-actions">
+          <button class="btn btn-secondary" style="font-size:10px;padding:5px 14px;" onclick="clearRiskForm()">Clear</button>
+          <button class="btn btn-primary" style="font-size:10px;padding:5px 14px;" onclick="saveRiskRegisterEntry()">Save Risk</button>
         </div>
       </div>
     </div>`;
-    html += '</div>';
+
+    html += `</div>`; // padding wrapper
+    html += '</div>'; // tab panel
     return html;
   }
 
@@ -5220,6 +5613,104 @@ function switchPvaTab(tabId) {
   if (tabId === 'epic-tracking') requestAnimationFrame(() => {
     document.querySelectorAll('.comment-preview').forEach(el => checkOverflow(el));
   });
+  if (tabId === 'risk-assessment') requestAnimationFrame(() => initRiskRegister());
+}
+
+/* ================================================================
+   RISK REGISTER — localStorage persistence & form logic
+   ================================================================ */
+const RISK_REGISTER_KEY = 'cfs-risk-register';
+
+function _loadRiskRegister() {
+  try { return JSON.parse(localStorage.getItem(RISK_REGISTER_KEY) || '[]'); } catch { return []; }
+}
+function _saveRiskRegister(entries) {
+  localStorage.setItem(RISK_REGISTER_KEY, JSON.stringify(entries));
+}
+
+function initRiskRegister() {
+  _renderRiskRegisterTable();
+  // Live score preview
+  const lSel = document.getElementById('rr-likelihood');
+  const iSel = document.getElementById('rr-impact');
+  const preview = document.getElementById('rr-score-preview');
+  if (lSel && iSel && preview) {
+    const update = () => { preview.textContent = (parseInt(lSel.value) || 3) * (parseInt(iSel.value) || 3); };
+    lSel.addEventListener('change', update);
+    iSel.addEventListener('change', update);
+  }
+}
+
+function _renderRiskRegisterTable() {
+  const tbody = document.getElementById('risk-register-tbody');
+  const emptyMsg = document.getElementById('risk-register-empty');
+  if (!tbody) return;
+  const entries = _loadRiskRegister();
+  if (!entries.length) {
+    tbody.innerHTML = '';
+    if (emptyMsg) emptyMsg.style.display = '';
+    return;
+  }
+  if (emptyMsg) emptyMsg.style.display = 'none';
+  const sevColor = { critical: '#dc2626', high: '#ea580c', medium: '#d97706', low: '#16a34a' };
+  tbody.innerHTML = entries.map((e, idx) => {
+    const score = (e.likelihood || 3) * (e.impact || 3);
+    const sev = score >= 20 ? 'critical' : score >= 12 ? 'high' : score >= 6 ? 'medium' : 'low';
+    return `<tr>
+      <td style="font-weight:600;border-left:3px solid ${sevColor[sev]};">${esc(e.name)}</td>
+      <td>${esc(e.type)}</td>
+      <td style="text-align:center;">${e.likelihood}</td>
+      <td style="text-align:center;">${e.impact}</td>
+      <td style="text-align:center;font-weight:700;"><span class="risk-sev-badge ${sev}">${score}</span></td>
+      <td>${esc(e.poc)}</td>
+      <td style="max-width:180px;white-space:normal;">${esc(e.action || '–')}</td>
+      <td>${esc(e.v2mom || '–')}</td>
+      <td style="font-size:9px;color:#94a3b8;">${e.loggedDate || '–'}</td>
+      <td><span style="color:#dc2626;cursor:pointer;font-size:12px;font-weight:700;" onclick="deleteRiskEntry(${idx})" title="Delete">&times;</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function saveRiskRegisterEntry() {
+  const name = (document.getElementById('rr-name')?.value || '').trim();
+  const poc = (document.getElementById('rr-poc')?.value || '').trim();
+  if (!name) { alert('Risk Name is required.'); return; }
+  if (!poc) { alert('Point of Contact is required.'); return; }
+  const entry = {
+    name,
+    type: document.getElementById('rr-type')?.value || 'Planning',
+    desc: (document.getElementById('rr-desc')?.value || '').trim(),
+    poc,
+    v2mom: document.getElementById('rr-v2mom')?.value || '',
+    action: (document.getElementById('rr-action')?.value || '').trim(),
+    pathToGreen: (document.getElementById('rr-path-green')?.value || '').trim(),
+    likelihood: parseInt(document.getElementById('rr-likelihood')?.value) || 3,
+    impact: parseInt(document.getElementById('rr-impact')?.value) || 3,
+    loggedDate: new Date().toISOString().split('T')[0]
+  };
+  const entries = _loadRiskRegister();
+  entries.unshift(entry);
+  _saveRiskRegister(entries);
+  _renderRiskRegisterTable();
+  clearRiskForm();
+  // Scroll to register table
+  document.getElementById('risk-register-tbody-host')?.scrollIntoView({ behavior: 'smooth' });
+}
+
+function deleteRiskEntry(idx) {
+  if (!confirm('Delete this risk entry?')) return;
+  const entries = _loadRiskRegister();
+  entries.splice(idx, 1);
+  _saveRiskRegister(entries);
+  _renderRiskRegisterTable();
+}
+
+function clearRiskForm() {
+  ['rr-name','rr-desc','rr-action','rr-path-green'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  ['rr-type','rr-poc','rr-v2mom'].forEach(id => { const el = document.getElementById(id); if (el) el.selectedIndex = 0; });
+  const lSel = document.getElementById('rr-likelihood'); if (lSel) lSel.value = '3';
+  const iSel = document.getElementById('rr-impact'); if (iSel) iSel.value = '3';
+  const preview = document.getElementById('rr-score-preview'); if (preview) preview.textContent = '9';
 }
 
 /* ================================================================
@@ -5370,7 +5861,10 @@ function buildExecSummaryRows(hierarchy, quarterly) {
       const combined = synthesizeFromRawUpdates(measureRawBlob, { maxSentences: quarterly ? 7 : 5, stripMonthTags: true });
       const healthCounts = {};
       epicSummaries.forEach(e => { healthCounts[e.health] = (healthCounts[e.health] || 0) + 1; });
-      const healthSummary = Object.entries(healthCounts).map(([h, c]) => `${c} ${h}`).join(', ');
+      const healthSummary = Object.entries(healthCounts).map(([h, c]) => {
+        const vc = V2MOM_HEALTH_CODES[h] || V2MOM_HEALTH_CODES['Not Started'];
+        return `${c}${vc.code}`;
+      }).join(' ');
       const accomplished = combined;
       let blockers = epicSummaries.map(e => e.slippage).filter(Boolean).join(' ');
       let pathToGreen = epicSummaries.map(e => e.pathToGreen).filter(Boolean).join(' ');
@@ -5626,8 +6120,8 @@ ${prompt}`
     tableHtml += `<tr id="ai-sum-row-${i}" style="${stripe}border-bottom:1px solid #e2e8f0;">
       ${methodCell}
       <td style="padding:10px 12px;font-weight:600;color:#334155;">${esc(r.measure)}</td>
-      <td style="padding:10px 12px;text-align:center;font-size:11px;">${esc(r.healthSummary)}</td>
-      <td style="padding:10px 12px;color:#475569;line-height:1.5;vertical-align:top;">${summaryInner}</td>
+      <td style="padding:10px 12px;text-align:center;font-size:10px;white-space:nowrap;">${renderV2momHealthCodes(r.healthSummary)}</td>
+      <td style="padding:10px 12px;color:#475569;line-height:1.5;vertical-align:top;" class="ai-summary-cell" data-row-idx="${i}"><button class="ai-edit-btn" onclick="editAiSummaryCell(this)" title="Edit summary">&#9998;</button><div class="ai-cell-content">${summaryInner}</div></td>
       <td class="ai-epic-count-cell" title="${esc(epicTitle)}"><span class="ai-epic-count-badge">${r.epicCount}</span></td>
     </tr>`;
   });
@@ -5635,6 +6129,71 @@ ${prompt}`
 
   out.innerHTML = tableHtml;
   copyBtn.style.display = 'inline-flex';
+}
+
+function editAiSummaryCell(btn) {
+  const cell = btn.closest('.ai-summary-cell');
+  if (!cell) return;
+  const contentDiv = cell.querySelector('.ai-cell-content');
+  if (!contentDiv) return;
+  btn.style.display = 'none';
+  const isQuarterly = !!contentDiv.querySelector('.ai-q-summary');
+  let currentText = '';
+  if (isQuarterly) {
+    const parts = contentDiv.querySelectorAll('p');
+    const labels = contentDiv.querySelectorAll('strong');
+    const sections = [];
+    labels.forEach((lbl, i) => {
+      sections.push(`[${lbl.textContent.trim()}]\n${(parts[i] ? parts[i].textContent.trim() : '—')}`);
+    });
+    currentText = sections.join('\n\n');
+  } else {
+    currentText = contentDiv.textContent.trim();
+  }
+  const origHtml = contentDiv.innerHTML;
+  contentDiv.innerHTML = `<textarea class="ai-edit-area">${esc(currentText)}</textarea>
+    <div class="ai-edit-actions">
+      <button onclick="cancelAiEdit(this)">Cancel</button>
+      <button class="ai-save-btn" onclick="saveAiEdit(this)">Save</button>
+    </div>`;
+  contentDiv.querySelector('textarea').focus();
+  contentDiv._origHtml = origHtml;
+  contentDiv._isQuarterly = isQuarterly;
+}
+function cancelAiEdit(saveBtn) {
+  const contentDiv = saveBtn.closest('.ai-cell-content');
+  if (!contentDiv || !contentDiv._origHtml) return;
+  contentDiv.innerHTML = contentDiv._origHtml;
+  const editBtn = contentDiv.closest('.ai-summary-cell')?.querySelector('.ai-edit-btn');
+  if (editBtn) editBtn.style.display = '';
+}
+function saveAiEdit(saveBtn) {
+  const contentDiv = saveBtn.closest('.ai-cell-content');
+  if (!contentDiv) return;
+  const ta = contentDiv.querySelector('textarea');
+  if (!ta) return;
+  const newText = ta.value.trim();
+  if (contentDiv._isQuarterly) {
+    const sectionRegex = /\[([^\]]+)\]\s*/g;
+    const parts = [];
+    let match, lastIdx = 0;
+    while ((match = sectionRegex.exec(newText)) !== null) {
+      if (parts.length > 0) parts[parts.length - 1].body = newText.substring(lastIdx, match.index).trim();
+      parts.push({ label: match[1], body: '' });
+      lastIdx = match.index + match[0].length;
+    }
+    if (parts.length > 0) parts[parts.length - 1].body = newText.substring(lastIdx).trim();
+    if (parts.length > 0) {
+      contentDiv.innerHTML = `<div class="ai-q-summary">${parts.map(p => `<strong>${esc(p.label)}</strong><p>${esc(p.body || '—')}</p>`).join('')}</div>`;
+    } else {
+      contentDiv.innerHTML = esc(newText);
+    }
+  } else {
+    contentDiv.innerHTML = esc(newText);
+  }
+  contentDiv._origHtml = contentDiv.innerHTML;
+  const editBtn = contentDiv.closest('.ai-summary-cell')?.querySelector('.ai-edit-btn');
+  if (editBtn) editBtn.style.display = '';
 }
 
 function copyAISummary() {
@@ -5841,13 +6400,15 @@ function initPvaEpicColumnResizeListener() {
 
 function pvaExpandAll() {
   _clearMethodTileSelection();
+  const sec = document.getElementById('epic-table-section');
+  if (sec) sec.style.display = '';
   document.querySelectorAll('tr.pva-method-row.collapsed').forEach(r => r.classList.remove('collapsed'));
   document.querySelectorAll('tr.pva-measure-row.pva-hidden').forEach(r => r.classList.remove('pva-hidden'));
   document.querySelectorAll('tr.pva-measure-row.collapsed').forEach(r => r.classList.remove('collapsed'));
   document.querySelectorAll('tr.pva-epic-row.pva-hidden').forEach(r => r.classList.remove('pva-hidden'));
 }
 function pvaCollapseAll() {
-  document.querySelectorAll('tr.pva-method-row').forEach(r => r.classList.add('collapsed'));
+  document.querySelectorAll('tr.pva-method-row').forEach(r => { r.classList.add('collapsed'); r.classList.remove('pva-hidden'); });
   document.querySelectorAll('tr.pva-measure-row').forEach(r => { r.classList.add('pva-hidden'); r.classList.add('collapsed'); });
   document.querySelectorAll('tr.pva-epic-row').forEach(r => r.classList.add('pva-hidden'));
 }
@@ -5863,7 +6424,8 @@ function _applyMethodTileFilter() {
   if (_activeMethodTileSet.size === 0) return;
   document.querySelectorAll('tr.pva-method-row').forEach(r => {
     const sel = _activeMethodTileSet.has(String(r.dataset.pvaMethod || ''));
-    r.classList.toggle('collapsed', !sel);
+    r.classList.toggle('pva-hidden', !sel);
+    if (sel) r.classList.remove('collapsed');
   });
   document.querySelectorAll('tr.pva-measure-row').forEach(r => {
     const sel = _activeMethodTileSet.has(String(r.dataset.pvaMethod || ''));
@@ -5905,6 +6467,7 @@ function clearAllFilters() {
   _clearMethodTileSelection();
   pvaCollapseAll();
   _updateSearchCounts(0, 0);
+  _toggleEpicTableSection();
 }
 
 function _syncFilterDropdowns() {
@@ -5947,11 +6510,16 @@ function _applyAllFilters() {
 
   const totalEpics = document.querySelectorAll('tr.pva-epic-row').length;
 
+  const sec = document.getElementById('epic-table-section');
+
   if (!hasTextFilters && !methodFilterOn) {
     pvaCollapseAll();
+    if (sec) sec.style.display = 'none';
     _updateSearchCounts(0, totalEpics);
     return;
   }
+
+  if (sec) sec.style.display = '';
 
   if (!hasTextFilters && methodFilterOn) {
     _applyMethodTileFilter();
@@ -5989,9 +6557,11 @@ function _applyAllFilters() {
   document.querySelectorAll('tr.pva-method-row').forEach(row => {
     const mi = String(row.dataset.pvaMethod || '');
     if (methodFilterOn && !_activeMethodTileSet.has(mi)) {
+      row.classList.add('pva-hidden');
       row.classList.add('collapsed');
       return;
     }
+    row.classList.remove('pva-hidden');
     const matchS = !search || _wordMatch(row.dataset.searchText || '', search);
     const hasVisibleChild = !!document.querySelector(`tr.pva-measure-row[data-pva-method="${mi}"]:not(.pva-hidden)`);
     row.classList.toggle('collapsed', !(hasVisibleChild || matchS));
@@ -6018,6 +6588,12 @@ function filterMeasureByHealth(measureKey, health, dotEl) {
 }
 
 /* ===== METHOD TILE CLICK-TO-FILTER (multi-select) ===== */
+function _toggleEpicTableSection() {
+  const sec = document.getElementById('epic-table-section');
+  if (!sec) return;
+  sec.style.display = _activeMethodTileSet.size > 0 ? '' : 'none';
+}
+
 function filterByMethodTile(methodNum) {
   const mn = String(methodNum);
   const tiles = document.querySelectorAll('.pva-method-item');
@@ -6027,6 +6603,7 @@ function filterByMethodTile(methodNum) {
     const id = String(t.dataset.methodNum || '');
     t.classList.toggle('mtile-active', _activeMethodTileSet.has(id));
   });
+  _toggleEpicTableSection();
   _applyAllFilters();
 }
 
