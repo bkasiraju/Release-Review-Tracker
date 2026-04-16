@@ -2,3 +2,4 @@
 *.zip
 .gus/audit/
 node_modules/
+__pycache__/

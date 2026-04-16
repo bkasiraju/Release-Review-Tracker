@@ -7,6 +7,21 @@
   <link rel="preload" href="https://a.sfdcstatic.com/shared/fonts/salesforce-sans/SalesforceSans-Regular.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="https://a.sfdcstatic.com/shared/fonts/salesforce-sans/SalesforceSans-Bold.woff2" as="font" type="font/woff2" crossorigin>
   <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<script>
+(function() {
+  var SF_FONT = "'Salesforce Sans', 'SF Pro Text', -apple-system, BlinkMacSystemFont, sans-serif";
+  echarts.registerTheme('sfdc', {
+    textStyle: { fontFamily: SF_FONT },
+    title: { textStyle: { fontFamily: SF_FONT }, subtextStyle: { fontFamily: SF_FONT } },
+    legend: { textStyle: { fontFamily: SF_FONT } },
+    tooltip: { textStyle: { fontFamily: SF_FONT } }
+  });
+  var _origInit = echarts.init;
+  echarts.init = function(dom, theme, opts) {
+    return _origInit.call(this, dom, theme || 'sfdc', opts);
+  };
+})();
+</script>
 <style>
 @font-face{font-family:'Salesforce Sans';src:url('https://a.sfdcstatic.com/shared/fonts/salesforce-sans/SalesforceSans-Light.woff2') format('woff2');font-weight:300;font-style:normal;font-display:swap}
 @font-face{font-family:'Salesforce Sans';src:url('https://a.sfdcstatic.com/shared/fonts/salesforce-sans/SalesforceSans-Regular.woff2') format('woff2');font-weight:400;font-style:normal;font-display:swap}
@@ -460,25 +475,25 @@ body { font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe
 .month-chip-active:hover { background: linear-gradient(135deg, #bfdbfe 0%, #93c5fd 100%); border-color: #7dd3fc; color: #082f49; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .gus-loading svg { animation: spin 1s linear infinite; }
-.pva-method-row { background: linear-gradient(90deg, #dbeafe 0%, #e0f2fe 14%, #f0f9ff 42%, #f8fafc 100%); border-bottom: 1px solid #93c5fd; border-left: 4px solid #0369a1; cursor: pointer; user-select: none; box-shadow: inset 0 1px 0 rgba(255,255,255,.65); }
-.pva-method-row:hover { background: linear-gradient(90deg, #bfdbfe 0%, #dbeafe 18%, #e0f2fe 50%, #f8fafc 100%); }
+.pva-method-row { background: #e0f2fe; border-bottom: 1px solid #bae6fd; border-left: 4px solid #0369a1; cursor: pointer; user-select: none; }
+.pva-method-row:hover { background: #d0ebff; }
 .pva-method-row td { font-weight: 700; color: #0f172a; padding: 10px 14px 10px 10px; font-size: 12px; }
 .pva-method-row .chevron { display: inline-block; transition: transform .2s; margin-right: 6px; font-size: 10px; color: #64748b; }
 .pva-method-row.collapsed .chevron { transform: rotate(-90deg); }
-.pva-measure-row { background: linear-gradient(90deg, #ede9fe 0%, #f5f3ff 12%, #ecfeff 38%, #fafcff 100%); border-bottom: 1px solid #c4b5fd; border-left: 3px solid #7c3aed; cursor: pointer; user-select: none; box-shadow: inset 0 1px 0 rgba(255,255,255,.55); }
-.pva-measure-row:hover { background: linear-gradient(90deg, #ddd6fe 0%, #ede9fe 15%, #e0f2fe 45%, #f8fafc 100%); }
+.pva-measure-row { background: #eff6ff; border-bottom: 1px solid #dbeafe; border-left: 3px solid #3b82f6; cursor: pointer; user-select: none; }
+.pva-measure-row:hover { background: #dbeafe; }
 .pva-measure-row td { font-weight: 700; color: #334155; padding: 8px 12px 8px 24px; font-size: 12px; }
 .pva-measure-row .chevron { display: inline-block; transition: transform .2s; margin-right: 6px; font-size: 10px; color: #94a3b8; }
 .pva-measure-row.collapsed .chevron { transform: rotate(-90deg); }
-.pva-epic-row { transition: background .15s; background: linear-gradient(90deg, #ffffff 0%, #f8fafc 55%, #f1f5f9 100%); border-left: 2px solid #cbd5e1; }
-.pva-epic-row:hover { background: linear-gradient(90deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%); }
+.pva-epic-row { transition: background .15s; background: #f8fafc; border-left: 2px solid #cbd5e1; }
+.pva-epic-row:hover { background: #f1f5f9; }
 .pva-epic-name-cell { vertical-align: middle !important; }
 .pva-epic-name-row { display: flex; align-items: center; flex-wrap: nowrap; gap: 6px; min-width: 0; min-height: 30px; }
 .pva-epic-links-stack { display: inline-flex; flex-direction: row; flex-wrap: nowrap; align-items: center; gap: 4px; flex-shrink: 0; }
 .pva-epic-link { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 6px; color: #0369a1; background: linear-gradient(180deg, #eff6ff, #dbeafe); border: 1px solid #93c5fd; text-decoration: none; transition: transform .12s, box-shadow .12s, border-color .12s; box-shadow: 0 1px 2px rgba(3,105,161,.12); flex-shrink: 0; }
 .pva-epic-link:hover { border-color: #3b82f6; transform: translateY(-1px); box-shadow: 0 2px 6px rgba(3,105,161,.18); }
 .pva-epic-link.empty { opacity: .22; pointer-events: none; background: transparent; border-color: transparent; box-shadow: none; }
-.pva-epic-title { font-weight: 600; font-size: 11px; line-height: 1.25; min-width: 0; flex: 1 1 auto; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pva-epic-title { font-weight: 600; font-size: 10px; line-height: 1.25; min-width: 0; flex: 1 1 auto; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pva-epic-name-tooltip { position: fixed; z-index: 10060; display: none; max-width: min(560px, calc(100vw - 20px)); padding: 6px 10px; font-size: 11px; font-weight: 600; line-height: 1.4; color: #0f172a; background: #fff; border: 1px solid #94a3b8; border-radius: 6px; box-shadow: 0 10px 28px rgba(15, 23, 42, 0.18); pointer-events: none; word-break: break-word; }
 .pva-new-flag { display: block; width: max-content; font-size: 8px; font-weight: 800; letter-spacing: .4px; color: #fff; background: #ea580c; padding: 1px 6px; border-radius: 3px; margin-bottom: 3px; line-height: 1.2; }
 .pva-new-flag.pva-new-flag--inline { display: inline-flex; align-items: center; margin: 0; flex-shrink: 0; align-self: center; }
@@ -1475,7 +1490,7 @@ class GUSModel {
   async _queryEpicsByIds(epicIds) {
     if (!epicIds || !epicIds.length) return [];
     const idList = this._soqlInListIds(epicIds);
-    return this._serverQuery(`SELECT Id, Name, Description__c, Health__c, Epic_Health_Comments__c, Path_to_Green__c, Slippage_Comments__c, Category__c, Committed_Story_Points_on_Epic__c, Actual_Story_Points_on_Epic__c, Planned_Story_Points__c, Storypoints_Closed__c, Storypoints_In_Progress__c, Storypoints_New__c, Storypoints_In_Waiting__c, Workitems_Closed__c, WorkItems_In_Progress__c, Workitems_New__c, Workitems_in_Waiting__c, Remaining_Story_Points__c, Remaining_Work_Items__c, Percent_Of_Work_Items_Complete__c, Committed_Work_Items_on_Epic__c, Actual_Work_Items_on_Epic__c, Project__r.Name, Project__r.Id, Project__r.V2MOM_Method__c, Team__r.Name FROM ADM_Epic__c WHERE Id IN (${idList}) LIMIT 200`);
+    return this._serverQuery(`SELECT Id, Name, Description__c, Health__c, Epic_Health_Comments__c, Path_to_Green__c, Slippage_Comments__c, Category__c, Committed_Story_Points_on_Epic__c, Actual_Story_Points_on_Epic__c, Planned_Story_Points__c, Storypoints_Closed__c, Storypoints_In_Progress__c, Storypoints_New__c, Storypoints_In_Waiting__c, Workitems_Closed__c, WorkItems_In_Progress__c, Workitems_New__c, Workitems_in_Waiting__c, Remaining_Story_Points__c, Remaining_Work_Items__c, Percent_Of_Work_Items_Complete__c, Committed_Work_Items_on_Epic__c, Actual_Work_Items_on_Epic__c, Project__r.Name, Project__r.Id, Project__r.V2MOM_Method__c, Team__r.Name, Development_Lead__r.Name FROM ADM_Epic__c WHERE Id IN (${idList}) LIMIT 200`);
   }
   /** Narrower SELECT when full epic query returns no rows (field-level or relationship issues in some contexts). */
   async _queryEpicsByIdsMinimal(epicIds) {
@@ -1486,7 +1501,7 @@ class GUSModel {
   }
   async fetchReleaseData(releaseId) {
     const plan = TEAM_PLANS[releaseId];
-    const epicFields = `SELECT Id, Name, Description__c, Health__c, Epic_Health_Comments__c, Path_to_Green__c, Slippage_Comments__c, Category__c, Committed_Story_Points_on_Epic__c, Actual_Story_Points_on_Epic__c, Planned_Story_Points__c, Storypoints_Closed__c, Storypoints_In_Progress__c, Storypoints_New__c, Storypoints_In_Waiting__c, Workitems_Closed__c, WorkItems_In_Progress__c, Workitems_New__c, Workitems_in_Waiting__c, Remaining_Story_Points__c, Remaining_Work_Items__c, Percent_Of_Work_Items_Complete__c, Additional_Work_Items__c, Subtracted_Work_Items__c, Additional_Story_Points__c, Subtracted_Story_Points__c, Committed_Work_Items_on_Epic__c, Actual_Work_Items_on_Epic__c, Project__r.Name, Project__r.Id, Project__r.V2MOM_Method__c, Team__r.Name, Start_Date__c, End_Date__c, Planned_Start_Date__c, Planned_End_Date__c, Committed_By_Team__c`;
+    const epicFields = `SELECT Id, Name, Description__c, Health__c, Epic_Health_Comments__c, Path_to_Green__c, Slippage_Comments__c, Category__c, Committed_Story_Points_on_Epic__c, Actual_Story_Points_on_Epic__c, Planned_Story_Points__c, Storypoints_Closed__c, Storypoints_In_Progress__c, Storypoints_New__c, Storypoints_In_Waiting__c, Workitems_Closed__c, WorkItems_In_Progress__c, Workitems_New__c, Workitems_in_Waiting__c, Remaining_Story_Points__c, Remaining_Work_Items__c, Percent_Of_Work_Items_Complete__c, Additional_Work_Items__c, Subtracted_Work_Items__c, Additional_Story_Points__c, Subtracted_Story_Points__c, Committed_Work_Items_on_Epic__c, Actual_Work_Items_on_Epic__c, Project__r.Name, Project__r.Id, Project__r.V2MOM_Method__c, Team__r.Name, Development_Lead__r.Name, Start_Date__c, End_Date__c, Planned_Start_Date__c, Planned_End_Date__c, Committed_By_Team__c`;
     const rid = String(releaseId).replace(/'/g, "''");
     try {
       const [releases, epics] = await Promise.all([
@@ -1928,7 +1943,7 @@ class DashboardController {
     if (!epics || !epics.length) return;
     const uniq = [...new Set(epics.map(e => e && e.Id).filter(Boolean))];
     if (!uniq.length) return;
-    const selectFields = `Id, Name, Description__c, Health__c, Epic_Health_Comments__c, Path_to_Green__c, Slippage_Comments__c, Category__c, Committed_Story_Points_on_Epic__c, Actual_Story_Points_on_Epic__c, Planned_Story_Points__c, Storypoints_Closed__c, Storypoints_In_Progress__c, Storypoints_New__c, Storypoints_In_Waiting__c, Workitems_Closed__c, WorkItems_In_Progress__c, Workitems_New__c, Workitems_in_Waiting__c, Remaining_Story_Points__c, Remaining_Work_Items__c, Percent_Of_Work_Items_Complete__c, Committed_Work_Items_on_Epic__c, Actual_Work_Items_on_Epic__c, Project__r.Name, Project__r.Id, Project__r.V2MOM_Method__c, Team__r.Name`;
+    const selectFields = `Id, Name, Description__c, Health__c, Epic_Health_Comments__c, Path_to_Green__c, Slippage_Comments__c, Category__c, Committed_Story_Points_on_Epic__c, Actual_Story_Points_on_Epic__c, Planned_Story_Points__c, Storypoints_Closed__c, Storypoints_In_Progress__c, Storypoints_New__c, Storypoints_In_Waiting__c, Workitems_Closed__c, WorkItems_In_Progress__c, Workitems_New__c, Workitems_in_Waiting__c, Remaining_Story_Points__c, Remaining_Work_Items__c, Percent_Of_Work_Items_Complete__c, Committed_Work_Items_on_Epic__c, Actual_Work_Items_on_Epic__c, Project__r.Name, Project__r.Id, Project__r.V2MOM_Method__c, Team__r.Name, Development_Lead__r.Name`;
     const slimFields = `Id, Name, Health__c, Epic_Health_Comments__c, Planned_Story_Points__c, Actual_Story_Points_on_Epic__c, Committed_Story_Points_on_Epic__c, Storypoints_Closed__c, Storypoints_In_Progress__c, Storypoints_New__c, Storypoints_In_Waiting__c, Workitems_Closed__c, WorkItems_In_Progress__c, Workitems_New__c, Workitems_in_Waiting__c`;
     const chunk = 80;
     let gotRows = 0;
@@ -2429,9 +2444,13 @@ class DashboardView {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
           Capacity Planning
         </button>
+        <button class="pva-tab" data-tab="risk-assessment" onclick="switchPvaTab('risk-assessment')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          Risk Assessment - AI Generated
+        </button>
         <button class="pva-tab" data-tab="ai-summarise" onclick="switchPvaTab('ai-summarise')">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-          AI Summarise
+          V2MOM Updates - AI Generated
         </button>
       </div>`;
     }
@@ -2543,7 +2562,12 @@ class DashboardView {
       html += this.renderCapacityTab(plan, totals, epics);
     }
 
-    // === TAB: AI Summarise ===
+    // === TAB: Risk Assessment ===
+    if (plan) {
+      html += this.renderRiskAssessmentTab(plan, hierarchy);
+    }
+
+    // === TAB: V2MOM Updates (AI Summarise) ===
     if (plan) {
       html += this.renderAISummariseTab(hierarchy, epics);
     }
@@ -2894,8 +2918,8 @@ class DashboardView {
     const uniqueOwners = [...new Set(allFlatEpics.map(e => getEpicMeta(e.Id).owner).filter(Boolean))].sort();
     const healthValues = ['On Track','Watch','Blocked','Not Started','On Hold','Completed','Canceled'];
 
-    html += `<div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;margin-bottom:6px;flex-wrap:wrap;gap:6px;">
-      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+    html += `<div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;margin-bottom:6px;flex-wrap:nowrap;gap:6px;white-space:nowrap;overflow-x:auto;">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:nowrap;flex-shrink:0;">
         <div style="font-size:13px;font-weight:700;color:#1e293b;">Epic Tracking &mdash; ${visibleMonthIdx.length === 1 ? esc(r264Months[visibleMonthIdx[0]].full) + ' ' + r264Months[visibleMonthIdx[0]].year : esc(visibleMonthIdx.map(i => r264Months[i].full).join(' · ')) + ' ' + r264Months[0].year}</div>
         <div class="usearch-wrap" style="max-width:260px;">
           <svg class="usearch-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -2913,7 +2937,7 @@ class DashboardView {
         </select>
         <span class="pva-month-toggle" onclick="clearAllFilters()" style="font-size:10px;color:#dc2626;border-color:#fecaca;">Clear</span>
       </div>
-      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:nowrap;flex-shrink:0;">
         <span class="pva-month-toggle" onclick="pvaExpandAll()">
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg> Expand All
         </span>
@@ -2923,7 +2947,7 @@ class DashboardView {
         <span style="font-size:10px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.3px;">Months:</span>
         <div style="display:flex;gap:3px;">${monthCheckboxes}</div>
         <span class="pva-month-toggle" onclick="selectAllMonths(true)" style="font-size:10px;">All</span>
-        <div class="sync-bar" id="gus-sync-bar" style="position:relative;overflow:hidden;">
+        <div id="inline-sync-bar-host"><div class="sync-bar" id="gus-sync-bar" style="position:relative;overflow:hidden;">
           <span class="sync-indicator idle" id="sync-dot"></span>
           <span class="sync-label" id="sync-label">Auto-Sync</span>
           <span class="sync-timer" id="sync-timer"></span>
@@ -2944,7 +2968,7 @@ class DashboardView {
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:12px;height:12px;"><path d="M12 19V5M5 12l7-7 7 7"/></svg> Push
           </button>
           <div class="sync-progress" id="sync-progress" style="width:0%;"></div>
-        </div>
+        </div></div>
         <span class="pva-month-toggle" onclick="toggleTableFullscreen()" id="btn-fullscreen" style="color:#475569;border-color:#cbd5e1;background:#f8fafc;" title="Fullscreen view">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg> Zoom
         </span>
@@ -2953,16 +2977,16 @@ class DashboardView {
 
     const monthColgroup = visibleMonthIdx.map((mi) => `<col class="pva-month-colg" data-month-idx="${mi}" />`).join('');
     html += `<div class="pva-table-panel"><div class="pva-table-panel-card"><table class="pva-epic-table" id="pva-epic-table">
-      <colgroup><col style="width:320px" /><col style="width:108px" /><col style="width:42px" /><col style="width:58px" /><col style="width:96px" /><col style="width:158px" />${monthColgroup}</colgroup>
+      <colgroup><col style="width:320px" /><col style="width:108px" /><col style="width:42px" /><col style="width:82px" /><col style="width:96px" /><col style="width:158px" />${monthColgroup}</colgroup>
       <thead><tr>
         <th class="pva-col-me" style="text-align:left;">Measure / Epic</th>
         <th class="pva-col-owner" style="text-align:left;">Owner</th>
         <th class="pva-col-pri" style="text-align:left;">Pri</th>
-        <th class="pva-col-sprint" style="text-align:left;">Sprint</th>
+        <th class="pva-col-sprint" style="text-align:left;">Planned Sprint</th>
         <th class="pva-col-health" style="text-align:left;">Health</th>
         <th class="pva-th-sp-delivery" style="text-align:left;padding-top:8px;" title="Planned, actual, and closed story points (GUS), scope churn signal, and closed-vs-actual delivery strip">
           <span style="display:block;font-size:10px;font-weight:800;color:#0c4a6e;line-height:1.15;">Story points &amp; delivery</span>
-          <span style="display:block;font-size:8px;font-weight:600;color:#64748b;margin-top:3px;line-height:1.2;">P · A · C · churn · burn</span>
+          <span style="display:block;font-size:8px;font-weight:600;color:#64748b;margin-top:3px;line-height:1.2;">Google Sheet · A · C · churn · burn</span>
         </th>
         ${monthHeaders}
       </tr></thead><tbody>`;
@@ -2975,7 +2999,7 @@ class DashboardView {
       const methodOwners = [...new Set(allEpics.map(e => getEpicMeta(e.Id).owner).filter(Boolean))].join(' ');
       const methodRowTitle = pvaStripDuplicateMethodPrefix(mg.methodNum, mg.methodLabel);
       html += `<tr class="pva-method-row collapsed" data-pva-method="${esc(mNum)}" data-search-text="${esc(('M' + mg.methodNum + ' ' + mg.methodLabel + ' ' + methodOwners).toLowerCase())}" onclick='togglePvaMethod(${JSON.stringify(mNum)})'>
-        <td class="pva-group-row-td" colspan="${groupRowColspan}"><span class="chevron">&#9660;</span>M${esc(mg.methodNum)} &mdash; ${esc(methodRowTitle)} <span style="font-weight:400;opacity:.8;margin-left:4px;">(${allEpics.length} epics, ${mg.measures.length} measures)</span><span class="group-badges" style="margin-left:8px;">${mBadges}</span></td>
+        <td class="pva-group-row-td" colspan="${groupRowColspan}"><span class="chevron">&#9660;</span>M${esc(mg.methodNum)} &mdash; ${esc(methodRowTitle)} <span style="font-weight:400;opacity:.8;margin-left:4px;">(${mg.measures.length} measures, ${allEpics.length} epics)</span><span class="group-badges" style="margin-left:8px;">${mBadges}</span></td>
       </tr>`;
 
       mg.measures.forEach((meas, msIdx) => {
@@ -3014,14 +3038,18 @@ class DashboardView {
                 <div class="pva-epic-title">${esc(epicName)}</div>
               </div>
             </td>
-            <td class="pva-col-owner pva-owner-cell" style="text-align:left;"><input class="pva-cell-input" type="text" value="${esc(em.owner)}" data-epic-id="${esc(epic.Id)}" data-field="owner" onblur="savePvaField(this)" placeholder="Owner…"></td>
-            <td class="pva-col-pri" style="text-align:left;">
-              <select class="pva-cell-select" data-epic-id="${esc(epic.Id)}" data-field="priority" onchange="savePvaField(this)">
-                <option value="">–</option>
-                ${['P0','P1','P2','P3'].map(p=>`<option value="${p}"${em.priority===p?' selected':''}>${p}</option>`).join('')}
-              </select>
-            </td>
-            <td class="pva-col-sprint" style="text-align:left;"><input class="pva-cell-input" type="text" value="${esc(em.sprintTarget)}" data-epic-id="${esc(epic.Id)}" data-field="sprintTarget" onblur="savePvaField(this)" placeholder="Sprint…" style="font-size:10px;"></td>
+            <td class="pva-col-owner pva-owner-cell" style="text-align:left;">${(() => {
+              const gusLead = epic.Development_Lead__r?.Name || '';
+              const sheetOwner = em.owner || '';
+              const _n = s => s.toLowerCase().replace(/[^a-z]/g, '');
+              const _a = _n(gusLead), _b = _n(sheetOwner);
+              const mismatch = _a && _b && !_a.includes(_b) && !_b.includes(_a);
+              return mismatch
+                ? `<span style="font-size:10px;color:#dc2626;font-weight:700;cursor:help;" title="GUS Dev Lead: ${esc(gusLead)}">${esc(sheetOwner)} **</span>`
+                : `<span style="font-size:10px;color:#334155;">${esc(sheetOwner) || '–'}</span>`;
+            })()}</td>
+            <td class="pva-col-pri" style="text-align:left;"><span style="font-size:10px;color:#334155;">${esc(em.priority) || '–'}</span></td>
+            <td class="pva-col-sprint" style="text-align:left;"><span style="font-size:10px;color:#334155;">${esc(em.sprintTarget) || '–'}</span></td>
             <td class="pva-col-health cell-health" style="text-align:left;">
               <select class="pva-cell-select" data-epic-id="${esc(epic.Id)}" data-field="health" onchange="savePvaField(this)" style="font-size:10px;padding:2px 4px;">
                 ${['On Track','Watch','Blocked','Not Started','On Hold','Completed','Canceled'].map(h=>`<option value="${h}"${(epic.Health__c||'Not Started')===h?' selected':''}>${h}</option>`).join('')}
@@ -3038,24 +3066,33 @@ class DashboardView {
 
     html += `</div>`;
 
+    html += `</div>`;
+    return html;
+  }
+
+  renderRiskAssessmentTab(plan, hierarchy) {
+    const p = plan;
     const execRisks = this._deriveExecutionRisks(hierarchy, p);
 
-    html += `<div class="pva-risks-grid">
-      <div class="pva-alert pva-alert-info" style="align-items:flex-start;">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0;margin-top:2px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-        <div><strong>Planning Risks:</strong><ul style="margin:4px 0 0 16px;padding:0;">
-          ${p.keyRisks.map(r=>`<li style="margin-bottom:2px;">${esc(r)}</li>`).join('')}
-        </ul></div>
-      </div>
-      <div class="pva-alert pva-alert-danger" style="align-items:flex-start;">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0;margin-top:2px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        <div><strong>Release Execution Risks:</strong>${execRisks.length ? `<ul style="margin:4px 0 0 16px;padding:0;">
-          ${execRisks.map(r=>`<li style="margin-bottom:2px;">${esc(r)}</li>`).join('')}
-        </ul>` : '<div style="margin-top:4px;opacity:.7;">No execution risks detected.</div>'}</div>
+    let html = `<div id="tab-risk-assessment" class="pva-tab-panel">`;
+    html += `<div style="padding:16px 0;">
+      <div style="font-size:16px;font-weight:700;color:#0c4a6e;margin-bottom:12px;">Risk Assessment &mdash; AI Generated</div>
+      <div class="pva-risks-grid">
+        <div class="pva-alert pva-alert-info" style="align-items:flex-start;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0;margin-top:2px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          <div><strong>Planning Risks:</strong><ul style="margin:4px 0 0 16px;padding:0;">
+            ${p.keyRisks.map(r=>`<li style="margin-bottom:2px;">${esc(r)}</li>`).join('')}
+          </ul></div>
+        </div>
+        <div class="pva-alert pva-alert-danger" style="align-items:flex-start;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0;margin-top:2px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <div><strong>Release Execution Risks:</strong>${execRisks.length ? `<ul style="margin:4px 0 0 16px;padding:0;">
+            ${execRisks.map(r=>`<li style="margin-bottom:2px;">${esc(r)}</li>`).join('')}
+          </ul>` : '<div style="margin-top:4px;opacity:.7;">No execution risks detected.</div>'}</div>
+        </div>
       </div>
     </div>`;
-
-    html += `</div>`;
+    html += '</div>';
     return html;
   }
 
@@ -4883,7 +4920,7 @@ async function refreshEpicDataFromGUS() {
   }
 
   const idList = epicIds.map(id => "'" + id + "'").join(',');
-  const soql = `SELECT Id, Name, Health__c, Epic_Health_Comments__c, Path_to_Green__c, Planned_Story_Points__c, Actual_Story_Points_on_Epic__c, Storypoints_Closed__c, Storypoints_In_Progress__c, Workitems_Closed__c, WorkItems_In_Progress__c, Workitems_New__c, Workitems_in_Waiting__c, Remaining_Story_Points__c, Remaining_Work_Items__c, Percent_Of_Work_Items_Complete__c, Committed_Story_Points_on_Epic__c, Committed_Work_Items_on_Epic__c, Actual_Work_Items_on_Epic__c FROM ADM_Epic__c WHERE Id IN (${idList}) LIMIT 200`;
+  const soql = `SELECT Id, Name, Health__c, Epic_Health_Comments__c, Path_to_Green__c, Planned_Story_Points__c, Actual_Story_Points_on_Epic__c, Storypoints_Closed__c, Storypoints_In_Progress__c, Workitems_Closed__c, WorkItems_In_Progress__c, Workitems_New__c, Workitems_in_Waiting__c, Remaining_Story_Points__c, Remaining_Work_Items__c, Percent_Of_Work_Items_Complete__c, Committed_Story_Points_on_Epic__c, Committed_Work_Items_on_Epic__c, Actual_Work_Items_on_Epic__c, Development_Lead__r.Name FROM ADM_Epic__c WHERE Id IN (${idList}) LIMIT 200`;
 
   try {
     const data = await gusApi('query', { soql });
@@ -4902,6 +4939,19 @@ async function refreshEpicDataFromGUS() {
 
       const healthSel = row.querySelector('.cell-health select');
       if (healthSel) healthSel.value = ep.Health__c || 'Not Started';
+
+      // Update owner mismatch indicator after GUS refresh
+      const ownerCell = row.querySelector('.pva-owner-cell');
+      if (ownerCell) {
+        const gusLead = ep.Development_Lead__r?.Name || '';
+        const sheetOwner = (SHEET_EPIC_META[epicId]?.owner) || '';
+        const _n = s => s.toLowerCase().replace(/[^a-z]/g, '');
+        const _a = _n(gusLead), _b = _n(sheetOwner);
+        const mismatch = _a && _b && !_a.includes(_b) && !_b.includes(_a);
+        ownerCell.innerHTML = mismatch
+          ? `<span style="font-size:10px;color:#dc2626;font-weight:700;cursor:help;" title="GUS Dev Lead: ${gusLead.replace(/"/g,'&quot;')}">${sheetOwner.replace(/</g,'&lt;')} **</span>`
+          : `<span style="font-size:10px;color:#334155;">${(sheetOwner || '–').replace(/</g,'&lt;')}</span>`;
+      }
 
       const spCell = row.querySelector('.cell-sp');
       if (spCell) syncEpicSpProgressDom(spCell, ep);
@@ -5036,9 +5086,15 @@ const gusSyncEngine = (() => {
 
       _lastSync = new Date();
       _syncing = false;
-      _updateUI();
-      const timer = _el('sync-timer');
-      if (timer && _running) timer.textContent = 'just now';
+      _setLabel('Sync complete \u2713');
+      const dot2 = _el('sync-dot');
+      if (dot2) dot2.className = 'sync-indicator active';
+      showToast('Auto-sync completed successfully', 'success');
+      setTimeout(() => {
+        _updateUI();
+        const timer = _el('sync-timer');
+        if (timer && _running) timer.textContent = 'just now';
+      }, 2000);
 
       if (_running) _scheduleNext();
     } catch (e) {
@@ -5048,6 +5104,7 @@ const gusSyncEngine = (() => {
       if (dot) dot.className = 'sync-indicator error';
       const label = _el('sync-label');
       if (label) { label.textContent = 'Sync Error'; label.style.color = '#dc2626'; }
+      showToast('Auto-sync failed: ' + (e.message || 'unknown error'), 'error');
       setTimeout(() => { _updateUI(); if (_running) _scheduleNext(); }, 3000);
     }
   }
@@ -5092,6 +5149,7 @@ const gusSyncEngine = (() => {
       _syncing = true;
       _stopCountdown();
       _updateUI();
+      let ok = false;
       try {
         if (direction === 'push') {
           _setLabel('Pushing to GUS...');
@@ -5102,11 +5160,26 @@ const gusSyncEngine = (() => {
         }
         _setProgress(100);
         _lastSync = new Date();
+        ok = true;
       } catch (e) {
         console.error('Manual sync error:', e);
       }
       _syncing = false;
-      _updateUI();
+      if (ok) {
+        const verb = direction === 'push' ? 'Push' : 'Fetch';
+        _setLabel(verb + ' complete \u2713');
+        const dot = _el('sync-dot');
+        if (dot) dot.className = 'sync-indicator active';
+        showToast(verb + ' from GUS completed successfully', 'success');
+        setTimeout(() => _updateUI(), 2500);
+      } else {
+        const verb = direction === 'push' ? 'Push' : 'Fetch';
+        _setLabel(verb + ' failed \u2717');
+        const dot = _el('sync-dot');
+        if (dot) dot.className = 'sync-indicator error';
+        showToast(verb + ' from GUS failed', 'error');
+        setTimeout(() => _updateUI(), 3000);
+      }
       if (_running) _scheduleNext();
     },
     restore() {
