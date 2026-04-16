@@ -408,30 +408,25 @@ body { font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe
 @media (max-width: 900px) { .pva-risks-grid { grid-template-columns: 1fr; } }
 .pva-chart-container { height: 220px; }
 
-/* PVA Summary Table — auto layout + display:none hidden months avoids phantom columns; table fills available width. */
-.pva-epic-table { width: 100%; border-collapse: collapse; table-layout: auto; --pva-col-me-width: 320px; }
-.pva-epic-table th.pva-col-me,
-.pva-epic-table td.pva-col-me { min-width: var(--pva-col-me-width); box-sizing: border-box; }
+/* PVA Summary Table — fixed layout: data columns have strict widths; month columns fill remaining space. */
+.pva-epic-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
 .pva-epic-table th.pva-col-owner,
-.pva-epic-table td.pva-col-owner { width: 108px; min-width: 96px; max-width: 120px; box-sizing: border-box; }
+.pva-epic-table td.pva-col-owner { box-sizing: border-box; overflow: hidden; text-overflow: ellipsis; }
 .pva-epic-table th.pva-col-pri,
-.pva-epic-table td.pva-col-pri { width: 40px; min-width: 40px; max-width: 44px; padding-left: 2px; padding-right: 2px; box-sizing: border-box; }
+.pva-epic-table td.pva-col-pri { padding-left: 2px; padding-right: 2px; box-sizing: border-box; }
 .pva-epic-table th.pva-col-sprint,
-.pva-epic-table td.pva-col-sprint { width: 58px; min-width: 54px; max-width: 66px; box-sizing: border-box; }
+.pva-epic-table td.pva-col-sprint { box-sizing: border-box; }
 .pva-epic-table th.pva-col-health,
-.pva-epic-table td.pva-col-health { width: 96px; min-width: 92px; max-width: 104px; box-sizing: border-box; }
+.pva-epic-table td.pva-col-health { box-sizing: border-box; }
 .pva-epic-table th.pva-th-sp-delivery,
-.pva-epic-table td.cell-sp { width: 158px; min-width: 146px; max-width: 172px; box-sizing: border-box; }
+.pva-epic-table td.cell-sp { box-sizing: border-box; }
 .pva-epic-table th.pva-month-col:not(.col-hidden),
-.pva-epic-table td.pva-month-col:not(.col-hidden) { min-width: 160px; box-sizing: border-box; }
-/* Collapse hidden month columns at the grid level (with td/th display:none) to avoid phantom columns after April / month toggles. */
-.pva-epic-table col.pva-month-colg { width: 188px; }
+.pva-epic-table td.pva-month-col:not(.col-hidden) { box-sizing: border-box; overflow: hidden; }
+/* Collapse hidden month columns */
 .pva-epic-table col.pva-month-colg.col-hidden {
   display: none !important;
   visibility: collapse;
   width: 0 !important;
-  min-width: 0 !important;
-  max-width: 0 !important;
 }
 .pva-owner-cell .pva-cell-input { max-width: 100%; box-sizing: border-box; }
 .pva-col-health .pva-cell-select { max-width: 100%; font-size: 9px; padding: 1px 2px; }
@@ -946,6 +941,14 @@ body { font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe
       </select>
       <span class="pva-month-toggle" onclick="clearAllFilters()" style="font-size:10px;color:#dc2626;border-color:#fecaca;padding:3px 8px;">Clear</span>
     </div>
+    <div class="fs-filter-divider"></div>
+    <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;">
+      <span style="font-size:10px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.3px;">Months:</span>
+      <div id="fs-month-toggles" style="display:flex;gap:3px;"></div>
+      <span class="pva-month-toggle" onclick="selectAllMonths(true)" style="font-size:10px;">All</span>
+    </div>
+    <div class="fs-filter-divider"></div>
+    <div id="fs-sync-bar-host"></div>
     <div style="margin-left:auto;display:flex;gap:4px;align-items:center;">
       <span class="pva-month-toggle" onclick="pvaExpandAll()" style="padding:3px 8px;">Expand All</span>
       <span class="pva-month-toggle" onclick="pvaCollapseAll()" style="padding:3px 8px;">Collapse All</span>
@@ -1223,19 +1226,29 @@ function gusQueryRecords(data) {
   return [];
 }
 
-function maybeWarnGusAppsSoqlEmpty() {
+async function maybeWarnGusAppsSoqlEmpty() {
   if (!IS_GUS_APPS || window.__cfsGusEmptyWarned) return;
   window.__cfsGusEmptyWarned = true;
-  const src = (window.__cfsGusConn && window.__cfsGusConn.connectionSource) || '';
+  let src = (window.__cfsGusConn && window.__cfsGusConn.connectionSource) || '';
+  let username = window.__cfsGusConn && window.__cfsGusConn.username;
+  if (!username) {
+    try {
+      const d = await gusApi('debug', {});
+      if (d && typeof d.connectionSource === 'string') src = d.connectionSource;
+      const sid = d && d.salesforceIdentity;
+      if (sid && sid.username) username = sid.username;
+    } catch (e) { /* ignore */ }
+  }
   const integ = !src || src === 'sf' || src === 'none';
+  const who = username ? ` Current Salesforce API user: ${username}.` : '';
   const tail = integ
-    ? ` Handler connectionSource=${src || 'unknown'} (integration-style). In gus-apps / Spaces admin, enable run as logged-in user for this applet so SOQL uses your identity — or grant Read on ADM_Epic__c and ADM_Planned_Release__c (and related lookups) to the applet integration user.`
-    : ` Handler connectionSource=${src} (user-scoped). If rows are still empty, you likely cannot read those records in Lightning either (OLS/FLS/team) — verify the epic/release Ids exist in GusProduction.`;
+    ? `${who} connectionSource=${src || 'unknown'} (integration). Ask gus-apps/Spaces admin to enable run-as-logged-in-user for applet cfs-release-review, OR grant that user Read on ADM_Epic__c, ADM_Planned_Release__c, ADM_Work__c (and Team/Project lookups as needed).`
+    : ` connectionSource=${src} (user-scoped). If rows are still empty, you likely cannot read those records in Lightning either (OLS/FLS/team) — verify the epic/release Ids exist in GusProduction.`;
   showToast(
     'GUS returned 0 rows for epic/release SOQL (rows:0, records:[]).' + tail,
     'error',
     'gus-ols',
-    26000
+    30000
   );
 }
 
@@ -1285,11 +1298,22 @@ async function gusApi(action, data = {}) {
     const inner = result.payload;
     if (inner && inner.ok === false) throw new Error(inner.error || 'Backend error');
     const unwrapped = unwrapGusAppsPayload(inner);
-    if (action === 'query' && unwrapped && typeof unwrapped.connectionSource === 'string') {
-      window.__cfsGusConn = { connectionSource: unwrapped.connectionSource, at: Date.now() };
-    }
-    if (action === 'debug' && unwrapped && typeof unwrapped.connectionSource === 'string') {
-      window.__cfsGusConn = { connectionSource: unwrapped.connectionSource, at: Date.now(), fromDebug: true };
+    if (unwrapped && typeof unwrapped === 'object') {
+      const base = Object.assign({}, window.__cfsGusConn || {});
+      let updated = false;
+      if (typeof unwrapped.connectionSource === 'string') {
+        base.connectionSource = unwrapped.connectionSource;
+        updated = true;
+      }
+      const sid = unwrapped.salesforceIdentity;
+      if (sid && sid.username && !sid.error) {
+        base.username = sid.username;
+        updated = true;
+      }
+      if (updated) {
+        base.at = Date.now();
+        window.__cfsGusConn = base;
+      }
     }
     return unwrapped;
   }
@@ -1946,7 +1970,7 @@ class DashboardController {
           }
         });
       }
-      if (IS_GUS_APPS && gotRows === 0 && uniq.length) maybeWarnGusAppsSoqlEmpty();
+      if (IS_GUS_APPS && gotRows === 0 && uniq.length) await maybeWarnGusAppsSoqlEmpty();
     } catch (err) {
       console.warn('mergeGusLiveEpicFields: skipped or failed:', err);
       maybeWarnGusAppsSoqlError(err.message || String(err));
@@ -2929,7 +2953,7 @@ class DashboardView {
 
     const monthColgroup = visibleMonthIdx.map((mi) => `<col class="pva-month-colg" data-month-idx="${mi}" />`).join('');
     html += `<div class="pva-table-panel"><div class="pva-table-panel-card"><table class="pva-epic-table" id="pva-epic-table">
-      <colgroup><col /><col /><col /><col /><col /><col />${monthColgroup}</colgroup>
+      <colgroup><col style="width:320px" /><col style="width:108px" /><col style="width:42px" /><col style="width:58px" /><col style="width:96px" /><col style="width:158px" />${monthColgroup}</colgroup>
       <thead><tr>
         <th class="pva-col-me" style="text-align:left;">Measure / Epic</th>
         <th class="pva-col-owner" style="text-align:left;">Owner</th>
@@ -4645,6 +4669,10 @@ function toggleTableFullscreen() {
     const inO = document.getElementById('filter-owner'), fsO = document.getElementById('fs-filter-owner');
     if (inH && fsH) inH.value = fsH.value;
     if (inO && fsO) inO.value = fsO.value;
+    // Move sync bar back to inline toolbar
+    const syncBar = document.getElementById('gus-sync-bar');
+    const inlineSyncHost = document.getElementById('inline-sync-bar-host');
+    if (syncBar && inlineSyncHost) inlineSyncHost.appendChild(syncBar);
   } else {
     if (!document.getElementById('pva-table-home')) {
       const home = document.createElement('div');
@@ -4665,6 +4693,22 @@ function toggleTableFullscreen() {
     if (fsH && srcH) fsH.value = srcH.value;
     const fsSearch = document.getElementById('fs-usearch');
     if (fsSearch) fsSearch.value = _searchTerm;
+
+    // Clone month toggles into fullscreen
+    const srcMonths = document.querySelectorAll('.month-chip');
+    const fsMonthHost = document.getElementById('fs-month-toggles');
+    if (fsMonthHost && srcMonths.length) {
+      fsMonthHost.innerHTML = '';
+      srcMonths.forEach(chip => fsMonthHost.appendChild(chip.cloneNode(true)));
+      fsMonthHost.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+        const mi = cb.closest('.month-chip')?.dataset?.monthIdx;
+        if (mi != null) cb.onchange = function() { toggleMonthCol(+mi, this.checked); };
+      });
+    }
+    // Move sync bar into fullscreen
+    const syncBar = document.getElementById('gus-sync-bar');
+    const fsSyncHost = document.getElementById('fs-sync-bar-host');
+    if (syncBar && fsSyncHost) fsSyncHost.appendChild(syncBar);
 
     overlay.classList.add('open');
     document.body.style.overflow = 'hidden';

@@ -17,6 +17,17 @@ function crossRefHint(msg) {
   return ' This often means the epic Id is not in the org your session targets, or the epic has invalid lookup data; fix in GUS or re-auth to GusProduction.';
 }
 
+/** Strip tokens from identity() before returning to the browser. */
+function sanitizeSalesforceIdentity(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+  if (raw.error) return { error: String(raw.error) };
+  const out = {};
+  for (const k of ['user_id', 'username', 'organization_id', 'display_name', 'email']) {
+    if (raw[k] != null && typeof raw[k] !== 'object') out[k] = raw[k];
+  }
+  return Object.keys(out).length ? out : null;
+}
+
 function hasQueryableSalesforceClient(obj) {
   return !!(obj && typeof obj === 'object' && typeof obj.query === 'function');
 }
@@ -163,15 +174,26 @@ module.exports.handleRequest = async (ctx) => {
       hasUpdate: typeof sf.update === 'function',
       hasSobject: typeof sf.sobject === 'function',
       hasRequest: typeof sf.request === 'function',
+      hasIdentity: typeof sf.identity === 'function',
     };
     if (sf.constructor) sfInfo.constructorName = sf.constructor.name;
     const ctxKeys = Object.keys(ctx || {});
     const sfRelatedCtxKeys = ctxKeys.filter(k => /sf|user|org|conn|session|salesforce/i.test(k));
+    let salesforceIdentity = null;
+    if (typeof sf.identity === 'function') {
+      try {
+        const id = await sf.identity();
+        salesforceIdentity = sanitizeSalesforceIdentity(id);
+      } catch (e) {
+        salesforceIdentity = { error: e.message || String(e) };
+      }
+    }
     return {
       ok: true,
       payload: {
         sfInfo,
         connectionSource,
+        salesforceIdentity,
         sfRelatedCtxKeys,
         ctxKeys,
         reqKeys: req ? Object.keys(req) : [],
