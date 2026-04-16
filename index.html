@@ -358,7 +358,8 @@ body { font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe
 .empty-state p { font-size: 13px; }
 
 /* ===== PVA SECTION ===== */
-.pva-section { margin-bottom: 10px; }
+.pva-section { margin-bottom: 10px; display: flex; flex-direction: column; align-items: flex-start; max-width: 100%; box-sizing: border-box; }
+#tab-epic-tracking.pva-tab-visible { max-width: 100%; overflow-x: auto; box-sizing: border-box; }
 .pva-header { background: linear-gradient(135deg, #fafcff 0%, #f0f9ff 40%, #e0f2fe 100%); border-radius: 10px 10px 0 0; padding: 12px 20px; color: #0f172a; border: 1px solid #e0f2fe; border-bottom: none; }
 .pva-header h2 { font-size: 18px; font-weight: 700; margin-bottom: 2px; color: #0c4a6e; }
 .pva-header p { font-size: 12px; color: #475569; }
@@ -379,7 +380,7 @@ body { font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe
 .pva-chart-fs-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-bottom: 6px; }
 .pva-chart-fs-btn { font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 6px; border: 1px solid #93c5fd; background: #fff; color: #0369a1; cursor: pointer; font-family: inherit; }
 .pva-chart-fs-btn:hover { background: #eff6ff; }
-.pva-body { background: linear-gradient(180deg, #ffffff 0%, #fafcff 100%); border: 1px solid #e0f2fe; border-top: none; border-radius: 0 0 10px 10px; padding: 12px 16px; box-shadow: 0 1px 3px rgba(14, 116, 144, .05); }
+.pva-body { background: linear-gradient(180deg, #ffffff 0%, #fafcff 100%); border: 1px solid #e0f2fe; border-top: none; border-radius: 0 0 10px 10px; padding: 12px 16px; box-shadow: 0 1px 3px rgba(14, 116, 144, .05); display: flex; flex-direction: column; align-items: flex-start; max-width: 100%; box-sizing: border-box; }
 .pva-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
 .pva-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; position: relative; overflow: hidden; }
 .pva-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
@@ -403,7 +404,7 @@ body { font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe
 .pva-alert-warn { background: #fef3c7; border: 1px solid #fde68a; color: #92400e; }
 .pva-alert-info { background: #dbeafe; border: 1px solid #93c5fd; color: #1e40af; }
 .pva-alert-danger { background: #fee2e2; border: 1px solid #fca5a5; color: #991b1b; }
-.pva-risks-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+.pva-risks-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; align-self: stretch; width: 100%; max-width: 100%; box-sizing: border-box; }
 @media (max-width: 900px) { .pva-risks-grid { grid-template-columns: 1fr; } }
 .pva-chart-container { height: 220px; }
 
@@ -572,13 +573,16 @@ body { font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe
 .pva-sp-ico--churn { color: #64748b; background: #f8fafc; border-color: #e2e8f0; }
 .pva-sp-ico--churn.pva-sp-ico--churn-hot { color: #c2410c; background: #fff7ed; border-color: #fdba74; }
 .pva-sp-ico-val { font-size: 9px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.pva-sp-ico-val.pva-sp-planned--match { color: #15803d !important; }
+.pva-sp-ico-val.pva-sp-planned--mismatch { color: #dc2626 !important; }
 .pva-sp-burn { flex-shrink: 0; width: 5px; height: 22px; border-radius: 3px; background: #e2e8f0; overflow: hidden; position: relative; align-self: center; }
 .pva-sp-burn-fill { position: absolute; bottom: 0; left: 0; right: 0; border-radius: 0 0 2px 2px; min-height: 0; background: linear-gradient(180deg,#4ade80,#16a34a); transition: height .22s ease; }
 .pva-progress-bar { height: 5px; border-radius: 3px; background: #e8e6df; overflow: hidden; margin-top: 3px; }
 .pva-progress-bar .fill { height: 100%; border-radius: 3px; transition: width .4s; }
 /* Shrink-wrap to table: avoid a full-width scroll strip with empty area right of the card (was width:100%). */
-.pva-table-panel { display: inline-block; vertical-align: top; width: auto; max-width: 100%; overflow-x: auto; overflow-y: hidden; margin-top: 8px; -webkit-overflow-scrolling: touch; position: relative; box-sizing: border-box; background: transparent; border: none; box-shadow: none; }
-.pva-table-panel-card { display: block; width: max-content; max-width: 100%; position: relative; box-sizing: border-box; background: linear-gradient(180deg, #ffffff 0%, #fafcff 55%, #f5faff 100%); border: 1px solid #e0f2fe; border-radius: 8px; box-shadow: 0 1px 3px rgba(14, 116, 144, .06); }
+.pva-table-panel { display: block; width: fit-content; max-width: 100%; overflow-x: auto; overflow-y: hidden; margin-top: 8px; -webkit-overflow-scrolling: touch; position: relative; box-sizing: border-box; background: transparent; border: none; box-shadow: none; }
+.pva-table-panel-card { display: block; width: fit-content; max-width: 100%; position: relative; box-sizing: border-box; background: linear-gradient(180deg, #ffffff 0%, #fafcff 55%, #f5faff 100%); border: 1px solid #e0f2fe; border-radius: 8px; box-shadow: 0 1px 3px rgba(14, 116, 144, .06); }
+#fullscreen-table-container { width: fit-content; max-width: 100%; }
 .pva-table-panel-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; border-radius: 8px 8px 0 0; background: linear-gradient(90deg, #bae6fd 0%, #7dd3fc 35%, #a5b4fc 70%, #c4b5fd 100%); opacity: .85; pointer-events: none; }
 
 /* AI Executive summary tab */
@@ -1035,7 +1039,7 @@ function buildEpicByEpicProgressChartOption(hierarchy) {
   if (!flat.length) return null;
   flat.sort((a, b) => (b.epic.Actual_Story_Points_on_Epic__c || 0) - (a.epic.Actual_Story_Points_on_Epic__c || 0));
   const names = flat.map(x => x.short);
-  const planned = flat.map(x => x.epic.Planned_Story_Points__c || 0);
+  const planned = flat.map(x => ctrl.computeMetrics(x.epic).planned);
   const actual = flat.map(x => x.epic.Actual_Story_Points_on_Epic__c || 0);
   const closed = flat.map(x => x.epic.Storypoints_Closed__c || 0);
   const n = flat.length;
@@ -1374,8 +1378,8 @@ class GUSModel {
     let mockEpics = [];
     if (plan && plan.epicIds && plan.epicIds.length) {
       mockEpics = plan.epicIds.map(eid => buildOfflineEpicFromSheet(eid));
-    } else if (releaseId === 'aBQEE0000007cTZ4AY') {
-      mockEpics = MOCK.epics264 || MOCK.epics || [];
+    } else if (releaseId === 'aBQEE0000007cTZ4AY' && typeof PLAN_264 !== 'undefined' && PLAN_264.epicIds && PLAN_264.epicIds.length) {
+      mockEpics = PLAN_264.epicIds.map(eid => buildOfflineEpicFromSheet(eid));
     }
     return { release: mockRelease, epics: mockEpics };
   }
@@ -1441,6 +1445,18 @@ class GUSModel {
       return await this._serverQuery(`SELECT Id, Name, Subject__c, Epic__c FROM ADM_Work__c WHERE Epic__c IN (${idList}) AND Status__c != null LIMIT 3000`);
     } catch (e) {
       console.warn('fetchWorkItemsForChurn failed:', e);
+      return [];
+    }
+  }
+
+  /** Child work item SP (workstream-shaped subjects) per epic — used when Planned_Story_Points__c is null on the epic. */
+  async fetchWorkItemsForPlanningRollup(epicIds) {
+    if (!epicIds || !epicIds.length) return [];
+    const idList = epicIds.slice(0, 200).map(id => `'${id}'`).join(',');
+    try {
+      return await this.query(`SELECT Epic__c, Name, Subject__c, Story_Points__c FROM ADM_Work__c WHERE Epic__c IN (${idList}) AND Subject__c != null LIMIT 3000`);
+    } catch (e) {
+      console.warn('fetchWorkItemsForPlanningRollup failed:', e);
       return [];
     }
   }
@@ -1591,6 +1607,8 @@ class DashboardController {
         if (!releaseEntry) return { team, release: null, epics: [], totals: null, healthCounts: null };
         try {
           const { release, epics } = await this.model.fetchReleaseData(releaseEntry.Id);
+          await this.mergeGusLiveEpicFields(epics);
+          await this._hydrateEpicWorkstreamPlannedRollups(epics);
           const totals = this._computeTotals(epics);
           const healthCounts = this._countHealth(epics);
           return { team, release: release || releaseEntry, epics, totals, healthCounts };
@@ -1615,8 +1633,10 @@ class DashboardController {
     this.view.showLoading('Loading release data...');
     try {
       const { release, epics } = await this.model.fetchReleaseData(releaseId);
+      await this.mergeGusLiveEpicFields(epics);
       this.currentRelease = release;
       this.currentEpics = epics;
+      await this._hydrateEpicWorkstreamPlannedRollups(epics);
       this.releaseMonths = this._getReleaseMonths(release);
       const plan = TEAM_PLANS[releaseId];
       const hierarchy = this._buildHierarchy(epics, plan);
@@ -1705,8 +1725,11 @@ class DashboardController {
   }
 
   computeMetrics(epic) {
-    const planned = epic.Planned_Story_Points__c || 0;
-    const actual = epic.Actual_Story_Points_on_Epic__c || 0;
+    const epicPlanned = epic.Planned_Story_Points__c;
+    const planned = epicPlanned != null && epicPlanned !== ''
+      ? (Number(epicPlanned) || 0)
+      : (Number(epic._gusWsWorkstreamSpSum) || 0);
+    const actual = Number(epic.Actual_Story_Points_on_Epic__c) || 0;
     const closed = epic.Storypoints_Closed__c || 0;
     const pctComplete = epic.Percent_Of_Work_Items_Complete__c || 0;
     const wiClosed = epic.Workitems_Closed__c || 0;
@@ -1724,7 +1747,10 @@ class DashboardController {
     }
     const effortDev = planned > 0 ? ((actual - planned) / planned * 100).toFixed(1) : 0;
     const burndownRate = actual > 0 ? ((closed / actual) * 100).toFixed(1) : 0;
-    return { planned, actual, closed, pctComplete, wiClosed, wiInProg, wiNew, wiWait, totalWI, churn, effortDev, burndownRate };
+    const sheetPlannedRaw = getEpicMeta(epic.Id).sheetPlannedSP;
+    const sheetPlanned = sheetPlannedRaw != null && sheetPlannedRaw !== '' ? Number(sheetPlannedRaw) : null;
+    const plannedMatchesSheet = sheetPlanned != null && !Number.isNaN(sheetPlanned) && planned === sheetPlanned;
+    return { planned, actual, closed, pctComplete, wiClosed, wiInProg, wiNew, wiWait, totalWI, churn, effortDev, burndownRate, sheetPlanned, plannedMatchesSheet };
   }
 
   /* NEW: Build hierarchy from epic records: Method -> Measure -> Epic */
@@ -1791,13 +1817,77 @@ class DashboardController {
     return counts;
   }
 
+  /**
+   * Re-query epics by Id and merge live GUS fields (monthly comments, story points, health, etc.).
+   * Used on every load so sheet/offline shells still show GUS when the proxy is available.
+   */
+  async mergeGusLiveEpicFields(epics) {
+    if (!epics || !epics.length) return;
+    const uniq = [...new Set(epics.map(e => e && e.Id).filter(Boolean))];
+    if (!uniq.length) return;
+    const selectFields = `Id, Name, Description__c, Health__c, Epic_Health_Comments__c, Path_to_Green__c, Slippage_Comments__c, Category__c, Committed_Story_Points_on_Epic__c, Actual_Story_Points_on_Epic__c, Planned_Story_Points__c, Storypoints_Closed__c, Storypoints_In_Progress__c, Storypoints_New__c, Storypoints_In_Waiting__c, Workitems_Closed__c, WorkItems_In_Progress__c, Workitems_New__c, Workitems_in_Waiting__c, Remaining_Story_Points__c, Remaining_Work_Items__c, Percent_Of_Work_Items_Complete__c, Committed_Work_Items_on_Epic__c, Actual_Work_Items_on_Epic__c, Project__r.Name, Project__r.Id, Project__r.V2MOM_Method__c, Team__r.Name`;
+    const chunk = 80;
+    try {
+      for (let i = 0; i < uniq.length; i += chunk) {
+        const slice = uniq.slice(i, i + chunk);
+        const idList = slice.map(id => `'${String(id).replace(/'/g, "''")}'`).join(',');
+        const soql = `SELECT ${selectFields} FROM ADM_Epic__c WHERE Id IN (${idList}) LIMIT 200`;
+        const data = await gusApi('query', { soql });
+        if (data.error) throw new Error(data.error);
+        const byId = {};
+        (data.records || []).forEach(rec => {
+          const c = { ...rec };
+          delete c.attributes;
+          byId[rec.Id] = c;
+        });
+        epics.forEach(e => {
+          if (!e || !e.Id) return;
+          const u = byId[e.Id];
+          if (!u) return;
+          const prevProj = e.Project__r;
+          const prevTeam = e.Team__r;
+          Object.assign(e, u);
+          if ((!e.Project__r || (!e.Project__r.Name && !e.Project__r.V2MOM_Method__c)) && prevProj && (prevProj.Name || prevProj.V2MOM_Method__c)) {
+            e.Project__r = prevProj;
+          }
+          if ((!e.Team__r || !e.Team__r.Name) && prevTeam && prevTeam.Name) {
+            e.Team__r = prevTeam;
+          }
+        });
+      }
+    } catch (err) {
+      console.warn('mergeGusLiveEpicFields: skipped or failed:', err);
+    }
+  }
+
+  /** Sum Story_Points__c on child WIs whose subject is treated as a workstream — GUS-only fallback for displayed planned SP. */
+  async _hydrateEpicWorkstreamPlannedRollups(epics) {
+    if (!epics || !epics.length) return;
+    const ids = epics.map(e => e.Id).filter(Boolean);
+    if (!ids.length) return;
+    epics.forEach(e => { e._gusWsWorkstreamSpSum = 0; });
+    try {
+      const rows = await this.model.fetchWorkItemsForPlanningRollup(ids);
+      const byEpic = {};
+      (rows || []).forEach(w => {
+        if (!w || !isWorkstreamSubject(w.Subject__c)) return;
+        const eid = w.Epic__c;
+        if (!eid) return;
+        byEpic[eid] = (byEpic[eid] || 0) + (Number(w.Story_Points__c) || 0);
+      });
+      epics.forEach(e => { if (e && e.Id) e._gusWsWorkstreamSpSum = byEpic[e.Id] || 0; });
+    } catch (e) {
+      console.warn('_hydrateEpicWorkstreamPlannedRollups failed:', e);
+    }
+  }
+
   _computeTotals(epics) {
     let plannedSP = 0, actualSP = 0, closedSP = 0, inProgressSP = 0, newSP = 0, waitingSP = 0;
     let committedSP = 0, remainingSP = 0, additionalSP = 0, subtractedSP = 0;
     let totalWI = 0, closedWI = 0, inProgressWI = 0, newWI = 0, waitingWI = 0;
     let committedWI = 0, actualWI = 0, remainingWI = 0, additionalWI = 0, subtractedWI = 0;
     epics.forEach(e => {
-      plannedSP += e.Planned_Story_Points__c || 0;
+      plannedSP += this.computeMetrics(e).planned;
       actualSP += e.Actual_Story_Points_on_Epic__c || 0;
       committedSP += e.Committed_Story_Points_on_Epic__c || 0;
       closedSP += e.Storypoints_Closed__c || 0;
@@ -2377,7 +2467,7 @@ class DashboardView {
       html += `<tr>
         <td><a href="https://gus.my.salesforce.com/lightning/r/ADM_Epic__c/${e.Id}/view" target="_blank" style="color:#0176d3;text-decoration:none;">${esc(e.Name || '')}</a></td>
         <td style="text-align:center"><span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;background:${hc}22;color:${hc};border:1px solid ${hc}44;">${esc(h)}</span></td>
-        <td style="text-align:center">${e.Planned_Story_Points__c || 0}</td>
+        <td style="text-align:center">${ctrl.computeMetrics(e).planned}</td>
         <td style="text-align:center">${e.Actual_Story_Points_on_Epic__c || 0}</td>
         <td style="text-align:center">${e.Storypoints_Closed__c || 0}</td>
         <td style="text-align:center">${wiTotal}</td>
@@ -2401,7 +2491,7 @@ class DashboardView {
       const chart = echarts.init(spEl);
       this.chartInstances['sp-method'] = chart;
       const labels = hierarchy.map(mg => `M${mg.methodNum}`);
-      const planned = hierarchy.map(mg => mg.measures.flatMap(m => m.epics).reduce((s, e) => s + (e.Planned_Story_Points__c || 0), 0));
+      const planned = hierarchy.map(mg => mg.measures.flatMap(m => m.epics).reduce((s, e) => s + ctrl.computeMetrics(e).planned, 0));
       const actual = hierarchy.map(mg => mg.measures.flatMap(m => m.epics).reduce((s, e) => s + (e.Actual_Story_Points_on_Epic__c || 0), 0));
       const closed = hierarchy.map(mg => mg.measures.flatMap(m => m.epics).reduce((s, e) => s + (e.Storypoints_Closed__c || 0), 0));
       chart.setOption({
@@ -2616,6 +2706,8 @@ class DashboardView {
     const planned = metrics.planned;
     const actual = metrics.actual;
     const closed = metrics.closed;
+    const hasSheet = metrics.sheetPlanned != null && !Number.isNaN(metrics.sheetPlanned);
+    const plannedCls = hasSheet ? (metrics.plannedMatchesSheet ? ' pva-sp-planned--match' : ' pva-sp-planned--mismatch') : '';
     const churnNum = metrics.churn || 0;
     const burnPct = actual > 0 ? Math.min(100, Math.round((closed / actual) * 100)) : 0;
     let signalClass = 'pva-sp-signal';
@@ -2628,8 +2720,9 @@ class DashboardView {
         : `Churn (post-forecast): 0 — no matching scope events in this heuristic.`)
       : `Churn / scope movement (GUS rollups on epic): ${churnNum} — sum of Additional/Subtracted work items and story points when the post-forecast heuristic is unavailable.`;
     const churnIcoClass = 'pva-sp-ico pva-sp-ico--churn' + (churnNum > 0 ? ' pva-sp-ico--churn-hot' : '');
-    const tipP = `Planned story points — baseline scope on this epic (${planned} SP). Field: Planned_Story_Points__c.`;
-    const tipA = `Actual story points — total SP currently on the epic (${actual} SP). Field: Actual_Story_Points_on_Epic__c.`;
+    let tipP = `GUS planned SP: ${planned} (epic field or workstream WI sum).`;
+    if (hasSheet) tipP += ` Planning sheet: ${metrics.sheetPlanned} SP — ${metrics.plannedMatchesSheet ? 'matches (green).' : 'differs (red).'}`;
+    const tipA = `Actual SP from GUS (Actual_Story_Points_on_Epic__c): ${actual}.`;
     const tipC = `Closed story points — SP from completed work (${closed} SP). Field: Storypoints_Closed__c.`;
     const tipBurn = `Delivery strip — ${closed} of ${actual} SP closed (${burnPct}% of actual). Fills upward as delivery progresses.`;
     const svgP = '<svg viewBox="0 0 24 24" width="9" height="9" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>';
@@ -2639,7 +2732,7 @@ class DashboardView {
     return `<td class="cell-sp pva-sp-cell">
       <div class="pva-sp-cell-inner">
         <div class="${signalClass}">
-          <span class="pva-sp-ico pva-sp-ico--planned" title="${esc(tipP)}" aria-label="${esc(tipP)}">${svgP}<span class="pva-sp-ico-val" data-sp="planned">${planned}</span></span>
+          <span class="pva-sp-ico pva-sp-ico--planned" title="${esc(tipP)}" aria-label="${esc(tipP)}">${svgP}<span class="pva-sp-ico-val${plannedCls}" data-sp="planned">${planned}</span></span>
           <span class="pva-sp-ico pva-sp-ico--actual" title="${esc(tipA)}" aria-label="${esc(tipA)}">${svgA}<span class="pva-sp-ico-val" data-sp="actual">${actual}</span></span>
           <span class="pva-sp-ico pva-sp-ico--closed" title="${esc(tipC)}" aria-label="${esc(tipC)}">${svgC}<span class="pva-sp-ico-val" data-sp="closed">${closed}</span></span>
           <span class="${churnIcoClass}" title="${esc(tipChurn)}" aria-label="${esc(tipChurn)}">${svgChurn}<span class="pva-sp-ico-val" data-sp="churn">${churnNum}</span></span>
@@ -2743,7 +2836,7 @@ class DashboardView {
 
     const monthColgroup = visibleMonthIdx.map((mi) => `<col class="pva-month-colg" data-month-idx="${mi}" />`).join('');
     html += `<div class="pva-table-panel"><div class="pva-table-panel-card"><table class="pva-epic-table" id="pva-epic-table">
-      <colgroup><col span="6">${monthColgroup}</colgroup>
+      <colgroup><col /><col /><col /><col /><col /><col />${monthColgroup}</colgroup>
       <thead><tr>
         <th class="pva-col-me" style="text-align:left;">Measure / Epic</th>
         <th class="pva-col-owner" style="text-align:left;">Owner</th>
@@ -2845,7 +2938,7 @@ class DashboardView {
       </div>
     </div>`;
 
-    html += `</div></div>`;
+    html += `</div>`;
     return html;
   }
 
@@ -2877,7 +2970,7 @@ class DashboardView {
 
     let totalPlanned = 0, totalActual = 0, totalClosed = 0;
     allEpics.forEach(e => {
-      totalPlanned += e.Planned_Story_Points__c || 0;
+      totalPlanned += ctrl.computeMetrics(e).planned;
       totalActual += e.Actual_Story_Points_on_Epic__c || 0;
       totalClosed += e.Storypoints_Closed__c || 0;
     });
@@ -3205,7 +3298,7 @@ class DashboardView {
       const chartSp = echarts.init(spDrawerEl);
       this.chartInstances['pva-drawer-sp-method'] = chartSp;
       const labels = hierarchy.map(mg => `M${mg.methodNum}`);
-      const planned = hierarchy.map(mg => mg.measures.flatMap(m => m.epics).reduce((s, e) => s + (e.Planned_Story_Points__c || 0), 0));
+      const planned = hierarchy.map(mg => mg.measures.flatMap(m => m.epics).reduce((s, e) => s + ctrl.computeMetrics(e).planned, 0));
       const actual = hierarchy.map(mg => mg.measures.flatMap(m => m.epics).reduce((s, e) => s + (e.Actual_Story_Points_on_Epic__c || 0), 0));
       const closed = hierarchy.map(mg => mg.measures.flatMap(m => m.epics).reduce((s, e) => s + (e.Storypoints_Closed__c || 0), 0));
       chartSp.setOption({
@@ -3228,7 +3321,7 @@ class DashboardView {
       const flat = hierarchy.flatMap(mg => mg.measures.flatMap(m => m.epics));
       let totP = 0; let totA = 0; let totC = 0; let totChurn = 0;
       flat.forEach(ep => {
-        totP += ep.Planned_Story_Points__c || 0;
+        totP += ctrl.computeMetrics(ep).planned;
         totA += ep.Actual_Story_Points_on_Epic__c || 0;
         totC += ep.Storypoints_Closed__c || 0;
         totChurn += ctrl.computeMetrics(ep).churn || 0;
@@ -3400,64 +3493,6 @@ const MOCK = {
       E('e42','Streamline/enhance VegaCache customer onboarding to reduce MTTO','On Track','Engineering',null,'Mar Update:\nFAQs created, discussions with Docs team.\n\nFeb Update:\nProposal created for streamlining onboarding.',null,null,37,21,11,2,8,0,7,2,5,0,50),
       E('e43','Configure FIT tests for safe and low toil fleetwide rollout','On Track','Engineering',P.M22,'Mar Update:\nFIT test framework designed, HAPPY signal enabled in internal.\n\nFeb Update:\nFocusing on fixing existing FIT test gaps.',null,null,0,40,29,1,8,2,12,1,4,1,67),
       E('e44','Valkey 7.2.11 Migration across First Party and Hyperforce','On Track','Engineering',null,'',null,null,41,0,0,0,0,0,0,0,0,0,0),
-    ];
-  })(),
-  epics264: (function() {
-    const T = { Name: 'Caching Services' };
-    const V = {
-      '1.1.1': { Name: 'HRP meets all defined goals on E360', V2MOM_Method__c: '1.1.1 HRP meets all E360 goals' },
-      '1.1.3': { Name: 'All CFS services meet Availability SLA', V2MOM_Method__c: '1.1.3 All CFS and GCP services meet their Availability SLA' },
-      'HRP1.5.4': { Name: 'HRP 1.5.4 Fail Fast', V2MOM_Method__c: 'HRP 1.5.4 VegaCache Client fail fast' },
-      '1.2.1': { Name: 'Supercell deployments for Vegacache', V2MOM_Method__c: '1.2.1 Supercell deployments minimize blast radius' },
-      '1.2.4': { Name: 'Resilience to AZ failure', V2MOM_Method__c: '1.2.4 Resilience to AZ failure static stability' },
-      '1.2.5': { Name: 'VegaCache supports ACRC DR', V2MOM_Method__c: '1.2.5 VegaCache and MQ support ACRC DR' },
-      '1.4.1': { Name: 'OSS maintained at n-1 versions', V2MOM_Method__c: '1.4.1 Open source at n-1 minor versions' },
-      '1.5.3': { Name: 'Dynamic traffic for hot keys', V2MOM_Method__c: '1.5.3 Dynamic traffic distribution hot keys under 1ms' },
-      '1.6.1': { Name: 'Build Automation 100%', V2MOM_Method__c: '1.6.1 100% automated build and destroy in HF' },
-      '2.2.1': { Name: 'AI to Automate DevOps', V2MOM_Method__c: '2.2.1 AI to Automate DevOps alerts' },
-      '2.3.2': { Name: 'AI for HRP Developer Productivity', V2MOM_Method__c: '2.3.2 AI for HRP Developer Productivity' },
-      '3.1': { Name: 'GCP Business Delivery', V2MOM_Method__c: '3.1 GCP Business Delivery' },
-      '4.2.4': { Name: 'Cost to Serve right-sizing', V2MOM_Method__c: '4.2.4 Right-sizing savings' },
-      '5.0.1': { Name: 'Convergence Government Cloud BJ', V2MOM_Method__c: '5.0.1 Convergence for Government Cloud BJ' },
-      '5.5.1': { Name: 'Replace ElastiCache with VegaCache', V2MOM_Method__c: '5.5.1 Replace 90% ElastiCache use-cases' },
-      '5.5.3': { Name: 'VegaStore durable KV store', V2MOM_Method__c: '5.5.3 VegaStore Redis-compatible durable KV' },
-    };
-    function E(id, name, pSP, measure) {
-      return { Id:id, Name:name, Health__c:'Not Started', Category__c:null, Project__r:V[measure]||V['1.1.1'], Epic_Health_Comments__c:null, Path_to_Green__c:null, Slippage_Comments__c:null, Planned_Story_Points__c:pSP, Actual_Story_Points_on_Epic__c:0, Storypoints_Closed__c:0, Storypoints_In_Progress__c:0, Storypoints_New__c:0, Storypoints_In_Waiting__c:0, Workitems_Closed__c:0, WorkItems_In_Progress__c:0, Workitems_New__c:0, Workitems_in_Waiting__c:0, Remaining_Story_Points__c:0, Remaining_Work_Items__c:0, Percent_Of_Work_Items_Complete__c:0, Additional_Work_Items__c:0, Subtracted_Work_Items__c:0, Additional_Story_Points__c:0, Subtracted_Story_Points__c:0, Committed_Work_Items_on_Epic__c:0, Actual_Work_Items_on_Epic__c:0, Team__r:T };
-    }
-    return [
-      E('a3QEE000002JRD32AO','Support for 3pp/Vulns Tracking, Fixes and Rollouts',9,'1.1.1'),
-      E('a3QEE000002JRGH2A4','Planned Trust (Trust + on-call distributed amongst all)',224,'1.1.1'),
-      E('a3QEE000002JRHt2AO','Zero repeats of issues identified as part of RCA for Feb 17th',23,'1.1.3'),
-      E('a3QEE000002JRMj2AO','VegaCache Client should fail fast and not cause elevated resource utilisation',20,'HRP1.5.4'),
-      E('a3QEE000002JROL2A4','Circuit Breaking on VegaCache Client side to ensure no APT impact',35,'HRP1.5.4'),
-      E('a3QEE000002JRPx2AO','100% of customer use-case regressions caught in internal environment',55,'1.1.3'),
-      E('a3QEE000002JRRZ2A4','Complete all HARR + GCP VegaCache Security Review WorkItems within SLAs',16,'1.1.3'),
-      E('a3QEE000002JRTB2A4','Optimize and rollout Fast Parallel Failover to Achieve 30 min Rollbacks',18,'1.1.3'),
-      E('a3QEE000002JRUn2AO','Migrate 100% of Vegacache PC workloads to dedicated node-pools',5,'1.1.3'),
-      E('a3QEE000002JRWP2A4','Improve Vegacache observability enabling WASM client-side metrics',7,'1.1.3'),
-      E('a3QEE000002JRY12AO','Implement and validate long-term ACRC DR strategy for VegaCache',8,'1.2.5'),
-      E('a3QEE000002JRZd2AO','VegaCache AZ Resilience: 100% Static Stability with <90s recovery',33,'1.2.4'),
-      E('a3QEE000002JRbF2AW','Enable Auto-Scaling for Vegacache across commercial and Gia',18,'1.2.4'),
-      E('a3QEE000002JRcr2AG','Valkey 9.x upgrade to all instances in HF environments',18,'1.4.1'),
-      E('a3QEE000002JReT2AW','Dynamic traffic distribution to prevent hot keys under 1ms',10,'1.5.3'),
-      E('a3QEE000002JRg52AG','VegaCache Client read From Replica for 40% latency improvement',28,'1.5.3'),
-      E('a3QEE000002JRhh2AG','[Diwali 2026] Zero issues due to hot cache keys during India Peak Season',38,'1.5.3'),
-      E('a3QEE000002JRjJ2AW','All services achieve 100% automated build and destroy in Hyperforce',3,'1.6.1'),
-      E('a3QEE000002JRkv2AG','Reduce manual alert maintenance toil by 50% via Terramon migration',15,'2.2.1'),
-      E('a3QEE000002JRmX2AW','Day-2 tooling: 6 Managed Operations for VegaCache self-service',7,'2.2.1'),
-      E('a3QEE000002JRo92AG','Left shift config drift and blast radius identification via Prizm',5,'2.3.2'),
-      E('a3QEE000002JRpl2AG','Prism skills to identify 80% wrong usage patterns in VegaCache Client',5,'2.3.2'),
-      E('a3QEE000002JRrN2AW','Automate #caas-support channel to deflect 30% queries',5,'2.3.2'),
-      E('a3QEE000002JRsz2AG','Matrix Slack Agent auto-detect root cause for alerts at 80% accuracy',10,'2.3.2'),
-      E('a3QEE000002JR9p2AG','VegaCache GCP Production readiness for Core and SCRT EGL by 6/22',11,'3.1'),
-      E('a3QEE000002JRub2AG','Reduce VegaCache cost by 20% via Graviton rollout, save $0.6M',10,'4.2.4'),
-      E('a3QEE000002JRwD2AW','80% Service Cloud on VegaCache in prod, 50% Tableau & Ecom in pre-prod',13,'5.5.1'),
-      E('a3QEE000002JRxp2AG','Add-on enhancements: HPA, governance resources, initial client support',21,'5.5.1'),
-      E('a3QEE000002JRzR2AW','VegaCache Foundational Service Readiness: Deployment Model & VAT',11,'5.5.1'),
-      E('a3QEE000002JS132AG','Cost visibility, trends, and anomaly detection for Vegacache users',5,'5.5.1'),
-      E('a3QEE000002JS2f2AG','Introduce non-cluster mode for Vegacache till production',10,'5.5.1'),
-      E('a3QEE000002JS4H2AW','VegaStore: High-Throughput Redis-Compatible Durable Storage for MAPS',126,'5.5.3'),
     ];
   })(),
   workItems: {},
@@ -3892,7 +3927,26 @@ const EPIC_NAMES = {
   'a3QEE000002JWuH2AW': '[MQ 264] Maximize resource utilisation with Elastic, Data-Driven Scaling',
   'a3QEE000002JWvt2AG': '[MQ 264] AI resolves 30% cases improving MTTR and reducing manual support',
 };
-function getEpicMeta(epicId) { return SHEET_EPIC_META[epicId] || { owner:'', priority:'', sprintTarget:'', status:'', gusLink:'', docLink:'' }; }
+
+/** Planned SP per epic from the team planning sheet (Epics & Workstreams) — for green/red vs GUS only; not used as GUS planned. */
+const SHEET_PLANNED_SP_BY_EPIC = {
+  'a3QEE000002JRD32AO': 9, 'a3QEE000002JRGH2A4': 224, 'a3QEE000002JRHt2AO': 23, 'a3QEE000002JRMj2AO': 20, 'a3QEE000002JROL2A4': 35,
+  'a3QEE000002JRPx2AO': 55, 'a3QEE000002JRRZ2A4': 16, 'a3QEE000002JRTB2A4': 18, 'a3QEE000002JRUn2AO': 5, 'a3QEE000002JRWP2A4': 7,
+  'a3QEE000002JRY12AO': 8, 'a3QEE000002JRZd2AO': 33, 'a3QEE000002JRbF2AW': 18, 'a3QEE000002JRcr2AG': 18, 'a3QEE000002JReT2AW': 10,
+  'a3QEE000002JRg52AG': 28, 'a3QEE000002JRhh2AG': 38, 'a3QEE000002JRjJ2AW': 3, 'a3QEE000002JRkv2AG': 15, 'a3QEE000002JRmX2AW': 7,
+  'a3QEE000002JRo92AG': 5, 'a3QEE000002JRpl2AG': 5, 'a3QEE000002JRrN2AW': 5, 'a3QEE000002JRsz2AG': 10, 'a3QEE000002JR9p2AG': 11,
+  'a3QEE000002JRub2AG': 10, 'a3QEE000002JRwD2AW': 13, 'a3QEE000002JRxp2AG': 21, 'a3QEE000002JRzR2AW': 11, 'a3QEE000002JS132AG': 5,
+  'a3QEE000002JS2f2AG': 10, 'a3QEE000002JS4H2AW': 126
+};
+
+function getEpicMeta(epicId) {
+  const row = SHEET_EPIC_META[epicId];
+  const d = { owner: '', priority: '', sprintTarget: '', status: '', gusLink: '', docLink: '', wsLinks: [] };
+  const base = row ? Object.assign({}, d, row) : { ...d };
+  const sp = SHEET_PLANNED_SP_BY_EPIC[epicId];
+  if (sp != null) base.sheetPlannedSP = sp;
+  return base;
+}
 
 /* Populate MAPS/MQ epicIds from SHEET_EPIC_META (VegaCache already set from EPIC_V2MOM_MAP) */
 (function() {
@@ -3983,7 +4037,7 @@ function getEpicMeta(epicId) { return SHEET_EPIC_META[epicId] || { owner:'', pri
 
 /**
  * Static / GitHub Pages fallback: epic shell from sheet + V2MOM map.
- * Story point and work-item rollups stay at 0 unless loaded from GUS (no fabricated “closed” or delivery).
+ * Story points are not populated here — planned/actual come from GUS after connect; workstream WI rollup runs on load.
  */
 function buildOfflineEpicFromSheet(eid) {
   const em = SHEET_EPIC_META[eid] || {};
@@ -4003,7 +4057,7 @@ function buildOfflineEpicFromSheet(eid) {
     Epic_Health_Comments__c: '',
     Path_to_Green__c: null,
     Slippage_Comments__c: null,
-    Planned_Story_Points__c: 0,
+    Planned_Story_Points__c: null,
     Actual_Story_Points_on_Epic__c: 0,
     Storypoints_Closed__c: 0,
     Storypoints_In_Progress__c: 0,
@@ -4415,7 +4469,8 @@ function savePvaField(el) {
 
 async function pushToGUS(epicId, field, value) {
   try {
-    const data = await gusApi('update', { epicId, field, value });
+    const id = String(epicId || '').trim();
+    const data = await gusApi('update', { epicId: id, field, value });
     if (data.status !== 'ok') {
       const detail = data.details ? data.details.map(d => d.method + ': ' + d.error).join(' | ') : (data.error || 'unknown');
       console.warn('GUS update failed:', detail);
@@ -4432,12 +4487,13 @@ async function pushToGUS(epicId, field, value) {
 async function pushAllEditsToGUS() {
   const updates = [];
   for (const [epicId, fields] of Object.entries(_pvaEdits)) {
+    const id = String(epicId || '').trim();
     const gusFields = {};
     for (const [field, value] of Object.entries(fields)) {
       if (GUS_WRITEBACK_FIELDS.has(field)) gusFields[field] = value;
     }
     if (Object.keys(gusFields).length > 0) {
-      updates.push({ epicId, fields: gusFields });
+      updates.push({ epicId: id, fields: gusFields });
     }
   }
   if (updates.length === 0) { showToast('No GUS-writable changes to push', 'info'); return; }
@@ -4589,13 +4645,20 @@ function _setBtnState(btn, label, color, borderColor, loading) {
 
 function syncEpicSpProgressDom(cell, ep) {
   if (!cell || !ep) return;
-  const planned = ep.Planned_Story_Points__c || 0;
-  const actual = ep.Actual_Story_Points_on_Epic__c || 0;
-  const closed = ep.Storypoints_Closed__c || 0;
+  const metrics = ctrl.computeMetrics(ep);
+  const planned = metrics.planned;
+  const actual = metrics.actual;
+  const closed = metrics.closed;
+  const sheet = metrics.sheetPlanned;
+  const match = metrics.plannedMatchesSheet;
   const tips = {
-    planned: (v) => `Planned story points — baseline scope on this epic (${v} SP). Field: Planned_Story_Points__c.`,
-    actual: (v) => `Actual story points — total SP currently on the epic (${v} SP). Field: Actual_Story_Points_on_Epic__c.`,
-    closed: (v) => `Closed story points — SP from completed work (${v} SP). Field: Storypoints_Closed__c.`
+    planned: (v) => {
+      let t = `GUS planned SP: ${v} (epic Planned_Story_Points__c, or if blank sum of workstream-shaped child WI Story_Points__c).`;
+      if (sheet != null && !Number.isNaN(sheet)) t += ` Planning sheet: ${sheet} SP — ${match ? 'matches (green).' : 'differs (red).'}`;
+      return t;
+    },
+    actual: (v) => `Actual story points — GUS Actual_Story_Points_on_Epic__c (${v} SP).`,
+    closed: (v) => `Closed story points — GUS Storypoints_Closed__c (${v} SP).`
   };
   const setVal = (field, val) => {
     const el = cell.querySelector(`[data-sp="${field}"]`);
@@ -4607,10 +4670,24 @@ function syncEpicSpProgressDom(cell, ep) {
       ico.setAttribute('aria-label', t);
     }
   };
-  setVal('planned', planned);
+  const pv = cell.querySelector('[data-sp="planned"]');
+  if (pv) {
+    pv.textContent = planned;
+    const hasSheet = sheet != null && !Number.isNaN(sheet);
+    pv.classList.toggle('pva-sp-planned--match', hasSheet && match);
+    pv.classList.toggle('pva-sp-planned--mismatch', hasSheet && !match);
+    if (!hasSheet) {
+      pv.classList.remove('pva-sp-planned--match', 'pva-sp-planned--mismatch');
+    }
+  }
+  const icoP = cell.querySelector('.pva-sp-ico--planned');
+  if (icoP) {
+    const tp = tips.planned(planned);
+    icoP.title = tp;
+    icoP.setAttribute('aria-label', tp);
+  }
   setVal('actual', actual);
   setVal('closed', closed);
-  const metrics = ctrl.computeMetrics(ep);
   const churnNum = metrics.churn || 0;
   const churnValEl = cell.querySelector('[data-sp="churn"]');
   if (churnValEl) churnValEl.textContent = churnNum;
@@ -4642,6 +4719,16 @@ function syncEpicSpProgressDom(cell, ep) {
   }
 }
 
+async function _mergeEpicsFromGusRefreshAndRehydrate(epicMap) {
+  if (!epicMap || !Object.keys(epicMap).length) return;
+  (ctrl.currentEpics || []).forEach(e => {
+    if (!e || !e.Id) return;
+    const u = epicMap[e.Id];
+    if (u) Object.assign(e, u);
+  });
+  await ctrl._hydrateEpicWorkstreamPlannedRollups(ctrl.currentEpics || []);
+}
+
 async function refreshEpicDataFromGUS() {
   const btn = document.getElementById('btn-gus-refresh');
   if (!btn) return;
@@ -4666,12 +4753,13 @@ async function refreshEpicDataFromGUS() {
 
     const epicMap = {};
     (data.records || []).forEach(ep => { epicMap[ep.Id] = ep; });
+    await _mergeEpicsFromGusRefreshAndRehydrate(epicMap);
     let updated = 0;
 
     tbl.querySelectorAll('tr[data-epic-id]').forEach(row => {
       const epicId = row.dataset.epicId;
-      const ep = epicMap[epicId];
-      if (!ep) return;
+      const ep = (ctrl.currentEpics || []).find(x => x.Id === epicId);
+      if (!ep || !epicMap[epicId]) return;
       updated++;
 
       const healthSel = row.querySelector('.cell-health select');

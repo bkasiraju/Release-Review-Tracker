@@ -8,6 +8,8 @@ import http.server
 import json
 import subprocess
 import urllib.parse
+import urllib.error
+import urllib.request
 import os
 import sys
 
@@ -32,6 +34,14 @@ MONTH_ORDER = ['April', 'May', 'June', 'July']
 MONTH_KEY_MAP = {'month-Apr': 'April', 'month-May': 'May', 'month-Jun': 'June', 'month-Jul': 'July'}
 
 
+def normalize_epic_id(epic_id):
+    return (epic_id or '').strip() if isinstance(epic_id, str) else ''
+
+
+def soql_quote_literal(value):
+    return (value or '').replace("'", "''")
+
+
 def run_sf_query(soql):
     result = subprocess.run(
         ['sf', 'data', 'query', '-q', soql, '--json', '-o', 'GusProduction'],
@@ -41,28 +51,73 @@ def run_sf_query(soql):
     return data.get('result', {}).get('records', [])
 
 
-def run_sf_update(object_name, record_id, values):
-    pairs = ' '.join(f"{k}='{v}'" for k, v in values.items())
-    cmd = [
-        'sf', 'data', 'update', 'record',
-        '-s', object_name,
-        '-i', record_id,
-        '-v', pairs,
-        '--json', '-o', 'GusProduction'
-    ]
-    result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
-    data = json.loads(result.stdout) if result.stdout.strip() else {}
-    success = data.get('result', {}).get('id') or data.get('status') == 0
-    return success, data
+def org_rest_credentials():
+    """Instance URL + token + REST version segment (e.g. v67.0) for GusProduction."""
+    result = subprocess.run(
+        ['sf', 'org', 'display', '--json', '-o', 'GusProduction'],
+        capture_output=True, text=True, timeout=30,
+    )
+    data = json.loads(result.stdout or '{}')
+    if data.get('status') != 0:
+        raise RuntimeError(data.get('message') or result.stderr or 'sf org display failed')
+    res = data.get('result') or {}
+    instance = (res.get('instanceUrl') or '').rstrip('/')
+    token = res.get('accessToken') or ''
+    if not instance or not token:
+        raise RuntimeError('sf org display missing instanceUrl or accessToken')
+    ver = str(res.get('apiVersion', '62.0'))
+    if not ver.startswith('v'):
+        ver = 'v' + ver
+    return instance, token, ver
+
+
+def run_sf_update(creds, object_name, record_id, values):
+    """PATCH record via REST so values can contain quotes, newlines, and unicode."""
+    instance_url, token, api_ver_path = creds
+    url = f'{instance_url}/services/data/{api_ver_path}/sobjects/{object_name}/{record_id}'
+    body = json.dumps(values).encode('utf-8')
+    req = urllib.request.Request(url, data=body, method='PATCH')
+    req.add_header('Authorization', f'Bearer {token}')
+    req.add_header('Content-Type', 'application/json')
+    try:
+        with urllib.request.urlopen(req, timeout=60) as resp:
+            if resp.status in (200, 204):
+                return True, {'statusCode': resp.status}
+            raw = resp.read().decode('utf-8', errors='replace')
+            return False, {'message': raw, 'statusCode': resp.status}
+    except urllib.error.HTTPError as e:
+        raw = e.read().decode('utf-8', errors='replace')
+        try:
+            err = json.loads(raw)
+        except json.JSONDecodeError:
+            return False, {'message': raw, 'statusCode': e.code}
+        if isinstance(err, list) and err:
+            first = err[0]
+            return False, {
+                'message': first.get('message', raw),
+                'errorCode': first.get('errorCode', ''),
+                'fields': first.get('fields'),
+                'full': err,
+            }
+        if isinstance(err, dict):
+            return False, err
+        return False, {'message': raw, 'statusCode': e.code}
 
 
 def get_current_comments(epic_id):
+    eid = soql_quote_literal(normalize_epic_id(epic_id))
     records = run_sf_query(
-        f"SELECT Id, Epic_Health_Comments__c FROM ADM_Epic__c WHERE Id = '{epic_id}' LIMIT 1"
+        f"SELECT Id, Epic_Health_Comments__c FROM ADM_Epic__c WHERE Id = '{eid}' LIMIT 1"
     )
     if records:
         return records[0].get('Epic_Health_Comments__c') or ''
     return ''
+
+
+def epic_exists(epic_id):
+    eid = soql_quote_literal(normalize_epic_id(epic_id))
+    records = run_sf_query(f"SELECT Id FROM ADM_Epic__c WHERE Id = '{eid}' LIMIT 1")
+    return bool(records)
 
 
 def merge_month_comment(existing_comments, month_label, new_text):
@@ -141,7 +196,7 @@ class DashboardHandler(http.server.SimpleHTTPRequestHandler):
     def _handle_gus_update(self):
         try:
             body = json.loads(self.rfile.read(int(self.headers['Content-Length'])))
-            epic_id = body.get('epicId')
+            epic_id = normalize_epic_id(body.get('epicId'))
             field = body.get('field')
             value = body.get('value', '')
 
@@ -167,7 +222,16 @@ class DashboardHandler(http.server.SimpleHTTPRequestHandler):
             else:
                 return self._json_response(200, {'status': 'skipped', 'reason': f'Field {field} not mapped to GUS'})
 
-            success, result = run_sf_update('ADM_Epic__c', epic_id, {gus_field: gus_value})
+            if not epic_exists(epic_id):
+                return self._json_response(200, {
+                    'status': 'error',
+                    'epicId': epic_id,
+                    'gusField': gus_field,
+                    'error': 'Epic Id not found in GUS for this org (no ADM_Epic__c row).',
+                })
+
+            creds = org_rest_credentials()
+            success, result = run_sf_update(creds, 'ADM_Epic__c', epic_id, {gus_field: gus_value})
 
             if success:
                 self._json_response(200, {
@@ -177,10 +241,13 @@ class DashboardHandler(http.server.SimpleHTTPRequestHandler):
                     'updated': True
                 })
             else:
-                self._json_response(500, {
+                msg = result.get('message') or json.dumps(result)[:500]
+                self._json_response(200, {
                     'status': 'error',
                     'epicId': epic_id,
-                    'detail': result
+                    'gusField': gus_field,
+                    'error': msg,
+                    'detail': result,
                 })
 
         except Exception as e:
@@ -191,9 +258,10 @@ class DashboardHandler(http.server.SimpleHTTPRequestHandler):
             body = json.loads(self.rfile.read(int(self.headers['Content-Length'])))
             updates = body.get('updates', [])
             results = []
+            creds = org_rest_credentials()
 
             for upd in updates:
-                epic_id = upd.get('epicId')
+                epic_id = normalize_epic_id(upd.get('epicId'))
                 fields = upd.get('fields', {})
                 if not epic_id or not fields:
                     results.append({'epicId': epic_id, 'status': 'skipped'})
@@ -220,12 +288,22 @@ class DashboardHandler(http.server.SimpleHTTPRequestHandler):
                     gus_updates['Epic_Health_Comments__c'] = merged
 
                 if gus_updates:
-                    success, result = run_sf_update('ADM_Epic__c', epic_id, gus_updates)
-                    results.append({
+                    if not epic_exists(epic_id):
+                        results.append({
+                            'epicId': epic_id,
+                            'status': 'error',
+                            'error': 'Epic Id not found in GUS for this org (no ADM_Epic__c row).',
+                        })
+                        continue
+                    success, result = run_sf_update(creds, 'ADM_Epic__c', epic_id, gus_updates)
+                    row = {
                         'epicId': epic_id,
                         'status': 'ok' if success else 'error',
-                        'fields': list(gus_updates.keys())
-                    })
+                        'fields': list(gus_updates.keys()),
+                    }
+                    if not success:
+                        row['error'] = result.get('message') or json.dumps(result)[:500]
+                    results.append(row)
                 else:
                     results.append({'epicId': epic_id, 'status': 'skipped', 'reason': 'no GUS fields'})
 
