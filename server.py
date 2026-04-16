@@ -15,6 +15,7 @@ import sys
 
 PORT = int(os.environ.get('SERVER_PORT', '8282'))
 STATIC_DIR = os.path.dirname(os.path.abspath(__file__))
+RISKS_FILE = os.path.join(STATIC_DIR, 'data', 'risks.json')
 
 FIELD_MAP = {
     'month-Apr': 'Epic_Health_Comments__c',
@@ -151,6 +152,13 @@ class DashboardHandler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=STATIC_DIR, **kwargs)
 
+    def do_GET(self):
+        parsed = urllib.parse.urlparse(self.path)
+        if parsed.path == '/api/risks':
+            self._handle_risks_get()
+        else:
+            super().do_GET()
+
     def do_POST(self):
         parsed = urllib.parse.urlparse(self.path)
 
@@ -160,6 +168,8 @@ class DashboardHandler(http.server.SimpleHTTPRequestHandler):
             self._handle_gus_update()
         elif parsed.path == '/api/gus-batch-update':
             self._handle_gus_batch_update()
+        elif parsed.path == '/api/risks':
+            self._handle_risks_post()
         else:
             self.send_error(404, 'Not Found')
 
@@ -179,6 +189,28 @@ class DashboardHandler(http.server.SimpleHTTPRequestHandler):
         self.send_header('Content-Type', 'application/json')
         self.end_headers()
         self.wfile.write(json.dumps(data).encode())
+
+    def _handle_risks_get(self):
+        try:
+            if os.path.exists(RISKS_FILE):
+                with open(RISKS_FILE, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+            else:
+                data = []
+            self._json_response(200, {'status': 'ok', 'risks': data})
+        except Exception as e:
+            self._json_response(500, {'error': str(e)})
+
+    def _handle_risks_post(self):
+        try:
+            body = json.loads(self.rfile.read(int(self.headers['Content-Length'])))
+            risks = body.get('risks', [])
+            os.makedirs(os.path.dirname(RISKS_FILE), exist_ok=True)
+            with open(RISKS_FILE, 'w', encoding='utf-8') as f:
+                json.dump(risks, f, indent=2, ensure_ascii=False)
+            self._json_response(200, {'status': 'ok', 'count': len(risks)})
+        except Exception as e:
+            self._json_response(500, {'error': str(e)})
 
     def _handle_gus_query(self):
         try:
@@ -317,7 +349,8 @@ if __name__ == '__main__':
     print(f'\n  CFS Release Dashboard Server')
     print(f'  http://localhost:{PORT}/index.html')
     print(f'  GUS write-back: POST /api/gus-update')
-    print(f'  GUS batch:      POST /api/gus-batch-update\n')
+    print(f'  GUS batch:      POST /api/gus-batch-update')
+    print(f'  Risk register:  GET/POST /api/risks  ({RISKS_FILE})\n')
 
     server = http.server.HTTPServer(('', PORT), DashboardHandler)
     try:
