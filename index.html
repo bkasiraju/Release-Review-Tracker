@@ -408,10 +408,10 @@ body { font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe
 @media (max-width: 900px) { .pva-risks-grid { grid-template-columns: 1fr; } }
 .pva-chart-container { height: 220px; }
 
-/* PVA Summary Table — auto layout + display:none hidden months avoids phantom columns; outer panel scrolls, inner card hugs table width. */
-.pva-epic-table { width: max-content; border-collapse: collapse; table-layout: auto; --pva-col-me-width: 320px; }
+/* PVA Summary Table — auto layout + display:none hidden months avoids phantom columns; table fills available width. */
+.pva-epic-table { width: 100%; border-collapse: collapse; table-layout: auto; --pva-col-me-width: 320px; }
 .pva-epic-table th.pva-col-me,
-.pva-epic-table td.pva-col-me { width: var(--pva-col-me-width); min-width: var(--pva-col-me-width); max-width: var(--pva-col-me-width); box-sizing: border-box; }
+.pva-epic-table td.pva-col-me { min-width: var(--pva-col-me-width); box-sizing: border-box; }
 .pva-epic-table th.pva-col-owner,
 .pva-epic-table td.pva-col-owner { width: 108px; min-width: 96px; max-width: 120px; box-sizing: border-box; }
 .pva-epic-table th.pva-col-pri,
@@ -423,7 +423,7 @@ body { font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe
 .pva-epic-table th.pva-th-sp-delivery,
 .pva-epic-table td.cell-sp { width: 158px; min-width: 146px; max-width: 172px; box-sizing: border-box; }
 .pva-epic-table th.pva-month-col:not(.col-hidden),
-.pva-epic-table td.pva-month-col:not(.col-hidden) { width: 188px; min-width: 160px; max-width: 200px; box-sizing: border-box; }
+.pva-epic-table td.pva-month-col:not(.col-hidden) { min-width: 160px; box-sizing: border-box; }
 /* Collapse hidden month columns at the grid level (with td/th display:none) to avoid phantom columns after April / month toggles. */
 .pva-epic-table col.pva-month-colg { width: 188px; }
 .pva-epic-table col.pva-month-colg.col-hidden {
@@ -579,10 +579,10 @@ body { font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe
 .pva-sp-burn-fill { position: absolute; bottom: 0; left: 0; right: 0; border-radius: 0 0 2px 2px; min-height: 0; background: linear-gradient(180deg,#4ade80,#16a34a); transition: height .22s ease; }
 .pva-progress-bar { height: 5px; border-radius: 3px; background: #e8e6df; overflow: hidden; margin-top: 3px; }
 .pva-progress-bar .fill { height: 100%; border-radius: 3px; transition: width .4s; }
-/* Shrink-wrap to table: avoid a full-width scroll strip with empty area right of the card (was width:100%). */
-.pva-table-panel { display: block; width: fit-content; max-width: 100%; overflow-x: auto; overflow-y: hidden; margin-top: 8px; -webkit-overflow-scrolling: touch; position: relative; box-sizing: border-box; background: transparent; border: none; box-shadow: none; }
-.pva-table-panel-card { display: block; width: fit-content; max-width: 100%; position: relative; box-sizing: border-box; background: linear-gradient(180deg, #ffffff 0%, #fafcff 55%, #f5faff 100%); border: 1px solid #e0f2fe; border-radius: 8px; box-shadow: 0 1px 3px rgba(14, 116, 144, .06); }
-#fullscreen-table-container { width: fit-content; max-width: 100%; }
+/* Table panel fills available width; inner card stretches to match. */
+.pva-table-panel { display: block; width: 100%; overflow-x: auto; overflow-y: hidden; margin-top: 8px; -webkit-overflow-scrolling: touch; position: relative; box-sizing: border-box; background: transparent; border: none; box-shadow: none; }
+.pva-table-panel-card { display: block; width: 100%; position: relative; box-sizing: border-box; background: linear-gradient(180deg, #ffffff 0%, #fafcff 55%, #f5faff 100%); border: 1px solid #e0f2fe; border-radius: 8px; box-shadow: 0 1px 3px rgba(14, 116, 144, .06); }
+#fullscreen-table-container { width: 100%; }
 .pva-table-panel-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; border-radius: 8px 8px 0 0; background: linear-gradient(90deg, #bae6fd 0%, #7dd3fc 35%, #a5b4fc 70%, #c4b5fd 100%); opacity: .85; pointer-events: none; }
 
 /* AI Executive summary tab */
@@ -4803,16 +4803,17 @@ async function _mergeEpicsFromGusRefreshAndRehydrate(epicMap) {
 
 async function refreshEpicDataFromGUS() {
   const btn = document.getElementById('btn-gus-refresh');
-  if (!btn) return;
-  _setBtnState(btn, 'Fetching...', '#0176d3', '#bfdbfe', true);
+  if (btn) _setBtnState(btn, 'Fetching...', '#0176d3', '#bfdbfe', true);
 
   const tbl = document.getElementById('pva-epic-table');
   const epicIds = [];
   if (tbl) tbl.querySelectorAll('tr[data-epic-id]').forEach(r => epicIds.push(r.dataset.epicId));
 
   if (epicIds.length === 0) {
-    _setBtnState(btn, 'No epics loaded', '#d97706', '#fbbf24', false);
-    setTimeout(() => _setBtnState(btn, 'Fetch from GUS', '#0176d3', '#bfdbfe', false), 2000);
+    if (btn) {
+      _setBtnState(btn, 'No epics loaded', '#d97706', '#fbbf24', false);
+      setTimeout(() => _setBtnState(btn, 'Fetch from GUS', '#0176d3', '#bfdbfe', false), 2000);
+    }
     return;
   }
 
@@ -4862,15 +4863,19 @@ async function refreshEpicDataFromGUS() {
       }
     });
 
-    _setBtnState(btn, `Updated ${updated} epics`, '#16a34a', '#86efac', false);
+    if (btn) {
+      _setBtnState(btn, `Updated ${updated} epics`, '#16a34a', '#86efac', false);
+      setTimeout(() => _setBtnState(btn, 'Fetch from GUS', '#0176d3', '#bfdbfe', false), 3000);
+    }
     showToast(`Fetched ${updated} epics from GUS`, 'success');
-    setTimeout(() => _setBtnState(btn, 'Fetch from GUS', '#0176d3', '#bfdbfe', false), 3000);
 
   } catch (err) {
     console.error('GUS fetch error:', err);
-    _setBtnState(btn, 'Error: ' + (err.message || 'failed').substring(0, 30), '#dc2626', '#fca5a5', false);
+    if (btn) {
+      _setBtnState(btn, 'Error: ' + (err.message || 'failed').substring(0, 30), '#dc2626', '#fca5a5', false);
+      setTimeout(() => _setBtnState(btn, 'Fetch from GUS', '#0176d3', '#bfdbfe', false), 4000);
+    }
     showToast('GUS fetch failed: ' + err.message, 'error');
-    setTimeout(() => _setBtnState(btn, 'Fetch from GUS', '#0176d3', '#bfdbfe', false), 4000);
   }
 }
 
