@@ -10,6 +10,8 @@ cd "$(dirname "$0")/.."
 ZIP=$(mktemp -t cfs-release-review-XXXXXX.zip)
 cleanup() { rm -f "$ZIP"; }
 trap cleanup EXIT
+# mktemp creates an empty file; zip needs a non-existent target or valid archive.
+rm -f "$ZIP"
 
 zip -qr "$ZIP" manifest.json backend public -x "*.DS_Store"
 TOKEN=$(sf org display --target-org GusProduction --json | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('result',{}).get('accessToken','') or '')")
