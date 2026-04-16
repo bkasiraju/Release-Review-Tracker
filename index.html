@@ -727,6 +727,16 @@ body { font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe
 .ai-q-summary strong { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: .04em; color: #0c4a6e; margin-top: 8px; }
 .ai-q-summary strong:first-child { margin-top: 0; }
 .ai-q-summary p { margin: 4px 0 0; color: #334155; line-height: 1.45; font-size: 12px; }
+.ai-summary-cell { position: relative; }
+.ai-summary-cell .ai-edit-btn { position: absolute; top: 4px; right: 4px; display: none; width: 22px; height: 22px; border-radius: 5px; border: 1px solid #cbd5e1; background: #fff; color: #64748b; cursor: pointer; align-items: center; justify-content: center; font-size: 11px; padding: 0; box-shadow: 0 1px 3px rgba(0,0,0,.08); transition: all .12s; z-index: 2; }
+.ai-summary-cell:hover .ai-edit-btn { display: inline-flex; }
+.ai-summary-cell .ai-edit-btn:hover { background: #f0f9ff; border-color: #0176d3; color: #0176d3; }
+.ai-summary-cell textarea.ai-edit-area { width: 100%; min-height: 80px; font-size: 12px; color: #334155; line-height: 1.5; border: 1px solid #93c5fd; border-radius: 6px; padding: 8px; resize: vertical; font-family: inherit; background: #f8fafc; }
+.ai-summary-cell .ai-edit-actions { display: flex; gap: 4px; margin-top: 4px; justify-content: flex-end; }
+.ai-summary-cell .ai-edit-actions button { padding: 3px 10px; border-radius: 5px; font-size: 10px; font-weight: 700; cursor: pointer; border: 1px solid #cbd5e1; background: #fff; color: #475569; transition: all .12s; }
+.ai-summary-cell .ai-edit-actions button.ai-save-btn { background: #0176d3; color: #fff; border-color: #0176d3; }
+.ai-summary-cell .ai-edit-actions button.ai-save-btn:hover { background: #015eb8; }
+.ai-summary-cell .ai-edit-actions button:hover { background: #f1f5f9; }
 .ai-epic-count-cell { text-align: center !important; vertical-align: middle !important; }
 .ai-epic-count-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; border-radius: 8px; background: linear-gradient(180deg, #e0f2fe, #bae6fd); color: #0c4a6e; font-weight: 800; font-size: 13px; border: 1px solid #7dd3fc; cursor: default; }
 #ai-summary-table thead th { background: linear-gradient(180deg, #e0f2fe 0%, #f0f9ff 100%) !important; color: #0f172a !important; border-bottom: 2px solid #93c5fd !important; }
@@ -1290,6 +1300,7 @@ function healthBadge(status) {
   const h = HEALTH_MAP[status] || HEALTH_MAP['Not Started'];
   return `<span class="health-badge ${h.cls}"><span class="health-dot"></span>${esc(status || 'Unknown')}</span>`;
 }
+
 /* V2MOM Method Health: Green/Yellow/Red per V2MOM reference rules.
    Mapping: On Track→G(green), Watch→Y(yellow), Blocked→R(red),
    Completed→D(blue), On Hold→P(orange/postponed), Not Started→W(white), Canceled→C(gray).
@@ -2874,6 +2885,9 @@ class DashboardView {
       const measCount = (m.measures || []).length;
       const act = actualByM[String(methodNum)] || { epicCount: 0, totalWI: 0, actualSP: 0 };
       const actSpPct = totalActualSP > 0 ? ((act.actualSP / totalActualSP) * 100).toFixed(0) : '—';
+      const hMg = hierarchy.find(h => String(h.methodNum) === String(methodNum));
+      const hAllEpics = hMg ? hMg.measures.flatMap(ms => ms.epics) : [];
+      const methodHealth = calcV2momMethodHealth(hAllEpics);
       const tipEpics = 'Planned epics (sheet) vs actual epics linked to this method in GUS.';
       const tipScope = 'Planned workstreams (sheet) vs total work items on those epics (GUS).';
       const tipEffort = 'Planned sprint days (sheet) vs actual story points on epics (GUS).';
@@ -2909,6 +2923,7 @@ class DashboardView {
         </div>
         <div class="pmi-footer">
           <span class="pmi-footer-stat">${measCount} measure${measCount !== 1 ? 's' : ''}</span>
+          ${v2momHealthBadgeHtml(methodHealth)}
           <span class="pmi-footer-pri" aria-label="Priority breakdown">
             <span class="pmi-pri-chip pmi-pri-chip--p0" title="P0 — highest priority"><span class="pmi-pri-chip-lbl">P0</span><span class="pmi-pri-chip-val">${m.p0 || 0}</span></span>
             <span class="pmi-pri-chip pmi-pri-chip--p1" title="P1 — high priority"><span class="pmi-pri-chip-lbl">P1</span><span class="pmi-pri-chip-val">${m.p1 || 0}</span></span>
@@ -3093,6 +3108,9 @@ class DashboardView {
           </button>
           <div class="sync-progress" id="sync-progress" style="width:0%;"></div>
         </div></div>
+        <span class="pva-month-toggle" id="btn-v2mom-ref" onclick="toggleV2momRefCol()" style="color:#7c3aed;border-color:#c4b5fd;background:#f5f3ff;" title="Show/hide V2MOM method reference column">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 6h16M4 12h10M4 18h14"/></svg> V2MOM Ref
+        </span>
         <span class="pva-month-toggle" onclick="toggleTableFullscreen()" id="btn-fullscreen" style="color:#475569;border-color:#cbd5e1;background:#f8fafc;" title="Fullscreen view">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg> Zoom
         </span>
@@ -3101,13 +3119,14 @@ class DashboardView {
 
     const monthColgroup = visibleMonthIdx.map((mi) => `<col class="pva-month-colg" data-month-idx="${mi}" />`).join('');
     html += `<div class="pva-table-panel"><div class="pva-table-panel-card"><table class="pva-epic-table" id="pva-epic-table">
-      <colgroup><col style="width:320px" /><col style="width:108px" /><col style="width:42px" /><col style="width:82px" /><col style="width:96px" /><col style="width:158px" />${monthColgroup}</colgroup>
+      <colgroup><col style="width:320px" /><col style="width:108px" /><col style="width:42px" /><col style="width:82px" /><col style="width:96px" /><col class="pva-col-v2ref-cg col-hidden" style="width:160px;" /><col style="width:158px" />${monthColgroup}</colgroup>
       <thead><tr>
         <th class="pva-col-me" style="text-align:left;">Measure / Epic</th>
         <th class="pva-col-owner" style="text-align:left;">Owner</th>
         <th class="pva-col-pri" style="text-align:left;">Pri</th>
         <th class="pva-col-sprint" style="text-align:left;">Sprint</th>
         <th class="pva-col-health" style="text-align:left;">Health</th>
+        <th class="pva-col-v2ref col-hidden" style="text-align:left;font-size:10px;">V2MOM Ref</th>
         <th class="pva-th-sp-delivery" style="text-align:left;padding-top:8px;" title="Planned, actual, and closed story points (GUS), scope churn signal, and closed-vs-actual delivery strip">
           <span style="display:block;font-size:10px;font-weight:800;color:#0c4a6e;line-height:1.15;">Plan vs Actual</span>
           <span style="display:block;font-size:8px;font-weight:600;color:#64748b;margin-top:3px;line-height:1.2;"><span style="color:#0369a1;" title="Planned (Sheet)">P</span> · <span style="color:#16a34a;" title="Actual (GUS)">A</span> · <span style="color:#7c3aed;" title="Closed">C</span> · <span style="color:#d97706;" title="Churn">±</span> · <span style="color:#dc2626;" title="Burn rate">🔥</span></span>
@@ -3122,8 +3141,9 @@ class DashboardView {
       const mBadges = Object.entries(mhc).map(([h, c]) => miniBadge(c, HEALTH_MAP[h]?.color || '#94a3b8', HEALTH_MAP[h]?.bg || '#f1f5f9')).join('');
       const methodOwners = [...new Set(allEpics.map(e => getEpicMeta(e.Id).owner).filter(Boolean))].join(' ');
       const methodRowTitle = pvaStripDuplicateMethodPrefix(mg.methodNum, mg.methodLabel);
+      const mMethodHealth = calcV2momMethodHealth(allEpics);
       html += `<tr class="pva-method-row collapsed" data-pva-method="${esc(mNum)}" data-search-text="${esc(('M' + mg.methodNum + ' ' + mg.methodLabel + ' ' + methodOwners).toLowerCase())}" onclick='togglePvaMethod(${JSON.stringify(mNum)})'>
-        <td class="pva-group-row-td" colspan="${groupRowColspan}"><span class="chevron">&#9660;</span>M${esc(mg.methodNum)} &mdash; ${esc(methodRowTitle)} <span style="font-weight:400;opacity:.8;margin-left:4px;">(${mg.measures.length} measures, ${allEpics.length} epics)</span><span class="group-badges" style="margin-left:8px;">${mBadges}</span></td>
+        <td class="pva-group-row-td" colspan="${groupRowColspan}"><span class="chevron">&#9660;</span>M${esc(mg.methodNum)} &mdash; ${esc(methodRowTitle)} <span style="font-weight:400;opacity:.8;margin-left:4px;">(${mg.measures.length} measures, ${allEpics.length} epics)</span>${v2momHealthBadgeHtml(mMethodHealth)}<span class="group-badges" style="margin-left:8px;">${mBadges}</span></td>
       </tr>`;
 
       mg.measures.forEach((meas, msIdx) => {
@@ -5044,12 +5064,15 @@ function cycleHealthChip(chip) {
   const cls = HEALTH_CHIP_MAP[next] || 'health-chip--not-started';
   chip.className = 'health-chip ' + cls;
   chip.textContent = code + ' ' + next;
+  // Update epic object in cache
   if (ctrl._dashboardCache) {
     const ep = ctrl._dashboardCache.epics.find(e => e.Id === epicId);
     if (ep) ep.Health__c = next;
   }
+  // Update the row's data-health for filtering
   const row = chip.closest('tr.pva-epic-row');
   if (row) row.dataset.health = next;
+  // Save via existing mechanism
   chip.dataset.field = 'health';
   chip.value = next;
   const fakeEl = { dataset: { epicId, field: 'health' }, tagName: 'SPAN', value: next, style: chip.style };
@@ -6040,7 +6063,10 @@ function buildExecSummaryRows(hierarchy, quarterly) {
       const combined = synthesizeFromRawUpdates(measureRawBlob, { maxSentences: quarterly ? 7 : 5, stripMonthTags: true });
       const healthCounts = {};
       epicSummaries.forEach(e => { healthCounts[e.health] = (healthCounts[e.health] || 0) + 1; });
-      const healthSummary = Object.entries(healthCounts).map(([h, c]) => `${c} ${h}`).join(', ');
+      const healthSummary = Object.entries(healthCounts).map(([h, c]) => {
+        const vc = V2MOM_HEALTH_CODES[h] || V2MOM_HEALTH_CODES['Not Started'];
+        return `${c}${vc.code}`;
+      }).join(' ');
       const accomplished = combined;
       let blockers = epicSummaries.map(e => e.slippage).filter(Boolean).join(' ');
       let pathToGreen = epicSummaries.map(e => e.pathToGreen).filter(Boolean).join(' ');
@@ -6303,8 +6329,8 @@ ${prompt}${riskBlock}`
     tableHtml += `<tr id="ai-sum-row-${i}" style="${stripe}border-bottom:1px solid #e2e8f0;">
       ${methodCell}
       <td style="padding:10px 12px;font-weight:600;color:#334155;">${esc(r.measure)}</td>
-      <td style="padding:10px 12px;text-align:center;font-size:11px;">${esc(r.healthSummary)}</td>
-      <td style="padding:10px 12px;color:#475569;line-height:1.5;vertical-align:top;">${summaryInner}</td>
+      <td style="padding:10px 12px;text-align:center;font-size:10px;white-space:nowrap;">${renderV2momHealthCodes(r.healthSummary)}</td>
+      <td style="padding:10px 12px;color:#475569;line-height:1.5;vertical-align:top;" class="ai-summary-cell" data-row-idx="${i}"><button class="ai-edit-btn" onclick="editAiSummaryCell(this)" title="Edit summary">&#9998;</button><div class="ai-cell-content">${summaryInner}</div></td>
       <td class="ai-epic-count-cell" title="${esc(epicTitle)}"><span class="ai-epic-count-badge">${r.epicCount}</span></td>
     </tr>`;
   });
@@ -6312,6 +6338,71 @@ ${prompt}${riskBlock}`
 
   out.innerHTML = tableHtml;
   copyBtn.style.display = 'inline-flex';
+}
+
+function editAiSummaryCell(btn) {
+  const cell = btn.closest('.ai-summary-cell');
+  if (!cell) return;
+  const contentDiv = cell.querySelector('.ai-cell-content');
+  if (!contentDiv) return;
+  btn.style.display = 'none';
+  const isQuarterly = !!contentDiv.querySelector('.ai-q-summary');
+  let currentText = '';
+  if (isQuarterly) {
+    const parts = contentDiv.querySelectorAll('p');
+    const labels = contentDiv.querySelectorAll('strong');
+    const sections = [];
+    labels.forEach((lbl, i) => {
+      sections.push(`[${lbl.textContent.trim()}]\n${(parts[i] ? parts[i].textContent.trim() : '—')}`);
+    });
+    currentText = sections.join('\n\n');
+  } else {
+    currentText = contentDiv.textContent.trim();
+  }
+  const origHtml = contentDiv.innerHTML;
+  contentDiv.innerHTML = `<textarea class="ai-edit-area">${esc(currentText)}</textarea>
+    <div class="ai-edit-actions">
+      <button onclick="cancelAiEdit(this)">Cancel</button>
+      <button class="ai-save-btn" onclick="saveAiEdit(this)">Save</button>
+    </div>`;
+  contentDiv.querySelector('textarea').focus();
+  contentDiv._origHtml = origHtml;
+  contentDiv._isQuarterly = isQuarterly;
+}
+function cancelAiEdit(saveBtn) {
+  const contentDiv = saveBtn.closest('.ai-cell-content');
+  if (!contentDiv || !contentDiv._origHtml) return;
+  contentDiv.innerHTML = contentDiv._origHtml;
+  const editBtn = contentDiv.closest('.ai-summary-cell')?.querySelector('.ai-edit-btn');
+  if (editBtn) editBtn.style.display = '';
+}
+function saveAiEdit(saveBtn) {
+  const contentDiv = saveBtn.closest('.ai-cell-content');
+  if (!contentDiv) return;
+  const ta = contentDiv.querySelector('textarea');
+  if (!ta) return;
+  const newText = ta.value.trim();
+  if (contentDiv._isQuarterly) {
+    const sectionRegex = /\[([^\]]+)\]\s*/g;
+    const parts = [];
+    let match, lastIdx = 0;
+    while ((match = sectionRegex.exec(newText)) !== null) {
+      if (parts.length > 0) parts[parts.length - 1].body = newText.substring(lastIdx, match.index).trim();
+      parts.push({ label: match[1], body: '' });
+      lastIdx = match.index + match[0].length;
+    }
+    if (parts.length > 0) parts[parts.length - 1].body = newText.substring(lastIdx).trim();
+    if (parts.length > 0) {
+      contentDiv.innerHTML = `<div class="ai-q-summary">${parts.map(p => `<strong>${esc(p.label)}</strong><p>${esc(p.body || '—')}</p>`).join('')}</div>`;
+    } else {
+      contentDiv.innerHTML = esc(newText);
+    }
+  } else {
+    contentDiv.innerHTML = esc(newText);
+  }
+  contentDiv._origHtml = contentDiv.innerHTML;
+  const editBtn = contentDiv.closest('.ai-summary-cell')?.querySelector('.ai-edit-btn');
+  if (editBtn) editBtn.style.display = '';
 }
 
 function copyAISummary() {
@@ -6539,7 +6630,9 @@ function initPvaEpicColumnResizeListener() {
 function pvaExpandAll() {
   _clearMethodTileSelection();
   const sec = document.getElementById('epic-table-section');
+  const wrap = document.getElementById('pva-section-wrap');
   if (sec) sec.style.display = '';
+  if (wrap) wrap.style.display = '';
   document.querySelectorAll('tr.pva-method-row.collapsed').forEach(r => r.classList.remove('collapsed'));
   document.querySelectorAll('tr.pva-measure-row.pva-hidden').forEach(r => r.classList.remove('pva-hidden'));
   document.querySelectorAll('tr.pva-measure-row.collapsed').forEach(r => r.classList.remove('collapsed'));
@@ -6649,15 +6742,18 @@ function _applyAllFilters() {
   const totalEpics = document.querySelectorAll('tr.pva-epic-row').length;
 
   const sec = document.getElementById('epic-table-section');
+  const wrap = document.getElementById('pva-section-wrap');
 
   if (!hasTextFilters && !methodFilterOn) {
     pvaCollapseAll();
     if (sec) sec.style.display = 'none';
+    if (wrap) wrap.style.display = 'none';
     _updateSearchCounts(0, totalEpics);
     return;
   }
 
   if (sec) sec.style.display = '';
+  if (wrap) wrap.style.display = '';
 
   if (!hasTextFilters && methodFilterOn) {
     _applyMethodTileFilter();
@@ -6728,8 +6824,10 @@ function filterMeasureByHealth(measureKey, health, dotEl) {
 /* ===== METHOD TILE CLICK-TO-FILTER (multi-select) ===== */
 function _toggleEpicTableSection() {
   const sec = document.getElementById('epic-table-section');
-  if (!sec) return;
-  sec.style.display = _activeMethodTileSet.size > 0 ? '' : 'none';
+  const wrap = document.getElementById('pva-section-wrap');
+  const show = _activeMethodTileSet.size > 0;
+  if (sec) sec.style.display = show ? '' : 'none';
+  if (wrap) wrap.style.display = show ? '' : 'none';
 }
 
 function filterByMethodTile(methodNum) {
