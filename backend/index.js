@@ -17,6 +17,31 @@ function crossRefHint(msg) {
   return ' This often means the epic Id is not in the org your session targets, or the epic has invalid lookup data; fix in GUS or re-auth to GusProduction.';
 }
 
+/**
+ * Prefer a user-scoped JSForce / connection object when the host exposes one, so SOQL
+ * respects the browser user’s sharing like Lightning. Falls back to ctx.sf.
+ */
+function resolveSalesforceConnection(ctx) {
+  const c = ctx && typeof ctx === 'object' ? ctx : {};
+  const ordered = [
+    ['userConnection', c.userConnection],
+    ['userSf', c.userSf],
+    ['sfAsUser', c.sfAsUser],
+    ['sfUser', c.sfUser],
+    ['connectionAsUser', c.connectionAsUser],
+    ['orgAsUser', c.orgAsUser],
+    ['salesforceUser', c.salesforceUser],
+    ['sf', c.sf],
+  ];
+  for (const [name, val] of ordered) {
+    if (val && typeof val === 'object' && typeof val.query === 'function') {
+      return { sf: val, connectionSource: name };
+    }
+  }
+  const fallback = c.sf || {};
+  return { sf: fallback, connectionSource: typeof fallback.query === 'function' ? 'sf' : 'none' };
+}
+
 function mergeMonthComment(existing, monthLabel, newText) {
   const sections = {};
   let currentMonth = null;
@@ -44,9 +69,9 @@ function mergeMonthComment(existing, monthLabel, newText) {
 
 module.exports.handleRequest = async (ctx) => {
   const req = ctx.request || ctx;
-  const sf = ctx.sf || {};
   const body = req.body || req;
   const action = body.action;
+  const { sf, connectionSource } = resolveSalesforceConnection(ctx);
 
   if (action === 'debug') {
     const sfInfo = {
@@ -59,7 +84,19 @@ module.exports.handleRequest = async (ctx) => {
       hasRequest: typeof sf.request === 'function',
     };
     if (sf.constructor) sfInfo.constructorName = sf.constructor.name;
-    return { ok: true, payload: { sfInfo, ctxKeys: Object.keys(ctx), reqKeys: req ? Object.keys(req) : [], bodyKeys: Object.keys(body) } };
+    const ctxKeys = Object.keys(ctx || {});
+    const sfRelatedCtxKeys = ctxKeys.filter(k => /sf|user|org|conn|session|salesforce/i.test(k));
+    return {
+      ok: true,
+      payload: {
+        sfInfo,
+        connectionSource,
+        sfRelatedCtxKeys,
+        ctxKeys,
+        reqKeys: req ? Object.keys(req) : [],
+        bodyKeys: Object.keys(body),
+      },
+    };
   }
 
   if (action === 'query') {
@@ -261,3 +298,7 @@ module.exports.handleRequest = async (ctx) => {
 
   return { ok: false, error: `Unknown action: ${action}` };
 };
+
+/** Declarative hints for gus-apps / Spaces hosts that read module metadata when wiring ctx.sf. */
+module.exports.handlerExecutionContext = 'USER';
+module.exports.executionContext = 'USER';
