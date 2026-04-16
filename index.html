@@ -5671,29 +5671,40 @@ const RISK_REGISTER_KEY = 'cfs-risk-register';
 let _riskCache = [];
 let _riskLoaded = false;
 
+function _risksApiUrl() {
+  if (IS_GUS_APPS) return null; // no server-side risk storage on gus-apps; use localStorage
+  return getAppBasePath() + '/api/risks';
+}
+
 async function _loadRiskRegister() {
   if (_riskLoaded) return _riskCache;
-  try {
-    const resp = await fetch('/api/risks');
-    const data = await resp.json();
-    if (data.status === 'ok' && Array.isArray(data.risks)) {
-      _riskCache = data.risks;
-      _riskLoaded = true;
-      // Migrate any localStorage-only entries into the server
-      try {
-        const local = JSON.parse(localStorage.getItem(RISK_REGISTER_KEY) || '[]');
-        if (local.length && !_riskCache.length) {
-          _riskCache = local;
-          await _saveRiskRegister(_riskCache);
-          localStorage.removeItem(RISK_REGISTER_KEY);
-        } else if (local.length) {
-          localStorage.removeItem(RISK_REGISTER_KEY);
+  const url = _risksApiUrl();
+  if (url) {
+    try {
+      const resp = await fetch(url);
+      const ct = (resp.headers.get('content-type') || '').toLowerCase();
+      if (resp.ok && ct.includes('json')) {
+        const data = await resp.json();
+        if (data.status === 'ok' && Array.isArray(data.risks)) {
+          _riskCache = data.risks;
+          _riskLoaded = true;
+          // Migrate any localStorage-only entries into the server
+          try {
+            const local = JSON.parse(localStorage.getItem(RISK_REGISTER_KEY) || '[]');
+            if (local.length && !_riskCache.length) {
+              _riskCache = local;
+              await _saveRiskRegister(_riskCache);
+              localStorage.removeItem(RISK_REGISTER_KEY);
+            } else if (local.length) {
+              localStorage.removeItem(RISK_REGISTER_KEY);
+            }
+          } catch (_) {}
+          return _riskCache;
         }
-      } catch (_) {}
-      return _riskCache;
-    }
-  } catch (e) { console.warn('Risk API unavailable, falling back to localStorage:', e.message); }
-  // Fallback: localStorage (GitHub Pages / offline)
+      }
+    } catch (e) { console.warn('Risk API unavailable, falling back to localStorage:', e.message); }
+  }
+  // Fallback: localStorage (GitHub Pages / gus-apps / offline)
   try { _riskCache = JSON.parse(localStorage.getItem(RISK_REGISTER_KEY) || '[]'); } catch { _riskCache = []; }
   _riskLoaded = true;
   return _riskCache;
@@ -5701,11 +5712,17 @@ async function _loadRiskRegister() {
 
 async function _saveRiskRegister(entries) {
   _riskCache = entries;
-  try {
-    const resp = await fetch('/api/risks', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ risks: entries }) });
-    const data = await resp.json();
-    if (data.status === 'ok') return;
-  } catch (_) {}
+  const url = _risksApiUrl();
+  if (url) {
+    try {
+      const resp = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ risks: entries }) });
+      const ct = (resp.headers.get('content-type') || '').toLowerCase();
+      if (resp.ok && ct.includes('json')) {
+        const data = await resp.json();
+        if (data.status === 'ok') return;
+      }
+    } catch (_) {}
+  }
   // Fallback
   localStorage.setItem(RISK_REGISTER_KEY, JSON.stringify(entries));
 }
