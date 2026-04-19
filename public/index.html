@@ -5199,7 +5199,9 @@ async function pushToGUS(epicId, field, value) {
   }
 }
 
-async function pushAllEditsToGUS() {
+/** @returns {Promise<boolean>} true if a batch ran successfully; false if nothing was queued */
+async function pushAllEditsToGUS(opts) {
+  const silent = !!(opts && opts.silent);
   const updates = [];
   for (const [epicId, fields] of Object.entries(_pvaEdits)) {
     const id = String(epicId || '').trim();
@@ -5211,37 +5213,65 @@ async function pushAllEditsToGUS() {
       updates.push({ epicId: id, fields: gusFields });
     }
   }
-  if (updates.length === 0) { showToast('No GUS-writable changes to push', 'info'); return; }
+  if (updates.length === 0) {
+    if (!silent) showToast('No GUS-writable changes to push', 'info');
+    return false;
+  }
 
-  showToast(`Pushing ${updates.length} epic(s) to GUS...`, 'progress', 'batch-push');
+  if (!silent) showToast(`Pushing ${updates.length} epic(s) to GUS...`, 'progress', 'batch-push');
+
   try {
     if (!IS_GUS_APPS && !model.useMock) {
-      let ok = 0;
-      let fail = 0;
+      let okCnt = 0;
+      let failCnt = 0;
+      let firstErrText = '';
       for (const upd of updates) {
         const id = String(upd.epicId || '').trim();
         for (const [field, value] of Object.entries(upd.fields || {})) {
           try {
             const patch = await buildPvaFieldPatch(id, field, value);
             await model.patchEpic(id, patch);
-            ok++;
+            okCnt++;
           } catch (e) {
             console.warn('Batch patch failed:', id, field, e);
-            fail++;
+            failCnt++;
+            if (!firstErrText) firstErrText = e.message || String(e);
           }
         }
       }
-      showToast(`GUS: ${ok} field update(s) ok, ${fail} failed`, ok > 0 && fail === 0 ? 'success' : 'error', 'batch-push');
-      if (ok && ctrl._lastReleaseId) setTimeout(() => ctrl._delayedGusMerge(), 800);
-      return;
+      if (failCnt > 0) {
+        if (!silent) showToast(`GUS: ${okCnt} field update(s) ok, ${failCnt} failed`, 'error', 'batch-push');
+        throw new Error(firstErrText || `${failCnt} field update(s) failed`);
+      }
+      if (!silent) showToast(`GUS: ${okCnt} field update(s) ok`, 'success', 'batch-push');
+      if (okCnt && ctrl._lastReleaseId) setTimeout(() => ctrl._delayedGusMerge(), 800);
+      return true;
     }
+
     const data = await gusApi('batchUpdate', { updates });
-    const ok = (data.results || []).filter(r => r.status === 'ok').length;
-    const fail = (data.results || []).filter(r => r.status === 'error').length;
-    showToast(`GUS: ${ok} updated, ${fail} failed`, ok > 0 && fail === 0 ? 'success' : 'error', 'batch-push');
+    const results = data.results || [];
+    const okN = results.filter(r => r.status === 'ok').length;
+    const failN = results.filter(r => r.status === 'error').length;
+
+    if (failN > 0) {
+      const errRec = results.find(r => r.status === 'error');
+      const detail = errRec && errRec.error ? String(errRec.error) : `${failN} epic update(s) failed`;
+      if (!silent) showToast(`GUS: ${okN} updated, ${failN} failed`, 'error', 'batch-push');
+      throw new Error(detail);
+    }
+
+    if (okN === 0 && results.length > 0 && results.every(r => r.status === 'skipped')) {
+      if (!silent) showToast('GUS: queued edits could not be written', 'error', 'batch-push');
+      throw new Error('All epic updates skipped (no writable GUS fields)');
+    }
+
+    if (!silent) showToast(`GUS: ${okN} epic(s) updated`, okN ? 'success' : 'info', 'batch-push');
+    if (okN && ctrl._lastReleaseId) setTimeout(() => ctrl._delayedGusMerge(), 800);
+    return true;
   } catch (e) {
     console.error('Batch GUS error:', e);
-    showToast('Batch GUS push failed', 'error', 'batch-push');
+    if (!silent) showToast('Batch GUS push failed: ' + (e.message || String(e)), 'error', 'batch-push');
+    throw e;
   }
 }
 function savePvaLink(el) {
@@ -5660,7 +5690,7 @@ const gusSyncEngine = (() => {
     const hasEdits = Object.keys(window._pvaEdits || {}).length > 0;
     if (hasEdits) {
       _setLabel('Pushing edits...');
-      await pushAllEditsToGUS();
+      await pushAllEditsToGUS({ silent: true });
       _setProgress(50);
     }
     _setLabel('Fetching from GUS...');
@@ -5776,23 +5806,35 @@ const gusSyncEngine = (() => {
       _stopCountdown();
       _updateUI();
       let ok = false;
+      let noop = false;
       let manualErr = null;
       try {
         if (direction === 'push') {
           _setLabel('Pushing to GUS...');
-          await pushAllEditsToGUS();
+          const pushed = await pushAllEditsToGUS({ silent: true });
+          if (!pushed) noop = true;
+          else ok = true;
         } else {
           _setLabel('Fetching from GUS...');
           await refreshEpicDataFromGUS({ silent: true });
+          ok = true;
         }
         _setProgress(100);
         _lastSync = new Date();
-        ok = true;
       } catch (e) {
         manualErr = e;
         console.error('Manual sync error:', e);
       }
       _syncing = false;
+      if (noop) {
+        _setLabel('Nothing to push');
+        showToast('No GUS-writable changes to push', 'info');
+        const dot = _el('sync-dot');
+        if (dot) dot.className = _running ? 'sync-indicator active' : 'sync-indicator paused';
+        setTimeout(() => _updateUI(), 2000);
+        if (_running) _scheduleNext();
+        return;
+      }
       if (ok) {
         const verb = direction === 'push' ? 'Push' : 'Fetch';
         _setLabel(verb + ' complete \u2713');
