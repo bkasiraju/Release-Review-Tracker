@@ -1,2 +1,0 @@
-# Stdlib-only HTTP server (server.py). Listed so Heroku selects the Python buildpack.
-# Optional: pin nothing — no pip dependencies.

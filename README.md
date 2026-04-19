@@ -72,27 +72,6 @@ git push github main
 python3 server.py   # starts on http://localhost:8282
 ```
 
-### Heroku (full-stack GUS proxy)
-
-The same `server.py` can run on [Heroku](https://devcenter.heroku.com/) when you **cannot** install the Salesforce CLI on the dyno. Set **REST credentials** so SOQL/DML use your org token (same visibility as whoever owns that token).
-
-1. Create an app and deploy this repo (`git push heroku main`).
-2. From a machine where `sf` works, print org details:
-   ```bash
-   sf org display --target-org GusProduction --json
-   ```
-   Use **`instanceUrl`** and **`accessToken`** (short-lived; refresh periodically or automate OAuth later).
-3. Configure the dyno:
-   ```bash
-   heroku config:set SF_INSTANCE_URL='https://gus.my.salesforce.com' SF_ACCESS_TOKEN='<paste accessToken>'
-   ```
-   Optional: `SF_API_VERSION=62.0` (defaults to `v62.0`).
-4. Open `https://<your-app>.herokuapp.com/` — it serves **`/index.html`** at `/` so browser calls **`/api/gus-query`** on the same host.
-
-**Important:** In **API Settings**, leave the browser **access token empty** (or use mock) so the app uses the **Heroku server** to run SOQL. If you paste a personal token, the UI will call Salesforce **directly** from the browser and **CORS** will block it unless the org allowlists your `herokuapp.com` origin.
-
-**Notes:** Access tokens expire (~hours). For a durable internal tool, plan **refresh-token OAuth** or re-run `sf org display` and update config. The integration identity must have **Read/Edit** on `ADM_Epic__c` (and fields you write). Risk JSON under `data/risks.json` is ephemeral on Heroku’s filesystem unless you attach storage.
-
 ## Version
 
 See [RELEASE_NOTES.md](RELEASE_NOTES.md) for the full changelog.

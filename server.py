@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 """
 CFS Release Review Dashboard — Local server with GUS write-back API.
-Serves static files and proxies GUS updates via sf CLI *or* Salesforce REST
-(SF_INSTANCE_URL + SF_ACCESS_TOKEN) for Heroku / headless hosts.
+Serves static files and proxies GUS updates via sf CLI.
 """
 
 import http.server
@@ -14,8 +13,7 @@ import urllib.request
 import os
 import sys
 
-# Heroku sets PORT; local dev may use SERVER_PORT.
-PORT = int(os.environ.get('PORT') or os.environ.get('SERVER_PORT', '8282'))
+PORT = int(os.environ.get('SERVER_PORT', '8282'))
 STATIC_DIR = os.path.dirname(os.path.abspath(__file__))
 RISKS_FILE = os.path.join(STATIC_DIR, 'data', 'risks.json')
 
@@ -45,50 +43,7 @@ def soql_quote_literal(value):
     return (value or '').replace("'", "''")
 
 
-def use_sf_rest_env():
-    """Headless/cloud: OAuth access token + instance URL (see README Heroku section)."""
-    inst = (os.environ.get('SF_INSTANCE_URL') or '').strip()
-    tok = (os.environ.get('SF_ACCESS_TOKEN') or '').strip()
-    return bool(inst and tok)
-
-
-def sf_api_version_segment():
-    """REST path segment e.g. v62.0 — matches org_rest_credentials() CLI branch."""
-    v = (os.environ.get('SF_API_VERSION') or '62.0').strip()
-    if not v.startswith('v'):
-        v = 'v' + v
-    return v
-
-
-def rest_soql_query(soql):
-    """Query API using env token (Heroku); same shape as sf data query --json records."""
-    instance = os.environ['SF_INSTANCE_URL'].rstrip('/')
-    token = os.environ['SF_ACCESS_TOKEN']
-    ver = sf_api_version_segment()
-    encoded = urllib.parse.quote(soql, safe='')
-    url = f'{instance}/services/data/{ver}/query?q={encoded}'
-    req = urllib.request.Request(url, method='GET')
-    req.add_header('Authorization', f'Bearer {token}')
-    req.add_header('Accept', 'application/json')
-    try:
-        with urllib.request.urlopen(req, timeout=90) as resp:
-            payload = json.loads(resp.read().decode())
-        if payload.get('error'):
-            raise RuntimeError(str(payload.get('error')))
-        return payload.get('records') or []
-    except urllib.error.HTTPError as e:
-        raw = e.read().decode('utf-8', errors='replace')
-        try:
-            err = json.loads(raw)
-            msg = err[0].get('message', raw) if isinstance(err, list) and err else err.get('message', raw)
-        except (json.JSONDecodeError, TypeError, AttributeError):
-            msg = raw
-        raise RuntimeError(f'Salesforce SOQL HTTP {e.code}: {msg[:500]}') from None
-
-
 def run_sf_query(soql):
-    if use_sf_rest_env():
-        return rest_soql_query(soql)
     result = subprocess.run(
         ['sf', 'data', 'query', '-q', soql, '--json', '-o', 'GusProduction'],
         capture_output=True, text=True, timeout=30
@@ -99,10 +54,6 @@ def run_sf_query(soql):
 
 def org_rest_credentials():
     """Instance URL + token + REST version segment (e.g. v67.0) for GusProduction."""
-    if use_sf_rest_env():
-        instance = os.environ['SF_INSTANCE_URL'].rstrip('/')
-        token = os.environ['SF_ACCESS_TOKEN']
-        return instance, token, sf_api_version_segment()
     result = subprocess.run(
         ['sf', 'org', 'display', '--json', '-o', 'GusProduction'],
         capture_output=True, text=True, timeout=30,
@@ -202,10 +153,6 @@ class DashboardHandler(http.server.SimpleHTTPRequestHandler):
         super().__init__(*args, directory=STATIC_DIR, **kwargs)
 
     def do_GET(self):
-        # Default doc at site root so /api/* resolves next to index (getAppBasePath() === '').
-        _p = urllib.parse.urlparse(self.path).path
-        if _p in ('', '/'):
-            self.path = '/index.html'
         parsed = urllib.parse.urlparse(self.path)
         if parsed.path == '/api/risks':
             self._handle_risks_get()
@@ -400,16 +347,12 @@ class DashboardHandler(http.server.SimpleHTTPRequestHandler):
 
 if __name__ == '__main__':
     print(f'\n  CFS Release Dashboard Server')
-    print(f'  http://localhost:{PORT}/')
-    if use_sf_rest_env():
-        print(f'  GUS auth: REST (SF_INSTANCE_URL + SF_ACCESS_TOKEN)')
-    else:
-        print(f'  GUS auth: sf CLI (-o GusProduction)')
+    print(f'  http://localhost:{PORT}/index.html')
     print(f'  GUS write-back: POST /api/gus-update')
     print(f'  GUS batch:      POST /api/gus-batch-update')
     print(f'  Risk register:  GET/POST /api/risks  ({RISKS_FILE})\n')
 
-    server = http.server.HTTPServer(('0.0.0.0', PORT), DashboardHandler)
+    server = http.server.HTTPServer(('', PORT), DashboardHandler)
     try:
         server.serve_forever()
     except KeyboardInterrupt:
