@@ -11,6 +11,29 @@ function soqlEscapeLiteral(s) {
   return String(s || '').replace(/'/g, "''");
 }
 
+/** Try full Id then 15-char prefix (handles 18-char suffix casing differences in UI vs API). */
+async function queryAdmEpicRow(sf, epicId, selectFields = 'Id, Epic_Health_Comments__c') {
+  const raw = normalizeEpicId(epicId);
+  if (!raw || typeof sf.query !== 'function') return null;
+  const attempts = [];
+  attempts.push(raw);
+  if (raw.length >= 15) attempts.push(raw.substring(0, 15));
+  const seen = new Set();
+  for (const attempt of attempts) {
+    const lit = soqlEscapeLiteral(attempt);
+    if (seen.has(lit)) continue;
+    seen.add(lit);
+    try {
+      const q = await sf.query(`SELECT ${selectFields} FROM ADM_Epic__c WHERE Id = '${lit}' LIMIT 1`);
+      const row = (q.records || [])[0];
+      if (row) return row;
+    } catch {
+      /* try next */
+    }
+  }
+  return null;
+}
+
 function crossRefHint(msg) {
   const m = (msg || '').toLowerCase();
   if (!m.includes('invalid cross reference') && !m.includes('invalid_cross_reference')) return '';
@@ -251,16 +274,14 @@ module.exports.handleRequest = async (ctx) => {
     epicId = normalizeEpicId(epicId);
     if (!epicId || !field) return { ok: false, error: 'epicId and field required' };
 
-    let gusField, gusValue;
+    let gusField;
+    let gusValue;
+    let resolvedEpicId = null;
 
     if (field.startsWith('month-')) {
       const monthLabel = MONTH_KEY_MAP[field];
       if (!monthLabel) return { ok: false, error: `Unknown month field: ${field}` };
-      const eid = soqlEscapeLiteral(epicId);
-      const existing = await sf.query(
-        `SELECT Id, Epic_Health_Comments__c FROM ADM_Epic__c WHERE Id = '${eid}' LIMIT 1`
-      );
-      const row = (existing.records || [])[0];
+      const row = await queryAdmEpicRow(sf, epicId);
       if (!row) {
         return {
           ok: true,
@@ -268,10 +289,12 @@ module.exports.handleRequest = async (ctx) => {
             status: 'error',
             epicId,
             gusField: 'Epic_Health_Comments__c',
-            error: 'Epic Id not found in GUS for this org (no ADM_Epic__c row).',
+            error:
+              'Epic Id not found in GUS for this org (no ADM_Epic__c row). If reads work in Lightning but not here, use run-as-logged-in-user for this applet.',
           },
         };
       }
+      resolvedEpicId = row.Id;
       const current = row.Epic_Health_Comments__c || '';
       gusField = 'Epic_Health_Comments__c';
       gusValue = mergeMonthComment(current, monthLabel, value || '');
@@ -295,24 +318,25 @@ module.exports.handleRequest = async (ctx) => {
       gusValue = value;
     }
 
-    if (!field.startsWith('month-')) {
-      const eid = soqlEscapeLiteral(epicId);
-      const chk = await sf.query(`SELECT Id FROM ADM_Epic__c WHERE Id = '${eid}' LIMIT 1`);
-      if (!(chk.records || [])[0]) {
+    if (resolvedEpicId == null) {
+      const rowChk = await queryAdmEpicRow(sf, epicId, 'Id');
+      if (!rowChk) {
         return {
           ok: true,
           payload: {
             status: 'error',
             epicId,
             gusField,
-            error: 'Epic Id not found in GUS for this org (no ADM_Epic__c row).',
+            error:
+              'Epic Id not found in GUS for this org (no ADM_Epic__c row). If reads work in Lightning but not here, use run-as-logged-in-user for this applet.',
           },
         };
       }
+      resolvedEpicId = rowChk.Id;
     }
 
     try {
-      const result = await sf.update('ADM_Epic__c', epicId, { [gusField]: gusValue });
+      const result = await sf.update('ADM_Epic__c', resolvedEpicId, { [gusField]: gusValue });
       const success = result && (result.id || result.success !== false);
       return { ok: true, payload: { status: success ? 'ok' : 'error', epicId, gusField, result } };
     } catch (e) {
@@ -349,21 +373,21 @@ module.exports.handleRequest = async (ctx) => {
         }
       }
 
+      let canonicalId = null;
+
       if (Object.keys(monthUpdates).length) {
-        const eid = soqlEscapeLiteral(epicId);
-        const existing = await sf.query(
-          `SELECT Id, Epic_Health_Comments__c FROM ADM_Epic__c WHERE Id = '${eid}' LIMIT 1`
-        );
-        const row = (existing.records || [])[0];
+        const row = await queryAdmEpicRow(sf, epicId);
         if (!row) {
           results.push({
             epicId,
             status: 'error',
-            error: 'Epic Id not found in GUS for this org (no ADM_Epic__c row).',
+            error:
+              'Epic Id not found in GUS for this org (no ADM_Epic__c row). If reads work in Lightning but not here, use run-as-logged-in-user for this applet.',
             fields: ['Epic_Health_Comments__c'],
           });
           continue;
         }
+        canonicalId = row.Id;
         let merged = row.Epic_Health_Comments__c || '';
         for (const [ml, text] of Object.entries(monthUpdates)) {
           merged = mergeMonthComment(merged, ml, text);
@@ -371,23 +395,24 @@ module.exports.handleRequest = async (ctx) => {
         gusUpdates.Epic_Health_Comments__c = merged;
       }
 
-      if (Object.keys(gusUpdates).length && !Object.keys(monthUpdates).length) {
-        const eid = soqlEscapeLiteral(epicId);
-        const chk = await sf.query(`SELECT Id FROM ADM_Epic__c WHERE Id = '${eid}' LIMIT 1`);
-        if (!(chk.records || [])[0]) {
+      if (!canonicalId && Object.keys(gusUpdates).length) {
+        const rowChk = await queryAdmEpicRow(sf, epicId, 'Id');
+        if (!rowChk) {
           results.push({
             epicId,
             status: 'error',
-            error: 'Epic Id not found in GUS for this org (no ADM_Epic__c row).',
+            error:
+              'Epic Id not found in GUS for this org (no ADM_Epic__c row). If reads work in Lightning but not here, use run-as-logged-in-user for this applet.',
             fields: Object.keys(gusUpdates),
           });
           continue;
         }
+        canonicalId = rowChk.Id;
       }
 
       if (Object.keys(gusUpdates).length) {
         try {
-          const result = await sf.update('ADM_Epic__c', epicId, gusUpdates);
+          const result = await sf.update('ADM_Epic__c', canonicalId, gusUpdates);
           results.push({ epicId, status: (result && (result.id || result.success !== false)) ? 'ok' : 'error', result, fields: Object.keys(gusUpdates) });
         } catch (e) {
           const base = e.message || String(e);
