@@ -1422,12 +1422,12 @@ async function maybeWarnGusAppsSoqlEmpty() {
   const tail = integ
     ? `${who} connectionSource=${src || 'unknown'} (integration). Ask gus-apps/Spaces admin to enable run-as-logged-in-user for applet cfs-release-review, OR grant that user Read on ADM_Epic__c, ADM_Planned_Release__c, ADM_Work__c (and Team/Project lookups as needed).`
     : ` connectionSource=${src} (user-scoped). If rows are still empty, you likely cannot read those records in Lightning either (OLS/FLS/team) — verify the epic/release Ids exist in GusProduction.`;
-  showToast(
-    'GUS returned 0 rows for epic/release SOQL (rows:0, records:[]).' + tail,
-    'error',
-    'gus-ols',
-    30000
-  );
+  const full = 'GUS returned 0 rows for epic/release SOQL (rows:0, records:[]).' + tail;
+  console.error('[cfs-release-review]', full);
+  const shortMsg = integ
+    ? 'GUS: 0 SOQL rows — applet is using integration Salesforce (connectionSource=' + (src || 'sf') + '). Ask Spaces admin to enable run-as-logged-in-user for cfs-release-review (see README). Full detail in browser console.'
+    : 'GUS: 0 SOQL rows — check org access / sharing / epic Id (detail in console).';
+  showToast(shortMsg, 'error', 'gus-ols', 22000);
 }
 
 function maybeWarnGusAppsSoqlError(msg) {

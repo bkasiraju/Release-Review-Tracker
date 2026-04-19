@@ -46,6 +46,16 @@ bash scripts/deploy-gus-apps.sh
 
 Requires an active Salesforce CLI session: `sf org login web -o GusProduction`
 
+#### Troubleshooting: SOQL returns 0 rows (`connectionSource=sf`, integration user)
+
+The applet manifest requests **user-scoped** Salesforce access (`executionContext` / `salesforceDataAccess.mode`: `USER`). If queries still run as the **integration** connection (`sf`), SOQL often returns **no rows** because that identity does not share your team’s epic/release visibility.
+
+**Fix (preferred):** In **gus-apps / Spaces admin**, enable **run as logged-in user** (wording varies: “Execute as user”, “User context”, etc.) for applet **`cfs-release-review`**.
+
+**Alternative:** Grant the **integration** user used by the applet **Read** (OLS) on **ADM_Epic__c**, **ADM_Planned_Release__c**, **ADM_Work__c**, plus lookup targets (**Team**, **Project**, etc.) as needed — or adjust sharing so that user can see the same records you see in Lightning.
+
+After the host applies user context, reload the applet and confirm `gusApi('debug')`-style flows show your username and a user-scoped connection source if exposed.
+
 ### GitHub Pages
 
 Push to `main` on the `github` remote. The `public/` directory is served at the Pages URL.
