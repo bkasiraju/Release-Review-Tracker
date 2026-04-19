@@ -1959,6 +1959,7 @@ class DashboardController {
         window.__cfsNeedDelayedMerge = false;
         setTimeout(() => this._delayedGusMerge(), 800);
       }
+      if (typeof ensureGusLiveSync === 'function') ensureGusLiveSync();
     } catch (e) {
       console.error('Load release failed:', e);
       window.__cfsNeedDelayedMerge = false;
@@ -5187,6 +5188,8 @@ async function pushToGUS(epicId, field, value) {
       const detail = data.details ? data.details.map(d => d.method + ': ' + d.error).join(' | ') : (data.error || 'unknown');
       console.warn('GUS update failed:', detail);
       window._lastGusError = data;
+    } else if (ctrl._lastReleaseId) {
+      setTimeout(() => ctrl._delayedGusMerge(), 750);
     }
     return data.status === 'ok';
   } catch (e) {
@@ -5481,8 +5484,9 @@ async function _mergeEpicsFromGusRefreshAndRehydrate(epicMap) {
   await ctrl._hydrateEpicWorkstreamPlannedRollups(ctrl.currentEpics || []);
 }
 
-async function refreshEpicDataFromGUS() {
-  const btn = document.getElementById('btn-gus-refresh');
+async function refreshEpicDataFromGUS(opts) {
+  const silent = !!(opts && opts.silent);
+  const btn = silent ? null : document.getElementById('btn-gus-refresh');
   if (btn) _setBtnState(btn, 'Fetching...', '#0176d3', '#bfdbfe', true);
 
   const tbl = document.getElementById('pva-epic-table');
@@ -5560,11 +5564,13 @@ async function refreshEpicDataFromGUS() {
       }
     });
 
-    if (btn) {
-      _setBtnState(btn, `Updated ${updated} epics`, '#16a34a', '#86efac', false);
-      setTimeout(() => _setBtnState(btn, 'Fetch from GUS', '#0176d3', '#bfdbfe', false), 3000);
+    if (!silent) {
+      if (btn) {
+        _setBtnState(btn, `Updated ${updated} epics`, '#16a34a', '#86efac', false);
+        setTimeout(() => _setBtnState(btn, 'Fetch from GUS', '#0176d3', '#bfdbfe', false), 3000);
+      }
+      showToast(`Fetched ${updated} epics from GUS`, 'success');
     }
-    showToast(`Fetched ${updated} epics from GUS`, 'success');
 
   } catch (err) {
     console.error('GUS fetch error:', err);
@@ -5572,11 +5578,14 @@ async function refreshEpicDataFromGUS() {
       _setBtnState(btn, 'Error: ' + (err.message || 'failed').substring(0, 30), '#dc2626', '#fca5a5', false);
       setTimeout(() => _setBtnState(btn, 'Fetch from GUS', '#0176d3', '#bfdbfe', false), 4000);
     }
-    showToast('GUS fetch failed: ' + err.message, 'error');
+    if (!silent) showToast('GUS fetch failed: ' + err.message, 'error');
+    throw err;
   }
 }
 
-/* ===== GUS AUTO-SYNC ENGINE ===== */
+/* ===== GUS AUTO-SYNC ENGINE (pull + queued push; stays on unless user pauses) ===== */
+const GUS_SYNC_LS_ENABLED = 'cfs_gus_sync_enabled';
+
 const gusSyncEngine = (() => {
   let _interval = 60000;
   let _timerId = null;
@@ -5601,7 +5610,7 @@ const gusSyncEngine = (() => {
       label.style.color = '#0176d3';
     } else if (_running) {
       dot.className = 'sync-indicator active';
-      label.textContent = 'Auto-Sync';
+      label.textContent = 'Live sync';
       label.style.color = '#16a34a';
       if (_countdown > 0) {
         timer.textContent = _countdown + 's';
@@ -5616,10 +5625,10 @@ const gusSyncEngine = (() => {
     if (toggle) {
       if (_running) {
         toggle.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="5" y="3" width="5" height="18" rx="1"/><rect x="14" y="3" width="5" height="18" rx="1"/></svg>';
-        toggle.title = 'Pause auto-sync';
+        toggle.title = 'Pause live GUS sync';
       } else {
         toggle.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5,3 19,12 5,21"/></svg>';
-        toggle.title = 'Start auto-sync';
+        toggle.title = 'Resume live GUS sync';
       }
     }
   }
@@ -5647,48 +5656,69 @@ const gusSyncEngine = (() => {
     _setProgress(0);
   }
 
+  async function _runSyncPass() {
+    const hasEdits = Object.keys(window._pvaEdits || {}).length > 0;
+    if (hasEdits) {
+      _setLabel('Pushing edits...');
+      await pushAllEditsToGUS();
+      _setProgress(50);
+    }
+    _setLabel('Fetching from GUS...');
+    await refreshEpicDataFromGUS({ silent: true });
+    _setProgress(100);
+  }
+
   async function _doSync() {
     if (_syncing) return;
     _syncing = true;
     _stopCountdown();
     _updateUI();
-    _setProgress(20);
+    _setProgress(15);
 
-    try {
-      const hasEdits = Object.keys(window._pvaEdits || {}).length > 0;
-      if (hasEdits) {
-        _setLabel('Pushing edits...');
-        await pushAllEditsToGUS();
-        _setProgress(50);
+    let attempt = 0;
+    let lastErr = null;
+    while (attempt < 3) {
+      attempt++;
+      try {
+        await _runSyncPass();
+        lastErr = null;
+        break;
+      } catch (e) {
+        lastErr = e;
+        console.warn(`GUS sync attempt ${attempt}/3:`, e);
+        if (attempt < 3) await new Promise(r => setTimeout(r, 900 * attempt));
       }
+    }
 
-      _setLabel('Fetching from GUS...');
-      await refreshEpicDataFromGUS();
-      _setProgress(100);
+    _syncing = false;
 
-      _lastSync = new Date();
-      _syncing = false;
-      _setLabel('Sync complete \u2713');
-      const dot2 = _el('sync-dot');
-      if (dot2) dot2.className = 'sync-indicator active';
-      showToast('Auto-sync completed successfully', 'success');
-      setTimeout(() => {
-        _updateUI();
-        const timer = _el('sync-timer');
-        if (timer && _running) timer.textContent = 'just now';
-      }, 2000);
-
-      if (_running) _scheduleNext();
-    } catch (e) {
-      console.error('Auto-sync error:', e);
-      _syncing = false;
+    if (lastErr) {
+      console.error('Auto-sync failed after retries:', lastErr);
       const dot = _el('sync-dot');
       if (dot) dot.className = 'sync-indicator error';
       const label = _el('sync-label');
-      if (label) { label.textContent = 'Sync Error'; label.style.color = '#dc2626'; }
-      showToast('Auto-sync failed: ' + (e.message || 'unknown error'), 'error');
-      setTimeout(() => { _updateUI(); if (_running) _scheduleNext(); }, 3000);
+      if (label) { label.textContent = 'Sync error'; label.style.color = '#dc2626'; }
+      showToast('GUS sync failed: ' + (lastErr.message || String(lastErr)).slice(0, 200), 'error', 'gus-sync-err');
+      setTimeout(() => {
+        _updateUI();
+        if (_running) _scheduleNext();
+      }, 4000);
+      return;
     }
+
+    _lastSync = new Date();
+    _setLabel('Live sync OK');
+    const dot2 = _el('sync-dot');
+    if (dot2) dot2.className = 'sync-indicator active';
+    console.info('[GUS live sync]', _lastSync.toISOString());
+
+    setTimeout(() => {
+      _updateUI();
+      const timer = _el('sync-timer');
+      if (timer && _running) timer.textContent = 'just now';
+    }, 600);
+
+    if (_running) _scheduleNext();
   }
 
   function _setLabel(text) {
@@ -5707,13 +5737,27 @@ const gusSyncEngine = (() => {
   }
 
   return {
+    isRunning() {
+      return _running;
+    },
+    startIfNeeded() {
+      if (_running) return;
+      this.start();
+    },
     start() {
+      if (_running) return;
       _running = true;
+      try {
+        localStorage.setItem(GUS_SYNC_LS_ENABLED, '1');
+      } catch (e) { /* ignore */ }
       _updateUI();
-      _scheduleNext();
+      queueMicrotask(() => _doSync());
     },
     stop() {
       _running = false;
+      try {
+        localStorage.setItem(GUS_SYNC_LS_ENABLED, '0');
+      } catch (e) { /* ignore */ }
       _clearTimer();
       _stopCountdown();
       _updateUI();
@@ -5732,18 +5776,20 @@ const gusSyncEngine = (() => {
       _stopCountdown();
       _updateUI();
       let ok = false;
+      let manualErr = null;
       try {
         if (direction === 'push') {
           _setLabel('Pushing to GUS...');
           await pushAllEditsToGUS();
         } else {
           _setLabel('Fetching from GUS...');
-          await refreshEpicDataFromGUS();
+          await refreshEpicDataFromGUS({ silent: true });
         }
         _setProgress(100);
         _lastSync = new Date();
         ok = true;
       } catch (e) {
+        manualErr = e;
         console.error('Manual sync error:', e);
       }
       _syncing = false;
@@ -5759,7 +5805,8 @@ const gusSyncEngine = (() => {
         _setLabel(verb + ' failed \u2717');
         const dot = _el('sync-dot');
         if (dot) dot.className = 'sync-indicator error';
-        showToast(verb + ' from GUS failed', 'error');
+        const detail = manualErr && manualErr.message ? ': ' + manualErr.message : '';
+        showToast(verb + ' from GUS failed' + detail, 'error');
         setTimeout(() => _updateUI(), 3000);
       }
       if (_running) _scheduleNext();
@@ -5775,7 +5822,43 @@ const gusSyncEngine = (() => {
   };
 })();
 
+function shouldAutoSyncGus() {
+  try {
+    if (typeof model === 'undefined') return false;
+    if (!IS_GUS_APPS && model.useMock) return false;
+    if (localStorage.getItem(GUS_SYNC_LS_ENABLED) === '0') return false;
+    return true;
+  } catch (e) {
+    return IS_GUS_APPS;
+  }
+}
+
+/** Start live pull/push loop once Epic Tracking toolbar exists (after release load). */
+function ensureGusLiveSync() {
+  if (!shouldAutoSyncGus()) return;
+  if (!document.getElementById('sync-dot')) return;
+  gusSyncEngine.startIfNeeded();
+}
+
 gusSyncEngine.restore();
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState !== 'visible') return;
+  if (!shouldAutoSyncGus() || typeof ctrl === 'undefined' || !ctrl._lastReleaseId) return;
+  clearTimeout(window.__cfsVisSyncT);
+  window.__cfsVisSyncT = setTimeout(() => {
+    if (typeof gusSyncEngine !== 'undefined' && gusSyncEngine.isRunning()) {
+      gusSyncEngine.syncNow('pull').catch(() => {});
+    }
+  }, 600);
+});
+
+window.addEventListener('online', () => {
+  ensureGusLiveSync();
+  if (ctrl && ctrl._lastReleaseId) {
+    setTimeout(() => { gusSyncEngine.syncNow('pull').catch(() => {}); }, 400);
+  }
+});
 
 if (IS_GUS_APPS) {
   const hubLink = document.getElementById('hub-link');
