@@ -34,6 +34,46 @@ async function queryAdmEpicRow(sf, epicId, selectFields = 'Id, Epic_Health_Comme
   return null;
 }
 
+/**
+ * If ADM_Epic__c has no row for this Id, detect whether the Id is another GUS object
+ * (planning rows sometimes carry Work or Release Ids by mistake).
+ */
+async function probeWrongObjectForEpicId(sf, epicId) {
+  const raw = normalizeEpicId(epicId);
+  if (!raw || typeof sf.query !== 'function') return null;
+  const checks = [
+    ['ADM_Work__c', 'a work item (ADM_Work__c), not an Epic'],
+    ['ADM_Planned_Release__c', 'a planned release (ADM_Planned_Release__c), not an Epic'],
+  ];
+  const attempts = [raw];
+  if (raw.length >= 15) attempts.push(raw.substring(0, 15));
+  const seen = new Set();
+  for (const attempt of attempts) {
+    const lit = soqlEscapeLiteral(attempt);
+    if (seen.has(lit)) continue;
+    seen.add(lit);
+    for (const [obj, human] of checks) {
+      try {
+        const q = await sf.query(`SELECT Id FROM ${obj} WHERE Id = '${lit}' LIMIT 1`);
+        if ((q.records || [])[0]) return human;
+      } catch {
+        /* table missing in org */
+      }
+    }
+  }
+  return null;
+}
+
+async function epicRowMissingDetail(sf, epicId) {
+  const wrong = await probeWrongObjectForEpicId(sf, epicId);
+  if (wrong) {
+    return `Epic Id not found as ADM_Epic__c — this Id exists as ${wrong}. Use the Epic record Id from GUS (ADM_Epic__c), not Work or Release Ids.`;
+  }
+  return (
+    'Epic Id not found in GUS for this org (no ADM_Epic__c row). If you can open this epic in Lightning but this applet cannot see it, ask Spaces admin to enable run-as-logged-in-user for this applet.'
+  );
+}
+
 function crossRefHint(msg) {
   const m = (msg || '').toLowerCase();
   if (!m.includes('invalid cross reference') && !m.includes('invalid_cross_reference')) return '';
@@ -289,8 +329,7 @@ module.exports.handleRequest = async (ctx) => {
             status: 'error',
             epicId,
             gusField: 'Epic_Health_Comments__c',
-            error:
-              'Epic Id not found in GUS for this org (no ADM_Epic__c row). If reads work in Lightning but not here, use run-as-logged-in-user for this applet.',
+            error: await epicRowMissingDetail(sf, epicId),
           },
         };
       }
@@ -327,8 +366,7 @@ module.exports.handleRequest = async (ctx) => {
             status: 'error',
             epicId,
             gusField,
-            error:
-              'Epic Id not found in GUS for this org (no ADM_Epic__c row). If reads work in Lightning but not here, use run-as-logged-in-user for this applet.',
+            error: await epicRowMissingDetail(sf, epicId),
           },
         };
       }
@@ -381,8 +419,7 @@ module.exports.handleRequest = async (ctx) => {
           results.push({
             epicId,
             status: 'error',
-            error:
-              'Epic Id not found in GUS for this org (no ADM_Epic__c row). If reads work in Lightning but not here, use run-as-logged-in-user for this applet.',
+            error: await epicRowMissingDetail(sf, epicId),
             fields: ['Epic_Health_Comments__c'],
           });
           continue;
@@ -401,8 +438,7 @@ module.exports.handleRequest = async (ctx) => {
           results.push({
             epicId,
             status: 'error',
-            error:
-              'Epic Id not found in GUS for this org (no ADM_Epic__c row). If reads work in Lightning but not here, use run-as-logged-in-user for this applet.',
+            error: await epicRowMissingDetail(sf, epicId),
             fields: Object.keys(gusUpdates),
           });
           continue;
