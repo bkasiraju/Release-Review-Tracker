@@ -275,10 +275,13 @@ module.exports.handleRequest = async (ctx) => {
       const current = row.Epic_Health_Comments__c || '';
       gusField = 'Epic_Health_Comments__c';
       gusValue = mergeMonthComment(current, monthLabel, value || '');
-    } else if (field === 'health') {
+    } else if (field === 'health' || field === 'Health__c') {
       if (!HEALTH_VALUES.has(value)) return { ok: false, error: `Invalid health: ${value}` };
       gusField = 'Health__c';
       gusValue = value;
+    } else if (field === 'Epic_Health_Comments__c') {
+      gusField = 'Epic_Health_Comments__c';
+      gusValue = value || '';
     } else {
       const fieldMap = {
         pathToGreen: 'Path_to_Green__c',

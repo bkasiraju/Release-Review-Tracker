@@ -996,6 +996,7 @@ body { font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe
       <div class="form-group"><label>Access Token</label><input type="password" id="sf-token" placeholder="Paste your Salesforce session token"></div>
       <div style="font-size:11px;color:var(--muted);margin-top:8px;">Leave blank to use mock data. Token is stored in sessionStorage only.</div>
       <div style="font-size:11px;color:var(--muted);margin-top:10px;line-height:1.45;max-width:440px;"><strong>How to get a session token:</strong> In a browser where you are logged into GUS, open DevTools → Application → Cookies → select your instance host (e.g. <code style="font-size:10px;">gus.my.salesforce.com</code>) → copy the <code style="font-size:10px;">sid</code> cookie value. Or run <code style="font-size:10px;">sf org display --json</code> after <code style="font-size:10px;">sf org login web</code> and use <code style="font-size:10px;">result.accessToken</code> for that org.</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:10px;line-height:1.45;max-width:440px;"><strong>GitHub Pages:</strong> The hosted site has no Python API — save a token here so the browser calls Salesforce REST for SOQL and PATCH (same as local <code style="font-size:10px;">server.py</code>). Your org must allow this origin for CORS on the API, or use <strong>gus-apps</strong> / run <code style="font-size:10px;">python3 server.py</code> locally. Push HTML to <code style="font-size:10px;">main</code> to update Pages.</div>
     </div>
     <div class="modal-footer">
       <button class="btn-secondary" onclick="closeModal('modal-settings')">Cancel</button>
@@ -1506,8 +1507,7 @@ async function fetchWsSubjects(wNumbers) {
     const inList = batch.map(w => `'${w}'`).join(',');
     try {
       const soql = `SELECT Id, Name, Subject__c, Status__c, Priority__c, Story_Points__c, Epic__c, Epic__r.Name FROM ADM_Work__c WHERE Name IN (${inList}) LIMIT 200`;
-      const result = await gusApi('query', { soql });
-      const records = gusQueryRecords(result);
+      const records = await model.query(soql);
       records.forEach(r => {
         const epicId = r.Epic__c;
         const epicName = r.Epic__r?.Name || (epicId && EPIC_NAMES[epicId]) || '';
@@ -1581,6 +1581,9 @@ class GUSModel {
     this.useMock = !this.token;
   }
   async _serverQuery(soql) {
+    if (!IS_GUS_APPS && !this.useMock) {
+      return this.query(soql);
+    }
     const data = await gusApi('query', { soql });
     if (data.status === 'error') throw new Error(data.error || data.errorCode || 'SOQL failed');
     if (data.error) throw new Error(data.error);
@@ -1952,8 +1955,13 @@ class DashboardController {
       this.view.renderDashboard(this._dashboardCache);
       this.view.updateTimestamp();
       this.view.hideLoading();
+      if (window.__cfsNeedDelayedMerge) {
+        window.__cfsNeedDelayedMerge = false;
+        setTimeout(() => this._delayedGusMerge(), 800);
+      }
     } catch (e) {
       console.error('Load release failed:', e);
+      window.__cfsNeedDelayedMerge = false;
       showToast('Failed to load release: ' + e.message, 'error');
       this.view.hideLoading();
     }
@@ -1979,6 +1987,31 @@ class DashboardController {
     const tab = this._loadState()?.pvaTab;
     this.view.renderDashboard(this._dashboardCache);
     if (tab && tab !== 'epic-tracking') requestAnimationFrame(() => switchPvaTab(tab));
+  }
+
+  /** Second pass after writes / load — rollup fields can lag one request behind PATCH. */
+  async _delayedGusMerge() {
+    if (!this.currentEpics || !this.currentEpics.length || !this._lastReleaseId) return;
+    try {
+      await this.mergeGusLiveEpicFields(this.currentEpics);
+      await this._hydrateEpicWorkstreamPlannedRollups(this.currentEpics);
+      const hierarchy = this._buildHierarchy(this.currentEpics, TEAM_PLANS[this._lastReleaseId]);
+      const healthCounts = this._countHealth(this.currentEpics);
+      const totals = this._computeTotals(this.currentEpics);
+      this._lastHierarchy = hierarchy;
+      this._dashboardCache = {
+        release: this.currentRelease,
+        epics: this.currentEpics,
+        hierarchy,
+        healthCounts,
+        totals,
+        months: this.releaseMonths,
+      };
+      this.view.renderDashboard(this._dashboardCache);
+      this.view.updateTimestamp();
+    } catch (e) {
+      console.warn('_delayedGusMerge:', e);
+    }
   }
 
   _getReleaseMonths(release) {
@@ -2120,16 +2153,20 @@ class DashboardController {
         const slice = uniq.slice(i, i + chunk);
         const idList = slice.map(id => `'${String(id).replace(/'/g, "''")}'`).join(',');
         const soql = `SELECT ${selectFields} FROM ADM_Epic__c WHERE Id IN (${idList}) LIMIT 200`;
-        let data = await gusApi('query', { soql });
-        if (data.status === 'error') throw new Error(data.error || data.errorCode || 'SOQL failed');
-        if (data.error) throw new Error(data.error);
-        let rows = gusQueryRecords(data);
+        let rows;
+        try {
+          rows = await this.model.query(soql);
+        } catch (e) {
+          throw e;
+        }
         if (!rows.length && slice.length) {
           const soqlMin = `SELECT ${slimFields} FROM ADM_Epic__c WHERE Id IN (${idList}) LIMIT 200`;
-          const d2 = await gusApi('query', { soql: soqlMin });
-          if (d2.status === 'error') throw new Error(d2.error || d2.errorCode || 'SOQL failed');
-          if (d2.error) throw new Error(d2.error);
-          rows = gusQueryRecords(d2);
+          try {
+            rows = await this.model.query(soqlMin);
+          } catch (e2) {
+            console.warn('Minimal epic Id query failed:', e2);
+            rows = [];
+          }
         }
         gotRows += rows.length;
         const byId = {};
@@ -4829,7 +4866,10 @@ document.getElementById('btn-save-epic').addEventListener('click', async () => {
     closeModal('modal-edit');
     showToast('Epic updated successfully', 'success');
     const relId = ctrl._lastReleaseId;
-    if (relId) ctrl.loadRelease(relId);
+    if (relId) {
+      window.__cfsNeedDelayedMerge = true;
+      await ctrl.loadRelease(relId);
+    }
   } catch (e) { showToast('Failed to save: ' + e.message, 'error'); }
   finally { btn.disabled = false; btn.textContent = 'Save to GUS'; }
 });
@@ -5054,6 +5094,59 @@ function savePvaField(el) {
   }
 }
 
+const PVA_MONTH_ORDER = ['April', 'May', 'June', 'July'];
+const PVA_MONTH_KEY_MAP = { 'month-Apr': 'April', 'month-May': 'May', 'month-Jun': 'June', 'month-Jul': 'July' };
+const PVA_FIELD_TO_SF = {
+  pathToGreen: 'Path_to_Green__c',
+  slippage: 'Slippage_Comments__c',
+  priority: 'Priority__c',
+  plannedStartDate: 'Planned_Start_Date__c',
+  plannedEndDate: 'Planned_End_Date__c',
+};
+
+function mergeMonthCommentForPva(existing, monthLabel, newText) {
+  const sections = {};
+  let currentMonth = null;
+  for (const line of (existing || '').split('\n')) {
+    const stripped = line.trim();
+    let matched = false;
+    for (const m of PVA_MONTH_ORDER) {
+      if (stripped.toLowerCase().startsWith(m.toLowerCase() + ':') || stripped.toLowerCase().startsWith(m.toLowerCase() + ' ')) {
+        currentMonth = m;
+        sections[m] = stripped.slice(m.length).replace(/^[:\s]+/, '').trim();
+        matched = true;
+        break;
+      }
+    }
+    if (!matched && currentMonth) {
+      sections[currentMonth] = (sections[currentMonth] || '') + '\n' + line;
+    }
+  }
+  sections[monthLabel] = String(newText || '').trim();
+  return PVA_MONTH_ORDER
+    .filter(m => sections[m] && sections[m].trim())
+    .map(m => `${m}: ${sections[m].trim()}`)
+    .join('\n');
+}
+
+async function buildPvaFieldPatch(epicId, field, value) {
+  if (field === 'health') {
+    return { Health__c: value };
+  }
+  if (field.startsWith('month-')) {
+    const monthLabel = PVA_MONTH_KEY_MAP[field];
+    if (!monthLabel) throw new Error(`Unknown month field: ${field}`);
+    const eid = String(epicId || '').replace(/'/g, "''");
+    const rows = await model.query(`SELECT Epic_Health_Comments__c FROM ADM_Epic__c WHERE Id = '${eid}' LIMIT 1`);
+    const current = (rows[0] && rows[0].Epic_Health_Comments__c) || '';
+    const merged = mergeMonthCommentForPva(current, monthLabel, value || '');
+    return { Epic_Health_Comments__c: merged };
+  }
+  const sf = PVA_FIELD_TO_SF[field];
+  if (!sf) throw new Error(`Field ${field} not mapped for REST save`);
+  return { [sf]: value };
+}
+
 const HEALTH_CYCLE = ['On Track','Watch','Blocked','Not Started','On Hold','Completed','Canceled'];
 function cycleHealthChip(chip) {
   const epicId = chip.dataset.epicId;
@@ -5082,6 +5175,12 @@ function cycleHealthChip(chip) {
 async function pushToGUS(epicId, field, value) {
   try {
     const id = String(epicId || '').trim();
+    if (!IS_GUS_APPS && !model.useMock) {
+      const patch = await buildPvaFieldPatch(id, field, value);
+      await model.patchEpic(id, patch);
+      if (ctrl._lastReleaseId) setTimeout(() => ctrl._delayedGusMerge(), 750);
+      return true;
+    }
     const data = await gusApi('update', { epicId: id, field, value });
     if (data.status !== 'ok') {
       const detail = data.details ? data.details.map(d => d.method + ': ' + d.error).join(' | ') : (data.error || 'unknown');
@@ -5112,6 +5211,26 @@ async function pushAllEditsToGUS() {
 
   showToast(`Pushing ${updates.length} epic(s) to GUS...`, 'progress', 'batch-push');
   try {
+    if (!IS_GUS_APPS && !model.useMock) {
+      let ok = 0;
+      let fail = 0;
+      for (const upd of updates) {
+        const id = String(upd.epicId || '').trim();
+        for (const [field, value] of Object.entries(upd.fields || {})) {
+          try {
+            const patch = await buildPvaFieldPatch(id, field, value);
+            await model.patchEpic(id, patch);
+            ok++;
+          } catch (e) {
+            console.warn('Batch patch failed:', id, field, e);
+            fail++;
+          }
+        }
+      }
+      showToast(`GUS: ${ok} field update(s) ok, ${fail} failed`, ok > 0 && fail === 0 ? 'success' : 'error', 'batch-push');
+      if (ok && ctrl._lastReleaseId) setTimeout(() => ctrl._delayedGusMerge(), 800);
+      return;
+    }
     const data = await gusApi('batchUpdate', { updates });
     const ok = (data.results || []).filter(r => r.status === 'ok').length;
     const fail = (data.results || []).filter(r => r.status === 'error').length;
@@ -5381,11 +5500,9 @@ async function refreshEpicDataFromGUS() {
   const soql = `SELECT Id, Name, Health__c, Epic_Health_Comments__c, Path_to_Green__c, Planned_Story_Points__c, Actual_Story_Points_on_Epic__c, Storypoints_Closed__c, Storypoints_In_Progress__c, Workitems_Closed__c, WorkItems_In_Progress__c, Workitems_New__c, Workitems_in_Waiting__c, Remaining_Story_Points__c, Remaining_Work_Items__c, Percent_Of_Work_Items_Complete__c, Committed_Story_Points_on_Epic__c, Committed_Work_Items_on_Epic__c, Actual_Work_Items_on_Epic__c, Development_Lead__r.Name FROM ADM_Epic__c WHERE Id IN (${idList}) LIMIT 200`;
 
   try {
-    const data = await gusApi('query', { soql });
-    if (data.error) throw new Error(data.error);
-
+    const rows = await model.query(soql);
     const epicMap = {};
-    gusQueryRecords(data).forEach(ep => { epicMap[ep.Id] = ep; });
+    rows.forEach(ep => { epicMap[ep.Id] = ep; });
     await _mergeEpicsFromGusRefreshAndRehydrate(epicMap);
     let updated = 0;
 
