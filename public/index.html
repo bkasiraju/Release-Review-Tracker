@@ -1396,6 +1396,14 @@ function gusQueryRecords(data) {
   return [];
 }
 
+/** Match Salesforce Ids whether 15- or 18-char (sheet vs API). Prefix is unique per record. */
+function sfRecordIdKey(id) {
+  const s = String(id == null ? '' : id).trim();
+  if (!s) return '';
+  const core = s.length >= 15 ? s.substring(0, 15) : s;
+  return core.toLowerCase();
+}
+
 async function maybeWarnGusAppsSoqlEmpty() {
   if (!IS_GUS_APPS || window.__cfsGusEmptyWarned) return;
   window.__cfsGusEmptyWarned = true;
@@ -2174,11 +2182,11 @@ class DashboardController {
         rows.forEach(rec => {
           const c = { ...rec };
           delete c.attributes;
-          byId[rec.Id] = c;
+          byId[sfRecordIdKey(rec.Id)] = c;
         });
         epics.forEach(e => {
           if (!e || !e.Id) return;
-          const u = byId[e.Id];
+          const u = byId[sfRecordIdKey(e.Id)];
           if (!u) return;
           const prevProj = e.Project__r;
           const prevTeam = e.Team__r;
@@ -5508,7 +5516,7 @@ async function _mergeEpicsFromGusRefreshAndRehydrate(epicMap) {
   if (!epicMap || !Object.keys(epicMap).length) return;
   (ctrl.currentEpics || []).forEach(e => {
     if (!e || !e.Id) return;
-    const u = epicMap[e.Id];
+    const u = epicMap[sfRecordIdKey(e.Id)];
     if (u) Object.assign(e, u);
   });
   await ctrl._hydrateEpicWorkstreamPlannedRollups(ctrl.currentEpics || []);
@@ -5537,14 +5545,19 @@ async function refreshEpicDataFromGUS(opts) {
   try {
     const rows = await model.query(soql);
     const epicMap = {};
-    rows.forEach(ep => { epicMap[ep.Id] = ep; });
+    rows.forEach(ep => { epicMap[sfRecordIdKey(ep.Id)] = ep; });
+    if (!rows.length && epicIds.length) {
+      console.warn('[GUS refresh] SOQL returned 0 rows for', epicIds.length, 'table epic ids — check org/sharing or Id format (15 vs 18 char).');
+      if (!silent) showToast('GUS returned no epic rows — verify epic Ids exist in your org.', 'info');
+    }
     await _mergeEpicsFromGusRefreshAndRehydrate(epicMap);
     let updated = 0;
 
     tbl.querySelectorAll('tr[data-epic-id]').forEach(row => {
       const epicId = row.dataset.epicId;
-      const ep = (ctrl.currentEpics || []).find(x => x.Id === epicId);
-      if (!ep || !epicMap[epicId]) return;
+      const ek = sfRecordIdKey(epicId);
+      const ep = (ctrl.currentEpics || []).find(x => sfRecordIdKey(x.Id) === ek);
+      if (!ep || !epicMap[ek]) return;
       updated++;
 
       const healthChip = row.querySelector('.cell-health .health-chip');
