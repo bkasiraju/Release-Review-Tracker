@@ -2752,6 +2752,7 @@ class DashboardView {
       requestAnimationFrame(() => {
         adjustPvaMeasureEpicColumnWidth();
         if (typeof updatePvaGroupRowColspan === 'function') updatePvaGroupRowColspan();
+        _applyAllFilters();
       });
     }
 
@@ -3066,7 +3067,7 @@ class DashboardView {
       { short: 'Jun', full: 'June', year: 2026 },
       { short: 'Jul', full: 'July', year: 2026 }
     ];
-    let html = `<div class="pva-section" id="pva-section-wrap" style="display:none;">
+    let html = `<div class="pva-section" id="pva-section-wrap">
       <div class="pva-body" style="border-radius:10px;">`;
 
     // Detect current month index within release months
@@ -3093,7 +3094,7 @@ class DashboardView {
     const uniqueOwners = [...new Set(allFlatEpics.map(e => getEpicMeta(e.Id).owner).filter(Boolean))].sort();
     const healthValues = ['On Track','Watch','Blocked','Not Started','On Hold','Completed','Canceled'];
 
-    html += `<div id="epic-table-section" style="display:none;">
+    html += `<div id="epic-table-section">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;margin-bottom:6px;flex-wrap:nowrap;gap:6px;white-space:nowrap;overflow-x:auto;">
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:nowrap;flex-shrink:0;">
         <div style="font-size:13px;font-weight:700;color:#1e293b;">Epic Tracking &mdash; ${visibleMonthIdx.length === 1 ? esc(r264Months[visibleMonthIdx[0]].full) + ' ' + r264Months[visibleMonthIdx[0]].year : esc(visibleMonthIdx.map(i => r264Months[i].full).join(' · ')) + ' ' + r264Months[0].year}</div>
@@ -6813,9 +6814,9 @@ function clearAllFilters() {
   document.querySelectorAll('#inline-usearch, #fs-usearch').forEach(s => s.value = '');
   document.querySelectorAll('.ms-health-dot.active').forEach(d => d.classList.remove('active'));
   _clearMethodTileSelection();
-  pvaCollapseAll();
-  _updateSearchCounts(0, 0);
+  pvaExpandAll();
   _toggleEpicTableSection();
+  _applyAllFilters();
 }
 
 function _syncFilterDropdowns() {
@@ -6862,10 +6863,10 @@ function _applyAllFilters() {
   const wrap = document.getElementById('pva-section-wrap');
 
   if (!hasTextFilters && !methodFilterOn) {
-    pvaCollapseAll();
-    if (sec) sec.style.display = 'none';
-    if (wrap) wrap.style.display = 'none';
-    _updateSearchCounts(0, totalEpics);
+    pvaExpandAll();
+    if (sec) sec.style.display = '';
+    if (wrap) wrap.style.display = '';
+    _updateSearchCounts(totalEpics, totalEpics);
     return;
   }
 
@@ -6942,9 +6943,8 @@ function filterMeasureByHealth(measureKey, health, dotEl) {
 function _toggleEpicTableSection() {
   const sec = document.getElementById('epic-table-section');
   const wrap = document.getElementById('pva-section-wrap');
-  const show = _activeMethodTileSet.size > 0;
-  if (sec) sec.style.display = show ? '' : 'none';
-  if (wrap) wrap.style.display = show ? '' : 'none';
+  if (sec) sec.style.display = '';
+  if (wrap) wrap.style.display = '';
 }
 
 function filterByMethodTile(methodNum) {
