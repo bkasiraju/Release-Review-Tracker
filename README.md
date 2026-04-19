@@ -56,6 +56,8 @@ The applet manifest requests **user-scoped** Salesforce access (`executionContex
 
 After the host applies user context, reload the applet and confirm `gusApi('debug')`-style flows show your username and a user-scoped connection source if exposed.
 
+Push failures mentioning **Epic Id not found in GUS for this org** usually mean either (a) integration user cannot see that epic — same fix as SOQL visibility — or (b) the queued Id did not match `ADM_Epic__c`; the app now resolves edits to the canonical epic Id from the loaded release before calling `batchUpdate`.
+
 ### GitHub Pages
 
 Push to `main` on the `github` remote. The `public/` directory is served at the Pages URL.

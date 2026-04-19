@@ -1404,6 +1404,15 @@ function sfRecordIdKey(id) {
   return core.toLowerCase();
 }
 
+/** Use loaded epic Id for GUS writes (DOM / _pvaEdits may use 15-char; GUS row check may need 18-char). */
+function canonicalEpicIdForPush(epicKey) {
+  const raw = String(epicKey == null ? '' : epicKey).trim();
+  if (!raw) return raw;
+  const ek = sfRecordIdKey(raw);
+  const epic = (ctrl.currentEpics || []).find(e => e && e.Id && sfRecordIdKey(e.Id) === ek);
+  return epic ? String(epic.Id).trim() : raw;
+}
+
 async function maybeWarnGusAppsSoqlEmpty() {
   if (!IS_GUS_APPS || window.__cfsGusEmptyWarned) return;
   window.__cfsGusEmptyWarned = true;
@@ -5184,7 +5193,7 @@ function cycleHealthChip(chip) {
 
 async function pushToGUS(epicId, field, value) {
   try {
-    const id = String(epicId || '').trim();
+    const id = canonicalEpicIdForPush(epicId);
     if (!IS_GUS_APPS && !model.useMock) {
       const patch = await buildPvaFieldPatch(id, field, value);
       await model.patchEpic(id, patch);
@@ -5210,17 +5219,17 @@ async function pushToGUS(epicId, field, value) {
 /** @returns {Promise<boolean>} true if a batch ran successfully; false if nothing was queued */
 async function pushAllEditsToGUS(opts) {
   const silent = !!(opts && opts.silent);
-  const updates = [];
-  for (const [epicId, fields] of Object.entries(_pvaEdits)) {
-    const id = String(epicId || '').trim();
-    const gusFields = {};
+  const merged = {};
+  for (const [epicKey, fields] of Object.entries(_pvaEdits)) {
+    const id = canonicalEpicIdForPush(epicKey);
+    if (!merged[id]) merged[id] = {};
     for (const [field, value] of Object.entries(fields)) {
-      if (GUS_WRITEBACK_FIELDS.has(field)) gusFields[field] = value;
-    }
-    if (Object.keys(gusFields).length > 0) {
-      updates.push({ epicId: id, fields: gusFields });
+      if (GUS_WRITEBACK_FIELDS.has(field)) merged[id][field] = value;
     }
   }
+  const updates = Object.entries(merged)
+    .filter(([, gusFields]) => Object.keys(gusFields).length > 0)
+    .map(([epicId, fields]) => ({ epicId, fields }));
   if (updates.length === 0) {
     if (!silent) showToast('No GUS-writable changes to push', 'info');
     return false;
@@ -5262,8 +5271,8 @@ async function pushAllEditsToGUS(opts) {
     const failN = results.filter(r => r.status === 'error').length;
 
     if (failN > 0) {
-      const errRec = results.find(r => r.status === 'error');
-      const detail = errRec && errRec.error ? String(errRec.error) : `${failN} epic update(s) failed`;
+      const parts = results.filter(r => r.status === 'error').map(r => `${r.epicId || '?'}: ${r.error || 'error'}`);
+      const detail = parts.slice(0, 4).join(' | ') || `${failN} epic update(s) failed`;
       if (!silent) showToast(`GUS: ${okN} updated, ${failN} failed`, 'error', 'batch-push');
       throw new Error(detail);
     }
