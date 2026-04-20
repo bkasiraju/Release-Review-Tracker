@@ -1450,22 +1450,51 @@ function getAppBasePath() {
   let p = window.location.pathname || '/';
   p = p.replace(/\/index\.html?$/i, '');
   p = p.replace(/\/+$/, '');
+  const h = window.location.hostname;
+  const local = h === 'localhost' || h === '127.0.0.1';
+  /* python server.py mounts /api at origin; /public/index.html wrongly implied base "/public". */
+  if (local && (p === '/public' || /\/public$/.test(p))) return '';
   if (!p || p === '/') return '';
   return p;
 }
 
+/** Local python server proxies GUS — use it instead of browser→Salesforce (avoids CORS). */
+function shouldProxyViaLocalServer() {
+  try {
+    const h = window.location.hostname || '';
+    return h === 'localhost' || h === '127.0.0.1' || h === '[::1]';
+  } catch {
+    return false;
+  }
+}
+
+/** API path prefix: on localhost always use origin root /api (see getAppBasePath). */
+function getApiBasePrefix() {
+  if (IS_GUS_APPS) return '';
+  if (shouldProxyViaLocalServer()) return '';
+  return getAppBasePath();
+}
+
 async function gusApi(action, data = {}) {
-  const base = IS_GUS_APPS ? '' : getAppBasePath();
+  const base = IS_GUS_APPS ? '' : getApiBasePrefix();
   const url = IS_GUS_APPS
     ? `${base}/api/applets/${APPLET_SLUG}/handler`
     : `${base}/api/${action === 'query' ? 'gus-query' : action === 'update' ? 'gus-update' : 'gus-batch-update'}`;
   const payload = IS_GUS_APPS ? { action, ...data } : data;
-  const resp = await fetch(url, {
-    method: 'POST',
-    credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
-  });
+  let resp;
+  try {
+    resp = await fetch(url, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+  } catch (e) {
+    const hint = shouldProxyViaLocalServer()
+      ? ' Start server: python3 server.py — clear API Settings token so calls use /api (not browser→GUS CORS).'
+      : '';
+    throw new Error((e && e.message ? e.message : 'fetch failed') + hint);
+  }
   const rawText = await resp.text();
   if (!resp.ok) {
     throw new Error(`GUS proxy HTTP ${resp.status}: ${rawText.slice(0, 200)}`);
@@ -1598,7 +1627,7 @@ class GUSModel {
     this.useMock = !this.token;
   }
   async _serverQuery(soql) {
-    if (!IS_GUS_APPS && !this.useMock) {
+    if (!IS_GUS_APPS && !this.useMock && !shouldProxyViaLocalServer()) {
       return this.query(soql);
     }
     const data = await gusApi('query', { soql });
@@ -1609,6 +1638,10 @@ class GUSModel {
   }
   async query(soql) {
     if (IS_GUS_APPS) return this._serverQuery(soql);
+    /* Local server.py proxies SOQL; browser→gus.my.salesforce.com is blocked by CORS without org setup. */
+    if (!this.useMock && shouldProxyViaLocalServer()) {
+      return this._serverQuery(soql);
+    }
     if (!this.useMock) {
       const url = `${this.instanceUrl}/services/data/${this.apiVersion}/query?q=${encodeURIComponent(soql)}`;
       const resp = await fetch(url, { headers: { 'Authorization': `Bearer ${this.token}`, 'Content-Type': 'application/json' } });
@@ -1622,6 +1655,26 @@ class GUSModel {
     if (IS_GUS_APPS) {
       const updates = Object.entries(fields).map(([k, v]) => ({ field: k, value: v }));
       for (const u of updates) await gusApi('update', { epicId, ...u });
+      return true;
+    }
+    if (shouldProxyViaLocalServer()) {
+      const pre = getApiBasePrefix();
+      const url = pre ? `${pre}/api/gus-rest-patch` : '/api/gus-rest-patch';
+      const resp = await fetch(url, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ epicId, fields }),
+      });
+      const rawText = await resp.text();
+      let data;
+      try {
+        data = JSON.parse(rawText);
+      } catch {
+        throw new Error(rawText.slice(0, 200) || `HTTP ${resp.status}`);
+      }
+      if (!resp.ok) throw new Error(data.error || `HTTP ${resp.status}`);
+      if (data.status === 'error') throw new Error(data.error || 'Patch failed');
       return true;
     }
     if (this.useMock) { showToast('Mock mode: edit saved locally only', 'info'); return true; }

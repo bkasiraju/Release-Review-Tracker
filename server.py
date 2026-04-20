@@ -168,6 +168,8 @@ class DashboardHandler(http.server.SimpleHTTPRequestHandler):
             self._handle_gus_update()
         elif parsed.path == '/api/gus-batch-update':
             self._handle_gus_batch_update()
+        elif parsed.path == '/api/gus-rest-patch':
+            self._handle_gus_rest_patch()
         elif parsed.path == '/api/risks':
             self._handle_risks_post()
         else:
@@ -341,6 +343,24 @@ class DashboardHandler(http.server.SimpleHTTPRequestHandler):
 
             self._json_response(200, {'status': 'ok', 'results': results})
 
+        except Exception as e:
+            self._json_response(500, {'error': str(e)})
+
+    def _handle_gus_rest_patch(self):
+        """PATCH ADM_Epic__c with Salesforce API field names (browser REST is CORS-blocked locally)."""
+        try:
+            body = json.loads(self.rfile.read(int(self.headers['Content-Length'])))
+            epic_id = normalize_epic_id(body.get('epicId'))
+            fields = body.get('fields') or {}
+            if not epic_id or not isinstance(fields, dict) or not fields:
+                return self._json_response(400, {'error': 'epicId and fields required'})
+            creds = org_rest_credentials()
+            ok, detail = run_sf_update(creds, 'ADM_Epic__c', epic_id, fields)
+            if ok:
+                self._json_response(200, {'status': 'ok', 'epicId': epic_id})
+            else:
+                msg = detail.get('message') if isinstance(detail, dict) else str(detail)
+                self._json_response(200, {'status': 'error', 'error': msg[:1200], 'detail': detail})
         except Exception as e:
             self._json_response(500, {'error': str(e)})
 
