@@ -16,7 +16,7 @@ rm -f "$ZIP"
 zip -qr "$ZIP" manifest.json backend public -x "*.DS_Store"
 TOKEN=$(sf org display --target-org GusProduction --json | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('result',{}).get('accessToken','') or '')")
 if [[ -z "$TOKEN" ]]; then
-  echo "No access token. Run: sf org login web -o GusProduction" >&2
+  echo "No access token. Run: sf org login web --alias GusProduction" >&2
   exit 1
 fi
 

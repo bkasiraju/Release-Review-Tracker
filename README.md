@@ -44,7 +44,7 @@ scripts/
 bash scripts/deploy-gus-apps.sh
 ```
 
-Requires an active Salesforce CLI session: `sf org login web -o GusProduction`
+Requires an active Salesforce CLI session: `sf org login web --alias GusProduction` (login uses **`--alias` / `-a`**, not `-o`; `-o` / `--target-org` is for commands after you’re authenticated).
 
 #### Troubleshooting: SOQL returns 0 rows (`connectionSource=sf`, integration user)
 
@@ -72,7 +72,7 @@ git push github main
 python3 server.py   # starts on http://localhost:8282
 ```
 
-Keep **API Settings → access token empty** while using `server.py` unless you’ve added your machine’s origin to **Salesforce CORS**. Otherwise the UI tries `gus.my.salesforce.com` from the browser and **Fetch** fails (`Failed to fetch`). Prefer **SF token unset** locally so SOQL/PATCH go through **`/api/gus-*`** on the Python server (`sf org login -o GusProduction`).
+Keep **API Settings → access token empty** while using `server.py` unless you’ve added your machine’s origin to **Salesforce CORS**. Otherwise the UI tries `gus.my.salesforce.com` from the browser and **Fetch** fails (`Failed to fetch`). Prefer **SF token unset** locally so SOQL/PATCH go through **`/api/gus-*`** on the Python server (`sf org login web --alias GusProduction`).
 
 ## Version
 
