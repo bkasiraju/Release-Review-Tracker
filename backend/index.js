@@ -1,5 +1,13 @@
-const MONTH_ORDER = ['April', 'May', 'June', 'July'];
-const MONTH_KEY_MAP = { 'month-Apr': 'April', 'month-May': 'May', 'month-Jun': 'June', 'month-Jul': 'July' };
+/** Calendar order for serializing Epic_Health_Comments__c month sections (must match UI data-field month-* keys). */
+const MONTH_ORDER = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
+];
+const MONTH_KEY_MAP = {
+  'month-Jan': 'January', 'month-Feb': 'February', 'month-Mar': 'March', 'month-Apr': 'April',
+  'month-May': 'May', 'month-Jun': 'June', 'month-Jul': 'July', 'month-Aug': 'August',
+  'month-Sep': 'September', 'month-Oct': 'October', 'month-Nov': 'November', 'month-Dec': 'December'
+};
 const HEALTH_VALUES = new Set(['On Track', 'Watch', 'Blocked', 'Not Started', 'On Hold', 'Completed', 'Canceled']);
 
 function normalizeEpicId(id) {

@@ -17,11 +17,11 @@ PORT = int(os.environ.get('SERVER_PORT', '8282'))
 STATIC_DIR = os.path.dirname(os.path.abspath(__file__))
 RISKS_FILE = os.path.join(STATIC_DIR, 'data', 'risks.json')
 
+DEFAULT_LLM_GATEWAY = (
+    'https://eng-ai-model-gateway.sfproxy.devx-preprod.aws-esvc1-useast2.aws.sfdc.cl/chat/completions'
+)
+
 FIELD_MAP = {
-    'month-Apr': 'Epic_Health_Comments__c',
-    'month-May': 'Epic_Health_Comments__c',
-    'month-Jun': 'Epic_Health_Comments__c',
-    'month-Jul': 'Epic_Health_Comments__c',
     'health':    'Health__c',
     'pathToGreen': 'Path_to_Green__c',
     'slippage':  'Slippage_Comments__c',
@@ -31,12 +31,48 @@ FIELD_MAP = {
 }
 
 HEALTH_VALUES = {'On Track', 'Watch', 'Blocked', 'Not Started', 'On Hold', 'Completed', 'Canceled'}
-MONTH_ORDER = ['April', 'May', 'June', 'July']
-MONTH_KEY_MAP = {'month-Apr': 'April', 'month-May': 'May', 'month-Jun': 'June', 'month-Jul': 'July'}
+
+MONTH_SHORT_TO_FULL = {
+    'Jan': 'January', 'Feb': 'February', 'Mar': 'March', 'Apr': 'April',
+    'May': 'May', 'Jun': 'June', 'Jul': 'July', 'Aug': 'August',
+    'Sep': 'September', 'Oct': 'October', 'Nov': 'November', 'Dec': 'December',
+}
+
+MONTH_ORDER_FULL = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+]
+
+
+def month_field_to_full(field):
+    """month-Dec → December (browser sends 3-letter month after month-)."""
+    if not field.startswith('month-') or len(field) < 9:
+        return None
+    short = field[6:]
+    return MONTH_SHORT_TO_FULL.get(short)
 
 
 def normalize_epic_id(epic_id):
     return (epic_id or '').strip() if isinstance(epic_id, str) else ''
+
+
+def resolve_epic_id_for_rest(epic_id):
+    """Prefer 18-char Id for REST PATCH (sheet / DOM may supply 15-char keys)."""
+    e = normalize_epic_id(epic_id)
+    if not e:
+        return e
+    if len(e) >= 18:
+        return e
+    if len(e) == 15:
+        try:
+            rows = run_sf_query(
+                f"SELECT Id FROM ADM_Epic__c WHERE Id = '{soql_quote_literal(e)}' LIMIT 1"
+            )
+            if rows and rows[0].get('Id'):
+                return rows[0]['Id']
+        except Exception:
+            pass
+    return e
 
 
 def soql_quote_literal(value):
@@ -122,27 +158,45 @@ def epic_exists(epic_id):
 
 
 def merge_month_comment(existing_comments, month_label, new_text):
+    """Merge one month section; preserve first-seen month order when re-serializing."""
     sections = {}
+    order_seen = []
     current_month = None
     lines = (existing_comments or '').split('\n')
 
     for line in lines:
         stripped = line.strip()
         matched = False
-        for m in MONTH_ORDER:
-            if stripped.lower().startswith(m.lower() + ':') or stripped.lower().startswith(m.lower() + ' '):
+        for m in MONTH_ORDER_FULL:
+            low = stripped.lower()
+            if low.startswith(m.lower() + ':') or low.startswith(m.lower() + ' '):
                 current_month = m
                 rest = stripped[len(m):].lstrip(':').strip()
                 sections[m] = rest
                 matched = True
+                if m not in order_seen:
+                    order_seen.append(m)
                 break
+        if not matched:
+            for abbrev, full in sorted(MONTH_SHORT_TO_FULL.items(), key=lambda x: len(x[0]), reverse=True):
+                low = stripped.lower()
+                if low.startswith(abbrev.lower() + ':') or low.startswith(abbrev.lower() + ' '):
+                    current_month = full
+                    rest = stripped[len(abbrev):].lstrip(':').strip()
+                    sections[full] = rest
+                    matched = True
+                    if full not in order_seen:
+                        order_seen.append(full)
+                    break
         if not matched and current_month:
             sections[current_month] = sections.get(current_month, '') + '\n' + line
 
     sections[month_label] = new_text.strip()
+    if month_label not in order_seen:
+        order_seen.append(month_label)
 
     result_parts = []
-    for m in MONTH_ORDER:
+    for m in order_seen:
         if m in sections and sections[m].strip():
             result_parts.append(f"{m}: {sections[m].strip()}")
     return '\n'.join(result_parts)
@@ -172,6 +226,8 @@ class DashboardHandler(http.server.SimpleHTTPRequestHandler):
             self._handle_gus_rest_patch()
         elif parsed.path == '/api/risks':
             self._handle_risks_post()
+        elif parsed.path == '/api/llm':
+            self._handle_llm_proxy()
         else:
             self.send_error(404, 'Not Found')
 
@@ -183,7 +239,7 @@ class DashboardHandler(http.server.SimpleHTTPRequestHandler):
     def _cors_headers(self):
         self.send_header('Access-Control-Allow-Origin', '*')
         self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type, Authorization')
 
     def _json_response(self, status, data):
         self.send_response(status)
@@ -202,6 +258,48 @@ class DashboardHandler(http.server.SimpleHTTPRequestHandler):
             self._json_response(200, {'status': 'ok', 'risks': data})
         except Exception as e:
             self._json_response(500, {'error': str(e)})
+
+    def _handle_llm_proxy(self):
+        """Forward JSON body to Salesforce AI gateway.
+
+        Token resolution (first match wins):
+        1) Authorization: Bearer <token> from the browser request (runtime UI / curl override)
+        2) LLM_BEARER_TOKEN or GEMINI_GATEWAY_TOKEN in the server environment
+        """
+        auth_hdr = (self.headers.get('Authorization') or '').strip()
+        token = ''
+        if auth_hdr.lower().startswith('bearer '):
+            token = auth_hdr[7:].strip()
+        if not token:
+            token = (os.environ.get('LLM_BEARER_TOKEN') or os.environ.get('GEMINI_GATEWAY_TOKEN') or '').strip()
+        if not token:
+            self._json_response(
+                503,
+                {'error': 'LLM proxy not configured — paste token in AI tab (session), or export LLM_BEARER_TOKEN on the server'},
+            )
+            return
+        try:
+            length = int(self.headers.get('Content-Length') or '0')
+            raw = self.rfile.read(length) if length else b'{}'
+            payload = raw.decode('utf-8')
+            gateway = (os.environ.get('LLM_GATEWAY_URL') or DEFAULT_LLM_GATEWAY).strip()
+            req = urllib.request.Request(gateway, data=payload.encode('utf-8'), method='POST')
+            req.add_header('Content-Type', 'application/json')
+            req.add_header('Authorization', 'Bearer ' + token)
+            try:
+                with urllib.request.urlopen(req, timeout=180) as resp:
+                    body_out = resp.read()
+                    code = resp.getcode()
+            except urllib.error.HTTPError as e:
+                body_out = e.read()
+                code = e.code
+            self.send_response(code)
+            self._cors_headers()
+            self.send_header('Content-Type', 'application/json')
+            self.end_headers()
+            self.wfile.write(body_out)
+        except Exception as e:
+            self._json_response(502, {'error': str(e)})
 
     def _handle_risks_post(self):
         try:
@@ -238,7 +336,7 @@ class DashboardHandler(http.server.SimpleHTTPRequestHandler):
                 return self._json_response(400, {'error': 'epicId and field required'})
 
             if field.startswith('month-'):
-                month_label = MONTH_KEY_MAP.get(field)
+                month_label = month_field_to_full(field)
                 if not month_label:
                     return self._json_response(400, {'error': f'Unknown month field: {field}'})
                 existing = get_current_comments(epic_id)
@@ -306,7 +404,7 @@ class DashboardHandler(http.server.SimpleHTTPRequestHandler):
 
                 for field, value in fields.items():
                     if field.startswith('month-'):
-                        month_label = MONTH_KEY_MAP.get(field)
+                        month_label = month_field_to_full(field)
                         if month_label:
                             month_updates[month_label] = value
                     elif field == 'health' and value in HEALTH_VALUES:
@@ -350,7 +448,7 @@ class DashboardHandler(http.server.SimpleHTTPRequestHandler):
         """PATCH ADM_Epic__c with Salesforce API field names (browser REST is CORS-blocked locally)."""
         try:
             body = json.loads(self.rfile.read(int(self.headers['Content-Length'])))
-            epic_id = normalize_epic_id(body.get('epicId'))
+            epic_id = resolve_epic_id_for_rest(body.get('epicId'))
             fields = body.get('fields') or {}
             if not epic_id or not isinstance(fields, dict) or not fields:
                 return self._json_response(400, {'error': 'epicId and fields required'})
@@ -360,7 +458,9 @@ class DashboardHandler(http.server.SimpleHTTPRequestHandler):
                 self._json_response(200, {'status': 'ok', 'epicId': epic_id})
             else:
                 msg = detail.get('message') if isinstance(detail, dict) else str(detail)
-                self._json_response(200, {'status': 'error', 'error': msg[:1200], 'detail': detail})
+                err_code = (detail.get('errorCode') if isinstance(detail, dict) else None) or ''
+                status = 400 if err_code in ('ENTITY_IS_DELETED', 'NOT_FOUND', 'MALFORMED_ID') else 502
+                self._json_response(status, {'status': 'error', 'error': msg[:1200], 'detail': detail})
         except Exception as e:
             self._json_response(500, {'error': str(e)})
 
