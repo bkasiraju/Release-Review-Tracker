@@ -232,15 +232,29 @@ body { font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe
 .pva-info-note {
   font-size: 11px;
   line-height: 1.45;
-  color: #475569;
+  color: #334155;
   margin: 0 0 8px 0;
-  padding: 6px 10px 6px 12px;
-  border-left: 3px solid #94a3b8;
-  background: #f8fafc;
+  padding: 8px 10px 8px 12px;
+  border-left: 3px solid #0369a1;
+  background: linear-gradient(180deg, #f8fbff 0%, #f1f5f9 100%);
   border-radius: 0 6px 6px 0;
 }
-.pva-info-note a { color: #0369a1; font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
-.pva-info-note strong { color: #334155; font-weight: 700; }
+.pva-info-note a { color: #0369a1; font-weight: 700; text-decoration: underline; text-underline-offset: 2px; }
+.pva-info-note strong { color: #0f172a; font-weight: 800; }
+.pva-note-badge { display:inline-flex; align-items:center; gap:4px; font-size:10px; font-weight:800; border-radius:999px; padding:2px 8px; margin-right:6px; }
+.pva-note-badge--official { color:#075985; background:#e0f2fe; border:1px solid #bae6fd; }
+.pva-note-badge--session { color:#92400e; background:#ffedd5; border:1px solid #fdba74; }
+.pva-note-badge--delta { color:#14532d; background:#dcfce7; border:1px solid #86efac; }
+.pva-kpi-quick { display:grid; grid-template-columns:repeat(3,minmax(120px,1fr)); gap:8px; margin:0 0 8px 0; }
+@media (max-width: 680px) { .pva-kpi-quick { grid-template-columns:1fr; } }
+.pva-kpi-qtile { border:1px solid #e2e8f0; border-radius:8px; background:#fff; padding:8px 10px; }
+.pva-kpi-qtile .lbl { font-size:9px; text-transform:uppercase; letter-spacing:.05em; color:#64748b; font-weight:800; }
+.pva-kpi-qtile .val { font-size:17px; font-weight:800; color:#0f172a; line-height:1.2; margin-top:2px; }
+.pva-kpi-qtile .sub { font-size:10px; color:#64748b; margin-top:2px; }
+.pva-kpi-qtile--planned .val { color:#6d28d9; }
+.pva-kpi-qtile--actual .val { color:#0369a1; }
+.pva-kpi-qtile--delta .val.positive { color:#b45309; }
+.pva-kpi-qtile--delta .val.negative { color:#dc2626; }
 
 /* ===== PVA KPI SUMMARY — merged Plan vs Actual (single strip) ===== */
 .pva-kpi-summary {
@@ -3484,11 +3498,9 @@ class DashboardView {
         const wia = release.Number_Work_Items_Added__c != null ? release.Number_Work_Items_Added__c : '—';
         const wir = release.Number_Forecast_Work_Items_Removed__c != null ? release.Number_Forecast_Work_Items_Removed__c : '—';
         const wbUrl = release.Team__c ? gusWorkBacklogUrl(release.Team__c) : '';
-        html += `<p class="pva-info-note"><strong>Note:</strong> These GUS rollups are the shared, org-wide record of scope added or removed on this planned release (so everyone uses the same numbers). Current: +${ea} / −${er} epics, +${wia} / −${wir} work items. <a href="https://gus.my.salesforce.com/lightning/r/ADM_Planned_Release__c/${esc(release.Id)}/view" target="_blank">Planned Release</a>${wbUrl ? ` · <a href="${esc(wbUrl)}" target="_blank">Work Backlog</a>` : ''}.</p>`;
-      }
-      if (forecastConfirmed && ctrl._churnContext) {
-        const ch = ctrl._churnContext.counts;
-        html += `<p class="pva-info-note"><strong>Note:</strong> Session-only check for new epics and workstream-shaped work items since forecast was confirmed in this browser (not stored in GUS—use the GUS note above for official rollups). Session delta: +${ch.newEpics} epics, +${ch.newWorkstreams} workstreams.</p>`;
+        const ch = (ctrl._churnContext && ctrl._churnContext.counts) ? ctrl._churnContext.counts : null;
+        const sessionText = ch ? ` <span class="pva-note-badge pva-note-badge--session">Session check</span><span class="pva-note-badge pva-note-badge--delta">Delta +${ch.newEpics} epics · +${ch.newWorkstreams} workstreams</span>` : '';
+        html += `<p class="pva-info-note"><span class="pva-note-badge pva-note-badge--official">Official GUS rollup</span>Scope movement on this release: <strong>+${ea}</strong>/<strong>−${er}</strong> epics, <strong>+${wia}</strong>/<strong>−${wir}</strong> work items.${sessionText} <a href="https://gus.my.salesforce.com/lightning/r/ADM_Planned_Release__c/${esc(release.Id)}/view" target="_blank">Planned Release</a>${wbUrl ? ` · <a href="${esc(wbUrl)}" target="_blank">Work Backlog</a>` : ''}.</p>`;
       }
 
       const nWatch = healthCounts['Watch'] || 0;
@@ -3497,23 +3509,42 @@ class DashboardView {
         ? `<p class="pva-kpi-hint" style="margin-top:8px;border-top:1px solid #e2e8f0;padding-top:6px;"><strong style="color:#d97706;">${nWatch}</strong> Watch · <strong style="color:#dc2626;">${nBlocked}</strong> Blocked <span style="color:#94a3b8;">— filter epics below</span></p>`
         : '';
 
+      const planDelta = baselinePlanned - actualSPclosed;
+      const deltaCls = planDelta > 0 ? 'positive' : (planDelta < 0 ? 'negative' : '');
+      const deltaLabel = planDelta > 0 ? 'remaining vs plan' : (planDelta < 0 ? 'ahead of plan' : 'on plan');
       html += `<div class="pva-kpi-summary">
+        <div class="pva-kpi-quick">
+          <div class="pva-kpi-qtile pva-kpi-qtile--planned">
+            <div class="lbl">Planned SP-days</div>
+            <div class="val">${baselinePlanned}</div>
+            <div class="sub">${baselinePctUsed}% of ${baselineCapacity} capacity · ${baselineEngineers} engineers</div>
+          </div>
+          <div class="pva-kpi-qtile pva-kpi-qtile--actual">
+            <div class="lbl">Delivered SP-days</div>
+            <div class="val">${actualSPclosed}</div>
+            <div class="sub">${pctSPDone}% closed of ${actualSPtotal} scoped SP-days</div>
+          </div>
+          <div class="pva-kpi-qtile pva-kpi-qtile--delta">
+            <div class="lbl">Plan gap</div>
+            <div class="val ${deltaCls}">${planDelta > 0 ? '+' : ''}${planDelta}</div>
+            <div class="sub">${deltaLabel}</div>
+          </div>
+        </div>
         <div class="pva-kpi-card pva-kpi-card--merged">
-          <div class="pva-kpi-merged-head">Planned vs actual<span class="pva-kpi-merged-conv"><strong>CFS:</strong> 1 SP = 1 engineering day. Sheet capacity and GUS epic totals both use <strong>SP-days</strong> so planned vs actual are directly comparable.</span></div>
+          <div class="pva-kpi-merged-head">Planned vs actual at a glance<span class="pva-kpi-merged-conv"><strong>Scale:</strong> 1 SP = 1 engineering day (sheet and GUS both use SP-days).</span></div>
           <div class="pva-kpi-merged-cols">
             <div class="pva-kpi-col pva-kpi-col--planned">
-              <span class="pva-kpi-col-label">Planned · sheet &amp; capacity</span>
-              <div class="pva-kpi-hero pva-kpi-hero--purple" title="Planned effort from the capacity model, in SP-days (same numeric basis as GUS SP)."><span class="pva-kpi-pct-num">${baselinePlanned}</span></div>
-              <div class="pva-kpi-tagline" style="margin-top:2px;">${baselinePctUsed}% of ${baselineCapacity} net SP-days · ${baselinePlanned} SP-days committed from sheet</div>
-              <p class="pva-kpi-hint">${baselineEngineers} engineers · ${esc(plannedStripHint)}${baselinePctUsed >= 85 ? ' · <span style="color:#b45309;">High utilization—check scope vs capacity.</span>' : ''}</p>
+              <span class="pva-kpi-col-label">Planned baseline</span>
+              <div class="pva-kpi-hero pva-kpi-hero--purple" title="Planned effort from the capacity model in SP-days."><span class="pva-kpi-pct-num">${baselinePlanned}</span></div>
+              <div class="pva-kpi-tagline">${esc(plannedStripHint)}${baselinePctUsed >= 85 ? ' · High utilization' : ''}</div>
             </div>
             <div class="pva-kpi-merge-divider" aria-hidden="true"></div>
             <div class="pva-kpi-col pva-kpi-col--actual">
               <span class="pva-kpi-col-label" style="color:${fcColor};">${esc(fcLabel)}</span>
-              <div class="pva-kpi-hero pva-kpi-hero--blue" title="GUS: SP-days closed ÷ SP-days scoped on epics in this view (delivery %). Comparable to planned SP-days when 1 SP = 1 day.">
+              <div class="pva-kpi-hero pva-kpi-hero--blue" title="SP-days closed ÷ SP-days scoped on epics in this view.">
                 <span class="pva-kpi-pct-num">${pctSPDone}</span><span class="pva-kpi-pct-sym">%</span>
               </div>
-              <div class="pva-kpi-tagline" style="margin-top:2px;">Delivery vs scoped · ${actualSPclosed} / ${actualSPtotal} SP-days</div>
+              <div class="pva-kpi-tagline">${actualSPclosed} closed / ${actualSPtotal} scoped SP-days</div>
               <div class="pva-kpi-bar" role="progressbar" aria-valuenow="${spBarPct}" aria-valuemin="0" aria-valuemax="100" title="${actualSPclosed} of ${actualSPtotal} SP-days closed"><div class="pva-kpi-bar-fill" style="width:${spBarPct}%"></div></div>
             </div>
           </div>
@@ -3570,6 +3601,7 @@ class DashboardView {
         adjustPvaMeasureEpicColumnWidth();
         if (typeof updatePvaGroupRowColspan === 'function') updatePvaGroupRowColspan();
         _applyAllFilters();
+        pvaCollapseAll();
       });
     }
 
