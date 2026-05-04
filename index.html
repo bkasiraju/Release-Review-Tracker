@@ -2510,11 +2510,23 @@ class DashboardController {
         if (releases && releases.length) {
           GUS_HIERARCHY.teamReleases[tabId] = releases;
         }
-        this.view.populateReleaseDropdown(releases || []);
-        const rels = releases && releases.length ? releases : (GUS_HIERARCHY.teamReleases[tabId] || []);
+        const planForTeam = TEAM_PLANS[tabId] || null;
+        const rels = [...(releases && releases.length ? releases : (GUS_HIERARCHY.teamReleases[tabId] || []))];
+        if (planForTeam?.gusPlannedReleaseId && !rels.some(r => r.Id === planForTeam.gusPlannedReleaseId)) {
+          rels.unshift({
+            Id: planForTeam.gusPlannedReleaseId,
+            Name: planForTeam.release || 'Caching 264',
+            Start_Date__c: null,
+            End_Date__c: null,
+            Team__c: tabId,
+            Team__r: { Name: this._teamDisplayName(tabId) }
+          });
+        }
+        this.view.populateReleaseDropdown(rels);
         const saved = this._loadState();
         const savedPick = saved && saved.releaseByTeam && saved.releaseByTeam[tabId];
-        const rel = (savedPick && rels.some(r => r.Id === savedPick)) ? rels.find(r => r.Id === savedPick) : rels[0];
+        const preferred = savedPick || planForTeam?.gusPlannedReleaseId;
+        const rel = (preferred && rels.some(r => r.Id === preferred)) ? rels.find(r => r.Id === preferred) : rels[0];
         if (selRel && rel) selRel.value = rel.Id;
         if (rel) {
           await this.loadRelease(rel.Id);
@@ -2523,10 +2535,23 @@ class DashboardController {
         }
       } catch (e) {
         console.warn('fetchReleases in tab:', e);
-        const rels = GUS_HIERARCHY.teamReleases[tabId] || [];
+        const planForTeam = TEAM_PLANS[tabId] || null;
+        const rels = [...(GUS_HIERARCHY.teamReleases[tabId] || [])];
+        if (planForTeam?.gusPlannedReleaseId && !rels.some(r => r.Id === planForTeam.gusPlannedReleaseId)) {
+          rels.unshift({
+            Id: planForTeam.gusPlannedReleaseId,
+            Name: planForTeam.release || 'Caching 264',
+            Start_Date__c: null,
+            End_Date__c: null,
+            Team__c: tabId,
+            Team__r: { Name: this._teamDisplayName(tabId) }
+          });
+        }
         hydrateTeamPlansFromReleases(rels);
         this.view.populateReleaseDropdown(rels);
-        const rel = rels[0];
+        const rel = planForTeam?.gusPlannedReleaseId && rels.some(r => r.Id === planForTeam.gusPlannedReleaseId)
+          ? rels.find(r => r.Id === planForTeam.gusPlannedReleaseId)
+          : rels[0];
         if (rel) {
           if (selRel) selRel.value = rel.Id;
           await this.loadRelease(rel.Id);
