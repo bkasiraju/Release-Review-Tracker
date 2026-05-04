@@ -2304,7 +2304,29 @@ class GUSModel {
     const plan = TEAM_PLANS[releaseId];
     const teamEntry = Object.entries(GUS_HIERARCHY.teamReleases).find(([,rels]) => rels.some(r => r.Id === releaseId));
     const rel = teamEntry ? teamEntry[1].find(r => r.Id === releaseId) : null;
-    const mockRelease = rel ? { Id: rel.Id, Name: rel.Name, Start_Date__c: rel.Start_Date__c, End_Date__c: rel.End_Date__c, Goals_Objectives__c: (plan ? plan.release : '') + ' Goals', Forecast_Items__c: null, Forecast_Items_Completed__c: null, Number_Forecast_Work_Items__c: null, Number_Forecast_Work_Items_Completed__c: null, Number_Forecast_Story_Points__c: null } : MOCK.releaseDetail;
+    const mockRelease = rel ? {
+      Id: rel.Id,
+      Name: rel.Name,
+      Start_Date__c: rel.Start_Date__c,
+      End_Date__c: rel.End_Date__c,
+      Goals_Objectives__c: (plan ? plan.release : '') + ' Goals',
+      Forecast_Items__c: null,
+      Forecast_Items_Completed__c: null,
+      Number_Forecast_Work_Items__c: null,
+      Number_Forecast_Work_Items_Completed__c: null,
+      Number_Forecast_Story_Points__c: null
+    } : {
+      Id: String(releaseId || (plan && plan.gusPlannedReleaseId) || ''),
+      Name: (plan && plan.release) || (MOCK.releaseDetail && MOCK.releaseDetail.Name) || 'Selected Release',
+      Start_Date__c: null,
+      End_Date__c: null,
+      Goals_Objectives__c: (plan ? plan.release : 'Selected release') + ' Goals',
+      Forecast_Items__c: null,
+      Forecast_Items_Completed__c: null,
+      Number_Forecast_Work_Items__c: null,
+      Number_Forecast_Work_Items_Completed__c: null,
+      Number_Forecast_Story_Points__c: null
+    };
 
     let mockEpics = [];
     if (plan && plan.epicIds && plan.epicIds.length) {
