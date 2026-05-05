@@ -2461,6 +2461,18 @@ class GUSModel {
       return [];
     }
   }
+
+  /** Child WI SP rollup by status per epic — used to recover actual/closed SP when epic rollup fields lag. */
+  async fetchWorkItemsForClosedRollup(epicIds) {
+    if (!epicIds || !epicIds.length) return [];
+    const idList = epicIds.slice(0, 200).map(id => `'${id}'`).join(',');
+    try {
+      return await this.query(`SELECT Epic__c, Story_Points__c, Status__c FROM ADM_Work__c WHERE Epic__c IN (${idList}) AND Status__c != null LIMIT 5000`);
+    } catch (e) {
+      console.warn('fetchWorkItemsForClosedRollup failed:', e);
+      return [];
+    }
+  }
   _mockQuery() { return []; }
 }
 
@@ -2687,6 +2699,7 @@ class DashboardController {
           const { release, epics } = await this.model.fetchReleaseData(releaseEntry.Id);
           await this.mergeGusLiveEpicFields(epics);
           await this._hydrateEpicWorkstreamPlannedRollups(epics);
+          await this._hydrateEpicClosedRollupsFromWorkItems(epics);
           const totals = this._computeTotals(epics);
           const healthCounts = this._countHealth(epics);
           return { team, release: release || releaseEntry, epics, totals, healthCounts };
@@ -2715,6 +2728,7 @@ class DashboardController {
       this.currentRelease = release;
       this.currentEpics = epics;
       await this._hydrateEpicWorkstreamPlannedRollups(epics);
+      await this._hydrateEpicClosedRollupsFromWorkItems(epics);
       this.releaseMonths = this._getReleaseMonths(release);
       const plan = TEAM_PLANS[releaseId];
       const hierarchy = this._buildHierarchy(epics, plan);
@@ -2785,6 +2799,7 @@ class DashboardController {
     try {
       await this.mergeGusLiveEpicFields(this.currentEpics);
       await this._hydrateEpicWorkstreamPlannedRollups(this.currentEpics);
+      await this._hydrateEpicClosedRollupsFromWorkItems(this.currentEpics);
       const hierarchy = this._buildHierarchy(this.currentEpics, TEAM_PLANS[this._lastReleaseId]);
       const healthCounts = this._countHealth(this.currentEpics);
       const totals = this._computeTotals(this.currentEpics);
@@ -2838,15 +2853,18 @@ class DashboardController {
     const planned = epicPlanned != null && epicPlanned !== ''
       ? (Number(epicPlanned) || 0)
       : (Number(epic._gusWsWorkstreamSpSum) || 0);
-    const actual = Number(epic.Actual_Story_Points_on_Epic__c) || 0;
+    const epicActual = Number(epic.Actual_Story_Points_on_Epic__c) || 0;
+    const wiActual = Number(epic._gusWiSpTotal) || 0;
+    const actual = epicActual > 0 ? epicActual : wiActual;
     const rawClosed = Number(epic.Storypoints_Closed__c) || 0;
+    const wiClosedSp = Number(epic._gusWiSpClosed) || 0;
     const pctComplete = Number(epic.Percent_Of_Work_Items_Complete__c) || 0;
     const wiClosed = Number(epic.Workitems_Closed__c) || 0;
     const wiInProg = Number(epic.WorkItems_In_Progress__c) || 0;
     const wiNew = Number(epic.Workitems_New__c) || 0;
     const wiWait = Number(epic.Workitems_in_Waiting__c) || 0;
     const totalWI = wiClosed + wiInProg + wiNew + wiWait;
-    let closed = rawClosed;
+    let closed = rawClosed > 0 ? rawClosed : wiClosedSp;
     if (closed <= 0 && actual > 0) {
       if (pctComplete > 0) closed = Math.round((actual * Math.min(100, pctComplete)) / 100);
       else if (totalWI > 0 && wiClosed > 0) closed = Math.round((actual * wiClosed) / totalWI);
@@ -3020,6 +3038,41 @@ class DashboardController {
       epics.forEach(e => { if (e && e.Id) e._gusWsWorkstreamSpSum = byEpic[e.Id] || 0; });
     } catch (e) {
       console.warn('_hydrateEpicWorkstreamPlannedRollups failed:', e);
+    }
+  }
+
+
+  /** Roll up WI story points by status to recover actual/closed SP when epic fields are stale/missing. */
+  async _hydrateEpicClosedRollupsFromWorkItems(epics) {
+    if (!epics || !epics.length) return;
+    const ids = epics.map(e => e.Id).filter(Boolean);
+    if (!ids.length) return;
+    epics.forEach(e => {
+      e._gusWiSpTotal = 0;
+      e._gusWiSpClosed = 0;
+      e._gusWiClosedRollupReady = false;
+    });
+    try {
+      const rows = await this.model.fetchWorkItemsForClosedRollup(ids);
+      const byEpicTotal = {};
+      const byEpicClosed = {};
+      const closedRe = /(closed|fixed|done|completed|resolved|duplicate|never|cancel)/i;
+      (rows || []).forEach(w => {
+        const eid = w && w.Epic__c;
+        if (!eid) return;
+        const sp = Number(w.Story_Points__c) || 0;
+        if (sp > 0) byEpicTotal[eid] = (byEpicTotal[eid] || 0) + sp;
+        const st = String(w.Status__c || '');
+        if (sp > 0 && closedRe.test(st)) byEpicClosed[eid] = (byEpicClosed[eid] || 0) + sp;
+      });
+      epics.forEach(e => {
+        if (!e || !e.Id) return;
+        e._gusWiSpTotal = byEpicTotal[e.Id] || 0;
+        e._gusWiSpClosed = byEpicClosed[e.Id] || 0;
+        e._gusWiClosedRollupReady = true;
+      });
+    } catch (e) {
+      console.warn('_hydrateEpicClosedRollupsFromWorkItems failed:', e);
     }
   }
 
