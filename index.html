@@ -1600,7 +1600,7 @@ function buildEpicPortfolioByProjectHtml(hierarchy) {
       const m = ctrl.computeMetrics(ep);
       pSum += m.planned;
       aSum += ep.Actual_Story_Points_on_Epic__c || 0;
-      cSum += ep.Storypoints_Closed__c || 0;
+      cSum += ctrl.computeMetrics(ep).closed;
       const hh = ep.Health__c || 'Not Started';
       hc[hh] = (hc[hh] || 0) + 1;
     });
@@ -1626,7 +1626,7 @@ function buildEpicPortfolioByProjectHtml(hierarchy) {
           ${epics.map(ep => {
             const m = ctrl.computeMetrics(ep);
             const a = ep.Actual_Story_Points_on_Epic__c || 0;
-            const c = ep.Storypoints_Closed__c || 0;
+            const c = ctrl.computeMetrics(ep).closed;
             const br = a > 0 ? Math.round((c / a) * 100) : 0;
             const name = ctrl._stripLink(ep.Name || '—');
             const short = name.length > 56 ? name.slice(0, 54) + '…' : name;
@@ -1654,7 +1654,7 @@ function buildEpicByEpicProgressChartOption(hierarchy) {
   const names = flat.map(x => x.short);
   const planned = flat.map(x => ctrl.computeMetrics(x.epic).planned);
   const actual = flat.map(x => x.epic.Actual_Story_Points_on_Epic__c || 0);
-  const closed = flat.map(x => x.epic.Storypoints_Closed__c || 0);
+  const closed = flat.map(x => ctrl.computeMetrics(x.epic).closed);
   const n = flat.length;
   const zoomEnd = n > 16 ? Math.round((16 / n) * 100) : 100;
   return {
@@ -3744,7 +3744,7 @@ class DashboardView {
       const labels = hierarchy.map(mg => `M${mg.methodNum}`);
       const planned = hierarchy.map(mg => mg.measures.flatMap(m => m.epics).reduce((s, e) => s + ctrl.computeMetrics(e).planned, 0));
       const actual = hierarchy.map(mg => mg.measures.flatMap(m => m.epics).reduce((s, e) => s + (e.Actual_Story_Points_on_Epic__c || 0), 0));
-      const closed = hierarchy.map(mg => mg.measures.flatMap(m => m.epics).reduce((s, e) => s + (e.Storypoints_Closed__c || 0), 0));
+      const closed = hierarchy.map(mg => mg.measures.flatMap(m => m.epics).reduce((s, e) => s + ctrl.computeMetrics(e).closed, 0));
       chart.setOption({
         tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
         legend: { top: 0, textStyle: { fontSize: 10 } },
@@ -4074,9 +4074,9 @@ class DashboardView {
       </div>
     </div>`;
 
-    const monthColgroup = visibleMonthIdx.map((mi) => `<col class="pva-month-colg" data-month-idx="${mi}" />`).join('');
+    const monthColgroup = visibleMonthIdx.map((mi) => `<col class="pva-month-colg" data-month-idx="${mi}" style="width:var(--pva-month-col-width,220px);" />`).join('');
     html += `<div class="pva-table-panel"><div class="pva-table-panel-card"><table class="pva-epic-table" id="pva-epic-table">
-      <colgroup><col style="width:320px" /><col style="width:108px" /><col style="width:42px" /><col style="width:82px" /><col style="width:96px" /><col class="pva-col-v2ref-cg col-hidden" style="width:160px;" /><col style="width:158px" />${monthColgroup}</colgroup>
+      <colgroup><col style="width:var(--pva-col-me-width, 360px)" /><col style="width:108px" /><col style="width:42px" /><col style="width:82px" /><col style="width:96px" /><col class="pva-col-v2ref-cg col-hidden" style="width:160px;" /><col style="width:158px" />${monthColgroup}</colgroup>
       <thead><tr>
         <th class="pva-col-me" style="text-align:left;">Measure / Epic</th>
         <th class="pva-col-owner" style="text-align:left;">Owner</th>
@@ -4226,7 +4226,7 @@ class DashboardView {
       if (!engActuals[owner]) engActuals[owner] = { epics:0, actualSP:0, closedSP:0, inProgressSP:0, wi:0, wiClosed:0 };
       engActuals[owner].epics++;
       engActuals[owner].actualSP += (ep.Actual_Story_Points_on_Epic__c || 0);
-      engActuals[owner].closedSP += (ep.Storypoints_Closed__c || 0);
+      engActuals[owner].closedSP += ctrl.computeMetrics(ep).closed;
       engActuals[owner].inProgressSP += (ep.Storypoints_In_Progress__c || 0);
       const totalWI = (ep.Workitems_Closed__c||0)+(ep.WorkItems_In_Progress__c||0)+(ep.Workitems_New__c||0)+(ep.Workitems_in_Waiting__c||0);
       engActuals[owner].wi += totalWI;
@@ -4477,7 +4477,7 @@ class DashboardView {
       const labels = hierarchy.map(mg => `M${mg.methodNum}`);
       const planned = hierarchy.map(mg => mg.measures.flatMap(m => m.epics).reduce((s, e) => s + ctrl.computeMetrics(e).planned, 0));
       const actual = hierarchy.map(mg => mg.measures.flatMap(m => m.epics).reduce((s, e) => s + (e.Actual_Story_Points_on_Epic__c || 0), 0));
-      const closed = hierarchy.map(mg => mg.measures.flatMap(m => m.epics).reduce((s, e) => s + (e.Storypoints_Closed__c || 0), 0));
+      const closed = hierarchy.map(mg => mg.measures.flatMap(m => m.epics).reduce((s, e) => s + ctrl.computeMetrics(e).closed, 0));
       chartSp.setOption({
         tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
         legend: { top: 0, textStyle: { fontSize: 10 } },
@@ -4508,7 +4508,7 @@ class DashboardView {
       flat.forEach(ep => {
         totP += ctrl.computeMetrics(ep).planned;
         totA += ep.Actual_Story_Points_on_Epic__c || 0;
-        totC += ep.Storypoints_Closed__c || 0;
+        totC += ctrl.computeMetrics(ep).closed;
         totChurn += ctrl.computeMetrics(ep).churn || 0;
       });
       const burnPct = totA > 0 ? Math.round((totC / totA) * 100) : 0;
@@ -8198,12 +8198,24 @@ function adjustPvaMeasureEpicColumnWidth() {
     const w = ctx.measureText(raw).width;
     if (w > maxText) maxText = w;
   });
+  const visibleMonthCount = table.querySelectorAll('thead th.pva-month-col:not(.col-hidden)').length || 1;
   const LINKS_AND_BADGE = 124;
   const CELL_PAD = 32;
-  const MIN_W = 300;
-  /* Wider Measure/Epic cap; table + panel are max-content / fit-content so extra width does not create ghost columns. */
-  const MAX_W = Math.min(760, Math.max(380, Math.floor(window.innerWidth * 0.52)));
-  const colW = Math.max(MIN_W, Math.min(MAX_W, Math.ceil(maxText + LINKS_AND_BADGE + CELL_PAD)));
+  const textTarget = Math.ceil(maxText + LINKS_AND_BADGE + CELL_PAD);
+  const MIN_ME_W = 300;
+  const MAX_ME_W = Math.min(820, Math.max(420, Math.floor(window.innerWidth * 0.62)));
+
+  const panel = table.closest('.pva-table-panel-card') || table.parentElement;
+  const panelW = (panel && panel.clientWidth) ? panel.clientWidth : window.innerWidth;
+  const fixedOthers = 108 + 42 + 82 + 96 + 158 + 24;
+  let monthW = 220;
+  if (visibleMonthCount > 0) {
+    const maxMonthForSpace = Math.floor((panelW - fixedOthers - MIN_ME_W) / visibleMonthCount);
+    monthW = Math.max(150, Math.min(260, maxMonthForSpace || 220));
+  }
+  const availableForMe = Math.max(MIN_ME_W, panelW - fixedOthers - (monthW * visibleMonthCount));
+  const colW = Math.max(MIN_ME_W, Math.min(MAX_ME_W, Math.min(textTarget, availableForMe)));
+  table.style.setProperty('--pva-month-col-width', monthW + 'px');
   table.style.setProperty('--pva-col-me-width', colW + 'px');
 }
 
