@@ -727,7 +727,7 @@ body { font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe
 .pva-col-health .pva-cell-select { max-width: 100%; font-size: 9px; padding: 1px 2px; }
 .pva-col-sprint .pva-cell-input { font-size: 9px !important; padding: 2px 3px !important; }
 .pva-epic-table th { background: linear-gradient(180deg, #fafcff 0%, #f0f9ff 55%, #e8f4fc 100%); color: #475569; text-align: left; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .3px; padding: 6px 6px; border-bottom: 1px solid #bae6fd; vertical-align: middle; position: sticky; top: 0; z-index: 2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.pva-epic-table td { padding: 5px 6px; border-bottom: 1px solid #f0f9ff; vertical-align: top; font-size: 10px; overflow: hidden; text-overflow: ellipsis; }
+.pva-epic-table td { padding: 5px 6px; border-bottom: 1px solid #f0f9ff; vertical-align: top; font-size: 10.5px; overflow: hidden; text-overflow: ellipsis; }
 .pva-epic-row > td { vertical-align: middle !important; }
 .pva-epic-row > td.pva-comment-cell { vertical-align: top !important; }
 /* display:none removes hidden month cols from the table column grid (visibility:hidden still reserved phantom columns). */
@@ -789,7 +789,7 @@ body { font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe
 .pva-epic-link { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 6px; color: #0369a1; background: linear-gradient(180deg, #eff6ff, #dbeafe); border: 1px solid #93c5fd; text-decoration: none; transition: transform .12s, box-shadow .12s, border-color .12s; box-shadow: 0 1px 2px rgba(3,105,161,.12); flex-shrink: 0; }
 .pva-epic-link:hover { border-color: #3b82f6; transform: translateY(-1px); box-shadow: 0 2px 6px rgba(3,105,161,.18); }
 .pva-epic-link.empty { opacity: .22; pointer-events: none; background: transparent; border-color: transparent; box-shadow: none; }
-.pva-epic-title { font-weight: 600; font-size: 9px; line-height: 1.25; min-width: 0; flex: 1 1 auto; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pva-epic-title { font-weight: 650; font-size: 10.5px; line-height: 1.3; min-width: 0; flex: 1 1 auto; white-space: normal; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 .pva-epic-name-tooltip { position: fixed; z-index: 10060; display: none; max-width: min(560px, calc(100vw - 20px)); padding: 6px 10px; font-size: 11px; font-weight: 600; line-height: 1.4; color: #0f172a; background: #fff; border: 1px solid #94a3b8; border-radius: 6px; box-shadow: 0 10px 28px rgba(15, 23, 42, 0.18); pointer-events: none; word-break: break-word; }
 .pva-new-flag { display: block; width: max-content; font-size: 8px; font-weight: 800; letter-spacing: .4px; color: #fff; background: #ea580c; padding: 1px 6px; border-radius: 3px; margin-bottom: 3px; line-height: 1.2; }
 .pva-new-flag.pva-new-flag--inline { display: inline-flex; align-items: center; margin: 0; flex-shrink: 0; align-self: center; }
@@ -2839,13 +2839,19 @@ class DashboardController {
       ? (Number(epicPlanned) || 0)
       : (Number(epic._gusWsWorkstreamSpSum) || 0);
     const actual = Number(epic.Actual_Story_Points_on_Epic__c) || 0;
-    const closed = epic.Storypoints_Closed__c || 0;
-    const pctComplete = epic.Percent_Of_Work_Items_Complete__c || 0;
-    const wiClosed = epic.Workitems_Closed__c || 0;
-    const wiInProg = epic.WorkItems_In_Progress__c || 0;
-    const wiNew = epic.Workitems_New__c || 0;
-    const wiWait = epic.Workitems_in_Waiting__c || 0;
+    const rawClosed = Number(epic.Storypoints_Closed__c) || 0;
+    const pctComplete = Number(epic.Percent_Of_Work_Items_Complete__c) || 0;
+    const wiClosed = Number(epic.Workitems_Closed__c) || 0;
+    const wiInProg = Number(epic.WorkItems_In_Progress__c) || 0;
+    const wiNew = Number(epic.Workitems_New__c) || 0;
+    const wiWait = Number(epic.Workitems_in_Waiting__c) || 0;
     const totalWI = wiClosed + wiInProg + wiNew + wiWait;
+    let closed = rawClosed;
+    if (closed <= 0 && actual > 0) {
+      if (pctComplete > 0) closed = Math.round((actual * Math.min(100, pctComplete)) / 100);
+      else if (totalWI > 0 && wiClosed > 0) closed = Math.round((actual * wiClosed) / totalWI);
+    }
+    if (closed > actual && actual > 0) closed = actual;
     let churn;
     if (ctrl._churnContext && ctrl.currentRelease?.Forecast_Items__c != null) {
       const epicChurn = ctrl._churnContext.newEpicIds.has(epic.Id) ? 1 : 0;
@@ -3023,10 +3029,11 @@ class DashboardController {
     let totalWI = 0, closedWI = 0, inProgressWI = 0, newWI = 0, waitingWI = 0;
     let committedWI = 0, actualWI = 0, remainingWI = 0, additionalWI = 0, subtractedWI = 0;
     epics.forEach(e => {
-      plannedSP += this.computeMetrics(e).planned;
-      actualSP += e.Actual_Story_Points_on_Epic__c || 0;
-      committedSP += e.Committed_Story_Points_on_Epic__c || 0;
-      closedSP += e.Storypoints_Closed__c || 0;
+      const m = this.computeMetrics(e);
+      plannedSP += m.planned;
+      actualSP += m.actual;
+      committedSP += Number(e.Committed_Story_Points_on_Epic__c) || 0;
+      closedSP += m.closed;
       inProgressSP += e.Storypoints_In_Progress__c || 0;
       newSP += e.Storypoints_New__c || 0;
       waitingSP += e.Storypoints_In_Waiting__c || 0;
@@ -3761,9 +3768,10 @@ class DashboardView {
         ms.epics.forEach(e => {
           epicIds.add(e.Id);
           totalWI += (e.Workitems_Closed__c || 0) + (e.WorkItems_In_Progress__c || 0) + (e.Workitems_New__c || 0) + (e.Workitems_in_Waiting__c || 0);
-          plannedSP += ctrl.computeMetrics(e).planned;
-          actualSP += e.Actual_Story_Points_on_Epic__c || 0;
-          closedSP += e.Storypoints_Closed__c || 0;
+          const m = ctrl.computeMetrics(e);
+          plannedSP += m.planned;
+          actualSP += m.actual;
+          closedSP += m.closed;
         });
       });
       map[key] = { epicCount: epicIds.size, totalWI, plannedSP, actualSP, closedSP };
@@ -8120,7 +8128,7 @@ let _pvaEpicNameMeasureCanvas;
 function _getPvaEpicNameMeasureCtx() {
   if (!_pvaEpicNameMeasureCanvas) _pvaEpicNameMeasureCanvas = document.createElement('canvas');
   const ctx = _pvaEpicNameMeasureCanvas.getContext('2d');
-  ctx.font = '600 11px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+  ctx.font = '650 12px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
   return ctx;
 }
 
@@ -8137,11 +8145,11 @@ function adjustPvaMeasureEpicColumnWidth() {
     const w = ctx.measureText(raw).width;
     if (w > maxText) maxText = w;
   });
-  const LINKS_AND_BADGE = 108;
-  const CELL_PAD = 26;
-  const MIN_W = 240;
+  const LINKS_AND_BADGE = 124;
+  const CELL_PAD = 32;
+  const MIN_W = 300;
   /* Wider Measure/Epic cap; table + panel are max-content / fit-content so extra width does not create ghost columns. */
-  const MAX_W = Math.min(560, Math.max(300, Math.floor(window.innerWidth * 0.40)));
+  const MAX_W = Math.min(760, Math.max(380, Math.floor(window.innerWidth * 0.52)));
   const colW = Math.max(MIN_W, Math.min(MAX_W, Math.ceil(maxText + LINKS_AND_BADGE + CELL_PAD)));
   table.style.setProperty('--pva-col-me-width', colW + 'px');
 }
