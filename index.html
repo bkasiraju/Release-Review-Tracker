@@ -255,6 +255,17 @@ body { font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe
 .pva-kpi-qtile--actual .val { color:#0369a1; }
 .pva-kpi-qtile--delta .val.positive { color:#b45309; }
 .pva-kpi-qtile--delta .val.negative { color:#dc2626; }
+.pva-kpi-panel { cursor: default; }
+.pva-kpi-panel[role=button] { cursor: pointer; }
+.pva-kpi-dblclick-tip { font-size: 10px; color: #64748b; margin: 0 0 6px 0; }
+.pva-kpi-details { margin-top: 8px; padding: 8px 10px; border: 1px dashed #cbd5e1; border-radius: 8px; background: #f8fafc; display: grid; grid-template-columns: repeat(2,minmax(180px,1fr)); gap: 8px; }
+@media (max-width: 780px) { .pva-kpi-details { grid-template-columns: 1fr; } }
+.pva-kpi-detail-item { background:#fff; border:1px solid #e2e8f0; border-radius:6px; padding:7px 8px; }
+.pva-kpi-detail-item .k { font-size:9px; text-transform:uppercase; letter-spacing:.05em; color:#64748b; font-weight:700; }
+.pva-kpi-detail-item .v { font-size:12px; font-weight:700; color:#0f172a; margin-top:2px; }
+.pva-kpi-zero-hint { margin-top: 6px; font-size: 10px; color: #b45309; background:#fffbeb; border:1px solid #fde68a; border-radius:6px; padding:6px 8px; }
+.pva-kpi-zero-hint button { margin-left:6px; font-size:10px; padding:2px 7px; border:1px solid #f59e0b; background:#fff; color:#92400e; border-radius:5px; cursor:pointer; }
+.pva-kpi-zero-hint button:hover { background:#fffbeb; }
 
 /* ===== PVA KPI SUMMARY — merged Plan vs Actual (single strip) ===== */
 .pva-kpi-summary {
@@ -1265,24 +1276,30 @@ body { font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe
     <div class="modal-body">
       <div class="form-group"><label>Salesforce Instance URL</label><input type="url" id="sf-instance" placeholder="https://gus.my.salesforce.com" value="https://gus.my.salesforce.com"></div>
       <div class="form-group"><label>Access Token</label><input type="password" id="sf-token" placeholder="Paste your Salesforce session token"></div>
-      <div class="settings-help" style="font-size:11px;color:var(--muted);margin-top:12px;line-height:1.45;max-width:440px;">
-        <p style="margin:0 0 6px;font-weight:600;color:var(--text);font-size:11px;">Defaults &amp; storage</p>
-        <ul style="margin:0 0 14px;padding-left:18px;">
-          <li>Leave blank to use mock data.</li>
-          <li>Token is stored in <code style="font-size:10px;">sessionStorage</code> only.</li>
+      <div class="settings-help" style="font-size:11px;color:var(--muted);margin-top:12px;line-height:1.45;max-width:520px;">
+        <p style="margin:0 0 6px;font-weight:700;color:var(--text);font-size:11px;">Quick setup</p>
+        <ul style="margin:0 0 12px;padding-left:18px;">
+          <li>Leave token empty to view mock/offline data.</li>
+          <li>Token is saved in <code style="font-size:10px;">sessionStorage</code> (this browser session only).</li>
         </ul>
-        <p style="margin:0 0 6px;font-weight:600;color:var(--text);font-size:11px;">How to get a session token</p>
-        <ul style="margin:0 0 14px;padding-left:18px;">
-          <li><strong>Browser cookie:</strong> While logged into GUS → DevTools → Application → Cookies → select your instance host (e.g. <code style="font-size:10px;">gus.my.salesforce.com</code>) → copy the <code style="font-size:10px;">sid</code> value.</li>
-          <li><strong>sf CLI:</strong> Login uses <code style="font-size:10px;">--alias</code> (not <code style="font-size:10px;">-o</code>). Run <code style="font-size:10px;">sf org login web --alias GusProduction -r https://gus.my.salesforce.com</code>, then <code style="font-size:10px;">sf org display --json -o GusProduction</code> → use <code style="font-size:10px;">result.accessToken</code> in API Settings. The <code style="font-size:10px;">-o</code> flag is only for commands that <em>target</em> an org after you are logged in.</li>
+
+        <p style="margin:0 0 6px;font-weight:700;color:var(--text);font-size:11px;">Token sources (text)</p>
+        <ul style="margin:0 0 10px;padding-left:18px;">
+          <li><strong>Browser cookie:</strong> GUS → DevTools → Application → Cookies → your instance host → copy <code style="font-size:10px;">sid</code>.</li>
+          <li><strong>sf CLI:</strong> use org access token from <code style="font-size:10px;">sf org display --json</code>.</li>
         </ul>
-        <p style="margin:0 0 6px;font-weight:600;color:var(--text);font-size:11px;">GitHub Pages</p>
+
+        <p style="margin:0 0 6px;font-weight:700;color:var(--text);font-size:11px;">Commands</p>
+        <div style="margin:0 0 12px;display:grid;gap:6px;">
+          <code style="font-size:10px;padding:6px 8px;border:1px solid #e2e8f0;border-radius:6px;background:#f8fafc;display:block;">sf org login web --alias GusProduction -r https://gus.my.salesforce.com</code>
+          <code style="font-size:10px;padding:6px 8px;border:1px solid #e2e8f0;border-radius:6px;background:#f8fafc;display:block;">sf org display --json -o GusProduction</code>
+        </div>
+
+        <p style="margin:0 0 6px;font-weight:700;color:var(--text);font-size:11px;">GitHub Pages notes (text)</p>
         <ul style="margin:0;padding-left:18px;">
-          <li>Save a token so the browser calls Salesforce REST directly (no Python on Pages).</li>
-          <li>A <strong>GUS admin</strong> must allow CORS for origin <code style="font-size:10px;">https://bkasiraju.github.io</code> (Setup → Quick Find → CORS → New).</li>
-          <li><a href="https://github.com/bkasiraju/Release-Review-Tracker/blob/main/docs/GITHUB_PAGES_CORS.md" target="_blank" rel="noopener" style="color:var(--brand);">Full steps</a></li>
-          <li>Alternatively: <strong>gus-apps</strong> or local <code style="font-size:10px;">python3 server.py</code>.</li>
-          <li>Push <code style="font-size:10px;">main</code> to refresh the Pages deploy.</li>
+          <li>Save a token to call Salesforce REST directly from the browser.</li>
+          <li>Admin must allow CORS origin <code style="font-size:10px;">https://bkasiraju.github.io</code>.</li>
+          <li><a href="https://github.com/bkasiraju/Release-Review-Tracker/blob/main/docs/GITHUB_PAGES_CORS.md" target="_blank" rel="noopener" style="color:var(--brand);">Full setup steps</a></li>
         </ul>
       </div>
     </div>
@@ -3512,25 +3529,30 @@ class DashboardView {
       const planDelta = baselinePlanned - actualSPclosed;
       const deltaCls = planDelta > 0 ? 'positive' : (planDelta < 0 ? 'negative' : '');
       const deltaLabel = planDelta > 0 ? 'remaining vs plan' : (planDelta < 0 ? 'ahead of plan' : 'on plan');
+      const detailsId = `pva-plan-actual-details-${String(release?.Id || plan?.gusPlannedReleaseId || 'x').replace(/[^a-zA-Z0-9_-]/g, '')}`;
+      const zeroActualHint = actualSPtotal === 0
+        ? `<div class="pva-kpi-zero-hint">No GUS actual SP-days yet. Verify API token/user access.<button type="button" onclick="openModal('modal-settings')">Update token</button></div>`
+        : '';
       html += `<div class="pva-kpi-summary">
-        <div class="pva-kpi-quick">
-          <div class="pva-kpi-qtile pva-kpi-qtile--planned">
-            <div class="lbl">Planned SP-days</div>
-            <div class="val">${baselinePlanned}</div>
-            <div class="sub">${baselinePctUsed}% of ${baselineCapacity} capacity · ${baselineEngineers} engineers</div>
+        <div class="pva-kpi-card pva-kpi-card--merged pva-kpi-panel" role="button" tabindex="0" ondblclick="togglePlanActualDetails('${detailsId}', this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();togglePlanActualDetails('${detailsId}', this);}">
+          <p class="pva-kpi-dblclick-tip">Double-click for detailed planned vs actual breakdown</p>
+          <div class="pva-kpi-quick">
+            <div class="pva-kpi-qtile pva-kpi-qtile--planned">
+              <div class="lbl">Planned SP-days</div>
+              <div class="val">${baselinePlanned}</div>
+              <div class="sub">${baselinePctUsed}% of ${baselineCapacity} capacity · ${baselineEngineers} engineers</div>
+            </div>
+            <div class="pva-kpi-qtile pva-kpi-qtile--actual">
+              <div class="lbl">Delivered SP-days</div>
+              <div class="val">${actualSPclosed}</div>
+              <div class="sub">${pctSPDone}% closed of ${actualSPtotal} scoped SP-days</div>
+            </div>
+            <div class="pva-kpi-qtile pva-kpi-qtile--delta">
+              <div class="lbl">Plan gap</div>
+              <div class="val ${deltaCls}">${planDelta > 0 ? '+' : ''}${planDelta}</div>
+              <div class="sub">${deltaLabel}</div>
+            </div>
           </div>
-          <div class="pva-kpi-qtile pva-kpi-qtile--actual">
-            <div class="lbl">Delivered SP-days</div>
-            <div class="val">${actualSPclosed}</div>
-            <div class="sub">${pctSPDone}% closed of ${actualSPtotal} scoped SP-days</div>
-          </div>
-          <div class="pva-kpi-qtile pva-kpi-qtile--delta">
-            <div class="lbl">Plan gap</div>
-            <div class="val ${deltaCls}">${planDelta > 0 ? '+' : ''}${planDelta}</div>
-            <div class="sub">${deltaLabel}</div>
-          </div>
-        </div>
-        <div class="pva-kpi-card pva-kpi-card--merged">
           <div class="pva-kpi-merged-head">Planned vs actual at a glance<span class="pva-kpi-merged-conv"><strong>Scale:</strong> 1 SP = 1 engineering day (sheet and GUS both use SP-days).</span></div>
           <div class="pva-kpi-merged-cols">
             <div class="pva-kpi-col pva-kpi-col--planned">
@@ -3546,7 +3568,14 @@ class DashboardView {
               </div>
               <div class="pva-kpi-tagline">${actualSPclosed} closed / ${actualSPtotal} scoped SP-days</div>
               <div class="pva-kpi-bar" role="progressbar" aria-valuenow="${spBarPct}" aria-valuemin="0" aria-valuemax="100" title="${actualSPclosed} of ${actualSPtotal} SP-days closed"><div class="pva-kpi-bar-fill" style="width:${spBarPct}%"></div></div>
+              ${zeroActualHint}
             </div>
+          </div>
+          <div class="pva-kpi-details" id="${detailsId}" style="display:none;">
+            <div class="pva-kpi-detail-item"><div class="k">Planned commitment</div><div class="v">${baselinePlanned} SP-days from sheet plan</div></div>
+            <div class="pva-kpi-detail-item"><div class="k">Capacity baseline</div><div class="v">${baselineCapacity} net SP-days (${baselinePctUsed}% utilized)</div></div>
+            <div class="pva-kpi-detail-item"><div class="k">Delivery completion</div><div class="v">${actualSPclosed} closed of ${actualSPtotal} scoped (${pctSPDone}%)</div></div>
+            <div class="pva-kpi-detail-item"><div class="k">Plan variance</div><div class="v">${planDelta > 0 ? '+' : ''}${planDelta} SP-days (${deltaLabel})</div></div>
           </div>
           ${healthStripHtml}
         </div>
@@ -7969,6 +7998,16 @@ function saveAiEdit(saveBtn) {
   const editBtn = contentDiv.closest('.ai-summary-cell')?.querySelector('.ai-edit-btn');
   if (editBtn) editBtn.style.display = '';
 }
+
+
+function togglePlanActualDetails(detailsId, host) {
+  const el = document.getElementById(detailsId);
+  if (!el) return;
+  const show = el.style.display === 'none' || !el.style.display;
+  el.style.display = show ? 'grid' : 'none';
+  if (host && host.classList) host.setAttribute('aria-expanded', show ? 'true' : 'false');
+}
+
 
 function copyAISummary() {
   const table = document.getElementById('ai-summary-table');
