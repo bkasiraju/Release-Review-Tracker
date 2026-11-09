@@ -1,7 +1,7 @@
 {
   "version": "2.0.0-GA",
   "label": "GOLDEN BUILD",
-  "revision": "consolidated-20261109-10",
+  "revision": "consolidated-20261109-11",
   "manifest": "releases/2.0.0-GA/build.json",
   "preferredRollbackTag": "GOLDEN-BUILD-2.0.0-GA",
   "immutable": true,
