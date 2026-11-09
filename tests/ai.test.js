@@ -59,3 +59,16 @@ test('method validation uses all evidence actually supplied to AI, including V2M
  assert.equal(AI.methodResult(text,payload.ai,payload).blurb,text);assert.ok(AI.methodResult('Delivered 99% issue reduction.',payload.ai,payload).error);
  let args;global.AppletAI={isAvailable:()=>true,complete:async(_,options)=>{args=options;return {text};}};try{const out=await AI.complete(payload);assert.equal(out.mode,'sdk');assert.match(args.systemPromptOverride,/goals in titles from achieved outcomes/);}finally{delete global.AppletAI;}
 });
+
+test('AI usage includes input, output and prompt cache tokens, including a correction request',async()=>{
+ let calls=0;global.AppletAI={isAvailable:()=>true,complete:async()=>({text:++calls===1?'99 launches.':'Canary validation is pending.',usage:{input_tokens:100,output_tokens:20,cache_read_input_tokens:30,cache_creation_input_tokens:10}})};
+ try{const out=await AI.complete(AI.methodPayload([{epicId:'one',epicName:'Canary',measure:'Reliability',team:'VC',blurb:'Canary validation is pending.'}],'2026-11'));const usage=AI.usageTotal([out]);assert.equal(usage.calls,2);assert.equal(usage.tokens,320);assert.equal(usage.input,280);assert.equal(usage.output,40);assert.equal(usage.cacheRead,60);assert.equal(usage.cacheWrite,20);assert.equal(usage.complete,true);}finally{delete global.AppletAI;}
+});
+test('AI usage distinguishes missing metadata, incomplete reports and SDK failures from measured zero',async()=>{
+ global.AppletAI={isAvailable:()=>true,complete:async()=>({text:'Validation is pending.',usage:{input_tokens:0,output_tokens:0}})};const payload={blurb:'Validation is pending.',mode:'source',ai:{message:'Prompt',sourceText:'Validation is pending.'}};
+ try{let out=await AI.complete(payload);assert.equal(AI.usageTotal([out]).tokens,0);assert.equal(AI.usageTotal([out]).complete,true);global.AppletAI.complete=async()=>({text:'Validation is pending.'});out=await AI.complete(payload);assert.equal(out.aiUsage.calls,1);assert.equal(out.aiUsage.reportedCalls,0);assert.equal(AI.usageTotal([out]).complete,false);global.AppletAI.complete=async()=>({text:'Validation is pending.',usage:{input_tokens:25,output_tokens:-2}});out=await AI.complete(payload);assert.equal(out.aiUsage.inputReports,1);assert.equal(out.aiUsage.outputReports,0);assert.equal(AI.usageTotal([out]).complete,false);global.AppletAI.complete=async()=>{throw Error('Failure');};out=await AI.complete(payload);assert.equal(out.aiUsage.calls,1);assert.equal(out.aiUsage.reportedCalls,0);}finally{delete global.AppletAI;}
+});
+test('parallel generation usage sums independent results and never claims backend usage is known',async()=>{
+ const backend=await AI.complete({mode:'assisted',blurb:'Validation pending.'});assert.equal(AI.usageTotal([backend]).unknownBackend,1);assert.equal(AI.usageTotal([backend]).complete,false);
+ global.AppletAI={isAvailable:()=>true,complete:async()=>({text:'Validation pending.',usage:{input_tokens:10,output_tokens:5}})};try{const results=await Promise.all([1,2,3].map(()=>AI.complete({ai:{message:'Prompt',sourceText:'Validation pending.'}})));assert.equal(AI.usageTotal(results).tokens,45);assert.equal(AI.usageTotal(results).calls,3);}finally{delete global.AppletAI;}
+});

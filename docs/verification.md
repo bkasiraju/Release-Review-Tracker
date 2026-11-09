@@ -1,3 +1,15 @@
+# AI token usage notifications — v2.0.1
+
+Explicit monthly, executive-per-epic and consolidated-method generation collect SDK-returned usage for each attempted request. A correction request contributes its own usage. Input totals include Anthropic input_tokens, cache_read_input_tokens and cache_creation_input_tokens; output uses output_tokens. Cached input is shown separately as already included, not added to the displayed total a second time. No prompt-size estimates or cost estimates are used.
+
+Missing/incomplete/invalid counts and thrown SDK calls remain explicitly unreported. Measured zero remains distinguishable from missing metadata. A backend-produced summary without SDK usage is marked unknown rather than presented as measured zero. Per-operation notices use the existing top-right shell, five-second dismissal and ×. Tab navigation and shared polling do not trigger these AI notices. Existing GUS refresh/save notices remain separate and exclude AI usage.
+
+All 138 Node tests pass. Browser checks verify executive batch totals, method totals, correction-call totals, unavailable usage, top-right placement, five-second/× dismissal, no view-triggered notices, mobile fit and no GUS writes. Method and monthly AI regression checks pass. Independent review ran 18 AI tests and verified the 27-file artifact. Test usage is controlled; actual production model usage was not observed. The cache schema follows the inspected official GUS Apps SDK's raw Anthropic usage response.
+
+Reviewed ZIP SHA256: df4fdec17463979e68f2f334e8e8d986f8192855eab064e12e56c84ffbe4fed5. Activated through staging/review/promotion; all 21 deployed text files match reviewed source. The GOLDEN-BUILD-2.0.0-GA tag, source baseline, archive and checksum remain unchanged.
+
+---
+
 # Release Intelligence — 2.0.0-GA · GOLDEN BUILD
 
 The user designated 2.0.0-GA as the stable rollback baseline and requested the existing bkasiraju/Release-Review-Tracker repository/Pages destination. The tool is named Release Intelligence; redundant CFS Release Review heading/breadcrumb wording is removed. Golden build identity is visible in the footer.
