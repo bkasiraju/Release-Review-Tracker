@@ -5,7 +5,7 @@
   "designatedBy": "User",
   "baselineDate": "2026-11-09",
   "artifact": "cfs-release-review-tracker.zip",
-  "sha256": "d9d070f37cc420eb96a0708bfb5f7e374ecc337cfc55806760b87df0c8b8572f",
+  "sha256": "6b3529b31ff5bc2bea8a13b9aea5dadea4a0fbfdfde1e2b80604b06048b57be2",
   "gitTags": [
     "v2.0.0-GA",
     "GOLDEN-BUILD-2.0.0-GA"
@@ -13,31 +13,29 @@
   "productionUrl": "https://gus-apps.internal.salesforce.com/applets/cfs-release-review-tracker/",
   "rollbackScope": "Application files only; preserve all shared GUS data",
   "verification": {
-    "nodeTestsPassed": 175,
+    "nodeTestsPassed": 48,
+    "validationScope": "monthly, ai and grounding modules only",
+    "fullSuiteRun": false,
     "browserChecks": [
-      "monthly-ai-inventory-correction",
-      "failed-ai-preserves-editor-and-source",
-      "explicit-monthly-save-and-reload"
+      "seven-health-tiles-and-monthly-ai-flow"
     ],
-    "productionModelOutputVerified": false,
-    "productionSlackIdentityVerified": false,
-    "nativeSlackPasteVerified": false
+    "productionModelOutputVerified": false
   },
-  "revision": "consolidated-20261109-9",
+  "revision": "consolidated-20261109-10",
   "status": "Current GOLDEN BUILD going forward",
-  "includes": "All latest GA changes plus reusable epic leadership AI policy, current/sprint evidence priority, narrative validation, bounded correction and failed-generation editor preservation.",
+  "includes": "Monthly AI acceptance recovery with factual checks retained; seven uniform tiles in one Release Health Metrics strip; targeted validation preference.",
   "previousBaseline": {
     "tag": "GOLDEN-BUILD-2.0.0-GA-original",
     "manifest": "releases/2.0.0-GA-original/build.json",
     "sha256": "96ff7a49e2707682511017abbda6dabda6ef1e8370649061a63300415020b5fc"
   },
   "previousRevision": {
-    "commit": "f57e146de22306d79abeafac721d7c55041261e0",
-    "sha256": "26dceab9cf3e2480737a8cfd908b73fd024ef10aedd80720a24bdb9d817f1ad5"
+    "commit": "c29847bd5cc0e2819a5bd771dce9fbee1f745f64",
+    "sha256": "d9d070f37cc420eb96a0708bfb5f7e374ecc337cfc55806760b87df0c8b8572f"
   },
   "deployment": {
     "activated": true,
     "matchedTextFiles": 23,
-    "verifiedArchiveSha256": "d9d070f37cc420eb96a0708bfb5f7e374ecc337cfc55806760b87df0c8b8572f"
+    "verifiedArchiveSha256": "6b3529b31ff5bc2bea8a13b9aea5dadea4a0fbfdfde1e2b80604b06048b57be2"
   }
 }
