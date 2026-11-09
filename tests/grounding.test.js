@@ -30,3 +30,6 @@ test('shared product words cannot validate a new feature and completed design ca
 });
 
 test('validation phase cannot be dropped from a completed task',()=>{for(const subject of ['Broker routing validation','Validate broker routing','Broker routing validated']){const g={month:'2026-11',updates:[],work:[{subject,statusAtReview:'Closed'}]};verify('Broker routing completed.',false,g);}});
+test('a future recovery infinitive is not a claim that the action is complete',()=>{verify('The documented recovery action is to complete dependency validation.',true);verify('Dependency validation completed.',false);});
+
+test('fresh epic health supports its exact blocked state but never an invented cause or historical state',()=>{const g={month:'2026-11',health:'Blocked',updates:[],work:[]};verify('The epic remains blocked.',true,g);verify('Health is blocked due to an invented database regression.',false,g);verify('The epic remains blocked.',false,{...g,health:null});verify('The epic remains blocked.',false,g,'previous');});
