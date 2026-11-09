@@ -5,7 +5,7 @@
   "designatedBy": "User",
   "baselineDate": "2026-11-09",
   "artifact": "cfs-release-review-tracker.zip",
-  "sha256": "1634324884ad31080ed82b1fcd839d7e05e07253df73e95d2102a35fe1121022",
+  "sha256": "0e6f673b42ce842044cad2827c6d144b9625193259e67ea89a99d6771460642d",
   "gitTags": [
     "v2.0.0-GA",
     "GOLDEN-BUILD-2.0.0-GA"
@@ -21,21 +21,21 @@
     ],
     "productionModelOutputVerified": false
   },
-  "revision": "consolidated-20261109-5",
+  "revision": "consolidated-20261109-6",
   "status": "Current GOLDEN BUILD going forward",
-  "includes": "All latest changes: source evidence validation, chronological monthly publication, expand/collapse all, clickable metric tiles, centered plain footer and Development Lead Slack reminder preparation.",
+  "includes": "All latest GA changes plus monthly metric filtering for epics awaiting selected-month updates.",
   "previousBaseline": {
     "tag": "GOLDEN-BUILD-2.0.0-GA-original",
     "manifest": "releases/2.0.0-GA-original/build.json",
     "sha256": "96ff7a49e2707682511017abbda6dabda6ef1e8370649061a63300415020b5fc"
   },
   "previousRevision": {
-    "commit": "8682d43f16966c57192919016763868166324d9d",
-    "sha256": "60d03f00beace6be3ec5f94bf95c506c3333c25070ac717f341bebd32e9067a4"
+    "commit": "5ad8df660da21981ef59011ff428da8dea2b3bbd",
+    "sha256": "1634324884ad31080ed82b1fcd839d7e05e07253df73e95d2102a35fe1121022"
   },
   "deployment": {
     "activated": true,
     "matchedTextFiles": 22,
-    "verifiedArchiveSha256": "1634324884ad31080ed82b1fcd839d7e05e07253df73e95d2102a35fe1121022"
+    "verifiedArchiveSha256": "0e6f673b42ce842044cad2827c6d144b9625193259e67ea89a99d6771460642d"
   }
 }
