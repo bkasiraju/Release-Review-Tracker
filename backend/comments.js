@@ -6,8 +6,8 @@ const names=Object.keys(monthMap).sort((a,b)=>b.length-a.length).join('|');
 // Accept engineer-authored month labels with common Markdown/bracket decoration.
 // Require a heading boundary so ordinary prose and complete calendar dates stay notes.
 const prefix=String.raw`^\s*(?:[#>*_•+\-–—]\s*)*[\[(]?\s*(?:mid[ -]+|early[ -]+|late[ -]+)?`;
-const suffix=String.raw`[ \t]*(?:(?:updates?|status(?:[ \t]+updates?)?|progress|review|health(?:[ \t]+updates?)?)(?![A-Za-z0-9])[ \t]*)?`;
-const boundary=String.raw`(?:(?:[\])][*_]*|[*_]{1,3})[ \t]*(?:[:–—-][ \t]*)?(.*)|:[ \t]*(.*)|[–—][ \t]*(.*)|-[ \t]+(.*)|$)`;
+const suffix=String.raw`[ \t]*(?:(?:updates?|comments?|notes?|reports?|status(?:[ \t]+(?:updates?|comments?|notes?))?|progress|review|health(?:[ \t]+(?:updates?|comments?|notes?))?)(?![A-Za-z0-9])[ \t]*)?`;
+const boundary=String.raw`(?:(?:[\])][*_]*|[*_]{1,3})[ \t]*(?:[:–—-][ \t]*)?(.*)|:[ \t]*(.*)|[–—][ \t]*(.*)|-[ \t]+(.*)|-[ \t]*$|$)`;
 const heading=new RegExp(prefix+String.raw`(${names})\b(?:[ \t,./-]*(20\d{2}))?`+suffix+String.raw`(20\d{2})?[ \t]*`+boundary,'i');
 const numericHeading=new RegExp(prefix+String.raw`(0?[1-9]|1[0-2])[ \t]*[-/.][ \t]*(20\d{2})`+suffix+boundary,'i');
 const isoHeading=new RegExp(prefix+String.raw`(20\d{2})[ \t]*[-/.][ \t]*(0?[1-9]|1[0-2])`+suffix+boundary,'i');
@@ -16,6 +16,7 @@ function monthlyHeading(line,year){
  m=line.match(numericHeading);if(m)return {month:`${m[2]}-${String(Number(m[1])).padStart(2,'0')}`,inferred:false,inline:m.slice(3).find(v=>v!==undefined)??null};
  m=line.match(isoHeading);if(m)return {month:`${m[1]}-${String(Number(m[2])).padStart(2,'0')}`,inferred:false,inline:m.slice(3).find(v=>v!==undefined)??null};return null;
 }
+const undatedHeading=new RegExp(prefix+String.raw`(?:older|previous|earlier|undated|original)[ \t]+(?:comments?|notes?|updates?|history)[ \t]*`+boundary,'i');
 const richPattern=/<\/?(?:p|div|br|b|strong|span|ul|ol|li|a|h[1-6])\b/i;
 function escapeHTML(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function entity(s){
@@ -42,19 +43,19 @@ function render(raw){
 }
 function validMonth(m){if(typeof m!=='string'||!/^20\d{2}-(0[1-9]|1[0-2])$/.test(m))throw Error('Choose a valid year and month (2000–2099).');return m;}
 function parseComments(raw='',year=new Date().getFullYear()){
-  const {text,positions,rich}=render(raw||''); const sections=[];let offset=0;
+  const {text,positions,rich}=render(raw||''); const blocks=[];let offset=0;
   for(const line of text.match(/[^\n]*\n|[^\n]+$/g)||[]){
-    const clean=line.replace(/[\r\n]+$/,'');const m=monthlyHeading(clean,year);
+    const clean=line.replace(/[\r\n]+$/,'');const marker=clean.match(undatedHeading),m=monthlyHeading(clean,year)||(marker?{month:null,inferred:false,inline:marker.slice(1).find(v=>v!==undefined)??null}:null);
     if(m){
       const {month,inline}=m;
-      sections.push({month,inferred:m.inferred,start:offset,bodyStart:inline===null?offset+line.length:offset+clean.length-inline.length,end:text.length});
+      blocks.push({month,inferred:m.inferred,start:offset,bodyStart:inline===null?offset+line.length:offset+clean.length-inline.length,end:text.length});
     }
     offset+=line.length;
   }
-  const months={};
-  sections.forEach((s,i)=>{s.end=sections[i+1]?.start??text.length;s.text=text.slice(s.bodyStart,s.end).trim().replace(/\n\s*[-_]{4,}\s*$/,'').trim();months[s.month]=[months[s.month],s.text].filter(Boolean).join('\n\n');});
+  blocks.forEach((s,i)=>{s.end=blocks[i+1]?.start??text.length;s.text=text.slice(s.bodyStart,s.end).trim().replace(/\n\s*[-_=]{4,}\s*$/,'').trim();});
+  const sections=blocks.filter(s=>s.month),months={};for(const s of sections)months[s.month]=[months[s.month],s.text].filter(Boolean).join('\n\n');
   const inferred=[...new Set(sections.filter(s=>s.inferred).map(s=>s.month))].sort();
-  return {sections,months,unassigned:text.slice(0,sections[0]?.start??text.length).trim(),inferred,
+  return {sections,months,unassigned:[text.slice(0,blocks[0]?.start??text.length).trim(),...blocks.filter(s=>!s.month).map(s=>text.slice(s.start,s.end).trim())].filter(Boolean).join('\n\n'),inferred,
     yearAmbiguous:inferred.some(m=>m.endsWith('-12'))&&inferred.some(m=>m.endsWith('-01')),
     _text:text,_positions:positions,_rich:rich};
 }

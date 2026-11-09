@@ -1,3 +1,9 @@
+# 2.0.0-GA · GOLDEN BUILD — monthly comment headings
+
+Fixed Fetch display for engineer headings such as November comments - and September comments -. Also recognizes comments/notes/reports variants, preserves older undated notes separately, and keeps source wording intact. No AI regeneration or GUS field rewrite is required to display fetched comments.
+
+---
+
 # 2.0.0-GA · GOLDEN BUILD — release-selection guidance
 
 When releases are available and none is selected, a brief animated arrow highlights the selector. It settles to static guidance after four seconds and disappears on selection. Reduced-motion support, full mobile labels and no extra GUS/AI calls are verified. Folded into the current GA golden baseline at the user’s request.

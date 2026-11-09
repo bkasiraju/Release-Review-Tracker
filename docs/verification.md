@@ -1,3 +1,15 @@
+# Monthly comment headings — current v2.0.0-GA GOLDEN BUILD
+
+Read-only live GUS and shared-journal inspection identified the missed format: November comments - and September comments -. Fetch had stored the engineer text; the prior parser produced no monthly keys. The current source had already been manually relabeled to update headings before inspection. Replaying the earlier journal text with the fix yields November/September month keys without changing the text. No production comments were changed during diagnosis.
+
+Month suffixes now include comments, notes and reports (including decorated/numeric/rich headings). A trailing hyphen without following whitespace is accepted only at end of heading; full dates and ordinary narrative remain notes. Explicit Older/Previous/Earlier/Undated/Original comment sections terminate a dated section and remain undated. Those raw ranges remain outside monthly replacements. Equal-sign dividers are treated as formatting.
+
+142 Node tests pass, including CRLF engineer formats, rich-link preservation, no-op merge, other-month/undated-history preservation, full-date/narrative negatives and Fetch/shared-service parsing without writes. Browser checks verify manual Fetch, correct November/September rendering, persistence across reload, no AI generation and no GUS comment changes; the monthly AI save regression also passes. Independent review ran13 focused parser/comment-view tests and confirmed all27 packaged files match source.
+
+Reviewed/deployed ZIP SHA256:60d03f00beace6be3ec5f94bf95c506c3333c25070ac717f341bebd32e9067a4. Activated through staging/review/promotion; all21 deployed text files match source. Canonical GA includes this fix. Production browser/model behavior remains unverified; source diagnosis was confirmed with actual read-only GUS/journal evidence.
+
+---
+
 # Release-selection guidance — current v2.0.0-GA GOLDEN BUILD
 
 For a loaded dashboard with available releases and no selected release, the release picker shows an arrow and soft highlight. Motion lasts four seconds then becomes static; reduced-motion preference suppresses motion. The cue is removed when a release is chosen, remains absent during initial loading and when no releases exist, and makes no extra GUS/AI calls. The overlay survives MultiSelect label rebuilds and does not intercept pointer events.

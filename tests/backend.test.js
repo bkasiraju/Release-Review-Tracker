@@ -301,3 +301,7 @@ test('monthly work read attaches bounded, month-filtered status history and clos
 test('status history permission failure is disclosed without inventing transition dates',async()=>{
  const {Gus}=require('../backend/gus');const g=new Gus({query:async q=>{if(q.includes('FROM ADM_Work__History'))throw Error('No field history access');return {records:[{Id:ID,Name:'W-1',Subject__c:'Regional rollout',Status__c:'Ready for Review'}]};}});g.fields=async()=>['Name','Subject__c','Status__c','Epic__c'];const out=await g.workItems(ID,{details:true,month:'2026-11'});assert.equal(out.historyUnavailable,true);assert.equal(out.items[0].statusChanges,undefined);
 });
+
+test('Fetch maps engineer comment headings into shared monthly updates without AI or GUS comment writes',async()=>{
+ const {s,gus,r}=await setup();const comments='November comments -\r\nImplementation review is in progress.\r\n================================\r\nOlder comments -\r\nPrior design notes.\r\nSeptember comments -\r\nDesign finalized.';gus.rows[ID].comments=comments;const result=await s.fetch(r.id);assert.equal(result.results[0].status,'fetched');assert.equal(result.results[0].epic.parsed.months['2026-11'],'Implementation review is in progress.');const shared=await new Service(s.store,gus).state();assert.equal(shared.epics[0].parsed.months['2026-09'],'Design finalized.');assert.match(shared.epics[0].parsed.unassigned,/Prior design notes/);assert.equal(gus.writes,0);assert.equal(gus.rows[ID].comments,comments);
+});
