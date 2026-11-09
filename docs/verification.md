@@ -1,3 +1,13 @@
+# Parent product heading and CFS context — v2.0.3
+
+Release Intelligence and its subtitle now occupy the parent top bar. Core Foundation Services / Release Review appears in the lower context section, with Foundation replacing Foundational in current app/Pages wording. One h1 remains; existing controls and behavior are unchanged.
+
+Targeted browser checks at 320,390,620,700,760,1000,1440 and1920px verify visible separator and Release Review text, exact wording, no duplicate title, no clipping and no page overflow. The explicit child-display override fixes an inherited tablet rule that hid breadcrumb children. No full Node rerun for this markup/CSS/version-only update; prior138 checks are retained.
+
+Reviewed ZIP SHA256: 6e2c23769d62e5cb6a71a9af5776f14b4eb2d743d6cefc7e930497f5e5d5d5d1. Activated through staging/review/promotion; all21 deployed text files match source. The golden2.0.0-GA archive and tags are unchanged.
+
+---
+
 # Executive action order — v2.0.2
 
 The header actions now appear in DOM/keyboard order: Generate summary, Generate V2MOM Method Summary, Copy leadership update. A targeted browser check confirms left-to-right order at 1440px and no page overflow at 390px. No generation, saving or token-accounting logic changed. The preceding 138 Node tests were not repeated for the markup/version-only change.

@@ -22,7 +22,7 @@ async function handleRequest(ctx){
       case 'connection':{
         if(!ctx.gus)await sf.query('SELECT Id FROM ADM_Epic__c LIMIT 1');
         let who={};if(typeof sf?.identity==='function'){try{who=await sf.identity();}catch{/* Identity permission is optional. */}}
-        payload={connected:true,source,username:who.username||null,organizationId:who.organization_id||null,storage:store.shared?'Shared GUS ContentVersion':'GUS ContentVersion',sharedBackend:store.shared===true,demo:!!ctx.demo,testMode:!!ctx.testMode,conditionalWrites:typeof sf?.request==='function',methods:Object.keys(sf||{}).filter(k=>typeof sf[k]==='function'),version:'2.0.2'};break;
+        payload={connected:true,source,username:who.username||null,organizationId:who.organization_id||null,storage:store.shared?'Shared GUS ContentVersion':'GUS ContentVersion',sharedBackend:store.shared===true,demo:!!ctx.demo,testMode:!!ctx.testMode,conditionalWrites:typeof sf?.request==='function',methods:Object.keys(sf||{}).filter(k=>typeof sf[k]==='function'),version:'2.0.3'};break;
       }
       case 'state':payload=await service.state();break;
       case 'list-catalog':payload={lists:(gus.definitions||require('./list-definitions')).map(d=>({name:d.developerName,label:d.label,url:'https://gus.lightning.force.com/lightning/o/ADM_Epic__c/list?filterName='+encodeURIComponent(d.developerName),verifiedAt:d.verifiedAt}))};break;

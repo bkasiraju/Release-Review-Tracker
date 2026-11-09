@@ -13,7 +13,7 @@ with tempfile.TemporaryDirectory(prefix="cfs-theme-") as directory:
     if route.request.post_data_json.get("action")=="connection":route.fulfill(json={"ok":True,"payload":{"connected":True,"demo":False,"testMode":False,"conditionalWrites":False,"version":"1.2.1"}})
     else:route.continue_()
    page.route("**/api/handler",connection_without_conditional_writes);page.goto("http://127.0.0.1:8384");expect(page.locator(".epic-title")).to_have_count(6)
-   expect(page.locator(".breadcrumb")).to_contain_text("Core Foundational Services")
+   expect(page.locator(".breadcrumb")).to_contain_text("Core Foundation Services")
    expect(page.locator("#global-banner")).to_be_visible();page.get_by_role("button",name="Dismiss notice").click();expect(page.locator("#global-banner")).to_be_hidden();page.reload();expect(page.locator(".epic-title")).to_have_count(6);expect(page.locator("#global-banner")).to_be_hidden()
    page.locator('[data-filter="attention"]').click();expect(page.locator(".epic-title")).to_have_count(2);expect(page.locator("#overview-panel")).to_be_visible();page.locator("#clear-filters").click();page.locator('[data-view="overview"]').click();expect(page.locator("#overview-panel")).to_be_visible()
    page.locator("#source-sync-button").click();expect(page.locator("#drawer-title")).to_have_text("GUS release sources");page.get_by_role("button",name="Close",exact=True).click();expect(page.locator("#drawer")).to_be_hidden()
