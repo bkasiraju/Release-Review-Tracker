@@ -1,0 +1,30 @@
+"""Existing/new linked releases mirror GUS columns and retain optional layout controls."""
+import json,os,subprocess,tempfile
+from pathlib import Path
+from playwright.sync_api import sync_playwright,expect
+ROOT=Path(__file__).resolve().parents[1]
+with tempfile.TemporaryDirectory(prefix='cfs-gus-columns-') as tmp:
+ tmp=Path(tmp);fixture=tmp/'data.json';seed=json.loads(subprocess.check_output(['node','-e','process.stdout.write(JSON.stringify(require("./scripts/fixture").seed()))'],cwd=ROOT));release=next(v for k,v in seed['docs'].items() if k.startswith('release:'));url='https://gus.lightning.force.com/lightning/o/ADM_Epic__c/list?filterName=MAPS_266_Review_Tracker1';release.update(inputLinks=url,sources=[{'id':'00B000000000001'}],columns=['name','health','months','pathToGreen','lead']);fixture.write_text(json.dumps(seed))
+ columns=[{'key':k,'field':f,'label':l} for k,f,l in [('project','Project__r.Name','Project'),('name','Name','Epic Name'),('health','Health__c','Health'),('lead','Development_Lead__r.Name','Development Lead'),('months','Epic_Health_Comments__c','Epic Health Comments'),('pathToGreen','Path_to_Green__c','Path to Green')]];meta=tmp/'columns.json';meta.write_text(json.dumps(columns))
+ wrapper=tmp/'server.cjs';wrapper.write_text("const path=require('path'),fs=require('fs'),root=process.cwd();const ctx=require(path.join(root,'scripts/fixture')).context();ctx.gus.resolveEpicInputs=async()=>({ids:Object.keys(JSON.parse(fs.readFileSync(process.env.CFS_FIXTURE_FILE)).remote),sources:[{id:'00B000000000001',definitionSource:'live-gus'}],columns:JSON.parse(fs.readFileSync(process.env.COLUMN_FIXTURE))});require(path.join(root,'server')).createServer(ctx).listen(8406,'127.0.0.1',()=>console.log('Ready')); ")
+ server=subprocess.Popen(['node',str(wrapper)],cwd=ROOT,env={**os.environ,'CFS_FIXTURE_FILE':str(fixture),'COLUMN_FIXTURE':str(meta)},stdout=subprocess.PIPE,text=True)
+ try:
+  assert 'Ready' in server.stdout.readline()
+  with sync_playwright() as p:
+   browser=p.chromium.launch();page=browser.new_page(viewport={'width':1440,'height':1000});errors=[];page.on('pageerror',lambda e:errors.append(str(e)));page.goto('http://127.0.0.1:8406');expect(page.locator('#epic-count')).to_have_text('6');page.locator('#fetch-button').click();expect(page.locator('#fetch-button')).to_be_enabled(timeout=20000)
+   def headers():return [s.split('↕')[0].strip().rstrip('↑↓').strip() for s in page.locator('#table-head th').all_text_contents()]
+   assert headers()[:4]==['Project','Epic Name','Health','Development Lead'],headers()
+   page.locator('#columns-button').click()
+   for key in ['project','lead','pathToGreen','months']:
+    expect(page.locator('[data-col="'+key+'"]').locator('..').locator('button[data-up]')).to_be_enabled() if key!='project' else None
+   for key in ['name','health']:
+    expect(page.locator('[data-col="'+key+'"]')).to_be_disabled();expect(page.locator('[data-col="'+key+'"]').locator('..').locator('button[data-down]')).to_be_disabled()
+   page.get_by_role('button',name='Move Development Lead up',exact=True).click();page.locator('[data-col=pathToGreen]').uncheck();page.locator('#save-columns').click();expect(page.locator('#drawer')).to_be_hidden();assert headers()[:4]==['Project','Epic Name','Development Lead','Health'],headers();assert 'Path to Green' not in headers()
+   page.reload();expect(page.locator('#epic-count')).to_have_text('6');assert headers()[:4]==['Project','Epic Name','Development Lead','Health']
+   page.locator('#columns-button').click();page.locator('#reset-source-columns').click();page.locator('#save-columns').click();expect(page.locator('#drawer')).to_be_hidden();assert headers()[:4]==['Project','Epic Name','Health','Development Lead'];assert 'Path to Green' in headers()
+   updated=[columns[0],columns[1],columns[3],{'key':'gus:Priority__c','field':'Priority__c','label':'Priority'},columns[2],columns[4]];meta.write_text(json.dumps(updated));page.locator('#fetch-button').click();expect(page.locator('#fetch-button')).to_be_enabled(timeout=20000);assert headers()[:5]==['Project','Epic Name','Development Lead','Priority','Health'],headers();assert 'Path to Green' not in headers()
+   other=browser.new_page();other.goto('http://127.0.0.1:8406');expect(other.locator('#table-head th').nth(3)).to_have_text('Priority');page.locator('#new-release').click();page.locator('#release-name').fill('New linked release');page.locator('#epic-links').fill(url);page.locator('#release-year').fill('2027');page.locator('#save-release').click();expect(page.locator('#drawer')).to_be_hidden();expect(page.locator('#fetch-button')).to_be_enabled(timeout=20000);assert headers()[:5]==['Project','Epic Name','Development Lead','Priority','Health'];meta.write_text(json.dumps([c for c in updated if c['key']!='months']));page.locator('#fetch-button').click();expect(page.locator('#fetch-button')).to_be_enabled(timeout=20000);expect(page.locator('.month-head')).to_have_count(0)
+   page.locator('#columns-button').click();page.locator('[data-month-col="2026-11"]').check();page.locator('#save-columns').click();expect(page.locator('#drawer')).to_be_hidden();expect(page.locator('.month-head')).to_have_count(1)
+   page.locator('#columns-button').click();page.locator('#reset-source-columns').click();page.locator('#save-columns').click();expect(page.locator('#drawer')).to_be_hidden();expect(page.locator('.month-head')).to_have_count(0);page.locator('#add-month').click();page.locator('#new-month').fill('2026-10');page.locator('#save-month').click();expect(page.locator('#drawer')).to_be_hidden();expect(page.locator('.month-head')).to_have_count(1);expect(page.locator('.month-head')).to_contain_text('Oct 2026');assert json.loads(fixture.read_text())['remote']==seed['remote'];assert not errors,errors
+   page.screenshot(path='/tmp/cfs-v1120-gus-columns.png');browser.close();print('GUS columns checks passed: existing migration, new mapping, source add/remove/order, editable optional columns, reset and shared reload.')
+ finally:server.terminate();server.wait(timeout=10)

@@ -1,0 +1,5 @@
+const {test}=require('node:test'),assert=require('node:assert/strict');const {validateDoc}=require('../backend/validate');const {ContentStore}=require('../backend/store');const {gzipSync}=require('zlib');
+test('shared journal schemas reject injected month/year/column values before rendering',()=>{
+ for(const record of [{year:'2026" onfocus="alert(1)'},{drafts:{'2026-11" onclick="bad':{value:'x',base:''}}},{columns:['name','x" onclick="bad']},{sourceColumns:[{key:'gus:Name',field:'Name; SELECT Id FROM User',label:'bad'}]},{completion:'<img onerror=bad>'},{visibleMonths:['2026-13']},{visibleMonths:'2026-11'},{hiddenMonths:['2026-13']},{hiddenMonths:['2026-11\" onclick=bad']}])assert.throws(()=>validateDoc(record),/invalid schema/);
+});
+test('replayed forged shared snapshots fail closed',()=>{const Title='CFSMonthlyReview_v1_release_test',rev='11111111-1111-4111-8111-111111111111',encoded=gzipSync(Buffer.from(JSON.stringify({year:'<svg onload=bad>'}))).toString('base64');assert.throws(()=>new ContentStore({}).decode([{Title,Description:'cfsc1:'+rev},{Title,Description:`cfs1:${rev}:0:1:${encoded}`}]),/invalid schema/);});

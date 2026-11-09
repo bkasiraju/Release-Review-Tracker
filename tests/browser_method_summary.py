@@ -1,0 +1,25 @@
+"""Consolidate every generated epic summary by measure/team without writing GUS."""
+import json,os,subprocess,tempfile
+from pathlib import Path
+from playwright.sync_api import sync_playwright,expect
+ROOT=Path(__file__).resolve().parents[1]
+with tempfile.TemporaryDirectory(prefix='cfs-method-') as tmp:
+ fixture=Path(tmp)/'data.json';data=json.loads(subprocess.check_output(['node','-e','process.stdout.write(JSON.stringify(require("./scripts/fixture").seed()))'],cwd=ROOT));fixture.write_text(json.dumps(data))
+ server=subprocess.Popen(['node','server.js','--fixture'],cwd=ROOT,env={**os.environ,'PORT':'8411','CFS_FIXTURE_FILE':str(fixture)},stdout=subprocess.PIPE,text=True)
+ try:
+  assert 'Release Review' in server.stdout.readline()
+  with sync_playwright() as p:
+   b=p.chromium.launch();page=b.new_page(viewport={'width':1440,'height':1000});errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
+   page.add_init_script('''window.sdkCalls=[];window.AppletAI={isAvailable:()=>true,complete:async(name,args)=>{window.sdkCalls.push(args.message);await new Promise(r=>setTimeout(r,300));return {text:args.message.includes('Consolidate ALL')?'Delivery readiness is progressing; validation remains the next step.':'Delivery readiness is progressing; validation remains the next step.'};}};''')
+   page.goto('http://127.0.0.1:8411');expect(page.locator('#epic-count')).to_have_text('6');page.locator('.view-nav [data-view=executive]').click();expect(page.locator('#generate-method')).to_be_disabled();page.locator('#generate-executive').click();expect(page.locator('.executive-blurb')).to_have_count(6,timeout=30000);expect(page.locator('#generate-method')).to_be_enabled()
+   summaries=page.locator('.executive-blurb').all_text_contents();page.locator('#generate-method').click();expect(page.locator('#executive-loading')).to_be_visible();expect(page.locator('#generate-executive')).to_be_disabled();expect(page.locator('#method-summary')).to_be_hidden();expect(page.locator('#copy-method')).to_be_visible(timeout=20000)
+   calls=page.evaluate("window.sdkCalls.filter(m=>m.includes('Consolidate ALL'))");evidence=[e for msg in calls for e in json.loads(msg.split(' Epic summaries: ')[1])];assert len(evidence)==6;assert len({e['epic'] for e in evidence})==6;assert all(e['summary'] for e in evidence);assert page.locator('.method-team-update').count()==len(calls);assert page.locator('.executive-blurb').all_text_contents()==summaries
+   page.context.grant_permissions(['clipboard-read','clipboard-write'],origin='http://127.0.0.1:8411');page.locator('#copy-method').click();copied=page.evaluate('navigator.clipboard.readText()');assert 'Delivery readiness' in copied;assert 'Method' not in copied or len(copied)>0
+   page.screenshot(path='/tmp/cfs-v1160-method-summary.png',full_page=True)
+   page.locator('#review-month').fill('2026-12');expect(page.locator('#method-summary')).to_be_hidden();expect(page.locator('#generate-method')).to_be_disabled();page.locator('#review-month').fill('2026-11');expect(page.locator('#copy-method')).to_be_visible()
+   page.evaluate("""()=>{window.methodRepairs=0;window.AppletAI.complete=async(_,args)=>{await new Promise(r=>setTimeout(r,150));if(args.message.includes('Correction required:')){window.methodRepairs++;return {text:'In November 2026, delivery readiness is advancing through regional rollout and failover validation. October 2026 canary validation provides the foundation for rollout; partner approval remains the delivery dependency, with failover validation progressing toward regional release readiness and the planned deployment outcome.'};}return {text:'99 launches completed.'};};}""");page.locator('#generate-method').click();expect(page.locator('#executive-loading')).to_be_visible();expect(page.locator('#copy-method')).to_be_visible(timeout=20000);assert page.evaluate('window.methodRepairs')==len(calls);assert 'November 2026' in page.locator('#method-summary').inner_text();assert len(page.locator('.method-team-update p').first.inner_text())>300
+   page.evaluate("window.AppletAI.complete=async()=>({text:'99 work items completed.'})");page.locator('#generate-method').click();expect(page.locator('#method-summary')).to_contain_text('AI consolidation unavailable for this team',timeout=15000);expect(page.locator('#copy-method')).to_be_visible();assert page.locator('#method-summary details').count()==len(calls)
+   page.evaluate('window.AppletAI.isAvailable=()=>false');page.locator('#generate-method').click();expect(page.locator('#method-summary')).to_contain_text('GUS Apps AI is unavailable');expect(page.locator('.executive-blurb')).to_have_count(6)
+   expect(page.locator('h1')).to_have_text('Release Intelligence');assert page.locator('.page-heading .eyebrow').count()==0;expect(page.locator('.version-chip')).to_contain_text('2.0.0-GA · GOLDEN BUILD');
+   assert json.loads(fixture.read_text())['remote']==data['remote'];assert not errors,errors;b.close();print('Method summary checks passed: all six epics reach team-scoped SDK synthesis, loading, copy, scope invalidation, safe failures, no GUS writes.')
+ finally:server.terminate();server.wait(timeout=10)

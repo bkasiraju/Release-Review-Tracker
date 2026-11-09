@@ -1,0 +1,544 @@
+# Release Intelligence — 2.0.0-GA · GOLDEN BUILD
+
+The user designated 2.0.0-GA as the stable rollback baseline and requested the existing bkasiraju/Release-Review-Tracker repository/Pages destination. The tool is named Release Intelligence; redundant CFS Release Review heading/breadcrumb wording is removed. Golden build identity is visible in the footer.
+
+A reproduced consolidation mismatch is fixed: model context included V2MOM identifiers and numeric goals in epic titles while numeric validation considered summary prose alone. Validation now considers the same measure/team/title/summary evidence supplied to the model, with explicit instructions distinguishing goals from achievements. Method calls use the SDK's supported systemPromptOverride to avoid conflicting length/style instructions. Unknown numeric claims remain invalid; one correction attempt remains bounded by the shared deadline. These are lexical checks, not semantic proof.
+
+Measure/team outcomes complete independently. Valid AI consolidations remain visible; a failed group's existing source summaries remain accessible and are explicitly labeled as not consolidated AI. Copy retains that label. No unsupported text is relabeled AI, no empty global result hides other teams, and no summary-generation action writes GUS comments.
+
+All 135 Node tests pass. Browser method, monthly AI and Escape checks pass, including GA naming/badge, correction/date handling, visible labeled fallbacks, scope binding, copy, monthly save/reload and no unintended GUS writes. Independent review ran 15 AI tests and confirmed all 27 packaged files match source. Production browser/model output was not verified because the connector remains unavailable. Central GUS Apps live list-view metadata limitations remain.
+
+Golden archive SHA256: 96ff7a49e2707682511017abbda6dabda6ef1e8370649061a63300415020b5fc. Activated through staging/review/promotion; all 21 deployed text files match reviewed source. The exact immutable archive, checksum, build manifest and rollback instructions are stored under releases/2.0.0-GA and docs/GOLDEN_BUILD.md. Git tags are v2.0.0-GA and GOLDEN-BUILD-2.0.0-GA.
+
+---
+
+# Consolidated method generation recovery — v1.16.1
+
+The v1.16.0 method branch rejected any paragraph beyond 300 characters/45 words and compared numeric date labels against summary prose while omitting reporting-period metadata from validation. These paths were reproduced with controlled responses; the original production response was not available for inspection. The method agent prompt and validation now agree on a target of 45–65 words/500 characters and a hard complete-paragraph bound of 650 characters/90 words. Cosmetic bold, labels and JSON summary wrappers are normalized without shortening sentences. Only exact known reporting-period date labels are exempted from numeric-metric checking, not bare years or unsupported numeric claims.
+
+A rejected method response receives at most one correction request using the original evidence and the failed criteria. Both SDK calls share the existing 60-second deadline. The second response must independently pass validation; invalid output, empty text and placeholders remain failures. No truncated summary is labeled successful and no comments are written to GUS. Existing all-groups completion and current release/month binding remain.
+
+All 134 Node tests pass. Browser checks verify per-team automatic correction, complete paragraphs beyond the former 300-character limit, known reporting dates, loading/copy/scope behavior, safe final failures, no GUS mutations and the unchanged monthly AI draft/save/reload workflow. Independent review ran 14 focused AI tests and verified all 27 packaged files match source. Guards are structural and lexical, not proof of factual grounding or semantic coverage; review before sharing remains necessary.
+
+Reviewed ZIP SHA256: b767199f92689801825e6f595a7f485ce47ca88d44e19dc8c6ef085fe303eb2b. Activated through staging/review/promotion; all 21 deployed text files match reviewed source. The browser connector returned browser.user is unavailable, so no actual production model response or hosted-browser behavior was verified.
+
+---
+
+# Consolidated V2MOM method updates — v1.16.0
+
+After all epic summaries are generated, Generate V2MOM Method Summary consolidates every generated epic summary within its measure/team using the existing GUS Apps AI SDK agent. Each request includes epic names, full summary text, reporting months and undated-context flags. Inputs over 40,000 serialized characters fail rather than dropping epics. Outputs must pass existing third-person/numeric guardrails and strict 300-character/45-word limits without shortening. This is not semantic proof that every source is covered; leadership review remains necessary.
+
+The result is shown in a compact section above existing per-epic summaries, with Copy method update. Generation uses the bounded background queue and progress animation. The complete set is displayed only after every group succeeds. Errors, AI unavailability or invalid output show a retry note without a partial result. Scope changes hide older results; regenerating epic summaries invalidates the roll-up. Generation and copying perform no GUS writes. Results remain in the current browser session, matching existing epic-summary behavior.
+
+All 130 Node tests pass. Browser method checks verify six unique epics reach team-scoped SDK synthesis, loading state, preservation of existing epic summaries, copying, month-scope invalidation, failure/unavailability behavior and no GUS mutations. Existing shared-feature browser checks also pass after updating their setup to expand the current compact landing table. Independent review verified all 27 ZIP files match source and independently ran ten AI tests, including rejection of oversized single-sentence output.
+
+Reviewed ZIP SHA256: f04cbc34cf6d44f23e53cecaa3ab70d901ce182aa02670ba68fdf7e0a0e37272. Activated through staging/review/promotion; all 21 deployed text files match reviewed source. SDK browser tests use mocks; actual production model output and hosted-browser behavior were not verified. Existing central host live list-view metadata limitations remain.
+
+---
+
+# Executive monthly synthesis, compact previews, Escape shortcuts — v1.15.0
+
+Single Escape outside an open menu, preview or editor removes the most recently applied active filter. Later single presses remove remaining filters in reverse order. A 400ms gesture window distinguishes rapid double Escape: it cancels the single-filter operation, clears filters/expanded rows and invokes the existing manual refresh for selected releases. Open menus and previews close first; editors retain their unsaved-change protection. Holding Escape does not repeatedly trigger actions.
+
+Monthly AI drafts now use a structured current executive paragraph and separate Previous months context. Dated GUS work status transitions and closure dates prioritize carried-over work and avoid attributing later status to historical months. Read-only GUS history confirmed November transitions for W-24791042. All selected evidence reaches the model within the explicit budget; evidence-key references are structural validation, not proof of semantic coverage. Human review remains necessary. The source fallback uses a limited concise subject/status synthesis; no production AI result or epic comment write was performed during verification.
+
+Epic hover previews show compact distinct colored month tiles, preserving full source comments and Path to Green. Tooltip keyboard association and outside-scroll dismissal are improved.
+
+All 127 Node tests pass. Isolated browser checks pass for reverse filter order, edited-search precedence, menu/preview priority, exactly one manual refresh on double Escape, metric removal, distinct compact month tiles, mobile fit, monthly SDK draft adoption/save/reload and compact epic interactions. Independent review confirmed all 27 ZIP files match source and independently ran 18 focused tests.
+
+Reviewed ZIP SHA256: 2daacad709aac498dd93cd45a26c713e50f67598a58176eb2fb8c8ff55f9640c. Activated through staging/review/promotion; all 21 deployed text files match reviewed source. Production hosted-browser/model behavior was not verified. Central host live list-view metadata limitations remain.
+
+---
+
+# Month-scoped work evidence for AI Summary — v1.14.0
+
+A read-only GUS query of epic a3QEE000002ehUv2AI found W-24791042, [Core] VegaCache prism skills for batch 2 scenarios, Ready for Review, sprint2026.11a with Nov1–15 dates and a Nov5 creation timestamp. Previous code fetched work but did not prioritize sprint month, and health-first fallback shortening could omit work evidence.
+
+Monthly summary evidence now prioritizes sprint overlap, then structured sprint-name month when dates are absent, then created/modified-in-month activity when sprint scope cannot be established. Historical work is not excluded merely because later edits changed LastModifiedDate. Future-created items are excluded. Sprint dates describe planned scope; current status snapshots still cannot prove a transition in that month. Other known sprint months are historical context; unscoped work is explicitly timing-unverified context.
+
+Exact serialized evidence budgeting drops optional descriptions if necessary and rejects oversized subject/status sets instead of silently omitting records. Every selected-month subject and status is included intact, with sprint and basis, in deliveryEvidence and an expandable draft evidence panel. Primary work comes before health comments in source fallback. The prompt directs the GUS Apps SDK to cover primary delivery capability/status, with Ready for Review treated as review readiness. A lexical coverage check after shortening rejects a model paragraph that entirely omits meaningful primary-subject terms, retaining a source-based draft instead. This is not semantic grounding verification and may reject abstract wording. Existing compact content budgets, explicit Save and month-preserving write paths remain.
+
+120 Node checks pass, including overlapping/cross-month sprints, November work modified in December, older/future sprint context, calendar-end exclusion, full subject/status evidence and model omission fallback. The native SDK browser mock checks primary November subject/status in the prompt and evidence panel, short draft adoption, Undo/regeneration, explicit fixture save and reload. Compact epic UI browser checks pass. The actual work-item record was replayed read-only through the selector and matched November; no production comment was written.
+
+Reviewed ZIP SHA256: 1d32fd848000a19262a4f958fe6f57ca0a72f73f43008c30107f1874d6690842 (27 files). Activated through staging/review/promotion; all21 deployed text files match reviewed source. Independent reviewer ran eight monthly tests. Hosted-browser verification was unavailable because the browser connector returned browser.user is unavailable; no production AI result or production comment write is claimed.
+
+---
+
+# Compact landing header — v1.13.1
+
+The release-intelligence label, title and subtitle use one naturally wrapping flex row at wide widths; the minimum 70px heading height is removed. The dashboard navigation/actions sit directly below with reduced vertical padding and margins. Every original text label and action is retained. Narrow screens wrap text and controls rather than clipping or hiding them. No backend or application logic changed apart from version strings.
+
+An isolated browser geometry check at 320,390,760,1000,1280,1440 and1920px verifies visible labels/actions with scrollWidth within clientWidth and no page overflow. Wide-screen heading height is at most35px. The compact epic interaction browser suite passes. The unchanged Node/data logic retains the prior116 passing checks; tests were not redundantly repeated for this CSS-only update.
+
+Reviewed ZIP SHA256: 4522e2a773c37c7aea7c910e5a5ce04cf9b16cc805a2151490f88899dda9b342 (27 files). Activated through staging/review/promotion; all21 deployed text files match reviewed source. Header geometry is verified in isolated browsers; this release was not rechecked in the hosted browser.
+
+---
+
+# Compact epic landing view and general update context — v1.13.0
+
+The landing table shows compact Epic Name, Health and Development Lead rows, with sortable headers. Each +/− button opens/closes the original GUS-column/monthly table below its epic. Column choices apply to expanded tables. Full updates expands visible rows and removes the text clamp. Expansions are client view state, default collapsed on page reload. The CR navigation placeholder is removed.
+
+Row hover or keyboard focus opens a read-only, hoverable popup after 450ms, showing the review month plus recent monthly comments and Path to Green from existing shared data. No GUS/model call occurs on this hover. Escape/× closes the popup without reopening it on the row revealed beneath; pointer/touch/keyboard entries and dismissal are handled separately. Touch users expand a row for the same data. Shared polling pauses while the popup is active. Monthly work-item/AI detail interactions remain in the expanded table.
+
+Owner/health triggers show short selection counts. Existing full-name removable filter chips wrap below the toolbar instead of clipping the selected name. Metric details use On Track or Completed and Watch, Blocked, or At Risk.
+
+A leading generic preamble appears before current-review-month content with a General update · Undated label, including the hover popup and monthly editor's read-only context. It never becomes the dated editor value, inferred monthly source, coverage count or an automatic GUS write. Historical dated comments remain separate. Completely unrecognized month histories still use the v1.12.1 display-only fallback in every visible month.
+
+116 Node checks pass. The compact-row browser test covers default row heights, no-request hover, keyboard dismissal, expandable month table, an actual fixture save/publish/readback, sort, Full updates, phone scrolling, six owner chips and no CR badge. It also checks generic+dated display, generic-only current month, a blank dated editor, and preserved source text. Work-item metadata and hourly notification regressions pass. Production v1.12.1 parser/fallback was observed in a signed-in browser; native production AI was not exercised.
+
+Central metadata investigation: official GUS MIYO guide links to #gus-miyo. Official channel messages identify gusprodops-emu/gus-apps-hub as platform repository. Current CLI access returns404, so connector source cannot be changed here. Current app administration exposes Transfer Ownership and Sharing, not a list-view REST toggle. Published /api/applet-skill documents query/CRUD/batch/Chatter methods and no generic request/list-view describe. Automatic future metadata detection remains a platform change, not an applet sharing fix. No message was sent and no permission setting changed. Support link: https://salesforce.enterprise.slack.com/archives/C0AKLTZVDMZ . Repository reference: https://salesforce.enterprise.slack.com/archives/C0AKLTZVDMZ/p1777584653999199 .
+
+Reviewed ZIP SHA256: 4b46c78bca49af2842288899d4b5e7f4809236548de7075d4f28fe3bfc9b68da (27 files). Activated through staging/review/promotion; all 21 deployed text files match reviewed source. Signed-in production browser verification confirms v1.13.0, connected GUS state, compact rows, removal of CR, status capitalization, affected epic expansion, generic November preamble, October original wording and September text. The live popup screenshot shows all three month sections and Path to Green. Verification changed only local release selection/search/expansion, not GUS comments. Native production AI was not tested. Static review retains minor tooltip screen-reader announcement and scroll-dismissal caveats.
+
+---
+
+# Critical generalized month parsing and display fallback — v1.12.1
+
+A read-only query of affected epic a3QEE000002e3Fl2AI reproduced headings like [Oct Update] followed immediately by body text, which the former parser missed. Heading recognition now handles bracket/Markdown decoration, month names/abbreviations, explicit numeric month-year/year-month, inline bodies and rich-text headings. Conservative heading boundaries keep narrative mentions and complete calendar dates out of month parsing. Undated introductory text remains preserved. Generalized heading styles do not require an LLM or normalize/write engineer comments.
+
+When there are zero recognized source months, a display-only fallback shows the complete plain-text source comments in each visible month with an explicit Month not identified label. It never creates dated backend entries, counts as a dated update or automatically writes GUS. Explicit cleared drafts/jobs take precedence. Opening the fallback shows the original undated notes; Add dated update opens a blank monthly editor with the correct empty baseline.
+
+115 Node checks pass. Independent focused review ran nine parser/formatting checks. An isolated browser using the affected epic's exact comment string verifies October/September text displays and source strings remain identical; a second fixture verifies three fallback cells and a blank dated editor. No production comments were modified. The focused artifact was built from deployed v1.12.0, keeping the in-progress compact landing UI out of the hotfix.
+
+Reviewed ZIP SHA256: 39dc958372ef3e595e9fba19aedfaba86d650649d47c7ab1b02f7f167ac9d847 (27 files). Activated through staging/review/promotion; all 21 deployed text files match isolated reviewed source.
+
+---
+
+# GUS source columns and movable optional layout — v1.12.0
+
+Linked releases use source column keys, labels and order, with Epic Health Comments expanded into monthly columns. Only Epic Name and Health are required and their own move buttons are disabled; optional columns can move across them or be hidden. Individual-record releases default to Project, Epic Name, Status (epic health), Development Lead, months and Path to Green. Linked lists retain their actual GUS labels/order instead of renaming Health or imposing the manual default sequence. The current MAPS list was read via authenticated Salesforce describe on 9 Nov 2026 and verified to have 14 visible columns, beginning Project/Epic Name/Development Lead/Priority/Health.
+
+New linked releases receive source columns. Legacy existing linked layouts render source order and migrate persisted layout on actual Fetch. Custom preferences persist while source metadata is unchanged; source column additions, removal, labels or ordering changes reset the layout to source order on an actual hourly/manual Fetch. Use GUS order restores following mode. Monthly visibility preferences and health-comment text remain intact. Project is an explicit supported cell; table sticky-first-column assumptions no longer pin an arbitrary Project column. columnMode is schema-validated and journal conflict-protected.
+
+Important deployment limitation: the centrally hosted GUS Apps connection still lacks live list-view REST/describe capability in prior production diagnostics. Its verified-definition fallback is labeled in the table and documentation. This release refreshes the packaged MAPS definition, but cannot automatically detect future GUS definition changes through that restricted host. The live-capable path is implemented/tested; full automatic production metadata sync remains dependent on the platform exposing the supported capability. No credentials were added and no unsupported host endpoint is assumed.
+
+112 Node checks pass, including source defaults, existing-layout migration, retained custom choices, reset on changed definition, and no epic comment writes. An isolated browser test verifies new/existing list mapping, source order/add/remove changes, shared reload, optional move/hide and GUS-order reset. Work-item metadata, month visibility, monthly AI save and hourly-notification browser regressions pass. Source layouts without Health Comments can still enable month columns through Columns or Add month; both paths explicitly enable the monthly group and are browser-checked. Production list metadata was read only; no production epic records were modified.
+
+Reviewed ZIP SHA256: 6bdc7dbd058f37b8ab911f0ebdc47e6306577e290ee2149ce8262f63e528ca5c (27 files). Activated through staging/review/promotion; all 21 deployed text files match reviewed source. Hosted browser verification was not performed. Automatic future column-definition sync remains subject to the host capability limitation described above.
+
+---
+
+# Add releases beyond five saved lists — v1.11.4
+
+The old five-release storage cap disabled both + and Add new release once the shared catalog reached five. That cap is removed from frontend and backend. All saved release lists stay in the searchable dropdown and manager, and existing lists are not replaced or deleted. The release selector now explicitly limits the active view to five releases, with an explanatory note, bounded Select all and unselected options disabled only while five are selected. Clear all and deselection unlock other options. Health/owner/status filters remain unrestricted. Backend revision checks, per-release epic bounds and verified-list metadata requirements are unchanged.
+
+111 Node checks pass. Capacity tests verify seven stored releases, edits and alias year separation while preserving GUS records. The release-setup browser suite adds a sixth release through + and a seventh through Lists, verifies prefetch and a second session reading all seven, then verifies five-selection limit, Clear all and selecting the seventh release. All tests use isolated data; production release lists were not modified by verification.
+
+Shared-feature and UX browser regressions pass. Reviewed ZIP SHA256: 1ec57e7677a2b398c4edfec2a5c20a6020e3218d44429aeb43a7bd2f2d501542 (27 files). Activated through staging/review/promotion; all 21 deployed text files match reviewed source. Hosted browser verification was not performed.
+
+---
+
+# Single dashboard Refresh control — v1.11.3
+
+Removed the duplicate connection-check icon next to Connected to GUS. The labeled Refresh button beside the release controls remains the dashboard refresh entry point; live fetch timing and five-second usage notifications are unchanged. Sources & connection offers a recovery-only Reconnect to GUS action when the connection is unavailable, using the existing connection flow. It disappears after recovery. No backend write or cache behavior changed.
+
+Isolated browser checks cover single refresh control, preserved GUS comments, separate publish confirmation, failed initial connection and successful recovery. The theme check now expects the current overview metric filtering behavior (overview remains visible); this was an outdated assertion, not an app change.
+
+Theme, hourly notification schedule and 111 Node checks pass. Reviewed ZIP SHA256: aea77ea6f01f74a1370f8a24dfa64d47e1ae59dff32395a8baa9ca2759fdac04 (27 files). Activated through staging/review/promotion; all 21 deployed text files match reviewed source. Hosted browser verification was not performed.
+
+---
+
+# Readable work-item metadata — v1.11.2
+
+The epic work-item sidebar expands to a viewport-bounded 1120px. Status, owner and sprint tracks use bounded content-length sizing shared by all rows and headers, based on all loaded items to keep sorting/filtering stable. Long metadata wraps instead of being clipped. Titles remain compact with full text available through row expansion. Narrow viewports use a focusable horizontal scroll region with a scroll hint, preserving all six sortable headers in one row. No backend data or sync behavior changes.
+
+An isolated browser fixture with a long Closed - No Fix - Working as Designed status and Yashasvi Chennawar owner verifies full metadata, aligned headers, expansion and sorting at desktop and phone widths. Existing shared-feature browser checks pass. Production work items were not modified.
+
+111 Node checks pass. Reviewed ZIP SHA256: 05e3be596041cdb54964b6459e62348828566d78748912c0f06d56c1cc4b060b (27 files). Activated through staging/review/promotion; all 21 deployed text files match reviewed source. Hosted browser verification was not performed.
+
+---
+
+# Notify only for live sync activity — v1.11.1
+
+The usage note previously appeared after every one-minute shared-state reread, even when the one-hour freshness guard skipped all live GUS list/epic fetching. Notifications are now gated by an operation-level realSync marker. Cached loads, minute polling, focus/visibility rereads and server cache-hit responses remain silent and do not reset an existing note timer.
+
+Manual refresh attempts mark live activity explicitly; automatic refresh marks it only after the backend confirms it is not a cache hit. Monthly save/publish and bulk publication also mark actual user-initiated write activity. A multi-release sweep shares one marker and reports once. Five-second automatic dismissal and × dismissal are unchanged.
+
+Live-fetch scheduling is unchanged: browser and backend use the shared one-hour freshness guard, while a manual Refresh bypasses the cache. Read-only shared-state checks still occur every minute to render other users’ saved updates without another live epic fetch.
+
+111 Node checks pass. A simulated-clock browser test proves fresh initial loads and multiple minute checks issue no live fetch or token note; after expiry an actual automatic fetch reports once; the next minute stays silent; manual refresh inside the hour still fetches and reports; a client-stale/server-fresh cache race issues no false note or live page requests. Existing manual refresh/save/failure usage checks and two-user shared refresh checks pass. Preview, missing-state, compact-metric and UI preference browser suites are also checked against isolated data. No production health-comment writes are used for verification.
+
+Reviewed ZIP SHA256: 15cb9a7876032b00c452a8c0632c8ceeca1fbd53220cbde98e6b9e573e507373 (27 files). Activated through staging/review/promotion; all 21 deployed text files match reviewed source. Hosted browser verification was not performed.
+
+---
+
+# Formatted comments, read-only AI previews and compact metrics — v1.11.0
+
+Engineer updates receive presentation-only paragraphs, spacing, existing-label emphasis and preserved bullet styling. Escaped blank-line separators are displayed as paragraph spacing. A small local comments-view.js helper escapes all text; source strings, editor values and saved GUS comments are not rewritten by formatting.
+
+Deliberate mouse hover or keyboard focus (800ms dwell) opens a separate read-only summary using the displayed monthly text, live epic health/path-to-green, goals and eligible work-item delivery evidence through the existing GUS Apps AI SDK flow. A Preview button supports click/touch and focuses the close control. Popup content is hoverable, dismissible by ×/Escape/outside click, and does not replace the editor or issue save/publish calls. Background shared refresh waits while a preview is open. Previews retain snapshot-timing caveats and clearly label source-based fallback if AI is unavailable.
+
+At most one hover generation runs at a time. Up to 40 recent source-specific model results are cached for up to one hour (source-only fallback for one minute); quick pass-over hovers and touch pointer-over events do not generate. Cached results invalidate with displayed text, health/modified/fetch metadata or release-year mapping/identity/AI-availability changes. Dismissed responses cannot reopen old UI. The model wait is outside the epic write queue; an in-flight preview cannot block an explicit monthly save. Generating a preview may consume AI tokens; existing sync-only metrics explicitly exclude AI summaries.
+
+Empty month cells now use one small Missing Update indicator plus an AI Summary pill instead of large repeated Add monthly update boxes and long AI labels. Missing opens manual entry, AI opens the existing draft editor and requires explicit Save. Existing updates show small Preview/AI actions on pointer hover or keyboard focus, with visible actions on touch layouts. Saved-cleared or failed drafts keep distinct status labels.
+
+111 Node checks pass, including safe formatting/wording preservation, preview evidence and zero backend writes. Browser tests verify raw editor text and saved source remain identical after formatting/hover, SDK evidence includes health/work context, delayed activation, caching, hoverable popup, keyboard/touch entry, dismissal, and no automatic saves. A blocked AI response test proves an explicit monthly save still finishes. Missing-state tests cover all 18 empty cells, compact geometry, manual entry and deliberate AI draft generation without writes. Existing monthly AI save, full-update, month selection, shared refresh and sync-metric suites pass. Metric tiles are substantially smaller, with duplicate context tags removed from their visible body while actual counts, percentages and drill-down actions stay intact. Release metrics and Health & delivery are independently collapsible native details groups, both expanded on page load. Browser checks bound desktop card height at 155px and the complete expanded overview at 350px for the fixture, verify all counts/ratios, independent keyboard toggling, retention across data renders, default-open reload and phone widths.
+
+A client-side SDK timeout race also ensures an SDK that ignores AbortSignal cannot hold subsequent previews indefinitely. Underlying already-started model work may still continue if the provider ignores cancellation.
+
+SDK model responses are mocked in isolated browser tests; no production model-quality or host-browser benchmark is claimed.
+
+Reviewed ZIP SHA256: 40664966b6b4caa429ca331d02bf65d1dc1513a13509b5d9c740d522aa6ef890 (27 files). Activated through staging/review/promotion; all 21 deployed text files match reviewed source.
+
+---
+
+# Three-month default with optional full history — v1.10.0
+
+Without an explicit visible-month selection, the table shows the review month and preceding two calendar months (Nov/Oct/Sep for Nov 2026), honoring previously hidden months. The complete month catalog still includes release settings, saved visibility settings, all parsed epic-comment months and drafts. Columns preferences list every catalog month, including August and future/history months, with default-visible entries checked and older entries available unchecked.
+
+Saving Columns writes an explicit visibleMonths selection to each selected release, preserving existing hide/show semantics including zero visible months. Adding a month extends the selected releases’ visible columns, unhides that month and keeps the current review month unchanged. Older visibility choices persist through Fetch, reload and release edits. No data, health comments, sidebar history or summary evidence are removed. New derived months remain available in preferences; an explicit saved selection governs the table until edited.
+
+The backend validates/deduplicates visibleMonths and the saved journal validates its schema. Visible and hidden month preference fields now participate in the same journal conflict detection as columns/months.
+
+108 Node tests pass, including calendar year boundaries, legacy hidden months, custom older/all-hidden selections, validation, persistence through release edits and real ContentStore replay. Browser tests include August GUS comments but show only three default headers; they enable August, reload four columns, hide/show all, then add August while retaining November as review month. Source comments remain unchanged. Full-update and shared-refresh regression checks also run against isolated data.
+
+Reviewed ZIP SHA256: 412bdbc9574d23130bab12da818ecff3e788dcff4616740ffc14db510088acdc (26 files). Activated through staging/review/promotion; all 20 deployed text files match reviewed source.
+
+---
+
+# Consistent controls, sorting and readable selections — v1.9.9
+
+Release, review-month, Lists and Refresh controls share a 36px outer height, 1px border and 7px radius. Release and month widths stay fixed while scripts, fonts and data load. Native multiple selects are hidden in the HTML/CSS before JavaScript; matching placeholders render immediately, custom dropdowns are disabled until shared state loads, and the empty table says Loading rather than falsely prompting first-release setup. The review display reads Review Month: Nov 2026 (derived from the selected month), with the existing native month input overlaid for selection and a visible focus ring.
+
+The footer centers the Hub and Sources links, removes repeated decorative icons and backend/reference-year labels, and places Last updated at the far right. On phones it wraps into a compact two-row layout.
+
+The view is named Executive V2MOM Summary in tabs, rail, panel and heading. Epic Name, Health and Development Lead headers support natural, case-insensitive ascending/descending sorting with aria-sort and missing values last. Known team names display MAPS, VC, MQ and VS, retaining full names on hover and in source data/search. Undated notes replaces Original notes with a compact, readable chip opening preserved comments locally.
+
+Selected release names occupy a full wrapping chip row rather than clipped dropdown children. Individual × buttons unselect scopes without deleting releases. Applied health, owner, search, insight and metric criteria appear in readable removable chips. Group-health removal also clears its underlying health selection. Clear includes all filter types, has a subtle red border/background, and pulses three times for 3.6 seconds, with reduced-motion support. Narrow layouts wrap instead of squeezing controls or names.
+
+106 Node checks pass, including natural/missing-last epic sorting and team abbreviation. A dedicated browser check pauses app.js and then the connection request, verifying pre-script and data-loading geometry and no listbox distortion. It verifies the renamed view, month format, sorting directions, full team tooltips/undated notes, readable filter removal, group-filter removal, all five full release names, unselection and mobile bounds. Existing shared refresh, release setup, controls (including 320/390px menus), full-update, icon, monthly AI save, month visibility and sync-metrics browser checks pass. Screenshots of loading, filters and five-release selection were inspected. Backend logic and GUS data are unchanged; no production health-comment writes were performed.
+
+Reviewed ZIP SHA256: 12818df79d3d001c2ffc5a7f70c5147b46ea7bd4a43f13a496d45ce4c8788475 (26 files). Activated through staging/review/promotion; all 20 deployed text files match reviewed source.
+
+---
+
+# Lightweight dimensional icons — v1.9.8
+
+Inspected the supplied Core 3PP app’s source and matched its small 3D WebP illustration style. Four corresponding local assets (open-source, deviation, sla and automation) were copied from the adjacent 3pp-Core-CARE-Initiative project; together they total 13,184 bytes. They are bundled locally and reused by URL, with explicit dimensions and asynchronous decoding. No remote CDN, 3D engine, canvas renderer, model call or extra GUS call is introduced.
+
+A small deferred icons.js helper supplies illustrations and colored beveled inline SVG badges for cards, navigation, buttons, epic links, work-item links, AI actions and month pencils. All diagonal-arrow glyphs are removed from app markup; link actions retain their original hrefs and accessible labels. Functional sort-direction and date-range indicators remain. Icons are decorative (aria-hidden) next to retained text labels. Introductory motion is globally limited to four seconds so data re-renders cannot restart it indefinitely. Hover/focus transitions remain available; reduced-motion disables animation and transforms.
+
+104 Node tests pass. Browser checks verify decoded local art, preserved link/filter actions, no diagonal arrows, finite introduction, reduced motion, 390px overflow checks and no more than four distinct cached art resources. The overview screenshot was visually inspected. Existing full-update, shared-refresh, metrics, monthly AI save/reload and month visibility browser suites also pass. The added artwork size is bounded; an identical live-host before/after page-load benchmark is not claimed.
+
+Reviewed ZIP SHA256: af4c456f2aa5e5718220d045a54d562c8ed454e9c562a481da4d36f4b2082f6c (26 files). Activated through staging/review/promotion; all 20 deployed text files match reviewed source.
+
+---
+
+# Sync usage flash note — v1.9.7
+
+A top-right, dismissible notification now reports dashboard load, shared-state synchronization, live refresh and GUS publication activity. It closes five seconds after the latest completed operation or immediately on ×. It reports operation-scoped dashboard request attempts, elapsed browser time, outcome/cache reuse and 0 sync AI tokens. These instrumented paths invoke no LLM. The note explicitly excludes AI summary generation and identifies request counts as dashboard calls, not underlying Salesforce API calls or quota consumption. No AI token totals or estimates are fabricated for summary generation.
+
+Request counters are passed into the relevant API calls as per-operation objects, preserving correct counts when independent operations overlap. Nested refreshes share their parent tracker and issue one aggregate note. This instrumentation adds no network requests or persistence writes of its own.
+
+Isolated browser checks verify initial load (2 requests), six-epic refresh (8), monthly save/publish (2), failed refresh (1), accurate zero sync-token scope, top-right/mobile positioning, × dismissal and five-second timeout. Existing shared refresh, AI save/reload and month visibility suites pass. Backend sync semantics are unchanged.
+
+Reviewed ZIP SHA256: 369c1d2f740a85fed855907684e512c5e6a8f0e8de077bd5c6d54c3c361d52e7. Activated through staging/review/promotion; all 19 deployed text files match reviewed source. 104 Node checks pass.
+
+---
+
+# Shared hourly refresh and compact navigation — v1.9.6
+
+CFS branding now renders a single centered label instead of separate grid children. Tabs and Release/Month/Lists/Refresh controls share one desktop row, with smaller spacing, short labels and compact refresh progress. The last successful refresh time and Shared GUS status move to the footer. Smaller screens wrap controls without horizontal page overflow.
+
+Automatic refresh first reloads shared dashboard state, then skips live list/epic fetches while both the last completed release refresh (when available) and every associated cached epic are under one hour old. Individual epic edits cannot extend the release refresh window. This guard exists in both browser and backend. At one hour or with missing data, automatic Fetch can proceed. Manual Refresh bypasses the age guard. Epics, including unchanged records, persist a checked-at timestamp to shared storage; successful paged fetch completion derives the release timestamp from the oldest persisted epic timestamp. Empty saved lists receive a completion timestamp after their membership query. Other active viewers reload shared snapshots on the existing 60-second/focus checks, without forcing another live epic fetch within the cache window. Explicit AI generation, work-item opening and write verification retain their necessary reads.
+
+104 Node checks pass, including shared-cache reuse across Service instances, manual override, expiry, missing-cache behavior and timestamp persistence for unchanged epics. A two-session browser test verifies no live fetch for fresh cached data, manual source changes persisted to backend, another viewer rendering that shared result after its state refresh, and another manual refresh inside the hour. Desktop controls align at 1920/1440/1280; 390px layout has no horizontal overflow and the CFS mark fits its tile. Existing release setup, full-month view, month visibility and AI save/reload browser suites pass. Test source and backend are isolated; no production health-comment writes were performed.
+
+Existing host limitations remain: concurrent stale viewers can both begin a fetch because there is no atomic refresh lease. Per-epic refresh timestamps add small journal entries on unchanged fetches. Shared-state polling continues because it is needed to show other users' saved changes; the hourly policy governs live epic/list refreshes.
+
+Reviewed ZIP SHA256: e192c257066b227138982617f82ca311b849458c368c2bddb2a8d90ffc0151b8. Activated via staging/review/promotion; all 19 deployed text files match reviewed source.
+
+---
+
+# Subtle action highlights — v1.9.5
+
+Epic toolbar actions use distinct soft blue, lavender, teal, amber and slate backgrounds with black labels. Enabled actions run a gentle box-shadow pulse for three 1.4-second cycles, finishing within 4.8 seconds including the longest delay; disabled publish stays neutral and still requires pending drafts. Hover/focus stop the cue; reduced-motion preference disables animation and transition. No backend behavior changed.
+
+Isolated browser verification confirms distinct backgrounds, three-cycle animation on enabled controls, no animation on disabled publish, and no animation under reduced motion. Existing full-update/layout and month-column visibility suites pass. The local toolbar screenshot was visually inspected. No production health-comment writes were performed.
+
+Reviewed ZIP SHA256: 1ad5a53306cefd84bf7ebd61285adc03d9977ad06fa3444d2aeaaa40a4c225b8. Activated via staging/review/promotion; all 19 deployed text files match reviewed source.
+
+---
+
+# Optional month columns — v1.9.4
+
+Columns preferences now list each derived month with its own checkbox, including the review month, and a Monthly updates group checkbox to toggle all months. Hidden months are omitted from both headers and table cells. The shared release setting records hiddenMonths; new derived months appear by default. When several releases are selected, a month is visible if enabled in any selected release. Saving the preference applies the chosen visibility to every selected release while preserving hidden months outside the current timeline.
+
+This is display configuration only. Original health comments, monthly drafts, sidebar history and AI summary evidence are preserved. Release edits and Fetch retain hidden-month settings. Input and journal schema validation reject invalid month keys; settings retain the existing release-revision check.
+
+101 Node tests pass, including hide/show settings validation and persistence through Fetch/release edits without health-comment writes. Isolated browser checks verify hiding individual/review/all months, persistence after reload, restoring all months and unchanged remote comments. Existing full-update and monthly AI browser suites are also used for regression verification.
+
+Reviewed ZIP SHA256: 52743c293205f103765f47e646c5cc37f7abd38a28a1879e28b90f7efb5bf1c7. Activated through staging/review/promotion; all 19 deployed text files match reviewed source. No production health-comment writes were used for verification. Existing platform caveats remain; competing visibility settings can replay last-write without a storage conflict banner.
+
+---
+
+# Chronological monthly sidebar and compact epic controls — v1.9.3
+
+All sidebar month sections, including the active editor, are rendered oldest to newest using year-month keys. Switching pencils keeps September, October and November in chronological order rather than moving the selected editor ahead of the history. Existing selected-month save, AI draft and unsaved-switch checks are unchanged.
+
+The epic card combines its title, count, From GUS chip, search, health/owner filters and actions into one desktop toolbar. The release/month description remains available to assistive technology; the selected release and review month remain visible above the card. Smaller screens wrap controls without page overflow.
+
+Browser checks pass at desktop widths 1920, 1440 and 1280 for a single control row, and at 390 for no page overflow. They verify chronological order with each of September, October and November active, full-text visibility, pencil switching, save confirmation and preservation of other months. AI generate/save/reload checks also pass. All 100 Node tests passed. Tests use an isolated fixture, with no production health-comment writes.
+
+Exact reviewed ZIP SHA256: 51af5eb5aab286f598e58630404e6ce0bd50349c31f09794db03b4bf873515ef (21 files). Independent static review approved with existing platform caveats. Activated through staging/review/promotion; all 19 deployed text files match reviewed source. The regression checks also open both filter menus on a 390px screen and exercise selected chips/Clear at 1280px. Hosted browser interaction is not claimed.
+
+---
+
+# Five-release management and full monthly views — v1.9.2
+
+Release Lists now opens an explicit manager with Add new release, Show epics and Edit actions, avoiding accidental replacement through a default edit form. UI/backend capacity counts up to five logical scopes. Connected-list aliases share stable year/source identity plus explicit manually added epic IDs, independent of changing membership snapshots and display names. Projected edit checks prevent alias splitting beyond capacity. Existing duplicate records remain preserved. Simultaneous cross-session creates remain non-atomic and can still exceed the ordinary capacity check.
+
+Release dropdown search resets on opening, so a stale menu search cannot hide saved choices. Activating a release clears table/search/health/owner/insight filters that could hide the newly selected scope.
+
+A guarded live prefetch created and populated the missing VegaStore and FACE release associations. Verified shared backend now has five logical dropdown scopes: VegaCache FACE 12/12 cached, VegaStore 12/12, VegaCache Review Tracker 25/25, MAPS 23/23, MQ 27/27. The older MQ alias remains stored, not deleted. Writes were restricted to ContentVersion and ContentDocumentLink; zero Epic Health Comments writes occurred. Report: .local/v192-data-prefetch.json.
+
+Full updates toggles the table's monthly line clamp off for side-by-side reading. The month sidebar shows its active auto-sized editor plus all other derived monthly updates as colored, escaped sections, each with a pencil action. Switching with unsaved text requires confirmation. The existing selected-month save pipeline remains unchanged.
+
+100 Node checks pass, including max-five capacity, edit/deletion slots, stable aliases and projected alias-edit rejection. Browser release setup verifies all five dropdown options, clearing stale search, explicit editing, stale table-filter clearing and scoped cache persistence. Browser full-update checks verify long text without clipping, side-by-side month columns, all three sidebar tiles, pencil editing and preservation of other months. The SDK monthly generate/save/reload browser flow also passes.
+
+Exact reviewed ZIP SHA256: 411c9554505398fefd584f3ee99e707437a4b65389b2dea00f1d95e28df3350e (21 files). Activated through review/promotion; all 19 deployed text files match reviewed source. Hosted browser interaction is not claimed; live shared-backend reads/writes and isolated browser tests are recorded separately.
+
+---
+
+# Release list setup and automatic prefetch — v1.9.0
+
+Release Lists exposes saved name/year/links, connected-list chips and a read-only Preview GUS links action. Save & pre-fetch uses the existing shared release persistence, activates the release and automatically runs bounded per-epic fetching into the shared backend. Missing-cache release selections queue fetching when controls become idle, including selections made during another fetch. Overview metrics and table rows derive from the selected release IDs; no automatic AI model invocation or health-comment publication was added.
+
+Individual GUS epic links/IDs are queried directly. Connected saved-list URLs use their actual definitions. Unknown saved-list URLs still need metadata access/connection and are not silently treated as usable lists. No guessed filter or universal-URL claim is introduced.
+
+97 Node checks pass. The new isolated release-setup browser suite verifies chip URL selection/removal, preview without writes, Save without a manual Fetch click, fresh remote fields replacing stale cache, shared fixture persistence, reload through a release bookmark and release-specific display. Shared-feature and controls browser suites also pass. No production records were created or updated for this verification.
+
+Reviewed ZIP SHA256: d9596bdc79ae5f09fa18716814904384f2d921ff5246a88785b49aada01d7ffd (21 files). Hosted activation and source matching are recorded separately.
+
+---
+
+# Supplied VegaCache/VegaStore list views — v1.8.3
+
+Added actual GUS List View Describe metadata, retrieved through the authenticated GusProduction CLI connection, for VegaCache_266_Review_Tracker (00BEE00000EzIkj2AF), VegaCache_FACE_R266_Epics (00BEE00000EzMI52AN), and VegaStore_266_Review_Tracker (00BEE00000EzHAP2A3). No filters were inferred from names. Metadata contains no credentials or epic record snapshots.
+
+Read-only query-only-facade preflight resolved 25/14, 12/15 and 12/14 epics/visible columns respectively. 97 Node checks pass. No GUS records were written for verification. Existing individual-epic and multi-list parsing paths remain unchanged.
+
+This is a specific-list fix, not universal dashboard-only list discovery. Confirmed limitations: ListView SOQL exposes no executable query/filter field; the deployed sf facade has no request/list-view describe method; official AppletAI/BuilderTools publish query/describe interfaces only; read-only OPTIONS discovery found no /api/sf/request, /api/sf/rest, /api/sf/listviews/ADM_Epic__c or /api/sf/listview/ADM_Epic__c route (query's POST route exists). A platform connector metadata capability is required for arbitrary URL-only imports. The platform repository/connector owner was requested; no guessed queries, credentials workaround or fake claim of generic support was introduced.
+
+Reviewed ZIP SHA256: 2744fd69a75705c4724f3f89a564ea9e46a4bf52fd3d2a99eff7e3e16a2536c3 (21 files). This version retains v1.8.2 concise-generation changes.
+
+---
+
+# Executive-length AI drafts — v1.8.2
+
+AI prompts now request two short sentences: grounded outcome/readiness progress, then the main supported risk or next delivery step. They omit implementation lists, API/configuration detail, repeated epic titles and missing-evidence filler. Monthly output targets 25–30 words before timing provenance; executive output targets 30–40 words.
+
+Generated output is capped at 280 characters and 45 words, including the shortened snapshot note: “Status as of YYYY-MM-DD; review-month timing unverified.” Backend and SDK formatting agree, retain complete sentences and never truncate words or conditional clauses. If no complete sentence fits, output explicitly says a concise draft could not be generated rather than inventing an abbreviated fact. Underlying evidence, permissions, editor population, Undo and explicit Save remain unchanged.
+
+97 Node checks pass, including length/provenance/native/SDK parity and no mid-claim truncation. The isolated SDK browser flow passes with <=4 measured editor text lines, direct Save, reload persistence, Undo and no-change handling. This is an SDK contract/browser test; the user's actual model account was not invoked. Reviewed ZIP SHA256: 8d2a90fc7a9a73895c725595ff3b218e5665b5274d909e367173070877722b22 (21 files).
+
+---
+
+# AI draft save handoff — v1.8.1
+
+Reproduced the user's path against the prior build: Generate filled a separate proposed-text preview while Save update still read the unchanged main editor. Saving without Use this draft could therefore submit an empty/no-op update and leave both dashboard and GUS blank.
+
+Generation now puts the result directly in the main editable field, marks it unsaved, and offers Undo to restore the prior text and unsaved state. Save remains the only publication trigger. Unchanged fields with no pending draft now produce a No changes notice rather than a save confirmation; deliberate clearing of an existing update remains supported.
+
+95 Node checks pass. The updated isolated SDK browser regression fails on the old path and passes after this fix: generation, direct Save, dashboard/GUS fixture persistence after reload, Undo, unchanged-save handling and absence of draft leftovers. No production health comments were changed. The CLI connection's visible shared catalog did not include the screenshot's MAPS-262 release, so no claim is made that its prior generated response was recovered or its actual production publication verified.
+
+Reviewed ZIP SHA256: d2a695b1b8fc5b2e9034d89318ae1cbb73c9b54fbf93adcf8e68fa7d5aaa470d (21 files). Deployment source matching and activation are recorded separately.
+
+---
+
+# Native AI monthly drafts and complete epic coverage — v1.8.0
+
+Includes all pending work since v1.6.3: sortable work-item headers (natural ID/sprint, numeric points, both directions, missing values last); one compact epic metadata row; mandatory default Epic Name/Health/months/Path to Green/Development Lead columns with optional extras; one header From GUS chip instead of repeated cell source/year labels; and a named third-person leadership paragraph for every selected epic, grouped by measure and team. Current review comments lead, earlier comments are historical context, and undated background is marked. Per-epic queue keys permit four workers rather than serializing each team.
+
+The official GUS Apps AppletAI SDK is primary when configured. Its supported complete(agentName,{message,signal}) interface was checked against the host SDK source. The manifest declares a one-shot release-summary agent with no tools. Prompts contain only authorized evidence; no API keys or custom gateway client are bundled. Native Einstein and explicitly labeled source-based drafts remain fallbacks. User-key model execution was not exercised in the hosted browser.
+
+AI Summarise is available beside monthly cells and in the month editor. It reads epic descriptions/goals/criteria, current and historical health comments, and related delivery descriptions/statuses. Truncated work lists fail explicitly. The proposed paragraph stays separate from editor text until Use this draft; only the existing explicit Save publishes. Work snapshots carry their retrieval date and unverified review-month timing inside adopted text, including SDK/native/fallback paths. Generation itself writes no GUS records.
+
+95 Node checks pass. Isolated browser suites pass for controls, shared features, and SDK monthly draft loading, preview, adoption and selected-month save. Browser SDK execution uses a stub; it is a contract/flow test, not a test of the user's model key. Live read-only GUS checks covered all 27 MQ epics with zero work-item queries for executive generation, and monthly preparation successfully read one available epic goal field plus five delivery records, preserved the snapshot qualifier and performed zero writes. No production health comments were changed.
+
+Reviewed build SHA256: 2fb388b2b941ac3d0ad845b1a0f21448083b02378754bebf0ec1dfb7cfa5c5a3 (21 files including fonts). See deployment-status.json for activation/source verification.
+
+---
+
+# Compact GUS work-item sidebar — v1.6.3
+
+Replaces padded multi-line cards with dense desktop rows for ID, title, status, assignee, sprint and points. Native keyboard-operable disclosure expands full titles, assignment, sprint dates and priority. Mobile metadata uses a second short line. GUS links, read-only data and status filtering are preserved. No backend data operation changed.
+
+Isolated browser assertions pass for desktop row height <=50 px, single-line title, disclosure expansion, full sprint details and 390 px page overflow. Existing shared-feature regression passes. Reviewed artifact SHA256: cf8329e203d8131451d19282eb3c1e3eb4ab475b31dccb74764721f8e78d984f.
+
+---
+
+# Fresh executive grouping, loading feedback and simplified navigation — v1.6.2
+
+Executive generation first reads live GUS Project measures and teams, then summarizes each group with the existing membership/classification recheck. Project is now a canonical fetched field so a stale cached project cannot override the live value. Missing measures are flagged separately and still generate team paragraphs. A live read-only GUS integration produced two MQ groups including the missing-measure group, without work-item queries.
+
+The animated accessible loader stays visible during planning and group generation, reports actual completed groups, hides partial output, and disables Copy until the complete result is available. Errors remain inline with retry guidance. Reduced-motion preferences are respected.
+
+Monthly Updates used the same table, data and editor as Release Overview; its only separate behavior was hiding the cards and scrolling to the review month. Its duplicate navigation was removed. The monthly metric shortcut scrolls the existing overview table. Source & sync remains available via rail/footer controls rather than another navigation tab.
+
+85 Node checks and isolated shared-feature/controls browser checks pass. Browser coverage includes deliberately stale cached project data, delayed generation with visible loader, Copy guard, missing-measure flag, complete paragraphs, clipboard parity and simplified navigation. No production health comments were modified. Native Einstein output and hosted browser interaction are not claimed. Exact reviewed build SHA256: c6bd0a5694ac2c482ef0f437685f3d5c03c68523c7338b1c2468426e00587d94.
+
+---
+
+# Executive paragraphs and inline toolbar — v1.6.0
+
+The executive tab now contains one short paragraph per Project measure and team. Generate reads fresh GUS epic health comments in groups, with membership and grouping validation. It performs no work-item query or publication. Copy exports the same paragraph text, including earlier reporting-period qualifiers. Undated-only content is not misrepresented as current progress.
+
+84 Node checks pass. Isolated browser controls and shared-feature checks pass, including desktop single-line toolbar geometry, narrow-screen overflow, paragraph grouping, absence of work-item counts/section cards, and clipboard parity. A read-only live GUS integration generated two MQ measure/team paragraphs (35 and 70 words), with zero work-item queries. Native Einstein generation was not exercised by that OAuth adapter; source-excerpt fallback was verified. Native AI prose is checked for format and source numeric values, but this is not proof of factual grounding; review before sharing.
+
+Build SHA-256: `3f392779f1c5ae0c89858e6a10d859dd4542660755e236cfb9b09d6a55273cda`. Hosted browser interaction is not claimed for this build. See deployment-status.json for activation/source-match results.
+
+Earlier results below are historical and superseded where versions/flows differ.
+
+---
+
+# Shared workspace and dropdown deletion — v1.5.1
+
+The user explicitly approved authenticated-organization `AllUsers` sharing, including possible community/external GUS accounts. No public/anonymous download link is created.
+
+Version **1.5.1** is activated through the supported review/promotion flow. Exact reviewed ZIP SHA-256: `68dcfc20e3521a4744f770417fe309ed1ca00a45c43310166a5b96b486b9b4e4`. All 17 deployed text files match the reviewed package (19 files including fonts). Independent static verdict: ApproveWithCaveats, no blockers.
+
+- **81 Node checks pass.** Browser tests pass for selected and unselected release deletion directly from the searchable dropdown, cancellation without selection changes, keyboard focus return, shared-state reload, preservation of epic data and drafts, and later recreation of the same scope.
+- Browser tests also cover compact metadata widths and progress labels across tabs/expanded views, chips, source-backed executive grouping, no duplicate Epic Explorer, saved-confirmation × dismissal and 10-second timeout, and prevention of cross-session automatic publication.
+- GUS initially rejected `InternalUsers` on Organization links. After explicit user approval, the supported org-ID/Viewer/`AllUsers` links were applied in batches of 10 to avoid the existing GUS trigger’s SOQL limit. **209 existing files were migrated.** Later verification found **290/290 app journal documents shared**, including new MQ records and temporary validation history.
+- Live integration ran the reviewed backend source directly through authenticated Salesforce API operations using a query-only facade: created **MQ-266**, fetched **27 epics and 13 source columns**, verified shared storage round trips, created/deleted only a named temporary validation release, and read executive facts from GUS. No test production health comments were written.
+- Initial MQ cache population took 54.509 seconds; a steady refresh took **17.153 seconds** and left every unchanged cache revision intact. These timings measure the authenticated backend integration, not browser/GUS Apps wrapper overhead.
+- The MQ epics currently have **zero populated Project measures**. The executive view correctly shows “Measure not set in GUS”; it does not fabricate V2MOM group labels.
+
+The final shared-backend integration was not automated through the hosted browser. Existing authenticated Chrome disallows injected AppleScript JavaScript; no browser security setting was changed, and no credentials were extracted. Deployment source matching, actual GUS API integration, org-file link verification, and isolated browser checks are recorded separately in `dist/deployment-status.json`.
+
+Earlier results below are historical and superseded where versions/flows differ.
+
+---
+
+# Signed-in production verification — 2 November 2026
+
+The user completed normal GUS Apps sign-in. The active **v1.4.0** backend and page assets were verified in that session.
+
+- The full saved-list Fetch completed in **16.27 seconds**, with **four concurrent Fetch requests**, **23/23 epics**, and the success message “23 epics fetched. Saved updates were preserved.”
+- A subsequent backend read confirmed **23 saved epics**, **14 source columns**, and no pending drafts for the selected full-list release.
+- The live release multi-select opened with Search, Select all, Clear all, and two distinct release choices; duplicate MAPS-266 entries were grouped.
+- The live highlighted review month, compact header, purple Back to Hub, and adaptive table were inspected.
+- **Save columns succeeded in production** using the existing selections. The persisted release revision changed while its columns and all 23 epic memberships stayed unchanged. No production Epic Health Comments were modified.
+
+These signed-in results supersede earlier statements below that hosted verification was pending. `dist/deployment-status.json` records the successful checks separately from source-match and automated-test evidence. Actual monthly publication remains covered by isolated tests; no fabricated test update was added to a production epic.
+
+---
+
+# Compact controls and preference saves — version 1.4.0
+
+Activated through the official GUS Apps review/promotion flow. Reviewed ZIP SHA-256: `f663cd9e3dd7aca0d20acfcb56c1ef82932c84fce58fab5d286be43728651043`. Independent review: ApproveWithCaveats, no blockers. After promotion, all 14 text source files retrieved from the app source API matched this reviewed source exactly. The package contains 16 files including the two bundled fonts. Signed-in hosted interaction checks were not run; the earlier diagnostic login expired without a new sign-in.
+
+**66 Node checks pass.** The new controls browser test passes: duplicate scope grouping; multi-release union; checkbox search/Select all/Clear all; case-insensitive filters; empty healthy drill-down on a blocked-only release; column preference save/reload; adaptive two-column table width; highlighted review month; purple Back to Hub; work-item status multi-select; Escape closes its menu without closing the sidebar; and menus/page fit 320/390 px. Background-save, conflict/year-resolution, and list-import/mobile browser regressions also pass against isolated fixtures. No production health comments were changed.
+
+Column/month preferences now use a dedicated `save-settings` action, so preferences do not resolve/reimport source list metadata or resubmit full release setup. Only the requested settings change; revision and column allowlist checks remain. UI submissions retain the releases captured when the preferences editor opened, and update saved release records locally. Multi-release preference saves can partially succeed before a later release conflicts; they do not form a cross-record transaction.
+
+Duplicate release choices group the same name/year/membership/source using the latest saved record. Underlying release records are retained. Distinct scopes sharing a name have distinct visible labels. Release, health, owner, and work-item status menus share the bundled accessible checkbox control. The review month remains a calendar input identifying the single highlighted review month, rather than a dropdown.
+
+Earlier results follow for history and are superseded where the current flow differs.
+
+---
+
+# Background monthly saves — version 1.3.0
+
+The reviewed artifact `879159bbf6908fba038edc2892aeffda901c50acd267863c7b7bbb1ea57f3306` was activated through the official review/promotion flow. Independent static review: ApproveWithCaveats, no blockers. Hosted verification is pending normal user sign-in; upload/promotion success is not represented as a hosted performance result.
+
+**62 Node checks pass**, plus two deployment tests. `tests/browser_background.py` passes in isolated fixtures with intentionally delayed/failed network responses: editor closes in under 500 ms, backend draft commits before publication, publication failure recovers after reload, a committed draft whose response is lost can be retried safely, readback confirms the selected month, other months remain intact, and Fetch runs concurrent requests with a four-worker bound. The updated conflict/year browser regression also passes. No test text was written into production health comments.
+
+The screenshot's error was reproduced when the cached epic was absent. Save now validates the saved release, hydrates a missing cache automatically, and keeps the displayed month baseline for conflict checks. The selected production epic's cache was present during the read-only investigation; the older screenshot alone does not establish why its earlier cache was absent.
+
+Direct publication is authorized by the user's explicit Save update request, scoped to one stored month/revision, with a final draft-revision recheck, remote conflict detection and readback verification. Only the selected month is published; unrelated pending drafts and unmapped/mapped legacy headings remain unchanged. Background execution is browser-scoped; persisted drafts resume on reconnect. No claim is made that unpersisted work keeps running after closing the page or that network/database writes complete instantly.
+
+Prior verification follows for history; current results above supersede earlier save-flow/version statements.
+
+---
+
+# Current production verification — 2 November 2026
+
+Version **1.2.3** is activated through the official GUS Apps review and promotion flow. An upload only stages a build; activation and signed-in runtime checks are recorded separately.
+
+- Exact reviewed package SHA-256: `68f40444c7bd29b020531ea2338ea9967b68653c1f9761b16c3c317e3f6bd261`.
+- Independent full review plus corrective delta review: **ApproveWithCaveats**, no remaining blockers; High risk under the platform Bulk Write rubric.
+- **55 Node checks pass**, including the absent-runtime-global decoder regression, stored-HTML column rejection, conflict/draft preservation, storage bounds, and revision-guarded one-epic Fetch pages. **2 deployment tests pass**.
+- Browser list checks pass: list imports, source columns, saved URLs, work-item truncation notices, and hub navigation at desktop and 320/390 px.
+- Browser theme checks pass: bundled Salesforce Sans loads, black text, exact requested header, dismissible timed connection notice, metric filters, and source drawer. The layout was compared with the signed-in VegaCache Onboarding Lite reference.
+- Actual production connection exposes query/create/update and batch helpers, without REST/list-view describe or atomic conditional writes. The supplied MAPS list uses its actual verified metadata definition, not guessed filters or a stored epic-ID list.
+- Signed-in production v1.2.1 inspection resolved **23 epics and 14 visible source columns**. A separate query-only OAuth preflight independently returned 23 epics, September/October month sections, and no unavailable epic fields.
+- The original full Fetch hit the host's **25-second handler deadline**. Version 1.2.2 introduced membership refresh separately, then processes one epic per request, with progress and a release-revision guard. Live Fetch and subsequent state reload completed: **23 of 23 epics**, **14 source columns**, and **September/October 2026** parsed month sections. Five related work items loaded for a selected epic. A saved-release deep link rendered all 23 cached epics in the hosted dashboard.
+
+Final signed-in checks confirmed version **1.2.3**, a successful read-only per-epic Preview (no drafts), and hosted page assets using version 1.2.3. The complete 23-epic Fetch and persisted-state verification used v1.2.2; its Fetch implementation is unchanged in v1.2.3.
+
+No production Epic Health Comments were changed during verification. Fetch writes dashboard/cache records in GUS ContentVersion. Explicit comment-sync behavior was exercised in isolated test fixtures. Version 1.2.3 also sends Preview and confirmed Sync one epic per request, validates release membership, skips unrelated epic journals, and retains per-epic failures. Browser conflict resolution and explicit sync regression checks pass. No production comment write was used to establish live write permissions or timings. The actual facade's pre-save recheck and post-save verification cannot provide atomic writes.
+
+The verified MAPS definition must be refreshed after changing GUS list filters/columns. Other unregistered lists require their own verified metadata or native list-view REST support. History bounds fail explicitly and archive maintenance is documented in `storage-retention.md`; no saved histories were pruned.
+
+The following is historical evidence from earlier versions; the status above supersedes earlier statements that live authentication or promotion was pending.
+
+---
+
+# Verification · 2 November 2026
+
+## Version 1.1.0 follow-up
+
+The user reported a live `Saved dashboard record cannot be decoded` error. Reproduced the exact failure in a `vm` sandbox that omits `structuredClone`, then replaced the decoder's dependency with JSON-compatible copying. The new sandbox regression passes without changing or deleting existing saved records. This explains a concrete runtime failure path; the deployment token cannot confirm the signed-in user's live fetch outcome.
+
+Added saved epic list-view URL import, including the supplied `MAPS_266_Review_Tracker1` API-name URL on `gus.lightning.force.com`, direct list IDs, and pasted Markdown links. Membership refresh preserves drafts for removed epics. Source list columns appear in the dashboard, and list-specific values survive monthly sync and fetches for other releases. The independent review identified and regression-covered a quoted `LIMIT` filter-literal bug and a shared-extra-fields retention bug; both are fixed.
+
+Replaced the brand link and added a top-right **Back to Hub** link to `/`, targeting the top frame. Work-item queries use `LIMIT 2001`, display at most 2,000 records, and return a truncation warning explaining that totals and filters cover only the loaded subset. Storage enumeration now fetches grouped titles in one bounded aggregate batch; each entity history is read with a 10,001-row sentinel and rejected above 10,000 rows rather than decoded incompletely. No automatic age cutoff or data deletion is used; see `storage-retention.md` for the archive policy.
+
+**43 automated tests pass.** Sandbox checks also verify that epic/list URL parsing works without a host-provided `URL` global, using the explicit Node built-in import. `tests/browser_lists.py` passes against temporary fixtures: the supplied URL format resolves to multiple epics; source columns and the original URL survive edits; truncation warnings are displayed; and the hub link is visible without page overflow at 390 px and 320 px. Those tests use isolated fixtures, not the user's live list contents. The applet's JavaScript/CSS asset version is 1.1.0 to avoid stale frontend assets after refresh.
+
+The decoder hotfix was uploaded before completing list import. The complete 1.1.0 package is then uploaded to the same applet; `dist/deployment-status.json` records the latest upload/verification outcome. User-context Salesforce fetch/sync still cannot be verified using the deployment token alone.
+
+## Implemented
+
+GUS Apps Node backend, manifest and deployable frontend; persistent release lists and monthly draft journal; schema-aware epic fetch; comment splitting/consolidation; reviewed-revision sync with remote conflict detection and readback verification; epic work-item sidebar with status/assignee/sprint/points; column controls, search/filters, month controls, expanded view, and read-only sample.
+
+## Automated checks
+
+`npm test`: **28 tests passed**. Includes common/inline/repeated month headings; explicit and inferred years; rich text and untouched link preservation; new/cleared monthly sections; cross-year ambiguity; validated GUS epic links; draft retention across fetch and new service instances; remote month conflicts and changed conflict baselines; partial write failures; failed verification/retry; stale release forms; reviewed-preview revision binding; all work-item pages; optional inaccessible sprint fields; conditional PATCH headers; compressed ContentVersion chunk persistence; partial upload recovery; concurrent independent month saves; competing saved drafts and resolution; full release/draft/sync lifecycle through new ContentStore instances; bounded connection identity; restricted action allowlist; same-origin local server writes and public-only file serving.
+
+`python3 tests/browser_smoke.py`: **passed**, using only `node server.js --fixture`. Verified:
+
+- Epic sidebar opens, loads three related work items and sprint details, and filters by status.
+- Monthly draft saves, survives reload, and remains pending through fetch.
+- Consolidated preview includes the draft; explicit sync is reported verified and clears the saved revision.
+- Added month columns and selected column settings persist.
+- Health filters, duplicate epic links, edited release membership, and new empty releases behave correctly.
+- Mobile view fits a 390 px viewport without page-level horizontal overflow.
+- No browser page errors during the checked workflow.
+
+Final read-only sample verified separately at `http://localhost:8383`. Screenshots in `dist/`: `dashboard-preview.png`, `epic-sidebar-preview.png`, and `mobile-preview.png`. Sample data is fictitious and cannot write to GUS.
+
+`python3 tests/browser_conflicts.py`: **passed** against a temporary isolated backend. Exercised competing saved-draft review, resolution, successful verified sync, and correction of an ordinary inferred October heading from 2026 to 2025, with its correctly dated consolidated preview. No browser page errors.
+
+## Independent review
+
+A fresh code reviewer identified five material issues. All were fixed:
+
+1. Concurrent snapshot saves could erase another month's draft. Replaced snapshot overwrites with immutable per-field/month change records. Regression checks preserve independent months and retain competing versions explicitly.
+2. Saving a resolution could adopt a newer GUS comment than the one shown. Resolution now requires the displayed remote value to remain unchanged.
+3. Sync could include drafts changed after preview. Sync now accepts only approved epic/draft revisions and rejects a stale preview.
+4. Ordinary inferred years lacked a correction entry point. The monthly editor now exposes legacy-year confirmation.
+5. An inaccessible sprint date could break all work-item results. Optional relationship fields are probed separately and reported unavailable.
+
+No review findings were deferred. The user changed the backend target from local Python/SQLite to GUS Apps; the production implementation and package follow that instruction. The local server is only a preview/test harness. The dirty parent workspace and adjacent existing apps were not modified or committed.
+
+## Live deployment status
+
+**Applet uploaded; live Salesforce checks pending sign-in.** The initial attempt had no inherited deployment credentials and `sf org list --json` returned no authenticated orgs. After the user confirmed their deployment token was configured, its literal assignment was found in the shell profile and used without exposing or saving the token. GUS Apps confirmed the applet upload. The deployed handler then returned **“Missing Salesforce auth context.”** The deployment token authorizes code upload but supplies no signed-in Salesforce user session for this user-context applet. Token-authenticated page/asset requests redirect to sign-in (HTTP 302).
+
+The ready upload artifact is `dist/cfs-release-review-tracker.zip`. It contains only `manifest.json`, five backend JavaScript modules, and the four public assets. It excludes fixtures, local data, credentials, tests, and documentation. Its new slug is `cfs-release-review-tracker`.
+
+Uploaded URL: https://gus-apps.internal.salesforce.com/applets/cfs-release-review-tracker
+
+Open the uploaded app and sign in through the normal GUS Apps flow, then supply real epic links and run a live fetch. Verify an actual write only through an explicitly chosen epic and user-initiated Sync to GUS. No production epic was modified in this session. Upload and check results are saved in `dist/deployment-status.json`.
+
+Automatic approval review rejected an attempted reuse of a named existing browser-session keychain entry because this session access was outside deployment-token authorization. The rejected command did not execute and no browser session was retrieved. Verification continues through normal user sign-in; no workaround was attempted.
+
+## Runtime limitations to verify on the host
+
+- Host user-context configuration, object/field permissions, and saved-document sharing require the deployed GUS Apps environment.
+- When the host exposes only query/create/update, sync uses a pre-save recheck plus readback verification, and the interface states that atomic conditional updates are unavailable. Full REST-capable connections use conditional PATCH.
+- The append-only state history requires full pagination support as it grows. The backend fails explicitly rather than silently loading an incomplete history.
+- The first version imports individual epic links/IDs; GUS list-view URL/column-metadata import was not confirmed and is not included.

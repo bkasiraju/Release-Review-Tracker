@@ -1,29 +1,9 @@
-# Release Notes
+# 2.0.0-GA · GOLDEN BUILD
 
-## v2.0.0-Beta — 2026-04-16
+Release Intelligence is the user-designated stable rollback baseline. It replaces the older Pages dashboard with a release entry point linked to the authenticated GUS Apps application.
 
-### New Features
+This release includes the consolidated V2MOM summary fixes, consistent evidence validation for measure identifiers and epic goals, method-specific AI instructions, per-team results with explicitly labeled source fallback, and the naming cleanup. Earlier working monthly updates, shared saves, compact views and shortcuts are retained.
 
-- **Risk Assessment tab** — New "Risk Assessment - AI Generated" tab after Capacity Planning, showing planning risks and release execution risks in a dedicated view.
-- **Owner mismatch detection** — Owner column now compares the Google Sheet planning owner against the GUS `Development_Lead__r.Name`. Mismatches are highlighted in red with `**` and a tooltip showing the GUS dev lead. Fuzzy matching tolerates minor spelling differences (e.g. Vashist / Vashisht).
-- **Sync confirmation** — Fetch and Push operations now display success/failure confirmation in both the sync bar label ("Fetch complete ✓" / "Fetch failed ✗") and a bottom toast notification.
-- **Story-point source label** — Column header "P" renamed to "Google Sheet" for clarity ("Google Sheet · A · C · churn · burn").
+Validation: 135 Node tests and isolated browser method, monthly AI and Escape checks passed. Production AI output was not independently verified. Detailed limitations remain in `docs/verification.md`.
 
-### Changes
-
-- **Owner & Priority → read-only** — Owner and Priority columns are no longer editable in the table. Values are sourced from the Google Sheet planning data.
-- **Tab rename** — "AI Summarise" tab renamed to "V2MOM Updates - AI Generated" and moved to the last position.
-- **Flat row colors** — Method, measure, and epic row backgrounds changed from multi-stop gradients to flat light-blue tones for a cleaner look.
-- **Measure row accent** — Left border color changed from purple (#7c3aed) to blue (#3b82f6) for visual consistency with the method row.
-
-### Technical
-
-- Added `Development_Lead__r.Name` to all GUS SOQL queries (`_queryEpicsByIds`, `fetchReleaseData`, `mergeGusLiveEpicFields`, `refreshEpicDataFromGUS`).
-- Extracted `renderRiskAssessmentTab()` method from `renderPlanVsActual()`.
-- GUS refresh now updates owner mismatch indicators in the DOM after each sync cycle.
-
----
-
-## v1.0.0-Alpha — 2026-04-15
-
-Initial release with epic tracking, capacity planning, AI summarise, fullscreen mode, and two-way GUS sync.
+Use the exact archive and SHA-256 in `releases/2.0.0-GA/`. Rollback steps are in `docs/GOLDEN_BUILD.md`. Tags `v2.0.0-GA` and `GOLDEN-BUILD-2.0.0-GA` must remain immutable.

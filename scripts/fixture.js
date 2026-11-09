@@ -1,0 +1,31 @@
+'use strict';
+// Isolated fixtures for preview and browser tests. This file is excluded from deployment.
+const fs=require('fs'),path=require('path'),{randomUUID}=require('crypto');
+const {Gus}=require('../backend/gus');
+const ID='a0B000000000001',RELEASE='11111111-1111-4111-8111-111111111111';
+const names=['Standardize cache reliability & operational readiness','Automate regression coverage for service deployments','Deliver strict ordering for asynchronous messaging','Expand managed cache to the new cloud region','Complete platform adoption for priority services','Improve provisioning performance at scale'];
+const owners=['Avery Morgan','Jordan Chen','Sam Rivera','Taylor Brooks','Casey Patel','Alex Kim'];
+const teams=['VegaCache','MAPS','MQ','VegaCache','MAPS','MQ'];
+const health=['On Track','On Track','Watch','On Track','Blocked','Completed'];
+const november=['Completed readiness checks for the November release. Canary validation is in progress.','Expanded automated coverage to deployment rollback and service recovery scenarios.','Ordering guarantees validated in staging. Load-test capacity remains a dependency.','Regional infrastructure is provisioned. Partner teams are validating connectivity.','','All acceptance criteria met. Handoff documentation and operational review complete.'];
+function seed(){const epics=names.map((name,i)=>({id:'a0B00000000000'+(i+1),name,owner:owners[i],lead:owners[i],team:teams[i],health:health[i],comments:`September 2026 Update:\nDesign review completed. Scope and delivery milestones agreed.\n\nOctober 2026 Update:\nImplementation complete. Integration testing and partner validation underway.${november[i]?`\n\nNovember 2026 Update:\n${november[i]}`:''}`,pathToGreen:i===2?'Complete load testing after the shared test environment becomes available.':i===4?'Confirm dependency delivery date with the owning platform team.':'',completion:[78,85,52,64,31,100][i],planned:[24,18,35,22,30,12][i],actual:[28,21,32,25,34,12][i],closed:[22,18,17,16,11,12][i],inProgress:[4,3,10,7,12,0][i],newPoints:[2,0,5,2,11,0][i],waiting:0,year:2026,yearConfirmed:true,yearMapping:{},drafts:{},unavailable:[],modified:'2026-11-02T03:00:00.000Z',fetchedAt:'2026-11-02T04:45:00.000Z',revision:randomUUID()}));
+  return {docs:{['release:'+RELEASE]:{id:RELEASE,name:'Release 266 · CFS',year:2026,epicIds:epics.map(e=>e.id),months:['2026-09','2026-10','2026-11'],columns:null,revision:randomUUID()},...Object.fromEntries(epics.map(e=>['epic:'+e.id,e]))},remote:Object.fromEntries(epics.map(e=>[e.id,structuredClone(e)]))};}
+class FileStore{
+  constructor(data,file){this.data=data;this.file=file;}
+  async get(type,id){return structuredClone(this.data.docs[type+':'+id]||null);}
+  async list(type){return Object.entries(this.data.docs).filter(([k])=>k.startsWith(type+':')).map(([,v])=>structuredClone(v));}
+  async put(type,id,value,expected){const old=await this.get(type,id);if(expected!==undefined&&(old?.revision??null)!==expected)throw Error('This record changed. Reload and try again.');const doc={...structuredClone(value),revision:randomUUID()};this.data.docs[type+':'+id]=doc;this.save();return structuredClone(doc);}
+  save(){if(this.file){fs.mkdirSync(path.dirname(this.file),{recursive:true});fs.writeFileSync(this.file,JSON.stringify(this.data,null,2));}}
+}
+function context({demo=false}={}){
+  const file=process.env.CFS_FIXTURE_FILE||(demo?null:path.join(__dirname,'../.local/fixture.json'));
+  let data=file&&fs.existsSync(file)?JSON.parse(fs.readFileSync(file)):seed();const store=new FileStore(data,file);
+  const gus={epics:async (ids,columns=[])=>({epics:ids.map(id=>data.remote[id]).filter(Boolean).map(e=>{const copy=structuredClone(e);copy.extra={...copy.extra};for(const c of columns)if(c.field==='Owner.FirstName')copy.extra[c.field]=e.owner.split(' ')[0];return copy;}),unavailable:[]}),epic:async id=>{if(!data.remote[id])throw Error('Epic not found in isolated fixture.');return structuredClone(data.remote[id]);},
+    updateComments:async(id,comments,modified)=>{if(demo)throw Error('Read-only sample');const e=data.remote[id];if(e.modified!==modified)throw Error('Epic changed during sync');e.comments=comments;e.modified=new Date().toISOString();store.save();return {conditional:true};},
+    workItems:async id=>({unavailable:[],items:[{id:'a07000000000001',number:'W-100001',title:'Complete integration test coverage and readiness review',status:'In Progress',assignee:owners[names.findIndex((_,i)=>'a0B00000000000'+(i+1)===id)]||owners[0],sprint:'CFS · Nov Sprint 1',sprintStart:'2026-11-02',sprintEnd:'2026-11-13',points:5,priority:'P1'},
+      {id:'a07000000000002',number:'W-100002',title:'Validate rollout and rollback with partner teams',status:'New',assignee:'Jordan Chen',sprint:'CFS · Nov Sprint 2',sprintStart:'2026-11-16',sprintEnd:'2026-11-27',points:3,priority:'P2'},
+      {id:'a07000000000003',number:'W-100003',title:'Implement service telemetry and operational dashboards',status:'Closed',assignee:'Sam Rivera',sprint:'CFS · Oct Sprint 2',sprintStart:'2026-10-19',sprintEnd:'2026-10-30',points:8,priority:'P1'}]})};
+  gus.resolveEpicInputs=input=>new Gus({query:async q=>({records:q.includes('FROM ListView')?[]:Object.keys(data.remote).map(Id=>({Id})),done:true}),request:async path=>path.endsWith('/listviews')?{listviews:[{id:'00B000000000001',developerName:'MAPS_266_Review_Tracker1',label:'Sample epic list'}],done:true}:{id:'00B000000000001',label:'Sample epic list',query:'SELECT Id, Name FROM ADM_Epic__c ORDER BY Name',columns:[{fieldNameOrPath:'Name',label:'Epic Name'},{fieldNameOrPath:'Owner.FirstName',label:'Owner First Name'},{fieldNameOrPath:'Health__c',label:'Health'},{fieldNameOrPath:'Epic_Health_Comments__c',label:'Epic Health Comments'}]}}).resolveEpicInputs(input);
+  return {sf:{request:()=>{}},gus,store,demo,testMode:!demo};
+}
+module.exports={context,seed,FileStore};

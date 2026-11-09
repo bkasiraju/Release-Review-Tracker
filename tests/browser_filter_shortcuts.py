@@ -1,0 +1,22 @@
+"""Escape reverses applied filters; rapid double Escape performs one manual refresh."""
+import json,os,subprocess,tempfile
+from pathlib import Path
+from playwright.sync_api import sync_playwright,expect
+ROOT=Path(__file__).resolve().parents[1]
+with tempfile.TemporaryDirectory(prefix='cfs-esc-') as tmp:
+ fixture=Path(tmp)/'data.json';fixture.write_bytes(subprocess.check_output(['node','-e','process.stdout.write(JSON.stringify(require("./scripts/fixture").seed()))'],cwd=ROOT));server=subprocess.Popen(['node','server.js','--fixture'],cwd=ROOT,env={**os.environ,'PORT':'8410','CFS_FIXTURE_FILE':str(fixture)},stdout=subprocess.PIPE,text=True)
+ try:
+  assert 'Release Review' in server.stdout.readline()
+  with sync_playwright() as p:
+   b=p.chromium.launch();page=b.new_page(viewport={'width':1440,'height':1000});errors=[];calls=[];page.on('pageerror',lambda e:errors.append(str(e)));page.on('request',lambda r:calls.append(r.post_data_json) if r.method=='POST' and r.url.endswith('/api/handler') else None);page.goto('http://127.0.0.1:8410');expect(page.locator('#epic-count')).to_have_text('6')
+   def owner():
+    page.get_by_role('button',name='Owners',exact=True).click();page.locator('#owner-filter-options').get_by_text('Avery Morgan',exact=True).click();page.keyboard.press('Escape')
+   page.locator('#search').fill('cache');owner();page.get_by_role('button',name='Health',exact=True).click();page.locator('#health-filter-options').get_by_text('On Track',exact=True).click();page.keyboard.press('Escape');expect(page.locator('#active-filters .active-filter-chip')).to_have_count(3)
+   page.keyboard.press('Escape');expect(page.locator('#active-filters .active-filter-chip')).to_have_count(2);expect(page.locator('#health-filter')).to_have_js_property('selectedIndex',-1);expect(page.locator('#owner-filter')).not_to_have_js_property('selectedIndex',-1)
+   page.keyboard.press('Escape');expect(page.locator('#active-filters .active-filter-chip')).to_have_count(1);expect(page.locator('#search')).to_have_value('cache');page.keyboard.press('Escape');expect(page.locator('#active-filters')).to_be_hidden();expect(page.locator('#search')).to_have_value('');assert not [c for c in calls if c['action']=='fetch']
+   owner();page.locator('#search').fill('cache');page.keyboard.press('Escape');expect(page.locator('#search')).to_have_value('');expect(page.locator('#active-filters .active-filter-chip')).to_have_count(1);page.keyboard.press('Escape');expect(page.locator('#active-filters')).to_be_hidden()
+   page.locator('#search').fill('cache');row=page.locator('.epic-summary-row').first;row.locator('.epic-title').hover();popup=page.locator('#epic-updates-preview');expect(popup).to_be_visible();tiles=popup.locator('.epic-tooltip-month');expect(tiles).to_have_count(3);assert len(set(tiles.evaluate_all('(es)=>es.map(e=>getComputedStyle(e).backgroundColor)')))==3;assert all(x<=8 for x in tiles.evaluate_all('(es)=>es.map(e=>parseFloat(getComputedStyle(e).paddingTop))'));page.screenshot(path='/tmp/cfs-v1150-month-tiles.png');page.keyboard.press('Escape');expect(popup).to_be_hidden();page.wait_for_timeout(500);expect(page.locator('#search')).to_have_value('cache');page.mouse.move(1,1)
+   owner();before=len([c for c in calls if c['action']=='fetch' and 'cursor' not in c]);page.keyboard.press('Escape');page.keyboard.press('Escape');expect(page.locator('#fetch-button')).to_be_enabled(timeout=20000);expect(page.locator('#active-filters')).to_be_hidden();assert len([c for c in calls if c['action']=='fetch' and 'cursor' not in c])==before+1;assert all(c.get('automatic') is False for c in calls if c['action']=='fetch' and 'cursor' not in c);expect(page.locator('#sync-metrics')).to_be_visible()
+   page.locator('[data-filter=attention]').click();expect(page.locator('#active-filters')).to_contain_text('Needs attention');page.keyboard.press('Escape');expect(page.locator('#active-filters')).to_be_hidden();page.locator('[data-insight=month]').first.click() if page.locator('[data-insight=month]').count() else None
+   page.set_viewport_size({'width':390,'height':850});assert page.evaluate('document.documentElement.scrollWidth<=innerWidth');assert not errors,errors;b.close();print('Escape checks passed: reverse filter order, search edits, popup/menu priority, one forced manual refresh, metric clear, compact distinct month tiles and mobile fit.')
+ finally:server.terminate();server.wait(timeout=10)

@@ -1,0 +1,14 @@
+{
+  "name": "cfs-release-review-tracker",
+  "version": "2.0.0-GA",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test tests/*.test.js",
+    "package": "python3 scripts/package_app.py",
+    "deploy": "python3 scripts/deploy.py"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

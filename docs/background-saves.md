@@ -1,0 +1,11 @@
+# Responsive monthly updates
+
+The user requested immediate feedback, faster parallel Fetch, and direct writes of the selected month to GUS. Clicking **Save update** closes the editor immediately and queues the entered month. A visible status distinguishes waiting, backend persistence, GUS publication, confirmed readback, and errors. No success is reported before verification.
+
+Four browser I/O workers handle different epics concurrently. All Fetch, direct monthly saves, and explicit legacy Sync tasks in this page share per-epic serialization because all months share one GUS field. This avoids concurrent writes by the same page; other users still require conflict checks. Requests remain one epic each within the host's 25-second deadline. Unrestricted worker counts would increase API throttling and whole-field overwrite risks.
+
+The first save durably records a draft with its displayed month baseline. If its cache disappeared, it hydrates from the saved release and GUS automatically after validating release membership. The next request publishes exactly that saved draft revision/month against a fresh remote snapshot. Other drafts, other months, notes, and rich text are preserved. Same-month changes and year ambiguity stop publication and retain the draft for review. Publication is idempotent while its draft exists, so uncertain readback/network failures can be retried.
+
+In the shared production backend, persisted drafts require explicit Review & sync after reconnecting. The app never auto-publishes another session’s draft using the current user’s GUS permissions. A current-page Save update or Retry keeps its original entered value and request identity. Work runs while this page remains open, including while using other dashboard views. This host supplies no durable server job runner, so closing the page pauses its worker. Before backend persistence completes, navigation warns about unsaved work. No browser-only task is described as already persisted or guaranteed to keep running after tab closure.
+
+Field discovery first tries one bounded combined read instead of probing every optional field for every request; inaccessible fields still use the existing fallback. Publishing reads only the fields needed to merge and verify comments. Fetch returns each saved epic immediately, avoiding a full workspace reload on every result.
