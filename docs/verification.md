@@ -1,3 +1,11 @@
+# Release-selection guidance — current v2.0.0-GA GOLDEN BUILD
+
+For a loaded dashboard with available releases and no selected release, the release picker shows an arrow and soft highlight. Motion lasts four seconds then becomes static; reduced-motion preference suppresses motion. The cue is removed when a release is chosen, remains absent during initial loading and when no releases exist, and makes no extra GUS/AI calls. The overlay survives MultiSelect label rebuilds and does not intercept pointer events.
+
+All138 Node checks and browser release-cue/Escape regressions pass. Cue checks verify menu updates, selection/removal, full text at320–1440px, reduced motion and no source fetch. Independent review confirmed all27 artifact files match source. Reviewed/deployed ZIP SHA256:eeb3c53292ec122c70b12c9ab8335761128242361a2ce6ce06cd60dee9fcd022; all21 deployed text files match reviewed source. This latest update is folded into canonical GA per explicit user request. Production model behavior is unchanged and not newly verified.
+
+---
+
 # Consolidated current GOLDEN BUILD — v2.0.0-GA
 
 The user explicitly requested folding every latest change into v2.0.0-GA and making that new consolidated release the GOLDEN BUILD going forward. This supersedes the earlier tag immutability instruction for this one consolidation. The preceding GA commit/archive are preserved under GOLDEN-BUILD-2.0.0-GA-original and releases/2.0.0-GA-original; canonical GA tags and recovery metadata now identify the consolidated build. No shared GUS data was changed by consolidation.

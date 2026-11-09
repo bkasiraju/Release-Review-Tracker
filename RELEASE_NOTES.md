@@ -1,3 +1,9 @@
+# 2.0.0-GA · GOLDEN BUILD — release-selection guidance
+
+When releases are available and none is selected, a brief animated arrow highlights the selector. It settles to static guidance after four seconds and disappears on selection. Reduced-motion support, full mobile labels and no extra GUS/AI calls are verified. Folded into the current GA golden baseline at the user’s request.
+
+---
+
 # 2.0.0-GA · GOLDEN BUILD — consolidated update
 
 At the user’s explicit request, all recent changes are folded into the canonical GA release:

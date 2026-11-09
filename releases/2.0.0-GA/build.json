@@ -5,7 +5,7 @@
   "designatedBy": "User",
   "baselineDate": "2026-11-09",
   "artifact": "cfs-release-review-tracker.zip",
-  "sha256": "ebc3fc2b478e0bfda4efc0e30bd29b8a5528f0bead9354295b718f70799cdf77",
+  "sha256": "eeb3c53292ec122c70b12c9ab8335761128242361a2ce6ce06cd60dee9fcd022",
   "gitTags": [
     "v2.0.0-GA",
     "GOLDEN-BUILD-2.0.0-GA"
@@ -18,21 +18,27 @@
       "alignment-and-multiselect",
       "compact-epics",
       "ai-usage",
-      "method-summary"
+      "method-summary",
+      "release-selection-cue",
+      "filter-shortcuts"
     ],
     "productionModelOutputVerified": false
   },
-  "revision": "consolidated-20261109-2",
+  "revision": "consolidated-20261109-3",
   "status": "Current GOLDEN BUILD going forward",
-  "includes": "All latest changes through the consolidated GA alignment update",
+  "includes": "All latest changes, including empty-release selection guidance",
   "previousBaseline": {
     "tag": "GOLDEN-BUILD-2.0.0-GA-original",
     "manifest": "releases/2.0.0-GA-original/build.json",
     "sha256": "96ff7a49e2707682511017abbda6dabda6ef1e8370649061a63300415020b5fc"
   },
+  "previousRevision": {
+    "commit": "adb585cd0db1f8bc891e2abb84535948365cfc8e",
+    "sha256": "ebc3fc2b478e0bfda4efc0e30bd29b8a5528f0bead9354295b718f70799cdf77"
+  },
   "deployment": {
     "activated": true,
     "matchedTextFiles": 21,
-    "verifiedArchiveSha256": "ebc3fc2b478e0bfda4efc0e30bd29b8a5528f0bead9354295b718f70799cdf77"
+    "verifiedArchiveSha256": "eeb3c53292ec122c70b12c9ab8335761128242361a2ce6ce06cd60dee9fcd022"
   }
 }
