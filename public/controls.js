@@ -62,5 +62,16 @@
   const build=(items,depth,path)=>{if(depth>=selected.length)return [];const field=selected[depth],groups=new Map();for(const e of items){const label=value(e,field);if(!groups.has(label))groups.set(label,[]);groups.get(label).push(e);}return [...groups].sort(([a],[b])=>{if(field==='completion'){const bands=['0%','1–24%','25–49%','50–74%','75–99%','100%','Not reported'];return bands.indexOf(a)-bands.indexOf(b);}return a.localeCompare(b,undefined,{numeric:true,sensitivity:'base'});}).map(([label,members])=>{const next=[...path,[field,label]],key=JSON.stringify(next);return {key,field,label,depth,rows:members,children:build(members,depth+1,next)};});};
   return build(rows,0,[]);
  }
- const api={groupEpics,groupLabels,reviewMonths,visibleReleaseMonths,shortTeam,sortEpics,releaseSignature,sortWorkItems,normalize,uniqueOptions,releaseChoices,columnSizes,MultiSelect};if(typeof module==='object'&&module.exports)module.exports=api;else root.ReviewControls=api;
+ function slackReminderParts(text,data={}){
+  const source=String(text??''),parts=[],decode=value=>value.replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&');
+  const token=/<(https:\/\/gus\.(?:lightning\.force|my\.salesforce)\.com\/lightning\/r\/ADM_Epic__c\/[A-Za-z0-9]{15}(?:[A-Za-z0-9]{3})?\/view)\|([^>\n]+)>|<@([UW][A-Z0-9]{8,})>/g;
+  let position=0;for(const match of source.matchAll(token)){if(match.index>position)parts.push({type:'text',text:decode(source.slice(position,match.index))});if(match[1])parts.push({type:'link',url:match[1],text:decode(match[2])});else if(match[3]===data.slackUserId&&data.lead)parts.push({type:'mention',text:'@'+data.lead});else parts.push({type:'text',text:match[0]});position=match.index+match[0].length;}if(position<source.length)parts.push({type:'text',text:decode(source.slice(position))});return parts;
+ }
+ function slackReminderHTML(text,data){
+  const escape=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const format=value=>escape(value).replace(/\*([^*\n]+)\*/g,'<strong>$1</strong>').replace(/(^|[\s(])_([^_\n]+)_(?=$|[\s).,!?:;])/g,'$1<em>$2</em>').replace(/\n/g,'<br>');
+  return slackReminderParts(text,data).map(part=>part.type==='link'?`<a href="${escape(part.url)}" target="_blank" rel="noopener noreferrer" style="color:#1264a3;text-decoration:underline">${format(part.text)}</a>`:part.type==='mention'?`<span class="nudge-mention">${escape(part.text)}</span>`:format(part.text)).join('');
+ }
+ function slackReminderPlainText(text,data){const plain=value=>value.replace(/\*([^*\n]+)\*/g,'$1').replace(/(^|[\s(])_([^_\n]+)_(?=$|[\s).,!?:;])/g,'$1$2');return slackReminderParts(text,data).map(part=>part.type==='link'?plain(part.text)+' ('+part.url+')':plain(part.text)).join('');}
+ const api={slackReminderHTML,slackReminderPlainText,groupEpics,groupLabels,reviewMonths,visibleReleaseMonths,shortTeam,sortEpics,releaseSignature,sortWorkItems,normalize,uniqueOptions,releaseChoices,columnSizes,MultiSelect};if(typeof module==='object'&&module.exports)module.exports=api;else root.ReviewControls=api;
 })(typeof globalThis!=='undefined'?globalThis:window);
