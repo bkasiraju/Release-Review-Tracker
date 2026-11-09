@@ -21,7 +21,7 @@ function applyChanges(doc,event){
   for(const op of event._changes){
     if(!Array.isArray(op.path)||op.path.length<1||op.path.length>2||op.path.some(k=>['__proto__','constructor','prototype'].includes(k)))throw Error('Invalid saved dashboard change.');
     const [root,key]=op.path;const target=key?(doc[root]||=(Object.create(null))):doc,field=key||root,actual=target[field];
-    const protectedField=root==='drafts'||['name','year','yearMapping','epicIds','months','columns','columnMode','visibleMonths','hiddenMonths'].includes(root);
+    const protectedField=root==='v2momConfirmed'||root==='v2mom'||root==='reviewStatus'||root==='drafts'||['name','year','yearMapping','epicIds','months','columns','columnMode','visibleMonths','hiddenMonths'].includes(root);
     if(protectedField&&!equal(actual,op.before)&&!equal(actual,op.after)){
       // Clearing a synced revision must never clear a newer draft saved concurrently.
       if(op.remove)continue;
@@ -34,7 +34,7 @@ function applyChanges(doc,event){
 }
 class ContentStore{
   constructor(sf,options={}){this.sf=sf;this.shared=options.shared===true;}
-  title(type,id){if(!['release','epic'].includes(type)||!/^[a-zA-Z0-9-]{1,60}$/.test(id))throw Error('Invalid saved record key.');return PREFIX+type+'_'+id;}
+  title(type,id){if(!['release','epic','settings'].includes(type)||!/^[a-zA-Z0-9-]{1,60}$/.test(id))throw Error('Invalid saved record key.');return PREFIX+type+'_'+id;}
   async query(q){let page=await this.sf.query(q);const rows=[...(page.records||[])];let n=0;
     while(page.done===false){if(++n>100)throw Error('Saved dashboard history is too large to load.');if(!page.nextRecordsUrl)throw Error('Incomplete dashboard storage response.');
       if(typeof this.sf.queryMore==='function')page=await this.sf.queryMore(page.nextRecordsUrl);else if(typeof this.sf.request==='function')page=await this.sf.request(page.nextRecordsUrl);else throw Error('GUS Apps must expose queryMore() to read the complete saved history.');rows.push(...(page.records||[]));}return rows;

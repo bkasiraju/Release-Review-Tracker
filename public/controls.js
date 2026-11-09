@@ -17,7 +17,7 @@
  }
  function columnSizes(columns,rows=[],label=key=>key,measure=text=>String(text).length*6.5){
   return columns.map(key=>{
-   if(key==='name')return 280;if(key.startsWith('month:'))return 280;if(key==='pathToGreen')return 220;
+   if(key==='health')return 140;if(key==='reviewStatus')return 190;if(key==='name')return 280;if(key.startsWith('month:'))return 280;if(key==='pathToGreen')return 220;
    const values=rows.map(row=>key.startsWith('gus:')?row.extra?.[key.slice(4)]:row[key]).filter(v=>v!==null&&v!==undefined);
    const header=Math.min(130,measure(label(key))),content=Math.max(0,...values.map(v=>measure(typeof v==='object'?'':String(v))));
    const extra=key==='health'?36:['owner','lead'].includes(key)?46:20;

@@ -85,24 +85,8 @@ function chronologicalComments(raw,year){
  const actual=parseComments(result,year);if(JSON.stringify(actual.months)!==JSON.stringify(Object.fromEntries(Object.entries(p.months).sort(([a],[b])=>a.localeCompare(b))))||actual.unassigned!==p.unassigned)throw Error('Monthly ordering could not preserve the source comments. Your draft is retained.');return result;
 }
 function mergeComments(raw='',year,changes){
-  const p=parseComments(raw,year), replacements=[], additions=[];
-  for(const [month,input] of Object.entries(changes).sort(([a],[b])=>b.localeCompare(a))){
-    validMonth(month);const value=String(input).trim();if(Object.hasOwn(p.months,month)&&p.months[month]===value)continue;
-    const canonical=`${NAMES[Number(month.slice(5))-1]} ${month.slice(0,4)} Update:\n${value}`;
-    const sections=p.sections.filter(s=>s.month===month);
-    if(!sections.length){additions.push(p._rich?`<p>${escapeHTML(canonical).replace(/\n/g,'<br>')}</p>`:canonical);continue;}
-    sections.forEach((s,i)=>{
-      if(!p._rich){replacements.push([s.start,s.end,i===0?canonical+'\n\n':'']);return;}
-      const spans=[];
-      for(const pos of p._positions.slice(s.start,s.end))if(pos){
-        if(spans.length&&pos[0]<=spans.at(-1)[1])spans.at(-1)[1]=Math.max(spans.at(-1)[1],pos[1]);else spans.push([...pos]);
-      }
-      spans.forEach(([start,end],j)=>replacements.push([start,end,i===0&&j===0?escapeHTML(canonical).replace(/\n/g,'<br>'):'']));
-    });
-  }
-  let out=raw;
-  for(const [a,b,v] of replacements.sort((a,b)=>b[0]-a[0]))out=out.slice(0,a)+v+out.slice(b);
-  if(additions.length)out+=(out?'\n\n':'')+additions.join('\n\n');
-  return Object.keys(changes).length?chronologicalComments(out,year):out;
+  const p=parseComments(raw,year),entries=[];
+  for(const [month,input] of Object.entries(changes).sort(([a],[b])=>b.localeCompare(a))){validMonth(month);const value=String(input).trim();if(!value)throw Error('Append-only updates cannot erase existing history. Enter a new update instead.');const latest=p.sections.find(s=>s.month===month);if(latest?.text===value)continue;const canonical=`${NAMES[Number(month.slice(5))-1]} ${month.slice(0,4)} Update:\n${value}`;entries.push(p._rich?`<p>${escapeHTML(canonical).replace(/\n/g,'<br>')}</p>`:canonical);}
+  return entries.length?entries.join('\n\n')+(raw?'\n\n'+raw:''):raw;
 }
 module.exports={parseComments,mergeComments,plainText,validMonth,escapeHTML,chronologicalComments};

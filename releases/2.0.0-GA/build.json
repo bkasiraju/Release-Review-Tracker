@@ -5,7 +5,7 @@
   "designatedBy": "User",
   "baselineDate": "2026-11-09",
   "artifact": "cfs-release-review-tracker.zip",
-  "sha256": "a9dc45795ea194a0f9fe2cdb6ce820e2ca93d1eadf44e3689b28e920230a3a7e",
+  "sha256": "00f627c9f9e66a21694e51a8444fa01f634219431c61c8a27ea319e99da1fe86",
   "gitTags": [
     "v2.0.0-GA",
     "GOLDEN-BUILD-2.0.0-GA"
@@ -13,29 +13,31 @@
   "productionUrl": "https://gus-apps.internal.salesforce.com/applets/cfs-release-review-tracker/",
   "rollbackScope": "Application files only; preserve all shared GUS data",
   "verification": {
-    "nodeTestsPassed": 6,
-    "validationScope": "six targeted monthly formatting, factual grounding, numeric precision and failure checks",
+    "nodeTestsPassed": 14,
+    "validationScope": "10 review workflow tests and 4 targeted AI formatting/grounding/consolidation tests",
     "fullSuiteRun": false,
     "browserChecks": [
-      "seven-tile-layout-bars-grouped-collapse-summary-hover-no-ai-editor-preservation-save-reload"
+      "shared-review-status-path-gus-save-reference-newest-editor-measure-team-accordions-tabs-compact-tiles"
     ],
-    "productionModelOutputVerified": false
+    "productionModelOutputVerified": false,
+    "privateGoogleSheetExport": "401; authenticated host Sheets required for live fallback",
+    "deployedGoogleSheetsIntegrationVerified": false
   },
-  "revision": "consolidated-20261109-11",
+  "revision": "consolidated-20261109-12",
   "status": "Current GOLDEN BUILD going forward",
-  "includes": "Compact metric tiles, monthly/story bars, blue/teal accents, grouped Collapse All, explicit Summary trigger and monthly AI diagnostics.",
+  "includes": "Shared inline Review Status and mandatory GUS Path to Green; explicit EpicPulse policy adoption with append-only entries, mapping/goals/recovery gates and editable annual reference; measure/full-team executive accordions, KPIs, consolidation diagnostics and compact metrics/tabs.",
   "previousBaseline": {
     "tag": "GOLDEN-BUILD-2.0.0-GA-original",
     "manifest": "releases/2.0.0-GA-original/build.json",
     "sha256": "96ff7a49e2707682511017abbda6dabda6ef1e8370649061a63300415020b5fc"
   },
   "previousRevision": {
-    "commit": "31913eb120bd8ef8f2dcd9ac532e14e0bc449c80",
-    "sha256": "6b3529b31ff5bc2bea8a13b9aea5dadea4a0fbfdfde1e2b80604b06048b57be2"
+    "commit": "a641554066e8de503c948e2619535330c4e6b0d2",
+    "sha256": "a9dc45795ea194a0f9fe2cdb6ce820e2ca93d1eadf44e3689b28e920230a3a7e"
   },
   "deployment": {
     "activated": true,
-    "matchedTextFiles": 23,
-    "verifiedArchiveSha256": "a9dc45795ea194a0f9fe2cdb6ce820e2ca93d1eadf44e3689b28e920230a3a7e"
+    "matchedTextFiles": 24,
+    "verifiedArchiveSha256": "00f627c9f9e66a21694e51a8444fa01f634219431c61c8a27ea319e99da1fe86"
   }
 }

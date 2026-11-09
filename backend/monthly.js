@@ -40,6 +40,7 @@ function parseMonthly(...args){return inspectMonthly(...args).result||null;}
 async function monthlyDraft(sf,{epic,health,work,month},options={}){
  if(work.truncated||work.historyTruncated)throw Error('This epic exceeds the delivery-evidence limit. No partial AI draft was generated.');
  const snapshotDate=new Date().toISOString().slice(0,10),warnings=['Review this executive draft before saving. Current statuses alone do not establish completion dates.'];
+ if(!(work.items||[]).length)warnings.push('No work items are linked; this assessment uses the engineer update and epic goal only.');
  if(work.historyUnavailable)warnings.push('Status history is unavailable; completion timing is not inferred from modification dates.');
  const goals=Object.entries(epic.extra||{}).filter(([k,v])=>v&&/Description|Criteria|Goal/i.test(k)).map(([field,text])=>({field,text:clean(text).slice(0,2500)}));
  const scope=monthlyWork(work,month),items=scope.primary.length?scope.primary:scope.unscoped;
@@ -52,7 +53,7 @@ async function monthlyDraft(sf,{epic,health,work,month},options={}){
  if(JSON.stringify(evidence).length>budget)throw Error('Monthly work evidence exceeds the summary limit. No partial AI draft was generated.');
  const healthUpdates=(health.updates||[]).map((u,i)=>({month:u.month,text:u.text.slice(0,i===0?6000:Math.max(40,Math.floor(6000/Math.max((health.updates||[]).length-1,1))))}));
  const otherSprintContext=scope.context.slice(0,20).map(w=>({subject:clean(w.title),currentStatus:w.status,sprint:w.sprint,closedAt:w.closedAt||null}));
- const data={month,snapshotDate,epic:epic.name,epicHealth:epic.health||'Not reported',epicHealthAsOf:snapshotDate,pathToGreen:clean(epic.pathToGreen).slice(0,2000),goals,healthUpdates,currentMonthUpdates:healthUpdates.filter(u=>u.month===month),previousMonthUpdates:healthUpdates.filter(u=>u.month<month),undated:health.undated?.slice(0,1500),deliveryEvidence:evidence,otherSprintContext};
+ const data={month,snapshotDate,epic:epic.name,epicHealth:epic.health||'Not reported',epicHealthAsOf:snapshotDate,pathToGreen:clean(epic.pathToGreen).slice(0,2000),goals,v2momMapping:epic.v2momMapping,healthUpdates,currentMonthUpdates:healthUpdates.filter(u=>u.month===month),previousMonthUpdates:healthUpdates.filter(u=>u.month<month),undated:health.undated?.slice(0,1500),deliveryEvidence:evidence,otherSprintContext};
  const prompt=policy.systemPrompt+'\n\n'+policy.instructions+'\nEvidence: '+JSON.stringify(data);
  const grounding={month,health:historical?null:epic.health||null,updates:health.updates||[],work:workEvidence};
  const sourceText=JSON.stringify(data),requiredEvidenceKeys=workEvidence.map(w=>w.key);

@@ -1,16 +1,17 @@
 'use strict';
 const {randomUUID}=require('crypto');const {URL}=require('url');
 const {parseComments,mergeComments,plainText,validMonth}=require('./comments');
+const reviewPolicy=require('./review-policy');
 const {parseEpicLinks,validId,safeError}=require('./gus');
 function yearValue(y){y=Number(y);if(!Number.isInteger(y)||y<2000||y>2099)throw Error('Reference year must be between 2000 and 2099.');return y;}
-function publicParsed(p){return {months:p.months,unassigned:p.unassigned,inferred:p.inferred,yearAmbiguous:p.yearAmbiguous};}
+function publicParsed(p){const latestMonths={},monthEntries={};for(const section of p.sections||[]){const key=section.effectiveMonth||section.month;if(!key)continue;(monthEntries[key]||=[]).push(section.text);if(!Object.hasOwn(latestMonths,key))latestMonths[key]=section.text;}return {months:p.months,latestMonths,monthEntries,unassigned:p.unassigned,inferred:p.inferred,yearAmbiguous:p.yearAmbiguous};}
 function listDefaults(columns=[]){const keys=columns.map(c=>c.key).filter(k=>k!=='comments');return [...new Set(keys.length?[...keys,'name','health']:['project','name','health','lead','months','pathToGreen'])];}
 const CANON_COLUMNS=['project','name','owner','health','months','pathToGreen','completion','planned','actual','closed','inProgress','newPoints','waiting','lead','team'];
 function releaseScope(r){const lists=Array.isArray(r.sources)?r.sources.map(s=>s?.id).filter(id=>typeof id==='string'&&/^00B[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?$/.test(id)).map(id=>id.slice(0,15)).sort():[];const manual=[];if(lists.length)for(const token of String(r.inputLinks||'').replace(/\[[^\]]*\]\((https:\/\/[^)\s]+)\)/g,'$1').split(/[\s,]+/).filter(Boolean)){let id=null;if(/^[A-Za-z0-9]{15}(?:[A-Za-z0-9]{3})?$/.test(token)&&!token.startsWith('00B'))id=token;else if(token.includes('://')){try{const path=new URL(token).pathname,idMatch=path.match(/^\/lightning\/r\/ADM_Epic__c\/([A-Za-z0-9]{15}(?:[A-Za-z0-9]{3})?)\/view\/?$/)||path.match(/^\/([A-Za-z0-9]{15}(?:[A-Za-z0-9]{3})?)\/?$/);if(idMatch)id=idMatch[1];}catch{}}if(id)manual.push(id.slice(0,15));}return JSON.stringify([lists.length?['lists',...new Set(lists)]:String(r.name||'').trim().replace(/\s+/g,' ').toLowerCase(),r.year,lists.length?[...new Set(manual)].sort():[...(r.epicIds||[])].sort(),lists.length?null:String(r.inputLinks||'').trim().replace(/\s+/g,' ').toLowerCase()]);}
 function activeReleases(rows){const deleted=new Set(rows.filter(r=>r._deleted).flatMap(r=>r._deletedAliases||[r.id]));return rows.filter(r=>!r._deleted&&!deleted.has(r.id));}
 class Service{
-  constructor(store,gus,options={}){this.store=store;this.gus=gus;this.shared=options.shared===true;}
-  async state(){const [catalog,epics]=await Promise.all([this.store.list('release'),this.store.list('epic')]);const releases=activeReleases(catalog);releases.sort((a,b)=>String(b.updatedAt||'').localeCompare(String(a.updatedAt||'')));return {releases,epics:epics.map(e=>({...e,parsed:publicParsed(this.parsed(e)),pathToGreen:plainText(e.pathToGreen)}))};}
+  constructor(store,gus,options={}){this.store=store;this.gus=gus;this.shared=options.shared===true;this.googleSheets=options.googleSheets;}
+  async state(){const [catalog,epics]=await Promise.all([this.store.list('release'),this.store.list('epic')]);const releases=activeReleases(catalog);releases.sort((a,b)=>String(b.updatedAt||'').localeCompare(String(a.updatedAt||'')));return {v2momReference:await this.reviewReference(),releases,epics:epics.map(e=>({...e,parsed:publicParsed(this.parsed(e)),pathToGreen:plainText(e.pathToGreen)}))};}
   async release(id){if(typeof id!=='string'||!/^[a-f0-9-]{36}$/.test(id))throw Error('Select a saved release.');const r=await this.store.get('release',id);if(!r)throw Error('Release not found. Reload the dashboard.');if(r._deleted)throw Error('This release was deleted. Reload the dashboard.');const catalog=await this.releaseCatalog();if(!activeReleases(catalog).some(x=>x.id===id))throw Error('This release was deleted. Reload the dashboard.');return r;}
   async releaseCatalog(){return this.store.list('release');}
   async deleteRelease(data){
@@ -40,33 +41,51 @@ class Service{
   async monthlySummary(data){
     const id=validId(data.epicId),month=validMonth(data.month),r=await this.release(data.releaseId);if(!r.epicIds.includes(id))throw Error('Epic is not part of this release.');
     if(data.previewOnly===true&&(typeof data.displayedText!=='string'||data.displayedText.length>50000))throw Error('Monthly preview supports up to 50,000 characters.');
-    const columns=['Description__c','Success_Criteria__c','Goal__c','Goals__c','Acceptance_Criteria__c'].map(field=>({field,key:'gus:'+field}));
+    const columns=reviewPolicy.FIELDS;
     const [result,work,old]=await Promise.all([this.gus.epics([id],columns),this.gus.workItems(id,{details:true,month}),this.store.get('epic',id)]),row=result.epics[0];if(!row)throw Error('Epic is not visible in GUS.');
-    const e={...old,...row,year:old?.year??r.year,yearMapping:old?.yearMapping||{}};let parsed=this.parsed(e);if(data.previewOnly===true){parsed={...parsed,months:{...parsed.months,[month]:data.displayedText}};}const health=require('./executive').healthSource(e,parsed,month);
+    const e={...old,...row,year:old?.year??r.year,yearMapping:old?.yearMapping||{}};const mapping=await this.mapping(e);reviewPolicy.assertReady(e,{mapping,text:this.parsed(e).months[month]||''});e.v2momMapping=mapping;let parsed=this.parsed(e);if(data.previewOnly===true){parsed={...parsed,months:{...parsed.months,[month]:data.displayedText}};}const health=require('./executive').healthSource(e,parsed,month);
     return {epicId:id,month,...await require('./monthly').monthlyDraft(this.gus.sf,{epic:e,health,work,month},{prepare:data.useSdk===true})};
   }
   async executivePlan(data){
     validMonth(data.month);
     if(!Array.isArray(data.releaseIds)||!data.releaseIds.length||data.releaseIds.length>100)throw Error('Choose releases before generating a summary.');
     const catalog=activeReleases(await this.releaseCatalog()),releases=data.releaseIds.map(id=>{const r=catalog.find(r=>r.id===id);if(!r)throw Error('Release no longer available. Refresh and retry.');return r;});
-    const ids=[...new Set(releases.flatMap(r=>r.epicIds))],groups=new Map();
+    const ids=[...new Set(releases.flatMap(r=>r.epicIds))],groups=new Map(),blocked=[];
     if(ids.length>500)throw Error('Choose releases containing up to 500 unique epics.');
-    for(let start=0;start<ids.length;start+=50){const batch=ids.slice(start,start+50),result=await this.gus.epics(batch,[{field:'Project__r.Name',key:'gus:Project__r.Name'}]);
+    for(let start=0;start<ids.length;start+=50){const batch=ids.slice(start,start+50),result=await this.gus.epics(batch,reviewPolicy.FIELDS);
       if(result.epics.length!==batch.length)throw Error('Some epics are not visible in GUS. Refresh the release before summarizing.');
-      for(const e of result.epics){const measure=e.project||e.extra?.['Project__r.Name']||'Measure not set in GUS',team=e.team||'Team not set in GUS',key=JSON.stringify([measure,team]);if(!groups.has(key))groups.set(key,{measure,team,epicIds:[]});groups.get(key).epicIds.push(e.id);}
+      for(const e of result.epics){try{const mapping=await this.mapping(e);reviewPolicy.assertReady(e,{mapping,text:this.parsed({...e,year:releases.find(r=>r.epicIds.includes(e.id)).year}).months[data.month]||''});}catch(error){blocked.push({epicId:e.id,name:e.name,error:safeError(error)});continue;}const measure=(await this.mapping(e)).measure,team=e.team||'Team not set in GUS',key=JSON.stringify([measure,team]);if(!groups.has(key))groups.set(key,{measure,team,epicIds:[]});groups.get(key).epicIds.push(e.id);}
     }
-    return {groups:[...groups.values()].flatMap(g=>g.epicIds.map(id=>({...g,epicIds:[id]})))};
+    return {blocked,groups:[...groups.values()].flatMap(g=>g.epicIds.map(id=>({...g,epicIds:[id]})))};
   }
   async executiveBlurb(data){
     const month=validMonth(data.month);if(!Array.isArray(data.releaseIds)||!data.releaseIds.length||data.releaseIds.length>100||!Array.isArray(data.epicIds)||!data.epicIds.length||data.epicIds.length>500)throw Error('Choose a supported release scope for the executive update.');
     const catalog=activeReleases(await this.releaseCatalog()),releases=data.releaseIds.map(id=>{const r=catalog.find(r=>r.id===id);if(!r)throw Error('Release no longer available. Refresh and retry.');return r;});
     const ids=[...new Set(data.epicIds.map(validId))];if(ids.some(id=>!releases.some(r=>r.epicIds.includes(id))))throw Error('Epic is not part of the selected releases.');
     const sources=[];const {healthSource,summarizeGroup}=require('./executive');
-    for(let start=0;start<ids.length;start+=50){const batch=ids.slice(start,start+50);const [result,saved]=await Promise.all([this.gus.epics(batch,[{field:'Project__r.Name',key:'gus:Project__r.Name'}]),typeof this.store.getMany==='function'?this.store.getMany('epic',batch):Promise.all(batch.map(async id=>[id,await this.store.get('epic',id)])).then(entries=>new Map(entries))]);
+    for(let start=0;start<ids.length;start+=50){const batch=ids.slice(start,start+50);const [result,saved]=await Promise.all([this.gus.epics(batch,reviewPolicy.FIELDS),typeof this.store.getMany==='function'?this.store.getMany('epic',batch):Promise.all(batch.map(async id=>[id,await this.store.get('epic',id)])).then(entries=>new Map(entries))]);
       if(result.epics.length!==batch.length)throw Error('Some epics are not visible in GUS. Refresh the release before summarizing.');
-      for(const row of result.epics){const old=saved.get(row.id),r=releases.find(r=>r.epicIds.includes(row.id)),e={...old,...row,year:old?.year??r.year,yearMapping:old?.yearMapping||{}};const source=healthSource(e,this.parsed(e),month);if(source.measure!==data.measure||source.team!==data.team)throw Error('The GUS measure or team changed. Fetch the latest data and regenerate.');sources.push(source);}
+      for(const row of result.epics){const old=saved.get(row.id),r=releases.find(r=>r.epicIds.includes(row.id)),e={...old,...row,year:old?.year??r.year,yearMapping:old?.yearMapping||{}};const mapping=await this.mapping(e);reviewPolicy.assertReady(e,{mapping,text:this.parsed(e).months[month]||''});const source={...healthSource(e,this.parsed(e),month),measure:mapping.measure,mapping,goal:reviewPolicy.goalOf(e),pathToGreen:plainText(e.pathToGreen),completion:e.completion,plannedEnd:e.extra?.Planned_End_Date__c,actual:e.actual,closed:e.closed};if(source.measure!==data.measure||source.team!==data.team)throw Error('The GUS measure or team changed. Fetch the latest data and regenerate.');sources.push(source);}
     }
-    return {measure:data.measure,team:data.team,epicId:sources.length===1?sources[0].epicId:null,epicName:sources.length===1?sources[0].name:null,...await summarizeGroup(this.gus.sf,sources,{prepare:data.useSdk===true}),reportedMonths:[...new Set(sources.flatMap(s=>s.reportedMonths||[]))].sort(),hasUndated:sources.some(s=>!!s.undated),generatedAt:new Date().toISOString()};
+    return {health:sources[0]?.health,kpis:{completion:sources[0]?.completion,plannedEnd:sources[0]?.plannedEnd,actual:sources[0]?.actual,closed:sources[0]?.closed},pathToGreen:sources[0]?.pathToGreen,callouts:[...sources.filter(s=>!s.updates?.some(u=>u.month===month)).map(()=> 'No dated engineer update for the review month; historical context is labeled separately.'),...sources.map(s=>s.mapping?.callout).filter(Boolean)],measure:data.measure,team:data.team,epicId:sources.length===1?sources[0].epicId:null,epicName:sources.length===1?sources[0].name:null,...await summarizeGroup(this.gus.sf,sources,{prepare:data.useSdk===true}),reportedMonths:[...new Set(sources.flatMap(s=>s.reportedMonths||[]))].sort(),hasUndated:sources.some(s=>!!s.undated),generatedAt:new Date().toISOString()};
+  }
+  async reviewReference(){const saved=await this.store.get('settings','v2mom');return {value:saved?.v2mom||reviewPolicy.DEFAULT_REFERENCE,revision:saved?.revision||null};}
+  async saveReference(data){const current=await this.store.get('settings','v2mom');if((current?.revision||null)!==(data.revision||null))throw Error('The V2MOM reference changed. Reload before saving.');const saved=await this.store.put('settings','v2mom',{id:'v2mom',v2mom:reviewPolicy.reference(data.value)},current?.revision||null);return {value:saved.v2mom,revision:saved.revision};}
+  async mapping(epic){try{return await reviewPolicy.mappedEpic(epic,async()=>{if(!this.mappingSnapshot)this.mappingSnapshot=this.reviewReference().then(r=>reviewPolicy.liveMapping(r.value,this.googleSheets));return this.mappingSnapshot;});}catch(error){const saved=await this.store.get('epic',epic.id),confirmed=saved?.v2momConfirmed,ref=await this.reviewReference();if(confirmed&&confirmed.referenceKey===JSON.stringify(ref.value))return {measure:confirmed.none?'No V2MOM mapping — confirmed by engineer':confirmed.measure,method:confirmed.none?'None — confirmed by engineer':confirmed.method,source:'Engineer confirmed',callout:'Project/sheet mapping was unavailable or unresolved; using the engineer-confirmed mapping.'};throw error;}}
+  async saveMapping(data){const id=validId(data.epicId),r=await this.release(data.releaseId);if(!r.epicIds.includes(id))throw Error('Epic is not part of this release.');const old=await this.store.get('epic',id);if(!old||old.revision!==data.revision)throw Error('Epic changed. Refresh before confirming mapping.');const ref=await this.reviewReference(),none=data.none===true;if(!none&&(['measure','method'].some(k=>typeof data[k]!=='string'||!data[k].trim()||data[k].length>500)))throw Error('Enter both Method and Measure, or explicitly confirm no mapping.');const saved=await this.store.put('epic',id,{...old,v2momConfirmed:{none,measure:none?'':data.measure.trim(),method:none?'':data.method.trim(),fiscalYear:ref.value.fiscalYear,referenceUrl:ref.value.url,referenceKey:JSON.stringify(ref.value),confirmedAt:new Date().toISOString()}},old.revision);return {...saved,parsed:publicParsed(this.parsed(saved))};}
+
+  async policyEpic(id){const result=await this.gus.epics([id],reviewPolicy.FIELDS);if(!result.epics[0])throw Error('Epic is not visible in GUS.');return result.epics[0];}
+  async savePath(data){const id=validId(data.epicId),r=await this.release(data.releaseId);if(!r.epicIds.includes(id))throw Error('Epic is not part of this release.');if(typeof data.value!=='string'||!data.value.trim()||data.value.length>30000)throw Error('Enter a Path to Green of up to 30,000 characters.');const old=await this.store.get('epic',id);if(!old||old.revision!==data.revision)throw Error('Epic changed. Refresh before editing Path to Green.');const row=await this.gus.epic(id);if(plainText(row.pathToGreen)!==plainText(old.pathToGreen))throw Error('Path to Green changed in GUS. Refresh before saving.');await this.gus.updatePathToGreen(id,data.value.trim(),row.modified);const verified=await this.gus.epic(id);if(plainText(verified.pathToGreen)!==plainText(data.value.trim()))throw Error('GUS Path to Green could not be verified. Refresh before retrying.');const latest=await this.store.get('epic',id);const saved=await this.store.put('epic',id,{...latest,...verified,extra:{...latest.extra,...verified.extra}},latest.revision);return {...saved,parsed:publicParsed(this.parsed(saved)),pathToGreen:plainText(saved.pathToGreen)};}
+  async saveReviewStatus(data){
+    const id=validId(data.epicId),r=await this.release(data.releaseId);if(!r.epicIds.includes(id))throw Error('Epic is not part of this release.');
+    const old=await this.store.get('epic',id);if(!old||data.revision!==old.revision)throw Error('Epic changed. Refresh before saving Review Status.');
+    const row=await this.gus.epic(id),status=String(row.health||'').trim().toLowerCase(),key=status==='cancelled'?'canceled':status;
+    if(key!==data.epicStatus)throw Error('Epic Status changed in GUS. Refresh before choosing Review Status.');
+    if(key==='watch'&&!plainText(row.pathToGreen).trim())throw Error('Enter and save Path to Green before saving Review Status for a Watch epic.');
+    const choices={watch:['Delayed','At-Risk'],canceled:['De-Prioritised','Mistakenly Added','Not a Priority']}[key];
+    if(!choices||typeof data.value!=='string'||(data.value!==''&&!choices.includes(data.value)))throw Error('Choose a Review Status valid for the current Epic Status.');
+    const saved=await this.store.put('epic',id,{...old,...row,extra:{...old.extra,...row.extra},reviewStatus:{value:data.value,epicStatus:key,updatedAt:new Date().toISOString()},_storageConflicts:(old._storageConflicts||[]).filter(c=>c.path!=='reviewStatus')},old.revision);
+    return {...saved,parsed:publicParsed(this.parsed(saved)),pathToGreen:plainText(saved.pathToGreen)};
   }
   async saveSettings(data){
     const r=await this.release(data.releaseId);
@@ -141,7 +160,7 @@ class Service{
     let write={conditional:true};
     if(item.consolidated!==item.remote.comments)write=await this.gus.updateComments(id,item.consolidated,item.remote.modified);
     const verified=await this.readComments(id);
-    if((this.parsed({...e,comments:verified.comments}).months[month]??'')!==draft.value)throw Error('GUS save could not be verified. Your saved monthly update is retained.');
+    if(verified.comments!==item.consolidated)throw Error('GUS save could not be verified. Your saved monthly update is retained.');
     const latest=await this.store.get('epic',id),drafts={...latest.drafts};
     if(drafts[month]?.revision===draft.revision)delete drafts[month];
     const saved=await this.store.put('epic',id,{...latest,...verified,drafts,lastSyncedAt:new Date().toISOString()},latest.revision);
@@ -149,7 +168,7 @@ class Service{
   }
   async readComments(id){return typeof this.gus.comments==='function'?this.gus.comments(id):this.gus.epic(id);}
   parsed(e){
-    const p=parseComments(e.comments,e.year);
+    const p=parseComments(e.comments,e.year);for(const section of p.sections)section.effectiveMonth=section.inferred?(e.yearMapping?.[section.month]||section.month):section.month;
     if(e.yearMapping&&Object.keys(e.yearMapping).length){
       const months={};for(const s of p.sections){const key=s.inferred?(e.yearMapping[s.month]||s.month):s.month;months[key]=[months[key],s.text].filter(Boolean).join('\n\n');}p.months=months;
     }
@@ -164,29 +183,19 @@ class Service{
   }
   async buildItem(e,releases,onlyMonth=null){
     if(e._storageConflicts?.length)return {epicId:e.id,name:e.name,status:'draft-conflict',error:'Competing saved changes require review.',conflicts:e._storageConflicts.map(c=>({month:c.path.startsWith('drafts.')?c.path.slice(7):null,remote:c.previous?.value??JSON.stringify(c.previous),local:c.incoming?.value??JSON.stringify(c.incoming),storage:true,path:c.path}))};
+    const policyEpic=await this.policyEpic(e.id),mapping=await this.mapping(policyEpic);reviewPolicy.assertReady(policyEpic,{mapping,text:Object.values(e.drafts||{}).map(d=>d.value).join(' ')});
     const remote=await this.readComments(e.id),p=this.parsed({...e,comments:remote.comments}),drafts=e.drafts||{};
     const years=new Set(releases.filter(r=>r.epicIds.includes(e.id)).map(r=>r.year));
     const needsYear=(p.inferred.length&&years.size>1&&!e.yearConfirmed)||
       (p.yearAmbiguous&&!p.inferred.every(m=>Object.hasOwn(e.yearMapping||{},m)));
     if(needsYear)return {epicId:e.id,name:e.name,status:'year-conflict',error:'Confirm years for undated GUS headings before syncing.',remote,months:p.months,inferred:p.inferred};
     const conflicts=[];
-    for(const [month,d] of Object.entries(drafts)){const current=p.months[month]??'';if(current!==d.base&&current!==d.value)conflicts.push({month,base:d.base,remote:current,local:d.value,revision:d.revision});}
+    for(const [month,d] of Object.entries(drafts)){const current=p.months[month]??'';if(current!==d.base&&current!==d.value&&p.sections.find(s=>s.month===month)?.text!==d.value)conflicts.push({month,base:d.base,remote:current,local:d.value,revision:d.revision});}
     // Canonicalize inferred headings only when the user supplied a year mapping.
     // Map each original heading independently, retaining surrounding rich text.
     let source=remote.comments;
-    if(Object.keys(e.yearMapping||{}).length){
-      const original=parseComments(source,e.year);const replacements=[];
-      for(const section of original.sections)if(section.inferred&&e.yearMapping[section.month]&&(!onlyMonth||e.yearMapping[section.month]===onlyMonth)){
-        const target=e.yearMapping[section.month];
-        // Text-node aware replacement of just the heading's year avoids changing body markup.
-        const position=original._positions[section.start];
-        const headerEnd=section.bodyStart;
-        const positions=original._positions.slice(section.start,headerEnd).filter(Boolean);
-        if(positions.length){const first=positions[0][0],last=positions.at(-1)[1];const rawHeading=source.slice(first,last);const match=rawHeading.match(/(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember|t)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)/i);if(match)replacements.push([first+match.index+match[0].length,target.slice(0,4)]);}
-      }
-      for(const [pos,y] of replacements.sort((a,b)=>b[0]-a[0]))source=source.slice(0,pos)+' '+y+source.slice(pos);
-    }
-    const changes=Object.fromEntries(Object.entries(drafts).map(([m,d])=>[m,d.value]));
+    const status=String(policyEpic.health||'').trim().toLowerCase().replace('cancelled','canceled'),allowed={watch:['Delayed','At-Risk'],canceled:['De-Prioritised','Mistakenly Added','Not a Priority']}[status];if(allowed&&!(e.reviewStatus?.epicStatus===status&&allowed.includes(e.reviewStatus.value)))throw Error('Review Status is required for '+policyEpic.health+' epics before publishing.');
+const changes=Object.fromEntries(Object.entries(drafts).map(([m,d])=>[m,d.value]));
     const consolidated=mergeComments(source,e.year,changes);
     return {epicId:e.id,name:e.name,status:conflicts.length?'conflict':'ready',conflicts,months:p.months,consolidated,preview:plainText(consolidated),remote,epicRevision:e.revision,draftRevisions:Object.fromEntries(Object.entries(drafts).map(([m,d])=>[m,d.revision]))};
   }
@@ -203,7 +212,7 @@ class Service{
         const item=await this.buildItem(e,releases);if(item.status!=='ready'){results.push(item);continue;}
         let write={conditional:true};if(item.consolidated!==item.remote.comments)write=await this.gus.updateComments(id,item.consolidated,item.remote.modified);
         const verified=await this.gus.epic(id);const actual=this.parsed({...e,comments:verified.comments}).months;
-        if(Object.entries(e.drafts).some(([month,d])=>(actual[month]??'')!==d.value))throw Error('GUS write could not be verified. Drafts are retained. Fetch and preview before retrying.');
+        if(verified.comments!==item.consolidated)throw Error('GUS write could not be verified. Drafts are retained. Fetch and preview before retrying.');
         const latest=await this.store.get('epic',id),drafts={...latest.drafts};for(const [month,revision] of Object.entries(item.draftRevisions))if(drafts[month]?.revision===revision)delete drafts[month];
         await this.store.put('epic',id,{...latest,...verified,extra:{...latest.extra,...verified.extra},drafts,year:latest.year,yearConfirmed:latest.yearConfirmed,yearMapping:latest.yearMapping,lastSyncedAt:new Date().toISOString(),fetchedAt:new Date().toISOString()},latest.revision);
         results.push({epicId:id,name:e.name,status:'synced',conditional:write.conditional});

@@ -14,7 +14,7 @@ async function handleRequest(ctx){
   try{
     const req=ctx.request||ctx;let b=req.body||{};if(typeof b==='string')b=JSON.parse(b);
     if(!b||typeof b!=='object'||Array.isArray(b))throw Error('Invalid request.');
-    const {sf,source}=connection(ctx),gus=ctx.gus||new Gus(sf),store=ctx.store||new ContentStore(sf,{shared:true}),service=new Service(store,gus,{shared:store.shared===true});
+    const {sf,source}=connection(ctx),gus=ctx.gus||new Gus(sf),store=ctx.store||new ContentStore(sf,{shared:true}),service=new Service(store,gus,{shared:store.shared===true,googleSheets:ctx.googleSheets||ctx.google?.sheets});
     const action=b.action;
     if(ctx.demo&&!['connection','state','work-items','preview','executive','executive-blurb','executive-plan','list-catalog'].includes(action))throw Error('Sample preview is read-only. Open the GUS Apps deployment to save changes.');
     let payload;
@@ -29,6 +29,10 @@ async function handleRequest(ctx){
       case 'inspect-list':payload=await gus.resolveEpicInputs(b.links);break;
       case 'save-release':payload=await service.saveRelease(b);break;
       case 'delete-release':payload=await service.deleteRelease(b);break;
+      case 'save-v2mom-mapping':payload=await service.saveMapping(b);break;
+      case 'save-v2mom-reference':payload=await service.saveReference(b);break;
+      case 'save-path-to-green':payload=await service.savePath(b);break;
+      case 'save-review-status':payload=await service.saveReviewStatus(b);break;
       case 'save-settings':payload=await service.saveSettings(b);break;
       case 'fetch':payload=await service.fetch(b.releaseId,{cursor:b.cursor,fetchRevision:b.fetchRevision,automatic:b.automatic===true});break;
       case 'finish-fetch':payload=await service.finishFetch(b);break;
