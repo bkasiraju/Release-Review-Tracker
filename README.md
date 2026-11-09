@@ -157,3 +157,8 @@ Monthly heading recognition includes engineer formats such as `November comments
 
 ### Slack Nudge
 Open an epic, expand Slack Nudge and prepare a reminder for the review month. The app reads its Development Lead from GUS and, where available, resolves Slack identity by email. Review and copy the reminder, then open Slack and send. No background messages are sent. GUS Apps currently documents allowlisted channel posts rather than arbitrary direct-message sending.
+
+### Grouped review and combined follow-ups
+Use Group by to nest Measure (Project), Team, Health/Epic Status, Development Lead and Completion bands. Grouping uses current filters without requesting GUS or AI data. Expand rows from the left to review monthly details.
+
+Slack Nudge in the toolbar reviews all saved epics in selected releases (up to500) by their current GUS Development Lead. Keep Awaiting monthly updates only selected, or uncheck to include every assigned epic. Prepare a lead’s combined reminder to include every epic reference; group-level Slack Nudge uses that group’s members. Copy & open DM copies the message and opens a workspace-qualified conversation when identity is available. Paste, confirm Slack’s native mention and send. Slack deep links do not prefill drafts; copied HTML mentions are a preview/link and native mention conversion is not guaranteed.

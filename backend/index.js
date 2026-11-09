@@ -39,7 +39,7 @@ async function handleRequest(ctx){
       case 'executive-plan':payload=await service.executivePlan(b);break;
       case 'executive-blurb':payload=await service.executiveBlurb(b);break;
       case 'executive':payload=await service.executive(b);break;
-      case 'slack-nudge':payload=await require('./nudge').prepareNudge(gus,ctx.slack,b,(await store.get('epic',validId(b.epicId)))||{});break;
+      case 'slack-nudge':case 'slack-nudge-plan':{const {nudgeIds,prepareNudge,nudgePlan}=require('./nudge'),ids=nudgeIds(b),saved={};for(let i=0;i<ids.length;i+=100){const chunk=ids.slice(i,i+100);if(typeof store.getMany==='function'){for(const [id,e] of await store.getMany('epic',chunk))if(e)saved[id]=e;}else for(const id of chunk){const e=await store.get('epic',id);if(e)saved[id]=e;}}payload=action==='slack-nudge-plan'?await nudgePlan(gus,b,saved):await prepareNudge(gus,ctx.slack,b,saved);break;}
       case 'work-items':payload=await gus.workItems(validId(b.epicId));break;
       case 'preview':payload=await service.preview(b.releaseId,validId(b.epicId));break;
       case 'sync':if(!Array.isArray(b.approved)||!b.approved.length||b.approved.length>1)throw Error('Review the preview before syncing.');payload=await service.sync(b.releaseId,b.approved);break;
