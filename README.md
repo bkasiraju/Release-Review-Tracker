@@ -91,7 +91,7 @@ The new slug is **`cfs-release-review-tracker`**, distinct from the adjacent exi
 
 [GUS Apps deployment target](https://gus-apps.internal.salesforce.com/applets/cfs-release-review-tracker)
 
-Version **2.0.3** is activated at this URL. A normal signed-in production session verified the live backend and the MAPS saved list resolving to 23 epics and 14 source columns; MQ query-only preflight resolves 27 epics and 13 columns. Deployment-token checks alone do not supply Salesforce user context. See `docs/verification.md` for recorded live checks and limits.
+Version **2.0.0-GA** is activated at this URL. A normal signed-in production session verified the live backend and the MAPS saved list resolving to 23 epics and 14 source columns; MQ query-only preflight resolves 27 epics and 13 columns. Deployment-token checks alone do not supply Salesforce user context. See `docs/verification.md` for recorded live checks and limits.
 
 ## Local preview
 
@@ -149,4 +149,4 @@ The landing view uses compact Epic Name/Health/Development Lead rows. Hover or k
 
 The Executive V2MOM Summary supports a second synthesis step: after generating all epic summaries, choose **Generate V2MOM Method Summary**. It sends every generated epic summary to GUS Apps AI within its measure/team group, keeps historical reporting periods, and displays one concise leadership paragraph per group above the epic details. **Copy method update** copies that consolidated view. Results are read-only and scoped to the selected releases/review month; regenerating epic summaries invalidates the roll-up. Each measure/team completes independently. If AI remains unavailable or invalid after one correction, its existing source summaries are retained and explicitly labeled; successful AI consolidations for other teams remain visible. No GUS comments are written by summary generation.
 
-AI generation displays a top-right token notification for explicit monthly, executive and consolidated-summary actions. It totals SDK-reported input/output tokens across the operation, including correction attempts; cached prompt tokens are included in input and called out separately. It closes after five seconds or ×. Missing/partial usage is labeled rather than estimated. Viewing a tab or polling shared state does not trigger an AI usage notification. The immutable golden rollback baseline remains 2.0.0-GA.
+AI generation displays a top-right token notification for explicit monthly, executive and consolidated-summary actions. It totals SDK-reported input/output tokens across the operation, including correction attempts; cached prompt tokens are included in input and called out separately. It closes after five seconds or ×. Missing/partial usage is labeled rather than estimated. Viewing a tab or polling shared state does not trigger an AI usage notification. The user requested folding these improvements into 2.0.0-GA; its earlier archive is preserved separately.

@@ -1,3 +1,15 @@
+# Consolidated current GOLDEN BUILD — v2.0.0-GA
+
+The user explicitly requested folding every latest change into v2.0.0-GA and making that new consolidated release the GOLDEN BUILD going forward. This supersedes the earlier tag immutability instruction for this one consolidation. The preceding GA commit/archive are preserved under GOLDEN-BUILD-2.0.0-GA-original and releases/2.0.0-GA-original; canonical GA tags and recovery metadata now identify the consolidated build. No shared GUS data was changed by consolidation.
+
+Includes AI token notifications, executive action order, product/context heading swap, Core Foundation Services wording, method-summary fixes and all earlier functionality. Expand/collapse and release-add icons use centered SVG geometry; dropdown trigger labels are right-aligned with separate fixed chevrons. Accessible control labels and selection behavior remain. Asset query identifiers distinguish the consolidated build from the earlier same-version release.
+
+All138 Node tests pass. Targeted browser checks verify icon centers, expand/collapse, right-aligned labels/carets, multiple-owner selection and no mobile/tablet overflow. Compact epic, AI usage and method-summary browser regressions pass. Independent review ran nine controls tests, confirmed all27 ZIP files match source and verified the original archive checksum. Production model output was not re-verified; inherited platform limitations remain.
+
+Current GOLDEN BUILD ZIP SHA256: ebc3fc2b478e0bfda4efc0e30bd29b8a5528f0bead9354295b718f70799cdf77. Activated through staging/review/promotion; all21 deployed text files match source. Original historical archive SHA256:96ff7a49e2707682511017abbda6dabda6ef1e8370649061a63300415020b5fc.
+
+---
+
 # Parent product heading and CFS context — v2.0.3
 
 Release Intelligence and its subtitle now occupy the parent top bar. Core Foundation Services / Release Review appears in the lower context section, with Foundation replacing Foundational in current app/Pages wording. One h1 remains; existing controls and behavior are unchanged.

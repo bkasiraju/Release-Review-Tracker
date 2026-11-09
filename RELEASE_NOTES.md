@@ -1,3 +1,16 @@
+# 2.0.0-GA · GOLDEN BUILD — consolidated update
+
+At the user’s explicit request, all recent changes are folded into the canonical GA release:
+
+- Reported AI token notifications for executive, consolidated and monthly summaries.
+- Generate actions first, Copy last.
+- Release Intelligence as parent heading; Core Foundation Services / Release Review below.
+- Centered expand/add icons and right-aligned dropdown labels/chevrons.
+
+The earlier canonical GA source and exact archive are preserved as GOLDEN-BUILD-2.0.0-GA-original and releases/2.0.0-GA-original/. The refreshed canonical GA tags identify this consolidated baseline. Shared GUS data is preserved.
+
+---
+
 # 2.0.3 — Product heading and CFS context
 
 Release Intelligence is the parent header. Core Foundation Services / Release Review appears below; Foundation replaces Foundational in current wording. Desktop, mobile and tablet visibility checked. Golden rollback baseline remains 2.0.0-GA.
