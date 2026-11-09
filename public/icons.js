@@ -11,6 +11,8 @@
   list:'<path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/>',
   calendar:'<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M7 3v4m10-4v4M3 10h18m-13 4h2m4 0h2m-8 4h2"/>',
   columns:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16m6-16v16"/>',
+  expandRows:'<rect x="3" y="8" width="18" height="8" rx="2"/><path d="m8 5 4-3 4 3M12 2v5m-4 12 4 3 4-3m-4 3v-5"/>',
+  collapseRows:'<rect x="3" y="8" width="18" height="8" rx="2"/><path d="m8 2 4 3 4-3M12 1v5m-4 16 4-3 4 3m-4-3v5"/>',
   expand:'<path d="M9 3H3v6m12-6h6v6M3 15v6h6m12-6v6h-6"/>',
   publish:'<rect x="3" y="4" width="18" height="16" rx="3"/><path d="m7 12 3 3 7-7"/>',
   home:'<path d="m3 10 9-7 9 7v10H3Z"/><path d="M9 20v-7h6v7"/>',

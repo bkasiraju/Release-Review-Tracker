@@ -8,3 +8,9 @@ The user designated **2.0.0-GA** as the **GOLDEN BUILD**, the stable rollback ba
 - Keep credentials, `.local/` state, session files, cached GUS data and deployment tokens out of Git and Pages.
 - GUS Apps is the authenticated production application. GitHub Pages cannot supply its GUS backend.
 - Release notes must distinguish fixture verification from actual production model/session verification.
+
+## Explicit AI evidence requirement
+
+The user explicitly requires summaries to use only provided engineer comments or verified GUS work-item facts. Validate status, completion and release claims against source evidence. Closed is not Released; Ready for Review is not Completed; goals/descriptions are not achieved outcomes. Preserve the applicable month and use dated history for historical transitions. Do not invent comments, status, risk closure or release/completion dates. Keep unknown facts unknown. AI text still requires explicit user review/save before GUS publication.
+
+Monthly health-comment writes must order dated sections chronologically, oldest first, regardless of which month was edited, while preserving other months, rich links and undated notes.

@@ -40,7 +40,7 @@ test('cross-year undated sections are flagged',()=>{
 test('bracketed monthly headings accept engineer text immediately after the bracket',()=>{
  const raw='Design and validation are in progress.\n\n[Oct Update] Rollout is deferred; validation continues.\n\n[Sept Update] Design and integration are complete.';
  const p=parseComments(raw,2026);assert.equal(p.months['2026-10'],'Rollout is deferred; validation continues.');assert.equal(p.months['2026-09'],'Design and integration are complete.');assert.equal(p.unassigned,'Design and validation are in progress.');assert.equal(p.months['2026-11'],undefined);
- const merged=mergeComments(raw,2026,{'2026-10':'Rollout validation completed.'});assert.equal(parseComments(merged,2026).months['2026-09'],p.months['2026-09']);assert.equal(parseComments(merged,2026).unassigned,p.unassigned);assert.ok(merged.includes('[Sept Update] Design and integration are complete.'));assert.equal(mergeComments(raw,2026,{'2026-10':p.months['2026-10']}),raw);
+ const merged=mergeComments(raw,2026,{'2026-10':'Rollout validation completed.'});assert.equal(parseComments(merged,2026).months['2026-09'],p.months['2026-09']);assert.equal(parseComments(merged,2026).unassigned,p.unassigned);assert.ok(merged.includes('[Sept Update] Design and integration are complete.'));assert.deepEqual(parseComments(mergeComments(raw,2026,{'2026-10':p.months['2026-10']}),2026).sections.map(s=>s.month),['2026-09','2026-10']);
  const rich='<p>Preserve this introduction.</p><p><b>[October 2026 Update]</b> Release validation is complete.</p><p>[Sept Update] Earlier delivery.</p>';const richParsed=parseComments(rich,2026);assert.equal(richParsed.months['2026-10'],'Release validation is complete.');const richMerged=mergeComments(rich,2026,{'2026-10':'Validated release.'});assert.equal(parseComments(richMerged,2026).months['2026-09'],richParsed.months['2026-09']);assert.ok(richMerged.includes('<p>[Sept Update] Earlier delivery.</p>'));
 });
 
@@ -62,10 +62,24 @@ test('engineer comment/note/report headings map CRLF updates to months without r
 test('older undated comments stay separate and survive replacement of a dated month',()=>{
  const raw='General context.\nNovember comments -\nCurrent review is in progress.\n================================\nOlder comments -\nDesign was discussed earlier.\nSeptember comments -\nApproach finalized.';
  const parsed=parseComments(raw,2026);assert.equal(parsed.months['2026-11'],'Current review is in progress.');assert.match(parsed.unassigned,/General context/);assert.match(parsed.unassigned,/Older comments -\nDesign was discussed earlier/);assert.ok(!parsed.months['2026-11'].includes('Design was discussed'));
- const merged=mergeComments(raw,2026,{'2026-11':'Current implementation is ready for review.'});assert.match(merged,/Older comments -\nDesign was discussed earlier/);assert.equal(parseComments(merged,2026).months['2026-09'],'Approach finalized.');assert.equal(mergeComments(raw,2026,{'2026-11':parsed.months['2026-11']}),raw);
+ const merged=mergeComments(raw,2026,{'2026-11':'Current implementation is ready for review.'});assert.match(merged,/Older comments -\nDesign was discussed earlier/);assert.equal(parseComments(merged,2026).months['2026-09'],'Approach finalized.');assert.deepEqual(parseComments(mergeComments(raw,2026,{'2026-11':parsed.months['2026-11']}),2026).sections.map(s=>s.month),['2026-09','2026-11']);
 });
 test('new heading labels preserve rich-text undated history and reject ordinary prose or full dates',()=>{
  const raw='<p><b>[November comments]</b></p><p>Current review.</p><p>Older notes:</p><p><a href="https://example.test/design">Prior design.</a></p><p>[September comments]</p><p>Design approved.</p>';
  const parsed=parseComments(raw,2026);assert.equal(parsed.months['2026-11'],'Current review.');assert.match(parsed.unassigned,/Prior design/);const changed=mergeComments(raw,2026,{'2026-11':'Review completed.'});assert.ok(changed.includes('<a href="https://example.test/design">Prior design.</a>'));assert.equal(parseComments(changed,2026).months['2026-09'],'Design approved.');
  for(const line of ['November comments were reviewed with the team.','November 9, 2026','2026-11-09','November commentary continues.'])assert.deepEqual(parseComments(line,2026).months,{},line);
+});
+
+test('every monthly save orders oldest to newest across older edits, additions and year boundaries',()=>{
+ const raw='Preamble.\nNovember 2026 Update:\nKeep November.\nSeptember 2026 Update:\nKeep September.';
+ for(const changes of [{'2026-10':'New October.'},{'2026-09':'Edited September.'},{'2026-11':'Keep November.'}]){const out=mergeComments(raw,2026,changes),p=parseComments(out,2026);assert.deepEqual(p.sections.map(s=>s.month),Object.keys(p.months).sort());assert.equal(p.unassigned,'Preamble.');for(const [month,value] of Object.entries(changes))assert.equal(p.months[month],value);assert.equal(mergeComments(out,2026,changes),out);}
+ const out=mergeComments('January 2027 Update:\nNew year.\nDecember 2026 Update:\nPrior year.',2026,{'2026-11':'Older.'});assert.deepEqual(parseComments(out,2026).sections.map(s=>s.month),['2026-11','2026-12','2027-01']);
+});
+test('rich month sorting retains links, formatting and undated notes across nested wrappers',()=>{
+ const cases=[
+ '<div><p>Intro.</p><p><b>November 2026 Update:</b></p><p>November unchanged.</p><p>September 2026 Update:</p><p><a href="https://example.test/design">September design.</a></p></div>',
+ '<div><p>November 2026 Update:</p><p>November unchanged.</p><p>Older notes:</p><p>Undated context.</p></div><div><p>September 2026 Update:</p><p><a href="https://example.test/design">September design.</a></p></div>',
+ '<div>November 2026 Update:<br>November unchanged.<br>September 2026 Update:<br><a href="https://example.test/design">September design.</a></div>'
+ ];
+ for(const raw of cases){const before=parseComments(raw,2026),out=mergeComments(raw,2026,{'2026-10':'October changed.'}),after=parseComments(out,2026);assert.deepEqual(after.sections.map(s=>s.month),['2026-09','2026-10','2026-11']);assert.equal(after.months['2026-11'],before.months['2026-11']);assert.equal(after.months['2026-09'],before.months['2026-09']);assert.equal(after.unassigned,before.unassigned);assert.ok(out.includes('<a href="https://example.test/design">September design.</a>'));}
 });

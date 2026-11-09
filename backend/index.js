@@ -39,6 +39,7 @@ async function handleRequest(ctx){
       case 'executive-plan':payload=await service.executivePlan(b);break;
       case 'executive-blurb':payload=await service.executiveBlurb(b);break;
       case 'executive':payload=await service.executive(b);break;
+      case 'slack-nudge':payload=await require('./nudge').prepareNudge(gus,ctx.slack,b,(await store.get('epic',validId(b.epicId)))||{});break;
       case 'work-items':payload=await gus.workItems(validId(b.epicId));break;
       case 'preview':payload=await service.preview(b.releaseId,validId(b.epicId));break;
       case 'sync':if(!Array.isArray(b.approved)||!b.approved.length||b.approved.length>1)throw Error('Review the preview before syncing.');payload=await service.sync(b.releaseId,b.approved);break;

@@ -57,9 +57,33 @@ function parseComments(raw='',year=new Date().getFullYear()){
   const inferred=[...new Set(sections.filter(s=>s.inferred).map(s=>s.month))].sort();
   return {sections,months,unassigned:[text.slice(0,blocks[0]?.start??text.length).trim(),...blocks.filter(s=>!s.month).map(s=>text.slice(s.start,s.end).trim())].filter(Boolean).join('\n\n'),inferred,
     yearAmbiguous:inferred.some(m=>m.endsWith('-12'))&&inferred.some(m=>m.endsWith('-01')),
-    _text:text,_positions:positions,_rich:rich};
+    _text:text,_positions:positions,_rich:rich,_blocks:blocks};
 }
 function plainText(raw){return render(raw||'').text.trim();}
+// Sort visible month sections while retaining source HTML, links and undated ranges.
+function chronologicalComments(raw,year){
+ const p=parseComments(raw,year),ordered=[...p.sections].sort((a,b)=>a.month.localeCompare(b.month));
+ if(p.sections.every((s,i)=>s===ordered[i]))return raw;
+ if(p.yearAmbiguous)throw Error('Confirm comment years before ordering monthly updates.');
+ const blocks=p._blocks;
+ if(!p._rich){const fragments=new Map(p.sections.map(s=>[s,raw.slice(s.start,s.end)]));let i=0,out='',at=0;for(const block of blocks){out+=raw.slice(at,block.start);const fragment=block.month?fragments.get(ordered[i++]):raw.slice(block.start,block.end);out+=fragment+(block.end<raw.length&&!fragment.endsWith('\n')?'\n\n':'');at=block.end;}return out+raw.slice(at);}
+ const root={start:0,openEnd:0,closeStart:raw.length,end:raw.length,parent:null,children:[]},nodes=[],stack=[root],voids=new Set(['area','base','br','col','embed','hr','img','input','link','meta','param','source','track','wbr']);
+ for(const token of raw.matchAll(/<!--[\s\S]*?-->|<(?:"[^"]*"|'[^']*'|[^'">])*>/g)){
+  const value=token[0],close=value.match(/^<\/([a-z][\w:-]*)\s*>/i),open=value.match(/^<([a-z][\w:-]*)\b/i);
+  if(close){const name=close[1].toLowerCase(),node=stack.at(-1);if(node===root||node.name!==name)throw Error('Rich comment markup cannot be safely reordered. Your draft is retained.');node.closeStart=token.index;node.end=token.index+value.length;node.close=value;stack.pop();}
+  else if(open){const name=open[1].toLowerCase(),node={name,start:token.index,openEnd:token.index+value.length,closeStart:token.index+value.length,end:token.index+value.length,open:value,close:'',parent:stack.at(-1),children:[]};node.parent.children.push(node);if(!voids.has(name)&&!value.endsWith('/>')){nodes.push(node);stack.push(node);}}
+ }
+ if(stack.length!==1)throw Error('Rich comment markup cannot be safely reordered. Your draft is retained.');
+ const rawAt=offset=>{for(let i=offset;i<p._positions.length;i++)if(p._positions[i])return p._positions[i][0];return raw.length;},last=[...p._positions].reverse().find(Boolean),inside=point=>nodes.filter(n=>n.openEnd<=point&&point<n.closeStart).sort((a,b)=>b.openEnd-a.openEnd)[0]||root;
+ const points=[...blocks.map(b=>rawAt(b.start)),last?last[1]-1:raw.length],parents=point=>{const result=[];for(let n=inside(point);n;n=n.parent)result.push(n);return result;};let common=parents(points[0]).find(n=>points.every(point=>parents(point).includes(n)))||root;
+ const cut=block=>{let index=rawAt(block.start);for(let n=inside(index);n&&n!==common;n=n.parent)if(!render(raw.slice(n.openEnd,index)).text.trim())index=n.start;return index;};
+ const cuts=blocks.map(cut);if(cuts.some((c,i)=>c<common.openEnd||c>common.closeStart||(i&&c<=cuts[i-1])))throw Error('Rich monthly boundaries cannot be safely ordered. Your draft is retained.');
+ const active=index=>nodes.filter(n=>n!==common&&n.openEnd<=index&&index<=n.closeStart&&n.start>=common.openEnd&&n.end<=common.closeStart).sort((a,b)=>a.openEnd-b.openEnd);
+ const fragment=(a,b)=>active(a).map(n=>n.open).join('')+raw.slice(a,b)+active(b).reverse().map(n=>n.close).join('');
+ const pieces=blocks.map((b,i)=>({block:b,html:fragment(cuts[i],cuts[i+1]??common.closeStart)})),sorted=pieces.filter(x=>x.block.month).sort((a,b)=>a.block.month.localeCompare(b.block.month));let i=0;
+ const result=raw.slice(0,common.openEnd)+fragment(common.openEnd,cuts[0])+pieces.map(x=>x.block.month?sorted[i++].html:x.html).join('')+raw.slice(common.closeStart);
+ const actual=parseComments(result,year);if(JSON.stringify(actual.months)!==JSON.stringify(Object.fromEntries(Object.entries(p.months).sort(([a],[b])=>a.localeCompare(b))))||actual.unassigned!==p.unassigned)throw Error('Monthly ordering could not preserve the source comments. Your draft is retained.');return result;
+}
 function mergeComments(raw='',year,changes){
   const p=parseComments(raw,year), replacements=[], additions=[];
   for(const [month,input] of Object.entries(changes).sort(([a],[b])=>b.localeCompare(a))){
@@ -79,6 +103,6 @@ function mergeComments(raw='',year,changes){
   let out=raw;
   for(const [a,b,v] of replacements.sort((a,b)=>b[0]-a[0]))out=out.slice(0,a)+v+out.slice(b);
   if(additions.length)out+=(out?'\n\n':'')+additions.join('\n\n');
-  return out;
+  return Object.keys(changes).length?chronologicalComments(out,year):out;
 }
-module.exports={parseComments,mergeComments,plainText,validMonth,escapeHTML};
+module.exports={parseComments,mergeComments,plainText,validMonth,escapeHTML,chronologicalComments};

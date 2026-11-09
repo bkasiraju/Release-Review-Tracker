@@ -207,7 +207,7 @@ test('direct publishing preserves unrelated legacy headings even when other mont
  await store.put('epic',ID,{...e,yearMapping:{'2026-09':'2025-09','2026-10':'2025-10'},yearConfirmed:true});
  e=await s.saveDraft({epicId:ID,month:'2025-10',value:'New October',revision:null});
  const out=await s.publishMonth({releaseId:r.id,epicId:ID,month:'2025-10',draftRevision:e.drafts['2025-10'].revision});
- assert.equal(out.status,'synced');assert.ok(gus.rows[ID].comments.startsWith('Sept Update\nKeep September\n'));assert.match(gus.rows[ID].comments,/October 2025 Update:\nNew October/);
+ assert.equal(out.status,'synced');assert.ok(gus.rows[ID].comments.includes('Sept Update\nKeep September'));assert.match(gus.rows[ID].comments,/October 2025 Update:\nNew October/);
 });
 test('column preferences save independently of list import and preserve release membership',async()=>{
  const {s,store,gus,r}=await setup();gus.resolveEpicInputs=async()=>{throw Error('List metadata unavailable');};
@@ -304,4 +304,9 @@ test('status history permission failure is disclosed without inventing transitio
 
 test('Fetch maps engineer comment headings into shared monthly updates without AI or GUS comment writes',async()=>{
  const {s,gus,r}=await setup();const comments='November comments -\r\nImplementation review is in progress.\r\n================================\r\nOlder comments -\r\nPrior design notes.\r\nSeptember comments -\r\nDesign finalized.';gus.rows[ID].comments=comments;const result=await s.fetch(r.id);assert.equal(result.results[0].status,'fetched');assert.equal(result.results[0].epic.parsed.months['2026-11'],'Implementation review is in progress.');const shared=await new Service(s.store,gus).state();assert.equal(shared.epics[0].parsed.months['2026-09'],'Design finalized.');assert.match(shared.epics[0].parsed.unassigned,/Prior design notes/);assert.equal(gus.writes,0);assert.equal(gus.rows[ID].comments,comments);
+});
+test('monthly publication orders GUS comments chronologically while preserving other months and notes',async()=>{
+ const {s,store,gus,r}=await setup();gus.rows[ID].comments='Context stays.\n\nNovember 2026 Update:\nReview ongoing.\n\nSeptember 2026 Update:\nDesign ready.\n\nOctober 2026 Update:\nImplementation in review.';await s.fetch(r.id);
+ const e=await s.saveDraft({epicId:ID,month:'2026-10',value:'Implementation reviewed.',revision:null});
+ const out=await s.publishMonth({releaseId:r.id,epicId:ID,month:'2026-10',draftRevision:e.drafts['2026-10'].revision});assert.equal(out.status,'synced');const raw=gus.rows[ID].comments;assert.ok(raw.indexOf('September')<raw.indexOf('October'));assert.ok(raw.indexOf('October')<raw.indexOf('November'));assert.match(raw,/Context stays/);assert.match(raw,/Design ready/);assert.match(raw,/Review ongoing/);assert.match(raw,/Implementation reviewed/);
 });

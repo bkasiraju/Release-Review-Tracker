@@ -154,3 +154,6 @@ AI generation displays a top-right token notification for explicit monthly, exec
 When releases exist but none is selected, the release selector briefly pulses with an arrow, then retains a static highlight until a selection is made. Reduced-motion users receive the static cue. This guidance does not fetch GUS data or consume AI tokens.
 
 Monthly heading recognition includes engineer formats such as `November comments -`, `September comments -`, bracketed comments, notes and reports, with CRLF or rich text. Explicit Older/Undated comments remain separate background notes and survive monthly saves; they are not assigned an invented month. Fetch parses existing comments without AI regeneration or rewriting the source field.
+
+### Slack Nudge
+Open an epic, expand Slack Nudge and prepare a reminder for the review month. The app reads its Development Lead from GUS and, where available, resolves Slack identity by email. Review and copy the reminder, then open Slack and send. No background messages are sent. GUS Apps currently documents allowlisted channel posts rather than arbitrary direct-message sending.

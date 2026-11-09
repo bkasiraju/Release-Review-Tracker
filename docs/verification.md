@@ -1,3 +1,14 @@
+## 2.0.0-GA — consolidated update, 9 November 2026
+
+- Added source-evidence checks for AI completion, release, production and risk-closure claims. Unsupported model claims use a clearly labeled source fallback; goals and descriptions do not establish achievement. These are conservative heuristic checks, not a semantic guarantee.
+- Monthly GUS writes now order updates from oldest to newest, preserving other months, undated notes and supported rich links; unsafe markup ordering fails without publishing.
+- Added one Expand All/Collapse All control before fullscreen, applying to visible rows.
+- Whole metric tiles filter the epic table by click or keyboard. All footer notes are centered; the version is plain and GOLDEN BUILD is retained only in Git/release metadata.
+- Added Slack Nudge in the epic sidebar. It reads the current Development Lead from GUS, prepares a review-month reminder and optionally resolves the lead by GUS email through the host Slack identity helper. Copy/Open Slack requires the user to send the message. The documented host helper cannot send arbitrary direct messages; missing identity capability is shown honestly. No automated reminders or test Slack messages were sent.
+
+Validation: 156 Node tests, deployment unit checks, and isolated browser checks for controls, Fetch/reload and monthly AI save. The Slack browser check uses a mock identity response; production Slack lookup and native LLM quality were not verified. Production epic comments were not edited during testing.
+
+
 # Monthly comment headings — current v2.0.0-GA GOLDEN BUILD
 
 Read-only live GUS and shared-journal inspection identified the missed format: November comments - and September comments -. Fetch had stored the engineer text; the prior parser produced no monthly keys. The current source had already been manually relabeled to update headings before inspection. Replaying the earlier journal text with the fix yields November/September month keys without changing the text. No production comments were changed during diagnosis.

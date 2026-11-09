@@ -5,7 +5,7 @@
   "designatedBy": "User",
   "baselineDate": "2026-11-09",
   "artifact": "cfs-release-review-tracker.zip",
-  "sha256": "60d03f00beace6be3ec5f94bf95c506c3333c25070ac717f341bebd32e9067a4",
+  "sha256": "1634324884ad31080ed82b1fcd839d7e05e07253df73e95d2102a35fe1121022",
   "gitTags": [
     "v2.0.0-GA",
     "GOLDEN-BUILD-2.0.0-GA"
@@ -13,28 +13,29 @@
   "productionUrl": "https://gus-apps.internal.salesforce.com/applets/cfs-release-review-tracker/",
   "rollbackScope": "Application files only; preserve all shared GUS data",
   "verification": {
-    "nodeTestsPassed": 142,
+    "nodeTestsPassed": 156,
     "browserChecks": [
-      "comment-headings-fetch-and-shared-reload",
-      "monthly-ai-save-regression"
+      "ga-controls-footer-tiles-slack-preparation",
+      "monthly-ai-save-and-reload",
+      "comment-heading-fetch-and-reload"
     ],
     "productionModelOutputVerified": false
   },
-  "revision": "consolidated-20261109-4",
+  "revision": "consolidated-20261109-5",
   "status": "Current GOLDEN BUILD going forward",
-  "includes": "All latest changes plus comment-style month headings and undated-history preservation",
+  "includes": "All latest changes: source evidence validation, chronological monthly publication, expand/collapse all, clickable metric tiles, centered plain footer and Development Lead Slack reminder preparation.",
   "previousBaseline": {
     "tag": "GOLDEN-BUILD-2.0.0-GA-original",
     "manifest": "releases/2.0.0-GA-original/build.json",
     "sha256": "96ff7a49e2707682511017abbda6dabda6ef1e8370649061a63300415020b5fc"
   },
   "previousRevision": {
-    "commit": "c290ead469b3ee770ed83792583f040195ef3989",
-    "sha256": "eeb3c53292ec122c70b12c9ab8335761128242361a2ce6ce06cd60dee9fcd022"
+    "commit": "8682d43f16966c57192919016763868166324d9d",
+    "sha256": "60d03f00beace6be3ec5f94bf95c506c3333c25070ac717f341bebd32e9067a4"
   },
   "deployment": {
     "activated": true,
-    "matchedTextFiles": 21,
-    "verifiedArchiveSha256": "60d03f00beace6be3ec5f94bf95c506c3333c25070ac717f341bebd32e9067a4"
+    "matchedTextFiles": 22,
+    "verifiedArchiveSha256": "1634324884ad31080ed82b1fcd839d7e05e07253df73e95d2102a35fe1121022"
   }
 }
