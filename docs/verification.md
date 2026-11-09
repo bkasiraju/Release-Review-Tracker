@@ -1,3 +1,11 @@
+# Executive action order — v2.0.2
+
+The header actions now appear in DOM/keyboard order: Generate summary, Generate V2MOM Method Summary, Copy leadership update. A targeted browser check confirms left-to-right order at 1440px and no page overflow at 390px. No generation, saving or token-accounting logic changed. The preceding 138 Node tests were not repeated for the markup/version-only change.
+
+Reviewed ZIP SHA256: a86ce0f57d8d66c4eeb3ae153b1a7971417573f47d1eaf7875e69371f4070896. Activated through staging/review/promotion; all 21 deployed text files match source. Golden baseline remains unchanged.
+
+---
+
 # AI token usage notifications — v2.0.1
 
 Explicit monthly, executive-per-epic and consolidated-method generation collect SDK-returned usage for each attempted request. A correction request contributes its own usage. Input totals include Anthropic input_tokens, cache_read_input_tokens and cache_creation_input_tokens; output uses output_tokens. Cached input is shown separately as already included, not added to the displayed total a second time. No prompt-size estimates or cost estimates are used.

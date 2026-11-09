@@ -91,7 +91,7 @@ The new slug is **`cfs-release-review-tracker`**, distinct from the adjacent exi
 
 [GUS Apps deployment target](https://gus-apps.internal.salesforce.com/applets/cfs-release-review-tracker)
 
-Version **2.0.1** is activated at this URL. A normal signed-in production session verified the live backend and the MAPS saved list resolving to 23 epics and 14 source columns; MQ query-only preflight resolves 27 epics and 13 columns. Deployment-token checks alone do not supply Salesforce user context. See `docs/verification.md` for recorded live checks and limits.
+Version **2.0.2** is activated at this URL. A normal signed-in production session verified the live backend and the MAPS saved list resolving to 23 epics and 14 source columns; MQ query-only preflight resolves 27 epics and 13 columns. Deployment-token checks alone do not supply Salesforce user context. See `docs/verification.md` for recorded live checks and limits.
 
 ## Local preview
 
