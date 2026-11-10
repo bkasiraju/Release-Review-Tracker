@@ -1,6 +1,6 @@
 # Release Intelligence
 
-A GUS Apps dashboard for reviewing a release's epics month by month.
+A GUS Apps dashboard for reviewing a release's epics month by month. Current release: **3.0.1-GA** (unified light tooltips).
 
 **3.0.0-GA · GOLDEN BUILD** — user-designated stable rollback baseline. See [golden build and recovery](docs/GOLDEN_BUILD.md).
 

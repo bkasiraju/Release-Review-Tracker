@@ -1,0 +1,13 @@
+import os,tempfile,subprocess
+from pathlib import Path
+from playwright.sync_api import sync_playwright,expect
+os.chdir(Path(__file__).resolve().parents[1])
+with tempfile.TemporaryDirectory() as tmp:
+ server=subprocess.Popen(['node','server.js','--fixture'],env={**os.environ,'PORT':'8399','CFS_FIXTURE_FILE':str(Path(tmp)/'data.json')},stdout=subprocess.PIPE,text=True)
+ try:
+  assert 'Release Review:' in server.stdout.readline()
+  with sync_playwright() as p:
+   b=p.chromium.launch();page=b.new_page(viewport={'width':1600,'height':1000});errors=[];page.on('pageerror',lambda e:errors.append(str(e)));page.goto('http://127.0.0.1:8399');expect(page.locator('#epic-count')).to_have_text('6');expect(page.locator('[title]')).to_have_count(0);marker=page.locator('.missing-review-update').first;marker.hover();tip=page.locator('#ui-tooltip');expect(tip).to_be_visible();expect(tip).to_contain_text('No dated Nov 2026 update');expect(marker).to_have_attribute('aria-describedby','ui-tooltip');assert tip.evaluate('e=>getComputedStyle(e).backgroundColor')=='rgb(243, 249, 253)';page.keyboard.press('Escape');expect(tip).to_be_hidden();assert marker.get_attribute('aria-describedby') is None
+   page.locator('.epic-summary-trigger').first.hover();expect(page.locator('#epic-updates-preview')).to_be_visible(timeout=5000);expect(tip).to_be_hidden();expect(page.locator('[title]')).to_have_count(0);page.locator('#close-epic-updates').click();page.locator('#home-button').focus();page.keyboard.press('Tab');page.keyboard.press('Shift+Tab');expect(tip).to_have_text('Release dashboard');expect(tip).to_be_visible();page.keyboard.press('Escape');expect(tip).to_be_hidden()
+   page.evaluate("()=>{const b=document.createElement('button');b.id='dynamic-tip';b.title='A long dynamically added tooltip '+ 'reference'.repeat(80);b.textContent='Dynamic';b.style='position:fixed;right:8px;bottom:8px';document.body.append(b)}");dynamic=page.locator('#dynamic-tip');expect(dynamic).not_to_have_attribute('title');dynamic.hover();expect(tip).to_be_visible();assert tip.evaluate('e=>{const r=e.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth&&r.top>=0&&r.bottom<=innerHeight&&e.scrollWidth<=e.clientWidth+1}');dynamic.evaluate("e=>e.title='Updated tooltip'");dynamic.hover();page.mouse.move(1,1);dynamic.hover();expect(tip).to_have_text('Updated tooltip');dynamic.evaluate('e=>e.remove()');expect(tip).to_be_hidden();expect(page.locator('[title]')).to_have_count(0);assert not errors,errors;b.close();print('PASS light tooltip, no native titles/duplicates, rich-summary exclusion, keyboard focus/Escape, dynamic title changes/removal and long-content viewport wrapping.')
+ finally:server.terminate();server.wait(timeout=10)

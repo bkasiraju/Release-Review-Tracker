@@ -1,3 +1,11 @@
+## 3.0.1-GA — unified light dashboard tooltips
+
+Replaces native browser title hints with one shared dashboard tooltip surface. Initial and dynamically added titles are migrated, preventing duplicate native/custom hints. Summary and AI-preview triggers retain their rich popovers without a second plain tooltip. The shared hint uses a subtle light blue background, black Salesforce Sans text, rounded border, restrained shadow and viewport-safe wrapping. Existing rich popover headers use matching light colors.
+
+Tooltips support keyboard focus, scoped aria-describedby cleanup, Escape dismissal, hoverable text, dynamic title updates and hiding on click, scroll, resize or removed controls. Content is rendered as text, not HTML. The local preview server serves the new asset. No GUS data, AI generation or persistence behavior changed.
+
+Validation: one focused isolated browser flow verifies zero native title attributes after dynamic rendering, the missing-update hint, single rich-summary popover, keyboard focus/Escape, dynamic additions/updates/removal and long-content viewport wrapping. Syntax/diff and package checks passed. No unrelated Node/full suite or production model test. The 3.0.0-GA GOLDEN BUILD tags, archives and private GOLDEN Dataset remain unchanged and are still the preferred recovery baseline.
+
 ## 3.0.0-GA — current GOLDEN BUILD and verified private GOLDEN Dataset
 
 Promotes the complete current Release Intelligence implementation to 3.0.0-GA. This is the user-designated preferred recovery version going forward. New immutable tags v3.0.0-GA and GOLDEN-BUILD-3.0.0-GA and an exact ZIP/checksum preserve the application baseline. Earlier 2.0.0-GA tags and archives remain unchanged.

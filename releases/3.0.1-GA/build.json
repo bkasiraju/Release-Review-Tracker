@@ -1,0 +1,24 @@
+{
+  "version": "3.0.1-GA",
+  "label": "GA PATCH",
+  "product": "Release Intelligence",
+  "artifact": "cfs-release-review-tracker.zip",
+  "sha256": "bdd76ba715f0367bf838e0bfb00ec598e4d6b1bd8852329978e47f5de8deafdb",
+  "gitTags": [
+    "v3.0.1-GA"
+  ],
+  "productionUrl": "https://gus-apps.internal.salesforce.com/applets/cfs-release-review-tracker/",
+  "preferredRollbackTag": "GOLDEN-BUILD-3.0.0-GA",
+  "verification": {
+    "nodeTestsPassed": 0,
+    "validationScope": "UI-only focused tooltip browser flow, syntax/diff and package checks",
+    "fullSuiteRun": false,
+    "productionModelOutputVerified": false
+  },
+  "revision": "patch-20261110-1",
+  "deployment": {
+    "activated": true,
+    "matchedTextFiles": 26,
+    "verifiedArchiveSha256": "bdd76ba715f0367bf838e0bfb00ec598e4d6b1bd8852329978e47f5de8deafdb"
+  }
+}
