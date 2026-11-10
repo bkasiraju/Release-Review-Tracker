@@ -14,7 +14,9 @@ with tempfile.TemporaryDirectory() as tmp:
   with sync_playwright() as p:
    b=p.chromium.launch();page=b.new_page(viewport={'width':1600,'height':1000});page.goto('http://127.0.0.1:8399');expect(page.locator('#epic-count')).to_have_text('6')
    for id,has_path in [('a0B000000000001',False),('a0B000000000002',False),('a0B000000000003',True)]:
-    page.locator(f'.epic-summary-trigger[data-id="{id}"]').hover();panel=page.locator('#epic-updates-preview');expect(panel).to_be_visible();expect(panel.locator('.epic-tooltip-month')).to_have_count(3);expect(panel.locator('.epic-tooltip-path')).to_have_count(int(has_path));page.locator('#close-epic-updates').click()
+    page.locator(f'.epic-summary-trigger[data-id="{id}"]').hover();panel=page.locator('#epic-updates-preview');expect(panel).to_be_visible();expect(panel.locator('.epic-tooltip-month')).to_have_count(3);expect(panel.locator('.epic-tooltip-path')).to_have_count(int(has_path))
+    if has_path:assert panel.locator('.epic-tooltip-path').evaluate('e=>getComputedStyle(e).backgroundColor')=='rgb(255, 240, 232)'
+    page.locator('#close-epic-updates').click()
    for id,missing in [('a0B000000000001',False),('a0B000000000005',True),('a0B000000000006',False)]:
     page.locator(f'.epic-summary-trigger[data-id="{id}"]').hover();panel=page.locator('#epic-updates-preview');expect(panel).to_be_visible();warning=panel.locator('.is-missing-review');expect(warning).to_have_count(int(missing))
     if missing:

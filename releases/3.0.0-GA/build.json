@@ -5,7 +5,7 @@
   "designatedBy": "User",
   "baselineDate": "2026-11-10",
   "artifact": "cfs-release-review-tracker.zip",
-  "sha256": "e970d566b7a26afc766b048784706a77bcc15ea8433df119a661ec337783194c",
+  "sha256": "2610f9f93fb28b1829adb002f3dc8e10911448e0b7f516f190686434dd1f4710",
   "gitTags": [
     "v3.0.0-GA",
     "GOLDEN-BUILD-3.0.0-GA"
@@ -14,13 +14,13 @@
   "rollbackScope": "Application files only; preserve all current shared GUS data. Private dataset recovery is separate.",
   "verification": {
     "nodeTestsPassed": 0,
-    "validationScope": "Focused monthly AI transfer browser flow; syntax/diff checks",
+    "validationScope": "Focused dropdown alignment browser flow; syntax/diff checks",
     "fullSuiteRun": false,
     "productionModelOutputVerified": false,
     "productionDatasetReadbackVerified": true,
     "datasetUnchanged": true
   },
-  "revision": "consolidated-20261110-6",
+  "revision": "consolidated-20261110-7",
   "status": "Current preferred GOLDEN BUILD going forward",
   "dataset": {
     "manifest": "GOLDEN_DATASET.json",
@@ -34,10 +34,10 @@
     "sha256": "9e09d4174a19661c582c082084eb6b452febed65184926161595bf44cab6e977",
     "commit": "3bce027a1f6d10f8f041275c1d6785b595fe067e"
   },
-  "includes": "All current changes plus tooltip AI navigation and explicit generated-text transfer to the monthly editor.",
+  "includes": "All current changes plus removal of From GUS labels and left-aligned dropdown text with right-aligned carets. Watch Path to Green tooltip sections use red-tinted amber.",
   "deployment": {
     "activated": true,
     "matchedTextFiles": 26,
-    "verifiedArchiveSha256": "e970d566b7a26afc766b048784706a77bcc15ea8433df119a661ec337783194c"
+    "verifiedArchiveSha256": "2610f9f93fb28b1829adb002f3dc8e10911448e0b7f516f190686434dd1f4710"
   }
 }

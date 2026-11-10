@@ -1,3 +1,11 @@
+## 3.0.0-GA — GOLDEN BUILD clean dropdown alignment
+
+Watch epic Summary tooltips also use red-tinted amber for Path to Green; focused browser color assertion passed.
+
+Removed the From GUS source chip from the epic table toolbar. Release, health, owner and grouping dropdown labels align left with carets at the right edge in empty and selected states.
+
+Validation: focused isolated browser flow verifies source-label removal and label/caret geometry at 1600 and 1100px, including selected filter state. Syntax/diff checks passed. No backend or dataset changes.
+
 ## 3.0.0-GA — GOLDEN BUILD monthly AI actions
 
 Missing review-month Summary tooltips include AI Summarise, opening the matching epic/month sidebar and generating a draft. Generated text that needs review has Copy to monthly update and Undo copy actions. Transfer is explicit, retains the validation warning, and never auto-saves or syncs. Accepted drafts continue to populate the editor with Undo.
