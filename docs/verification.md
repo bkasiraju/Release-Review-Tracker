@@ -1,3 +1,11 @@
+## 2.0.0-GA — missing-review-month indicator on epic rows
+
+Fetched epics without a dated update for the selected review month now show an amber calendar/exclamation icon and Missing update badge beside the epic name. Its accessible label and hover title name the missing month. Clicking opens that month’s editor directly. The indicator appears on the parent epic row, including grouped/expanded views, without repeating it inside the detailed table. At narrow widths the text label folds away while the icon and accessible month label remain.
+
+Pending save text and saved drafts count as available update text, so the marker disappears immediately when an update is submitted. Other months and undated fallback notes do not satisfy the selected-month check. Unfetched epics and unavailable comments are not falsely labeled as confirmed missing updates. The missing-month filter and headline count use the same value resolution, including pending saves.
+
+Validation: one focused isolated browser flow checks missing/current months, grouped rows, October/November/December switching, correct editor navigation, fixture GUS save and marker removal, and narrow-screen icon/accessibility. UI-only change; syntax and diff checks pass. No Node/full suite or live GUS/model calls were run.
+
 ## 2.0.0-GA — compact V2MOM outcome updates and full-page epic table
 
 Generate V2MOM update now prepares grounded epic summaries and automatically synthesizes one compact paragraph per measure/team. The primary output combines related delivery outcomes rather than displaying concatenated epic reports. The runtime GUS Apps AI SDK system/user instructions aim for 40–55 words with a hard 500-character/70-word cap, selecting two or three material outcome themes, meaningful supplied metrics and critical dependencies/risks with documented recovery or next actions. Current review-month evidence leads; older progress supplies only necessary context. Technical inventories and repeated historical narration are omitted when not material. Goals, Closed, Ready for Review and Released remain distinct; existing factual/temporal/numeric guards and empty-output rejection remain. Screenshot examples guide style only and supply no runtime facts. Instructions are documented in docs/V2MOM_UPDATE_INSTRUCTIONS.md and embedded in the SDK payload.

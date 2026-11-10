@@ -3,6 +3,7 @@
  'use strict';
  const art={scope:'open-source',risk:'deviation',monthly:'sla',ai:'automation'};
  const paths={
+  missingUpdate:'<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M7 3v4M17 3v4M3 10h18M12 13v3"/><circle cx="12" cy="18" r=".5"/>',
   stack:'<rect x="4" y="4" width="16" height="5" rx="2"/><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 15h8M8 18h5"/>',
   health:'<path d="M3 12h4l2-6 4 12 2-6h6"/><circle cx="12" cy="12" r="10"/>',
   healthy:'<path d="M12 3 4 6v6c0 5 8 9 8 9s8-4 8-9V6Z"/><path d="m8 12 3 3 5-6"/>',

@@ -1,0 +1,12 @@
+import os,tempfile,subprocess,json
+from pathlib import Path
+from playwright.sync_api import sync_playwright,expect
+os.chdir(Path(__file__).resolve().parents[1])
+with tempfile.TemporaryDirectory() as tmp:
+ f=Path(tmp)/'data.json';server=subprocess.Popen(['node','server.js','--fixture'],env={**os.environ,'PORT':'8399','CFS_FIXTURE_FILE':str(f)},stdout=subprocess.PIPE,text=True)
+ try:
+  assert 'Release Review:' in server.stdout.readline()
+  with sync_playwright() as p:
+   b=p.chromium.launch();page=b.new_page(viewport={'width':1800,'height':1000});page.goto('http://127.0.0.1:8399');expect(page.locator('#epic-count')).to_have_text('6');review=page.locator('#review-month');review.fill('2026-11');review.dispatch_event('change');markers=page.locator('.epic-summary-row .missing-review-update');expect(markers).to_have_count(1);expect(markers).to_have_attribute('data-id','a0B000000000005');expect(markers).to_have_attribute('data-month','2026-11');expect(markers).to_contain_text('Missing update')
+   page.locator('#group-by').evaluate("e=>{e.value='health';e.dispatchEvent(new Event('change',{bubbles:true}))}");expect(markers).to_have_count(1);review.fill('2026-10');review.dispatch_event('change');expect(markers).to_have_count(0);review.fill('2026-12');review.dispatch_event('change');expect(markers).to_have_count(6);review.fill('2026-11');review.dispatch_event('change');markers.click();expect(page.locator('#drawer-title')).to_have_text('November 2026');page.locator('#monthly-text').fill('Partner validation remains in progress.');page.locator('#monthly-text').dispatch_event('input');page.locator('#save-draft').click();expect(page.locator('#drawer')).to_be_hidden();expect(markers).to_have_count(0);expect(page.locator('#save-status')).to_contain_text('Saved to GUS',timeout=15000);assert 'Partner validation remains in progress.' in json.loads(f.read_text())['remote']['a0B000000000005']['comments'];review.fill('2026-12');review.dispatch_event('change');page.set_viewport_size({'width':850,'height':900});expect(markers).to_have_count(6);expect(markers.first.locator('.cfs-icon')).to_be_visible();assert markers.first.get_attribute('aria-label').startswith('Missing Dec 2026 update');b.close();print('PASS review-month missing icon in grouped/collapsed rows, month changes, direct editor action, save/publish removal and accessible narrow-screen icon.')
+ finally:server.terminate();server.wait(timeout=10)
