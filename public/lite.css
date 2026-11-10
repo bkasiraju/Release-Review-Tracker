@@ -524,3 +524,8 @@ body:not(.view-focused) main{display:flex;flex-direction:column;min-height:calc(
 
 /* Shared, light tooltips; native title hints are migrated by tooltips.js. */
 .ui-tooltip{position:fixed;z-index:300;max-width:min(360px,calc(100vw - 24px));max-height:calc(100dvh - 24px);overflow:auto;padding:8px 11px;border:1px solid #c9dde9;border-radius:8px;background:#f3f9fd;color:#111!important;box-shadow:0 4px 14px #23496018;font-size:12px;line-height:1.45;white-space:normal;overflow-wrap:anywhere;word-break:normal;cursor:default}.ui-tooltip[hidden]{display:none}.epic-updates-preview,.comment-ai-preview{background:#fbfdff;border-color:#c8dce9;box-shadow:0 5px 18px #2349601f}.epic-updates-preview>header,.comment-ai-preview>header{background:#edf6fc;border-bottom-color:#d6e5ef}
+
+/* Keep month labels in their own intrinsic column at every tile width. */
+#overview-panel .health-metrics-strip .coverage-row{grid-template-columns:max-content minmax(0,1fr) max-content;column-gap:8px}
+#overview-panel .health-metrics-strip .coverage-row>span{min-width:0}
+#overview-panel .health-metrics-strip .coverage-period{white-space:nowrap}

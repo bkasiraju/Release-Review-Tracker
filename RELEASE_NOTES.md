@@ -1,3 +1,9 @@
+## 3.0.0-GA — GOLDEN BUILD tooltip and coverage refinement
+
+On Track epic Summary tooltips display monthly updates without the Path to Green section, whether a recovery field is populated or empty. Other statuses retain that section. No stored comments or Path to Green values are changed. Monthly coverage uses intrinsic label widths and a dedicated gap so labels, bars and counts remain separate.
+
+Validation: focused isolated browser check for On Track with/without saved recovery text, Watch recovery visibility and three monthly sections; label/bar/count separation at 1600, 1280 and 900px. Syntax and diff checks passed. No production model invocation or dataset mutation.
+
 ## 3.0.0-GA — consolidated GOLDEN BUILD: independent text mode and expansion
 
 At the user's explicit request, the tooltip patch and update-view fix are folded back into the current 3.0.0-GA GOLDEN BUILD. The prior exact 3.0.0-GA archive is preserved at releases/3.0.0-GA-original/ and its source is retained at GOLDEN-BUILD-3.0.0-GA-original. Older 2.0.0-GA and 3.0.1-GA releases remain intact. The private GOLDEN Dataset is unchanged.

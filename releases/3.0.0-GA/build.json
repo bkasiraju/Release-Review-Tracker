@@ -5,7 +5,7 @@
   "designatedBy": "User",
   "baselineDate": "2026-11-10",
   "artifact": "cfs-release-review-tracker.zip",
-  "sha256": "ecf093d3c197ff098263c7b49f8ae268b318307decaefd45835c2a03e19b2cce",
+  "sha256": "e2e9f6bad98edd65002a6c2041da12d1a6dcb387221dda57ceeb94a87ce179f0",
   "gitTags": [
     "v3.0.0-GA",
     "GOLDEN-BUILD-3.0.0-GA"
@@ -14,13 +14,13 @@
   "rollbackScope": "Application files only; preserve all current shared GUS data. Private dataset recovery is separate.",
   "verification": {
     "nodeTestsPassed": 0,
-    "validationScope": "UI-only focused view-mode browser flow, syntax/diff and package checks",
+    "validationScope": "Focused tooltip-health and coverage browser flow; syntax/diff checks",
     "fullSuiteRun": false,
     "productionModelOutputVerified": false,
     "productionDatasetReadbackVerified": true,
     "datasetUnchanged": true
   },
-  "revision": "consolidated-20261110-2",
+  "revision": "consolidated-20261110-3",
   "status": "Current preferred GOLDEN BUILD going forward",
   "dataset": {
     "manifest": "GOLDEN_DATASET.json",
@@ -34,10 +34,10 @@
     "sha256": "9e09d4174a19661c582c082084eb6b452febed65184926161595bf44cab6e977",
     "commit": "3bce027a1f6d10f8f041275c1d6785b595fe067e"
   },
-  "includes": "All current changes including unified light tooltips and independent update-text mode versus row/group expansion.",
+  "includes": "All current changes plus On Track tooltip recovery-section suppression and non-overlapping monthly coverage labels.",
   "deployment": {
     "activated": true,
     "matchedTextFiles": 26,
-    "verifiedArchiveSha256": "ecf093d3c197ff098263c7b49f8ae268b318307decaefd45835c2a03e19b2cce"
+    "verifiedArchiveSha256": "e2e9f6bad98edd65002a6c2041da12d1a6dcb387221dda57ceeb94a87ce179f0"
   }
 }
