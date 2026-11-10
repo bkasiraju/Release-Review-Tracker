@@ -1,0 +1,13 @@
+{
+  "version": "3.0.0-GA",
+  "name": "Backend - GOLDEN Dataset",
+  "status": "saved-and-readback-verified",
+  "sha256": "c176f342dd366c5182bfac9cdddf03c9c70cc36e5ebf23355f4e0d8db3aa50a7",
+  "capturedAt": "2026-11-10T13:43:29.543Z",
+  "verifiedAt": "2026-11-10T13:43:34.153Z",
+  "storage": "Private Salesforce ContentVersion file in GUS",
+  "fileTitle": "Release Intelligence Backend - GOLDEN Dataset - 3.0.0-GA",
+  "format": "cfs-golden-dataset/v1",
+  "contentsPublishedToGit": false,
+  "restorePolicy": "Separate explicit authorization required; application rollback preserves current backend data."
+}

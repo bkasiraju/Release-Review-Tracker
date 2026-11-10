@@ -2,7 +2,7 @@
 
 A GUS Apps dashboard for reviewing a release's epics month by month.
 
-**2.0.0-GA · GOLDEN BUILD** — user-designated stable rollback baseline. See [golden build and recovery](docs/GOLDEN_BUILD.md).
+**3.0.0-GA · GOLDEN BUILD** — user-designated stable rollback baseline. See [golden build and recovery](docs/GOLDEN_BUILD.md).
 
 ## What it does
 

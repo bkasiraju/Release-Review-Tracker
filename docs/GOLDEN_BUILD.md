@@ -1,26 +1,31 @@
-# 2.0.0-GA · GOLDEN BUILD
+# 3.0.0-GA · GOLDEN BUILD
 
-The user designated this release as the best working build and stable rollback baseline on 9 November 2026. This consolidated build includes the summary fixes, AI token usage notices, generation/copy order, parent heading swap, Core Foundation Services wording, centered expand icons and right-aligned dropdown triggers. The user explicitly requested folding all changes into GA on 9 November 2026. This designation does not remove the verification limits documented in `verification.md`.
+The user designated 3.0.0-GA as the current preferred recovery baseline on 10 November 2026. It includes all changes through the shared executive delta cache, hourly evidence validation, status/review workflow, icon-only exceptions, Completed exemption, and consistently aligned GUS links. This is a user-designated recovery reference; verification limits remain documented below.
 
-## Immutable baseline
+## Immutable application baseline
 
-- Version: `2.0.0-GA`
-- Git tags: `v2.0.0-GA` and `GOLDEN-BUILD-2.0.0-GA`
-- Packaged application: `releases/2.0.0-GA/cfs-release-review-tracker.zip`
-- SHA-256 and deployment metadata: `releases/2.0.0-GA/build.json`
+- Tags: `v3.0.0-GA` and `GOLDEN-BUILD-3.0.0-GA`
+- Exact application ZIP: `releases/3.0.0-GA/cfs-release-review-tracker.zip`
+- SHA-256, review and deployment metadata: `releases/3.0.0-GA/`
 - Production: https://gus-apps.internal.salesforce.com/applets/cfs-release-review-tracker/
 
-The pre-consolidation baseline is preserved at `GOLDEN-BUILD-2.0.0-GA-original` and `releases/2.0.0-GA-original/`. The canonical GA tags were moved only for this explicit consolidation request. Do not replace these tags or overwrite the consolidated archive when shipping future versions. Future release notes should retain this as the preferred recovery target until the user explicitly designates a replacement.
+Preserve these tags and artifacts for future recovery. Earlier `v2.0.0-GA`, `GOLDEN-BUILD-2.0.0-GA`, original tags and archives remain unchanged. They are older recovery options, not the current preferred baseline.
 
-## Recover from a later regression
+## Backend — GOLDEN Dataset
 
-1. Preserve any unrelated working changes. Create an isolated checkout of `GOLDEN-BUILD-2.0.0-GA`, or download this release's ZIP and checksum from Git.
-2. Verify the stored ZIP's SHA-256 matches `build.json`. Use the stored ZIP for byte-identical restoration; rebuilding from a checkout can produce different ZIP timestamps.
-3. Upload that exact archive through the GUS Apps applet deployment screen. Complete the platform's required build review and promotion flow for `cfs-release-review-tracker`. Do not confuse staging/upload with activation.
-4. Verify activation and the connection version `2.0.0-GA` in a signed-in GUS Apps session, then check the affected workflow. Record the rollback result.
+The complete shared GUS Apps backend was captured separately as a private Salesforce ContentVersion file named **Release Intelligence Backend - GOLDEN Dataset - 3.0.0-GA**. It contains materialized release/epic/settings records and the complete app journal, including deleted release entries, drafts, comment history and stored source fields. Two identical journal reads established a stable capture. The uploaded compressed file was downloaded again and verified by SHA-256 and parsed dataset equality.
 
-Rollback restores application files only. Preserve all GUS epics, monthly comments, releases, drafts and shared journal history. Never run a destructive Git reset over a user's working changes. If a future release changes the shared data format, assess compatibility before rollback rather than discarding data.
+Public metadata/checksum is in `GOLDEN_DATASET.json`. The private recovery manifest, authenticated Salesforce file link and additional local copy are under `.local/golden-datasets/3.0.0-GA/`. Dataset contents, Salesforce record IDs and credentials must never enter Git or Pages. The backup created no anonymous download link or new organization-wide share. It preserves saved dashboard data, not an independently queried backup of every underlying Salesforce object or attachment.
 
-## Verification scope
+## Application recovery
 
-The consolidated GA source passes 138 Node checks plus isolated browser checks for consolidation recovery, monthly save/reload and Escape shortcuts. The deployed source is compared with the reviewed artifact. Full production model output and live authenticated backend behavior were not re-verified for this branding release; see the detailed verification record. Live automatic list-column metadata remains dependent on central GUS Apps capabilities.
+1. Preserve unrelated work. Obtain the exact ZIP and checksum from the 3.0.0-GA release or an isolated checkout of `GOLDEN-BUILD-3.0.0-GA`.
+2. Verify the archive SHA-256 against `build.json`. Use the stored ZIP; rebuilding can change ZIP timestamps.
+3. Upload that archive and complete GUS Apps review/promotion for the existing slug. Staging alone is not activation.
+4. Verify activation and connection/footer version `3.0.0-GA`, then the affected workflow.
+
+Application rollback must preserve live GUS records, comments, releases, drafts and journal history. Never automatically restore the dataset during code rollback: that could discard newer legitimate user work. Dataset restoration requires explicit authorization at restore time, a new pre-restore backup and compatibility checks. Prefer selective recovery through normal backend save paths; preserve the private snapshot as immutable evidence.
+
+## Verification
+
+Focused cache/executive tests and isolated browser checks cover prior feature changes. The 3.0.0-GA release additionally checks private snapshot integrity, application version and GUS icon alignment. Actual production backend journal capture/upload/readback was verified. Actual production model generation was not reverified. See `docs/verification.md` for detailed scope. A GOLDEN designation does not imply untested production behavior was verified.

@@ -1,11 +1,11 @@
 # Release Intelligence
 
-The user designated **2.0.0-GA** as the **GOLDEN BUILD**, the stable rollback baseline. On 9 November 2026, the user explicitly requested folding subsequent changes into this version. The earlier baseline is preserved at `GOLDEN-BUILD-2.0.0-GA-original` and `releases/2.0.0-GA-original/`; the consolidated baseline retains the canonical GA tags.
+The user designated **3.0.0-GA** as the current **GOLDEN BUILD** and preferred rollback reference on 10 November 2026. Preserve all earlier 2.0.0-GA tags and release archives. The dataset has a separate private GOLDEN Dataset backup; it must never be published in Git or Pages.
 
-- Keep this baseline immutable. Do not move or overwrite its `v2.0.0-GA` or `GOLDEN-BUILD-2.0.0-GA` Git tags, archive, or checksum.
-- If a future release introduces a regression, use this build as the rollback target; follow `docs/GOLDEN_BUILD.md`. Preserve unrelated working changes.
-- Roll back application code only. Never delete or replace shared GUS records, release lists, comments, drafts, or journal history as part of rollback.
-- Keep credentials, `.local/` state, session files, cached GUS data and deployment tokens out of Git and Pages.
+- Keep `v3.0.0-GA`, `GOLDEN-BUILD-3.0.0-GA` and `releases/3.0.0-GA/` immutable unless the user explicitly redesignates a build.
+- For future regressions, restore the exact 3.0.0-GA artifact/checksum; follow `docs/GOLDEN_BUILD.md` and preserve unrelated work.
+- Application rollback must preserve live GUS epics, comments, release lists, drafts and journal history. Dataset restoration is separate and requires explicit user authorization at restore time.
+- Keep credentials, `.local/` state, private dataset backups, session files and deployment tokens out of Git and Pages. Public release metadata may contain backup hashes/status, never dataset records.
 - GUS Apps is the authenticated production application. GitHub Pages cannot supply its GUS backend.
 - Release notes must distinguish fixture verification from actual production model/session verification.
 

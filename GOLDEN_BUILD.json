@@ -1,10 +1,11 @@
 {
-  "version": "2.0.0-GA",
+  "version": "3.0.0-GA",
   "label": "GOLDEN BUILD",
-  "revision": "consolidated-20261110-28",
-  "manifest": "releases/2.0.0-GA/build.json",
-  "preferredRollbackTag": "GOLDEN-BUILD-2.0.0-GA",
+  "revision": "golden-20261110-1",
+  "manifest": "releases/3.0.0-GA/build.json",
+  "preferredRollbackTag": "GOLDEN-BUILD-3.0.0-GA",
   "immutable": true,
-  "userRequestedConsolidation": true,
-  "previousBaselineTag": "GOLDEN-BUILD-2.0.0-GA-original"
+  "designatedBy": "User",
+  "previousBaselineTag": "GOLDEN-BUILD-2.0.0-GA",
+  "datasetManifest": "GOLDEN_DATASET.json"
 }
