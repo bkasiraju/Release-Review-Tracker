@@ -1,11 +1,11 @@
 {
   "recommendation": "ApproveWithCaveats",
-  "summary": "Focused implementing-agent source and artifact review of v2.0.0-GA revision16. All 30 packaged files match source. No automatic Sheet lookups remain in preview/monthly/executive/publication paths; missing Measure stays unassigned. Read-only preview uses displayed text and never writes. Normal goal/Path-to-Green requirements and factual AI guards remain. Not Started enum, UI, save and schema/publication checks agree; Review Status saves preserve drafts. Loading lifecycle and side-positioned summary tooltip are covered by focused browser checks. This is not an independent review.",
+  "summary": "Focused implementing-agent review of revision17. All 30 packaged files match source. Inline Epic Status checks membership, shared revision, active picklist and fresh remote status; writes only Health__c, verifies it, preserves comments/drafts and clears obsolete Review Status. Existing Watch Path-to-Green requirement enforced before change. Distinct status palette does not alter healthy/attention filters. Three focused Node tests and one combined isolated browser flow passed. This is not an independent review.",
   "blockingIssues": [],
   "caveats": [
-    "Actual hosted browser and production SDK/model outputs remain unverified; no guarantee of model acceptance is inferred from fixture checks.",
-    "Absent Measure is intentionally unassigned and flagged separately; normal missing goals or required Path to Green can still block generation/publication.",
-    "Existing non-atomic GUS writes, sharing, metadata limitations, source truncation and human review requirements remain.",
-    "Validation is limited to 12 focused Node tests, syntax checks and one combined isolated browser flow; no full suite."
+    "Production GUS write permissions depend on the signed-in user and were not verified through a hosted browser.",
+    "If host REST is unavailable, status writes use a pre-save recheck and post-save verification rather than atomic conditional writes.",
+    "Missing Health metadata uses the known status choices; Salesforce remains authoritative and rejects invalid values.",
+    "No broad suite or live data mutation was performed in tests. Existing AI evidence, sharing and connector limitations remain."
   ]
 }

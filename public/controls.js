@@ -15,6 +15,7 @@
   for(const r of choices)if(counts.get(normalize(r.name))>1)r.label=`${r.name} · ${r.year} · ${r.epicIds.length} epics · ${r.id.slice(0,8)}`;
   return {choices,aliases};
  }
+ function statusTone(status){const value=normalize(status).replace(/[-_]+/g,' ');return /cancelled|canceled/.test(value)?'yellow':/not started|not available/.test(value)?'grey':/blocked|off track|at risk|red/.test(value)?'red':/watch|risk|hold|amber/.test(value)?'amber':/complete|done|closed|released/.test(value)?'blue':/on ?track|green/.test(value)?'green':'grey';}
  function summaryColumnSizes(rows=[],width=1080,measure=text=>String(text).length*6.5){
   const widest=(key,extra,min,max)=>Math.max(min,Math.min(max,Math.max(0,...rows.map(e=>measure(String(e[key]||''))))+extra));
   const weights=[widest('name',48,280,440),widest('lead',48,170,300),widest('health',34,110,160),220,120],base=weights.reduce((a,b)=>a+b,0),usable=Math.max(base,Number(width)-40||0);
@@ -78,5 +79,5 @@
   return slackReminderParts(text,data).map(part=>part.type==='link'?`<a href="${escape(part.url)}" target="_blank" rel="noopener noreferrer" style="color:#1264a3;text-decoration:underline">${format(part.text)}</a>`:part.type==='mention'?`<span class="nudge-mention">${escape(part.text)}</span>`:format(part.text)).join('');
  }
  function slackReminderPlainText(text,data){const plain=value=>value.replace(/\*([^*\n]+)\*/g,'$1').replace(/(^|[\s(])_([^_\n]+)_(?=$|[\s).,!?:;])/g,'$1$2');return slackReminderParts(text,data).map(part=>part.type==='link'?plain(part.text)+' ('+part.url+')':plain(part.text)).join('');}
- const api={slackReminderHTML,slackReminderPlainText,groupEpics,groupLabels,reviewMonths,visibleReleaseMonths,shortTeam,sortEpics,releaseSignature,sortWorkItems,normalize,uniqueOptions,releaseChoices,columnSizes,summaryColumnSizes,MultiSelect};if(typeof module==='object'&&module.exports)module.exports=api;else root.ReviewControls=api;
+ const api={statusTone,slackReminderHTML,slackReminderPlainText,groupEpics,groupLabels,reviewMonths,visibleReleaseMonths,shortTeam,sortEpics,releaseSignature,sortWorkItems,normalize,uniqueOptions,releaseChoices,columnSizes,summaryColumnSizes,MultiSelect};if(typeof module==='object'&&module.exports)module.exports=api;else root.ReviewControls=api;
 })(typeof globalThis!=='undefined'?globalThis:window);

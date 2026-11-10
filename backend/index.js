@@ -32,6 +32,8 @@ async function handleRequest(ctx){
       case 'save-v2mom-mapping':payload=await service.saveMapping(b);break;
       case 'save-v2mom-reference':payload=await service.saveReference(b);break;
       case 'save-path-to-green':payload=await service.savePath(b);break;
+      case 'epic-status-options':payload={options:await gus.epicStatusOptions()};break;
+      case 'save-epic-status':payload=await service.saveEpicStatus(b);break;
       case 'save-review-status':payload=await service.saveReviewStatus(b);break;
       case 'save-settings':payload=await service.saveSettings(b);break;
       case 'fetch':payload=await service.fetch(b.releaseId,{cursor:b.cursor,fetchRevision:b.fetchRevision,automatic:b.automatic===true});break;

@@ -166,6 +166,16 @@ class Gus{
     }
     return {items,unavailable,truncated:rows.length>2000,limit:2000,historyUnavailable,historyTruncated};
   }
+  async epicStatusOptions(){
+    let schema;if(typeof this.sf.describe==='function')schema=await this.sf.describe('ADM_Epic__c');else if(typeof this.sf.sobject==='function')schema=await this.sf.sobject('ADM_Epic__c').describe();
+    const field=schema?.fields?.find(f=>f.name==='Health__c');if(field?.updateable===false)throw Error('Epic Status is read-only for your GUS user.');
+    return field?.picklistValues?.filter(v=>v.active!==false).map(v=>({value:v.value,label:v.label||v.value}))||['Not Started','On Track','Watch','Blocked','Completed','Canceled'].map(value=>({value,label:value}));
+  }
+  async updateEpicStatus(id,value,modified){
+    id=validId(id);const fields={Health__c:value};
+    if(typeof this.sf.request==='function'){await this.sf.request({method:'PATCH',url:`/services/data/v62.0/sobjects/ADM_Epic__c/${id}`,headers:{'Content-Type':'application/json','If-Unmodified-Since':new Date(modified).toUTCString()},body:JSON.stringify(fields)});return {conditional:true};}
+    const latest=await this.epic(id);if(latest.modified!==modified)throw Error('This epic changed. Refresh before saving Epic Status.');if(typeof this.sf.update!=='function')throw Error('GUS Apps does not expose Salesforce update().');const out=await this.sf.update('ADM_Epic__c',id,fields);if(!out||out.success===false||out.errors?.length)throw Error('GUS rejected Epic Status.');return {conditional:false};
+  }
   async updatePathToGreen(id,text,modified){
     id=validId(id);const fields={Path_to_Green__c:text};
     if(typeof this.sf.request==='function'){await this.sf.request({method:'PATCH',url:`/services/data/v62.0/sobjects/ADM_Epic__c/${id}`,headers:{'Content-Type':'application/json','If-Unmodified-Since':new Date(modified).toUTCString()},body:JSON.stringify(fields)});return {conditional:true};}

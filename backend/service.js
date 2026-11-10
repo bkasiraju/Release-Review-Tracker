@@ -76,6 +76,17 @@ class Service{
 
   async policyEpic(id){const result=await this.gus.epics([id],reviewPolicy.FIELDS);if(!result.epics[0])throw Error('Epic is not visible in GUS.');return result.epics[0];}
   async savePath(data){const id=validId(data.epicId),r=await this.release(data.releaseId);if(!r.epicIds.includes(id))throw Error('Epic is not part of this release.');if(typeof data.value!=='string'||!data.value.trim()||data.value.length>30000)throw Error('Enter a Path to Green of up to 30,000 characters.');const old=await this.store.get('epic',id);if(!old||old.revision!==data.revision)throw Error('Epic changed. Refresh before editing Path to Green.');const row=await this.gus.epic(id);if(plainText(row.pathToGreen)!==plainText(old.pathToGreen))throw Error('Path to Green changed in GUS. Refresh before saving.');await this.gus.updatePathToGreen(id,data.value.trim(),row.modified);const verified=await this.gus.epic(id);if(plainText(verified.pathToGreen)!==plainText(data.value.trim()))throw Error('GUS Path to Green could not be verified. Refresh before retrying.');const latest=await this.store.get('epic',id);const saved=await this.store.put('epic',id,{...latest,...verified,extra:{...latest.extra,...verified.extra}},latest.revision);return {...saved,parsed:publicParsed(this.parsed(saved)),pathToGreen:plainText(saved.pathToGreen)};}
+  async saveEpicStatus(data){
+    const id=validId(data.epicId),r=await this.release(data.releaseId);if(!r.epicIds.includes(id))throw Error('Epic is not part of this release.');
+    const old=await this.store.get('epic',id);if(!old||old.revision!==data.revision)throw Error('Epic changed. Refresh before editing Epic Status.');
+    const options=await this.gus.epicStatusOptions();if(typeof data.value!=='string'||!options.some(o=>o.value===data.value))throw Error('Choose a valid GUS Epic Status.');
+    const row=await this.gus.epic(id);if(row.health!==old.health||row.health!==data.previousStatus)throw Error('Epic Status changed in GUS. Refresh before saving.');
+    if(data.value==='Watch'&&!plainText(row.pathToGreen).trim())throw Error('Enter and save Path to Green before changing Epic Status to Watch.');
+    if(row.health!==data.value)await this.gus.updateEpicStatus(id,data.value,row.modified);
+    const verified=await this.gus.epic(id);if(verified.health!==data.value)throw Error('GUS Epic Status could not be verified. Refresh before retrying.');
+    const latest=await this.store.get('epic',id),saved=await this.store.put('epic',id,{...latest,...verified,drafts:latest.drafts||{},extra:{...latest.extra,...verified.extra},reviewStatus:row.health===data.value?latest.reviewStatus:undefined,fetchedAt:new Date().toISOString()},latest.revision);
+    return {...saved,parsed:publicParsed(this.parsed(saved)),pathToGreen:plainText(saved.pathToGreen)};
+  }
   async saveReviewStatus(data){
     const id=validId(data.epicId),r=await this.release(data.releaseId);if(!r.epicIds.includes(id))throw Error('Epic is not part of this release.');
     const old=await this.store.get('epic',id);if(!old||data.revision!==old.revision)throw Error('Epic changed. Refresh before saving Review Status.');
