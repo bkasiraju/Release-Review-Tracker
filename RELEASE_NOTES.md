@@ -1,3 +1,11 @@
+## 3.0.0-GA — GOLDEN BUILD semantic tooltip month colors
+
+Review Status dropdowns now share a fixed trailing warning slot, keeping populated and required selectors aligned; warning icons appear after the selector. Focused browser comparison checks equal x-position/width and trailing icon placement.
+
+All populated dated month sections in Summary tooltips use green. Missing month sections use red-tinted amber, independent of their position; the missing review-month guidance remains visible. Completed epics remain exempt. Colors indicate update availability, not delivery health. Engineer comments and backend data are unchanged.
+
+Validation: focused isolated browser assertions for green populated sections and red-tinted amber missing review month, plus retained recovery visibility and chart spacing checks. Syntax/diff checks passed. No production model call or dataset mutation.
+
 ## 3.0.0-GA — GOLDEN BUILD missing review-month guidance
 
 Summary tooltips show the missing review month as an amber section with a prompt to add the latest status or use AI Summarise. Existing fallback/general content is retained. Completed epics remain exempt; populated monthly updates keep their normal styling.
