@@ -39,7 +39,7 @@ function inspectMonthly(text,source,keys,requirePrevious=false,grounding=null){r
 function parseMonthly(...args){return inspectMonthly(...args).result||null;}
 async function monthlyDraft(sf,{epic,health,work,month},options={}){
  if(work.truncated||work.historyTruncated)throw Error('This epic exceeds the delivery-evidence limit. No partial AI draft was generated.');
- const snapshotDate=new Date().toISOString().slice(0,10),warnings=['Review this executive draft before saving. Current statuses alone do not establish completion dates.'];
+ const snapshotDate=new Date().toISOString().slice(0,10),warnings=options.previewOnly?['Read-only preview; engineer text remains unchanged.']:['Review this executive draft before saving. Current statuses alone do not establish completion dates.'];
  if(!(work.items||[]).length)warnings.push('No work items are linked; this assessment uses the engineer update and epic goal only.');
  if(work.historyUnavailable)warnings.push('Status history is unavailable; completion timing is not inferred from modification dates.');
  const goals=Object.entries(epic.extra||{}).filter(([k,v])=>v&&/Description|Criteria|Goal/i.test(k)).map(([field,text])=>({field,text:clean(text).slice(0,2500)}));
@@ -54,10 +54,11 @@ async function monthlyDraft(sf,{epic,health,work,month},options={}){
  const healthUpdates=(health.updates||[]).map((u,i)=>({month:u.month,text:u.text.slice(0,i===0?6000:Math.max(40,Math.floor(6000/Math.max((health.updates||[]).length-1,1))))}));
  const otherSprintContext=scope.context.slice(0,20).map(w=>({subject:clean(w.title),currentStatus:w.status,sprint:w.sprint,closedAt:w.closedAt||null}));
  const data={month,snapshotDate,epic:epic.name,epicHealth:epic.health||'Not reported',epicHealthAsOf:snapshotDate,pathToGreen:clean(epic.pathToGreen).slice(0,2000),goals,v2momMapping:epic.v2momMapping,healthUpdates,currentMonthUpdates:healthUpdates.filter(u=>u.month===month),previousMonthUpdates:healthUpdates.filter(u=>u.month<month),undated:health.undated?.slice(0,1500),deliveryEvidence:evidence,otherSprintContext};
- const prompt=policy.systemPrompt+'\n\n'+policy.instructions+'\nEvidence: '+JSON.stringify(data);
+ const systemPrompt=policy.systemPrompt+(options.previewOnly?' This request is a read-only preview of the supplied engineer update. Missing Measure, Method, goals or Path to Green must not block the preview. Never invent missing metadata or infer a date. Do not save or modify any record.':''),instructions=options.previewOnly?policy.instructions.replace('Watch/Blocked or reported blockers require a documented Path to Green before generation.','A read-only preview may use existing comments without a goal, Measure or Path to Green; never invent absent fields.'):policy.instructions;
+ const prompt=systemPrompt+'\n\n'+instructions+'\nEvidence: '+JSON.stringify(data);
  const grounding={month,health:historical?null:epic.health||null,updates:health.updates||[],work:workEvidence};
  const sourceText=JSON.stringify(data),requiredEvidenceKeys=workEvidence.map(w=>w.key);
- if(options.prepare)return {...base,ai:{format:'monthly-v2',message:prompt,systemPrompt:policy.systemPrompt,maxCharacters:policy.limits.currentCharacters,maxWords:policy.limits.currentWords,sourceText,requiredEvidenceKeys,requirePrevious:history.length>0,grounding}};
+ if(options.prepare)return {...base,ai:{format:'monthly-v2',message:prompt,systemPrompt,maxCharacters:policy.limits.currentCharacters,maxWords:policy.limits.currentWords,sourceText,requiredEvidenceKeys,requirePrevious:history.length>0,grounding}};
  if(typeof sf?.einsteinPromptGeneration!=='function')return {...base,aiNotice:'GUS Apps AI is unavailable. No executive draft was generated; your existing update is unchanged.'};
  const deadline=Date.now()+12000;let lastMonthlyResponse='';
  async function request(message){let timer;try{const remaining=deadline-Date.now();if(remaining<=0)throw Error('AI draft timed out');const result=await Promise.race([sf.einsteinPromptGeneration(message),new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('AI draft timed out')),remaining);})]);lastMonthlyResponse=result?.generations?.[0]?.text||result?.text||(typeof result==='string'?result:'');return lastMonthlyResponse;}finally{clearTimeout(timer);}}
