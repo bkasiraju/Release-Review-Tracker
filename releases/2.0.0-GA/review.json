@@ -1,9 +1,10 @@
 {
   "recommendation": "ApproveWithCaveats",
-  "summary": "Focused implementing-agent review of revision19. All 30 packaged files match source. Default sort selects health priority, deterministic name/ID ties remain, status header reverses priority and health groups match review urgency. Four focused tests and an isolated browser flow passed. No GUS writes or AI behavior changed. Not an independent review.",
+  "summary": "Focused implementing-agent review of revision20. All 30 packaged files match source. Cache revisions are removed from executive display scope, actual evidence changes retain output with an explicit regeneration notice, and memoized rendering preserves routine refresh DOM. View state, scroll/focus and selected filters are retained, and fetch errors cannot replace active editors. Four focused grouping/sort tests plus the isolated refresh-state browser flow passed. No backend/AI validation changes. Not an independent review.",
   "blockingIssues": [],
   "caveats": [
-    "Blocked/At Risk sort before Watch; Canceled follows completed work and unreported statuses sort last.",
-    "Reload restores the requested default; manual sorting remains session-local. Existing deployment/data/AI caveats remain unchanged."
+    "Retained summaries are generated snapshots and may be stale after evidence changes; the separate notice requests explicit regeneration.",
+    "Summary state is in memory for the page session; full browser reload starts fresh, as requested. Selecting a different release/month uses its own scope rather than presenting the prior scope as current.",
+    "Actual production SDK/model and hosted browser behavior remain unverified by isolated tests. Existing GUS sharing, connector and concurrency limitations remain unchanged."
   ]
 }

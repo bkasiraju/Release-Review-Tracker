@@ -5,7 +5,7 @@
   "designatedBy": "User",
   "baselineDate": "2026-11-09",
   "artifact": "cfs-release-review-tracker.zip",
-  "sha256": "65c8a9b7a951d98133a0c95fb3da7cf8b43771e30a59d88ef883f29c430c55f8",
+  "sha256": "b6c7da0f1931bd67b9abb58224c8a1ddf653ff598e00703730564eae55ae5640",
   "gitTags": [
     "v2.0.0-GA",
     "GOLDEN-BUILD-2.0.0-GA"
@@ -14,25 +14,25 @@
   "rollbackScope": "Application files only; preserve all shared GUS data",
   "verification": {
     "nodeTestsPassed": 4,
-    "validationScope": "four focused grouping/sort tests and one isolated browser flow; no full suite",
+    "validationScope": "four focused grouping/sort tests and one isolated refresh-state browser flow; no full suite",
     "fullSuiteRun": false,
     "productionModelOutputVerified": false
   },
-  "revision": "consolidated-20261110-19",
+  "revision": "consolidated-20261110-20",
   "status": "Current GOLDEN BUILD going forward",
-  "includes": "Default Epic Status review-priority ordering with matching health groups and reversible/manual sorting.",
+  "includes": "Preserve executive/measure summaries, copy actions, collapses, filters, scroll/focus and edits through background repaint and GUS fetch.",
   "previousBaseline": {
     "tag": "GOLDEN-BUILD-2.0.0-GA-original",
     "manifest": "releases/2.0.0-GA-original/build.json",
     "sha256": "96ff7a49e2707682511017abbda6dabda6ef1e8370649061a63300415020b5fc"
   },
   "previousRevision": {
-    "commit": "766564df3b7fb08f7bd0228176cdea0e4bee6c4b",
-    "sha256": "8a9524d9711800c7e14d92681c0576e152a3c60e9ec5c08b5f12af769b6c5d17"
+    "commit": "3be867369b9bb61c4b87cafc86ab8390bd948f19",
+    "sha256": "65c8a9b7a951d98133a0c95fb3da7cf8b43771e30a59d88ef883f29c430c55f8"
   },
   "deployment": {
     "activated": true,
     "matchedTextFiles": 24,
-    "verifiedArchiveSha256": "65c8a9b7a951d98133a0c95fb3da7cf8b43771e30a59d88ef883f29c430c55f8"
+    "verifiedArchiveSha256": "b6c7da0f1931bd67b9abb58224c8a1ddf653ff598e00703730564eae55ae5640"
   }
 }
