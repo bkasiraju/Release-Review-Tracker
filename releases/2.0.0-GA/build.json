@@ -5,7 +5,7 @@
   "designatedBy": "User",
   "baselineDate": "2026-11-09",
   "artifact": "cfs-release-review-tracker.zip",
-  "sha256": "21d3ae2344a25c956a39907bf578f66bbceaa4a82de8f120eed2a9a1d806cab2",
+  "sha256": "b0036ce7c058d7193b6f2d049effe3591f51a8a5aed4ca15b88748819c25dd19",
   "gitTags": [
     "v2.0.0-GA",
     "GOLDEN-BUILD-2.0.0-GA"
@@ -13,26 +13,26 @@
   "productionUrl": "https://gus-apps.internal.salesforce.com/applets/cfs-release-review-tracker/",
   "rollbackScope": "Application files only; preserve all shared GUS data",
   "verification": {
-    "nodeTestsPassed": 0,
-    "validationScope": "UI-only; focused missing-update browser flow with exception styling/reduced-motion checks",
+    "nodeTestsPassed": 8,
+    "validationScope": "8 focused nudge tests and missing-update browser flow with Completed exemption checks",
     "fullSuiteRun": false,
     "productionModelOutputVerified": false
   },
-  "revision": "consolidated-20261110-26",
+  "revision": "consolidated-20261110-27",
   "status": "Current GOLDEN BUILD going forward",
-  "includes": "Plain red row exception labels and briefly animated icons, neutral required-review dropdown, reduced-motion and existing accessible editing behavior.",
+  "includes": "Icon-only missing-update warnings; Completed exemptions in metrics, filters, empty month cells and fresh-GUS Slack reminders.",
   "previousBaseline": {
     "tag": "GOLDEN-BUILD-2.0.0-GA-original",
     "manifest": "releases/2.0.0-GA-original/build.json",
     "sha256": "96ff7a49e2707682511017abbda6dabda6ef1e8370649061a63300415020b5fc"
   },
   "previousRevision": {
-    "commit": "5591c724626c2f736bcc805042e57e7e5ac6b351",
-    "sha256": "a3713013c7c80d2efb82b67c1b2dbb2eed5c8aa5d9e177f54abffb1183f11aff"
+    "commit": "1329f30378092bf54ec1686578397565d6aec375",
+    "sha256": "21d3ae2344a25c956a39907bf578f66bbceaa4a82de8f120eed2a9a1d806cab2"
   },
   "deployment": {
     "activated": true,
     "matchedTextFiles": 24,
-    "verifiedArchiveSha256": "21d3ae2344a25c956a39907bf578f66bbceaa4a82de8f120eed2a9a1d806cab2"
+    "verifiedArchiveSha256": "b0036ce7c058d7193b6f2d049effe3591f51a8a5aed4ca15b88748819c25dd19"
   }
 }

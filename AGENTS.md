@@ -23,3 +23,6 @@ The user explicitly made Method optional: a verified GUS Project/Measure is suff
 
 ## AI dependency recovery (10 November 2026)
 AI preview, monthly and executive generation, and individual health-comment publication must not automatically read Google Sheets. Use GUS Project/Measure when available; keep missing measures unassigned and flag them separately without inventing mappings. Method remains optional. Normal generation/publication retains goal and Path-to-Green checks; read-only previews may summarize displayed comments without those prerequisites and never write records. Not Started requires Review Status: Planned, Bandwidth Constraints, Dependency-Blocker or To be re-prioritised.
+
+## Completed epic monthly review exemption (10 November 2026)
+GUS Health = Completed requires no monthly update. Exclude these epics from missing-update exceptions, awaiting-update filters/counts, monthly coverage requirements and Slack monthly nudges. Preserve existing comments/history. Missing-update warnings use an animated icon only, with accessible month-specific labels and hover text.

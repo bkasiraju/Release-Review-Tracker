@@ -1,3 +1,9 @@
+## 2.0.0-GA — icon-only warnings and Completed epic exemption
+
+Missing updates now show only the red animated calendar/exclamation icon, retaining a month-specific hover title, accessible label and editor shortcut. Required-review icons no longer animate. Completed epics are exempt from missing-month markers, awaiting filters/counts, monthly coverage requirements and all Slack reminder preparation. Empty completed-month cells say Not required; existing comments and history remain visible. Fresh GUS Health__c is checked before creating single or grouped Slack reminders, including when an epic completes after the dashboard was fetched.
+
+Validation: eight focused Slack nudge tests and one isolated browser flow verify icon-only warnings, styling/reduced-motion, Completed marker/count/filter exemption, month navigation and fixture save behavior. Syntax/diff checks passed. No full suite or live GUS/model writes.
+
 ## 2.0.0-GA — simple row exception labels
 
 Missing review-month updates now use plain red text with an unboxed calendar/exclamation icon instead of filled chips. Required Review Status uses a red prompt and bare exclamation icon with a neutral dropdown. Only the small exception icons pulse gently three times; reduced-motion preferences disable animation. Existing month-specific accessible labels, editor shortcuts, status editing and save behavior remain.
