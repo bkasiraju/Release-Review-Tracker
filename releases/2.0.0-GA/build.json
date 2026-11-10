@@ -5,7 +5,7 @@
   "designatedBy": "User",
   "baselineDate": "2026-11-09",
   "artifact": "cfs-release-review-tracker.zip",
-  "sha256": "ecdc9c007665f668378a59c0cc26c442061cd3d496dbf4b474cce94a2be1fc88",
+  "sha256": "a3713013c7c80d2efb82b67c1b2dbb2eed5c8aa5d9e177f54abffb1183f11aff",
   "gitTags": [
     "v2.0.0-GA",
     "GOLDEN-BUILD-2.0.0-GA"
@@ -13,26 +13,26 @@
   "productionUrl": "https://gus-apps.internal.salesforce.com/applets/cfs-release-review-tracker/",
   "rollbackScope": "Application files only; preserve all shared GUS data",
   "verification": {
-    "nodeTestsPassed": 0,
-    "validationScope": "UI-only; one targeted missing-update browser flow plus syntax/diff checks; no Node/full suite",
+    "nodeTestsPassed": 29,
+    "validationScope": "Focused executive/grounding tests, one compact V2MOM browser flow and host SDK contract with simulated gateway",
     "fullSuiteRun": false,
     "productionModelOutputVerified": false
   },
-  "revision": "consolidated-20261110-24",
+  "revision": "consolidated-20261110-25",
   "status": "Current GOLDEN BUILD going forward",
-  "includes": "Selected-review-month missing-update indicator with direct editor action, grouped-row support and draft/pending-save awareness.",
+  "includes": "AI gateway concurrency, independent request timeouts, bounded transient retry and explicit provider diagnostics; compact grounded executive/measure paragraphs without reporting noise.",
   "previousBaseline": {
     "tag": "GOLDEN-BUILD-2.0.0-GA-original",
     "manifest": "releases/2.0.0-GA-original/build.json",
     "sha256": "96ff7a49e2707682511017abbda6dabda6ef1e8370649061a63300415020b5fc"
   },
   "previousRevision": {
-    "commit": "d7a5392cfbe166701c990f463eb407506ff8aa2d",
-    "sha256": "5f2214311e3629aeb1d8a408bc6114a58adc0bc52cf0e45fbe915391c9e617d7"
+    "commit": "73d0530367effe43cab1c7deb6e17b761a1da964",
+    "sha256": "ecdc9c007665f668378a59c0cc26c442061cd3d496dbf4b474cce94a2be1fc88"
   },
   "deployment": {
     "activated": true,
     "matchedTextFiles": 24,
-    "verifiedArchiveSha256": "ecdc9c007665f668378a59c0cc26c442061cd3d496dbf4b474cce94a2be1fc88"
+    "verifiedArchiveSha256": "a3713013c7c80d2efb82b67c1b2dbb2eed5c8aa5d9e177f54abffb1183f11aff"
   }
 }

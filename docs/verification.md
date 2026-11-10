@@ -1,3 +1,11 @@
+## 2.0.0-GA — AI gateway recovery and concise grounded summaries
+
+Fixed the generic catch-all message that hid provider errors. All summary SDK flows now share a two-request concurrency limit, give every initial/correction call its own 60-second timeout, and automatically retry one transient network/rate-limit failure. Authentication, budget and non-transient errors do not trigger blind retries; safe provider-specific diagnostics distinguish these from evidence rejection. Actual SDK attempts and reported usage remain counted.
+
+Executive and measure paragraphs reject missing-update/metrics boilerplate and leadership instructions. Pending negotiations must retain their source meaning rather than becoming unsupported blocked claims. Prompts target 30–45 words/300–350 characters within the existing 500-character/70-word cap. Whole-sentence compaction runs only after the entire original response passes factual checks, retains dependency/risk/recovery sentences, and validates the selected result again. It cannot conceal an unsupported claim, invent a fallback or publish an invalid/empty paragraph.
+
+Validation: 29 focused executive/grounding tests; one 26-epic isolated browser flow for generation, compact measure/team output, copy and refresh preservation; actual host SDK source exercised with a simulated gateway for retry/usage contract. No full suite or real authenticated production model call. Deployment authentication cannot supply Salesforce session context; actual user-session model behavior is not verified.
+
 ## 2.0.0-GA — missing-review-month indicator on epic rows
 
 Fetched epics without a dated update for the selected review month now show an amber calendar/exclamation icon and Missing update badge beside the epic name. Its accessible label and hover title name the missing month. Clicking opens that month’s editor directly. The indicator appears on the parent epic row, including grouped/expanded views, without repeating it inside the detailed table. At narrow widths the text label folds away while the icon and accessible month label remain.
