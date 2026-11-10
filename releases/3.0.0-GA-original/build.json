@@ -1,0 +1,41 @@
+{
+  "version": "3.0.0-GA",
+  "label": "GOLDEN BUILD",
+  "product": "Release Intelligence",
+  "designatedBy": "User",
+  "baselineDate": "2026-11-10",
+  "artifact": "cfs-release-review-tracker.zip",
+  "sha256": "9e09d4174a19661c582c082084eb6b452febed65184926161595bf44cab6e977",
+  "gitTags": [
+    "v3.0.0-GA",
+    "GOLDEN-BUILD-3.0.0-GA"
+  ],
+  "productionUrl": "https://gus-apps.internal.salesforce.com/applets/cfs-release-review-tracker/",
+  "rollbackScope": "Application files only; preserve all current shared GUS data. Private dataset recovery is separate.",
+  "verification": {
+    "nodeTestsPassed": 30,
+    "validationScope": "Focused snapshot/cache/executive checks plus one 3.0.0-GA browser flow; actual backend dataset upload/readback verification",
+    "fullSuiteRun": false,
+    "productionModelOutputVerified": false,
+    "productionDatasetReadbackVerified": true
+  },
+  "revision": "golden-20261110-1",
+  "status": "Current preferred GOLDEN BUILD going forward",
+  "dataset": {
+    "manifest": "GOLDEN_DATASET.json",
+    "sha256": "c176f342dd366c5182bfac9cdddf03c9c70cc36e5ebf23355f4e0d8db3aa50a7",
+    "verifiedInGUS": true,
+    "contentsPublishedToGit": false
+  },
+  "previousBaseline": {
+    "tag": "GOLDEN-BUILD-2.0.0-GA",
+    "manifest": "releases/2.0.0-GA/build.json",
+    "sha256": "820eb28b5e10ff522dc8a155ab0e0c04509acd089e90b7b9e5103d0387a830c9",
+    "commit": "6f15772c815ee45fa0d9828028f5a2f3c1f2d73c"
+  },
+  "deployment": {
+    "activated": true,
+    "matchedTextFiles": 25,
+    "verifiedArchiveSha256": "9e09d4174a19661c582c082084eb6b452febed65184926161595bf44cab6e977"
+  }
+}

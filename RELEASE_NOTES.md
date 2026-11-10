@@ -1,3 +1,11 @@
+## 3.0.0-GA — consolidated GOLDEN BUILD: independent text mode and expansion
+
+At the user's explicit request, the tooltip patch and update-view fix are folded back into the current 3.0.0-GA GOLDEN BUILD. The prior exact 3.0.0-GA archive is preserved at releases/3.0.0-GA-original/ and its source is retained at GOLDEN-BUILD-3.0.0-GA-original. Older 2.0.0-GA and 3.0.1-GA releases remain intact. The private GOLDEN Dataset is unchanged.
+
+Compact/Full Updates now controls only monthly-text clipping. It does not expand/collapse rows or groups. Expand All, Collapse All and individual row toggles change expansion only and never reset the chosen text mode. Nested grouped views, applied filters, selected dashboard view and retained horizontal positions remain intact. The unified light tooltip system from 3.0.1-GA is included, with no native/duplicate title hints.
+
+Validation: one focused isolated browser flow first reproduced Full Updates incorrectly opening every row, then passed after decoupling. It checks compact clipping/full text, unchanged expansion on mode changes, retained mode on single/all row toggles, nested group collapse/expansion, filtered scopes and horizontal position during mode changes. UI-only fix; syntax/diff and exact package checks passed. No unrelated Node/full suite, live model call or dataset mutation. Previous tooltip verification remains recorded in the 3.0.1-GA history.
+
 ## 3.0.1-GA — unified light dashboard tooltips
 
 Replaces native browser title hints with one shared dashboard tooltip surface. Initial and dynamically added titles are migrated, preventing duplicate native/custom hints. Summary and AI-preview triggers retain their rich popovers without a second plain tooltip. The shared hint uses a subtle light blue background, black Salesforce Sans text, rounded border, restrained shadow and viewport-safe wrapping. Existing rich popover headers use matching light colors.

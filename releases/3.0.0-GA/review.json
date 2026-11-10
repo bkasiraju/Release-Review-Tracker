@@ -1,10 +1,9 @@
 {
   "recommendation": "ApproveWithCaveats",
-  "summary": "Focused implementing-agent review, not independent. 30 snapshot/cache/executive checks and one release browser flow passed. Exact application package has 31 allowlisted files. Footer/API version 3.0.0-GA; links remain aligned with/without missing icons and in grouped rows. Actual backend dataset captured from stable repeated journal reads, uploaded privately to GUS and fully readback/checksum verified. No dataset or credentials in artifact/Git. Prior 2.0.0-GA tags/archive preserved; dataset restoration remains separate from application rollback.",
+  "summary": "Focused implementing-agent review, not independent. UI-only expansion/text-state separation. Focused browser reproduces prior unwanted auto-expansion then verifies independent Compact/Full Updates, single/all row toggles, nested grouping, filtered scopes and horizontal-position retention. 32 packaged files. User explicitly authorized canonical 3.0.0-GA consolidation; prior exact archive/source retained as original. Golden Dataset unchanged.",
   "blockingIssues": [],
   "caveats": [
-    "Actual hosted production model generation was not reverified; prior platform/model caveats remain.",
-    "The private snapshot covers saved GUS Apps records/journal, not all underlying Salesforce objects/attachments or unsaved browser-only previews.",
-    "User-designated GOLDEN BUILD does not imply all runtime behavior is independently certified. Unrelated full suite skipped per user preference."
+    "No hosted signed-in production browser/model test. Existing source/model limitations unchanged.",
+    "Skipped unrelated Node/full suite per user preference."
   ]
 }

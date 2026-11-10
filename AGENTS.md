@@ -1,6 +1,6 @@
 # Release Intelligence
 
-The user designated **3.0.0-GA** as the current **GOLDEN BUILD** and preferred rollback reference on 10 November 2026. Preserve all earlier 2.0.0-GA tags and release archives. The dataset has a separate private GOLDEN Dataset backup; it must never be published in Git or Pages.
+The user designated **3.0.0-GA** as the current **GOLDEN BUILD** and preferred rollback reference on 10 November 2026. On 10 November 2026, the user explicitly requested folding the tooltip and view-state updates into this canonical version. The prior exact 3.0.0-GA archive/source are preserved at releases/3.0.0-GA-original/ and GOLDEN-BUILD-3.0.0-GA-original. Preserve older release tags and archives. The dataset has a separate private GOLDEN Dataset backup; it must never be published in Git or Pages.
 
 - Keep `v3.0.0-GA`, `GOLDEN-BUILD-3.0.0-GA` and `releases/3.0.0-GA/` immutable unless the user explicitly redesignates a build.
 - For future regressions, restore the exact 3.0.0-GA artifact/checksum; follow `docs/GOLDEN_BUILD.md` and preserve unrelated work.
@@ -29,3 +29,6 @@ GUS Health = Completed requires no monthly update. Exclude these epics from miss
 
 ## Executive delta cache (10 November 2026)
 Reuse successful executive epic analysis from the shared GUS Apps backend until its evidence fingerprint changes; the one-hour window expires source validation, not AI analysis. Revalidate GUS epic/work evidence at most hourly unless manually refreshed or shared local evidence changes. Recompute only changed epics and their affected measure/team consolidations, including month, membership and summary-rule version in cache identity. Never cache rejected drafts as ready or count cache reuse as AI token usage.
+
+## Independent text and expansion controls
+Compact/Full Updates changes monthly-text clipping only. Single/all row and group expansion controls must never mutate that mode. Mode changes must not reset expanded rows, collapsed groups, applied filters or dashboard view.

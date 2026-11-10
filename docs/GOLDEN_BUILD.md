@@ -1,6 +1,6 @@
 # 3.0.0-GA · GOLDEN BUILD
 
-The user designated 3.0.0-GA as the current preferred recovery baseline on 10 November 2026. It includes all changes through the shared executive delta cache, hourly evidence validation, status/review workflow, icon-only exceptions, Completed exemption, and consistently aligned GUS links. This is a user-designated recovery reference; verification limits remain documented below.
+The user designated 3.0.0-GA as the current preferred recovery baseline on 10 November 2026. At the user’s explicit request, the canonical 3.0.0-GA was consolidated with the light-tooltip patch and independent Compact/Full Updates versus expansion controls. Its earlier exact archive is preserved at releases/3.0.0-GA-original/ and GOLDEN-BUILD-3.0.0-GA-original. The private dataset snapshot is unchanged. It includes all changes through the shared executive delta cache, hourly evidence validation, status/review workflow, icon-only exceptions, Completed exemption, and consistently aligned GUS links. This is a user-designated recovery reference; verification limits remain documented below.
 
 ## Immutable application baseline
 
