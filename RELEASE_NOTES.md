@@ -1,3 +1,9 @@
+## 3.0.0-GA — GOLDEN BUILD tooltip status chips
+
+Summary tooltip headings now show left-aligned Epic Status and Release Review Status chips beneath the epic title. Review Status uses the saved value only when valid for the current Epic Status and free of storage conflict; otherwise shows Not set or Not required. No data is modified.
+
+Validation: focused isolated browser flow checks both chip labels, saved Review Status and left alignment, retaining monthly availability colors, recovery visibility and coverage spacing. Syntax/diff checks passed. No production model call or dataset mutation.
+
 ## 3.0.0-GA — GOLDEN BUILD clean dropdown alignment
 
 Watch epic Summary tooltips also use red-tinted amber for Path to Green; focused browser color assertion passed.

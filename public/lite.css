@@ -548,3 +548,10 @@ body:not(.view-focused) main{display:flex;flex-direction:column;min-height:calc(
 #copy-ai-month-status{display:block;margin-top:5px}
 
 .epic-tooltip-path.is-watch{background:#fff0e8;border-color:#d98b67}
+
+.epic-tooltip-heading{flex:1;min-width:0;text-align:left}
+.epic-tooltip-heading>strong{display:block}
+.epic-tooltip-statuses{display:flex;justify-content:flex-start;align-items:center;flex-wrap:wrap;gap:5px;margin-top:5px}
+.tooltip-status-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 7px;border:1px solid #bad4e2;border-radius:12px;background:#f7fbfe;font-size:10px;line-height:1.35}
+.tooltip-status-chip .health-badge{font-size:10px;padding:2px 5px}
+.tooltip-status-chip.needs-review{background:#fff0e8;border-color:#d98b67}
