@@ -14,7 +14,7 @@ async function handleRequest(ctx){
   try{
     const req=ctx.request||ctx;let b=req.body||{};if(typeof b==='string')b=JSON.parse(b);
     if(!b||typeof b!=='object'||Array.isArray(b))throw Error('Invalid request.');
-    const {sf,source}=connection(ctx),gus=ctx.gus||new Gus(sf),store=ctx.store||new ContentStore(sf,{shared:true}),service=new Service(store,gus,{shared:store.shared===true,googleSheets:ctx.googleSheets||ctx.google?.sheets});
+    const {sf,source}=connection(ctx),gus=ctx.gus||new Gus(sf),store=ctx.store||new ContentStore(sf,{shared:true}),service=new Service(store,gus,{shared:store.shared===true,readOnly:ctx.demo===true,googleSheets:ctx.googleSheets||ctx.google?.sheets});
     const action=b.action;
     if(ctx.demo&&!['connection','state','work-items','preview','executive','executive-blurb','executive-plan','list-catalog'].includes(action))throw Error('Sample preview is read-only. Open the GUS Apps deployment to save changes.');
     let payload;
@@ -42,6 +42,8 @@ async function handleRequest(ctx){
       case 'publish-month':payload=await service.publishMonth(b);break;
       case 'set-year':payload=await service.setYear(b);break;
       case 'monthly-summary':payload=await service.monthlySummary(b);break;
+      case 'executive-cache-save':payload=await require('./summary-cache').save(service,b);break;
+      case 'measure-summary-cache':payload=await require('./summary-cache').measure(service,b);break;
       case 'executive-plan':payload=await service.executivePlan(b);break;
       case 'executive-blurb':payload=await service.executiveBlurb(b);break;
       case 'executive':payload=await service.executive(b);break;

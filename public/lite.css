@@ -517,3 +517,5 @@ body:not(.view-focused) main{display:flex;flex-direction:column;min-height:calc(
 @media(prefers-reduced-motion:reduce){.missing-review-update .cfs-icon,.review-required-mark{animation:none}}
 
 .missing-review-update,.missing-review-update>span,.review-required-mark,.inline-review-status.is-required select{color:#ba0517!important}.inline-review-status.is-required select option{color:#111!important}
+
+.epic-gus-link{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;flex:none;border:0;border-radius:3px;background:transparent;color:#47677d!important}.epic-gus-link .cfs-icon{width:13px;height:13px;border:0;background:none;box-shadow:none;transform:none;color:inherit!important}.epic-gus-link .cfs-icon svg{stroke:currentColor;width:13px;height:13px}.epic-gus-link:hover{background:#eaf3f9}

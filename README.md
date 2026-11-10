@@ -16,6 +16,8 @@ A GUS Apps dashboard for reviewing a release's epics month by month.
 - **Release Overview** contains the monthly review table and editor; duplicate Monthly Updates navigation has been removed. Source & sync controls remain in the sidebar and footer.
 
 The **Executive V2MOM Summary** tab generates grounded epic evidence and then one compact, copy-ready paragraph per Project measure and team. Engineer comments lead; verified work facts add context. Supporting epic summaries and failures remain in collapsed inspection, outside copied prose. AI failures never become raw-source fallback paragraphs. SDK calls share a two-request concurrency limit, an independent timeout per attempt, and one automatic retry for transient gateway failures; authentication or usage-limit failures display a specific reason. Factual, numeric, phase and month checks remain mandatory.
+Executive summaries use a shared [delta cache](docs/executive-cache.md): validate source evidence hourly, reuse unchanged epic analysis, and regenerate only changed epics and affected measure/team paragraphs. Cached operations use no AI calls. Manual Refresh still fetches current GUS evidence.
+
 - Searchable multi-select release, health, owner, and work-item status menus include Select all and Clear all. Duplicate release scopes are grouped without deleting records; selecting several releases displays each epic once.
 - Column preferences save independently of list imports, with captured release IDs and revision checks. Table widths adapt to the selected columns, the review month is highlighted, and spacing is compact across desktop/mobile.
 

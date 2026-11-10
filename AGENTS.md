@@ -26,3 +26,6 @@ AI preview, monthly and executive generation, and individual health-comment publ
 
 ## Completed epic monthly review exemption (10 November 2026)
 GUS Health = Completed requires no monthly update. Exclude these epics from missing-update exceptions, awaiting-update filters/counts, monthly coverage requirements and Slack monthly nudges. Preserve existing comments/history. Missing-update warnings use an animated icon only, with accessible month-specific labels and hover text.
+
+## Executive delta cache (10 November 2026)
+Reuse successful executive epic analysis from the shared GUS Apps backend until its evidence fingerprint changes; the one-hour window expires source validation, not AI analysis. Revalidate GUS epic/work evidence at most hourly unless manually refreshed or shared local evidence changes. Recompute only changed epics and their affected measure/team consolidations, including month, membership and summary-rule version in cache identity. Never cache rejected drafts as ready or count cache reuse as AI token usage.

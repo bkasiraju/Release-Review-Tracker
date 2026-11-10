@@ -5,7 +5,7 @@
   "designatedBy": "User",
   "baselineDate": "2026-11-09",
   "artifact": "cfs-release-review-tracker.zip",
-  "sha256": "b0036ce7c058d7193b6f2d049effe3591f51a8a5aed4ca15b88748819c25dd19",
+  "sha256": "820eb28b5e10ff522dc8a155ab0e0c04509acd089e90b7b9e5103d0387a830c9",
   "gitTags": [
     "v2.0.0-GA",
     "GOLDEN-BUILD-2.0.0-GA"
@@ -13,26 +13,26 @@
   "productionUrl": "https://gus-apps.internal.salesforce.com/applets/cfs-release-review-tracker/",
   "rollbackScope": "Application files only; preserve all shared GUS data",
   "verification": {
-    "nodeTestsPassed": 8,
-    "validationScope": "8 focused nudge tests and missing-update browser flow with Completed exemption checks",
+    "nodeTestsPassed": 27,
+    "validationScope": "27 focused cache/executive tests and one combined delta-summary browser flow",
     "fullSuiteRun": false,
     "productionModelOutputVerified": false
   },
-  "revision": "consolidated-20261110-27",
+  "revision": "consolidated-20261110-28",
   "status": "Current GOLDEN BUILD going forward",
-  "includes": "Icon-only missing-update warnings; Completed exemptions in metrics, filters, empty month cells and fresh-GUS Slack reminders.",
+  "includes": "Shared executive delta cache with hourly evidence validation; affected-epic/team regeneration only; no cached token toast; removed column banner and subtle GUS epic links.",
   "previousBaseline": {
     "tag": "GOLDEN-BUILD-2.0.0-GA-original",
     "manifest": "releases/2.0.0-GA-original/build.json",
     "sha256": "96ff7a49e2707682511017abbda6dabda6ef1e8370649061a63300415020b5fc"
   },
   "previousRevision": {
-    "commit": "1329f30378092bf54ec1686578397565d6aec375",
-    "sha256": "21d3ae2344a25c956a39907bf578f66bbceaa4a82de8f120eed2a9a1d806cab2"
+    "commit": "690cd3b11078f5a1c7609cbb263ff9f4bbac3eca",
+    "sha256": "b0036ce7c058d7193b6f2d049effe3591f51a8a5aed4ca15b88748819c25dd19"
   },
   "deployment": {
     "activated": true,
-    "matchedTextFiles": 24,
-    "verifiedArchiveSha256": "b0036ce7c058d7193b6f2d049effe3591f51a8a5aed4ca15b88748819c25dd19"
+    "matchedTextFiles": 25,
+    "verifiedArchiveSha256": "820eb28b5e10ff522dc8a155ab0e0c04509acd089e90b7b9e5103d0387a830c9"
   }
 }
