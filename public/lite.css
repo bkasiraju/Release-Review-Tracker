@@ -529,3 +529,7 @@ body:not(.view-focused) main{display:flex;flex-direction:column;min-height:calc(
 #overview-panel .health-metrics-strip .coverage-row{grid-template-columns:max-content minmax(0,1fr) max-content;column-gap:8px}
 #overview-panel .health-metrics-strip .coverage-row>span{min-width:0}
 #overview-panel .health-metrics-strip .coverage-period{white-space:nowrap}
+
+.epic-tooltip-month.is-missing-review{background:#fff7e6;border-color:#dfb35f}
+.tooltip-review-warning strong{font-size:12px;color:#704600}
+.tooltip-review-warning p{margin:3px 0 0;line-height:1.4}

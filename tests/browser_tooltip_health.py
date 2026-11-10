@@ -13,6 +13,11 @@ with tempfile.TemporaryDirectory() as tmp:
    b=p.chromium.launch();page=b.new_page(viewport={'width':1600,'height':1000});page.goto('http://127.0.0.1:8399');expect(page.locator('#epic-count')).to_have_text('6')
    for id,has_path in [('a0B000000000001',False),('a0B000000000002',False),('a0B000000000003',True)]:
     page.locator(f'.epic-summary-trigger[data-id="{id}"]').hover();panel=page.locator('#epic-updates-preview');expect(panel).to_be_visible();expect(panel.locator('.epic-tooltip-month')).to_have_count(3);expect(panel.locator('.epic-tooltip-path')).to_have_count(int(has_path));page.locator('#close-epic-updates').click()
+   for id,missing in [('a0B000000000001',False),('a0B000000000005',True),('a0B000000000006',False)]:
+    page.locator(f'.epic-summary-trigger[data-id="{id}"]').hover();panel=page.locator('#epic-updates-preview');expect(panel).to_be_visible();warning=panel.locator('.is-missing-review');expect(warning).to_have_count(int(missing))
+    if missing:
+     expect(warning).to_contain_text('Missing updates for November 2026');expect(warning).to_contain_text('use AI Summarise');assert warning.evaluate('e=>getComputedStyle(e).backgroundColor')=='rgb(255, 247, 230)'
+    page.locator('#close-epic-updates').click()
    for width in [1600,1280,900]:
     page.set_viewport_size({'width':width,'height':1000});assert page.locator('.coverage-row').evaluate_all('rows=>rows.every(e=>{const [label,bar,count]=[...e.children].map(n=>n.getBoundingClientRect());return label.right+7<=bar.left&&bar.right+7<=count.left})'),width
    b.close();print('PASS On Track tooltips contain months only, Watch retains Path to Green; coverage labels/bars/counts do not overlap at 1600/1280/900px.')

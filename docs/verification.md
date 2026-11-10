@@ -1,3 +1,9 @@
+## 3.0.0-GA — GOLDEN BUILD missing review-month guidance
+
+Summary tooltips show the missing review month as an amber section with a prompt to add the latest status or use AI Summarise. Existing fallback/general content is retained. Completed epics remain exempt; populated monthly updates keep their normal styling.
+
+Validation: focused isolated browser checks for amber guidance, populated review month, Completed exemption, On Track recovery suppression, and coverage alignment. Syntax/diff checks passed. No dataset mutation or production model invocation.
+
 ## 3.0.0-GA — GOLDEN BUILD tooltip and coverage refinement
 
 On Track epic Summary tooltips display monthly updates without the Path to Green section, whether a recovery field is populated or empty. Other statuses retain that section. No stored comments or Path to Green values are changed. Monthly coverage uses intrinsic label widths and a dedicated gap so labels, bars and counts remain separate.
