@@ -1,3 +1,9 @@
+## 2.0.0-GA — simple row exception labels
+
+Missing review-month updates now use plain red text with an unboxed calendar/exclamation icon instead of filled chips. Required Review Status uses a red prompt and bare exclamation icon with a neutral dropdown. Only the small exception icons pulse gently three times; reduced-motion preferences disable animation. Existing month-specific accessible labels, editor shortcuts, status editing and save behavior remain.
+
+Validation: one focused isolated browser check verifies border/background removal, red text, icon animation/reduced-motion, grouped/month-specific markers, editor navigation, fixture save and narrow-screen accessibility. No Node/full suite or live GUS/model writes.
+
 ## 2.0.0-GA — AI gateway recovery and concise grounded summaries
 
 Fixed the generic catch-all message that hid provider errors. All summary SDK flows now share a two-request concurrency limit, give every initial/correction call its own 60-second timeout, and automatically retry one transient network/rate-limit failure. Authentication, budget and non-transient errors do not trigger blind retries; safe provider-specific diagnostics distinguish these from evidence rejection. Actual SDK attempts and reported usage remain counted.
