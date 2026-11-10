@@ -1,3 +1,9 @@
+## 3.0.0-GA — GOLDEN BUILD monthly AI actions
+
+Missing review-month Summary tooltips include AI Summarise, opening the matching epic/month sidebar and generating a draft. Generated text that needs review has Copy to monthly update and Undo copy actions. Transfer is explicit, retains the validation warning, and never auto-saves or syncs. Accepted drafts continue to populate the editor with Undo.
+
+Validation: focused isolated browser flow with controlled AI responses verifies epic/month navigation, rejected-text transfer, retained warning, undo, accepted-draft behavior and absence of implicit save/sync requests. Syntax/diff checks passed. No live production model call or dataset mutation.
+
 ## 3.0.0-GA — GOLDEN BUILD semantic tooltip month colors
 
 Review Status dropdowns now share a fixed trailing warning slot, keeping populated and required selectors aligned; warning icons appear after the selector. Focused browser comparison checks equal x-position/width and trailing icon placement.

@@ -543,3 +543,6 @@ body:not(.view-focused) main{display:flex;flex-direction:column;min-height:calc(
 .inline-review-status{display:grid;grid-template-columns:minmax(0,220px) 16px;column-gap:5px;width:min(100%,241px)}
 .inline-review-status select{grid-column:1;grid-row:1;min-width:0}
 .inline-review-status .review-required-mark{grid-column:2;grid-row:1}
+
+.tooltip-ai-action{margin-top:6px}
+#copy-ai-month-status{display:block;margin-top:5px}
