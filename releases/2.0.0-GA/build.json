@@ -5,7 +5,7 @@
   "designatedBy": "User",
   "baselineDate": "2026-11-09",
   "artifact": "cfs-release-review-tracker.zip",
-  "sha256": "0a579980f20f64d746bfa01d548ae432f48d627812387e4324247c8705354a60",
+  "sha256": "5f2214311e3629aeb1d8a408bc6114a58adc0bc52cf0e45fbe915391c9e617d7",
   "gitTags": [
     "v2.0.0-GA",
     "GOLDEN-BUILD-2.0.0-GA"
@@ -13,26 +13,26 @@
   "productionUrl": "https://gus-apps.internal.salesforce.com/applets/cfs-release-review-tracker/",
   "rollbackScope": "Application files only; preserve all shared GUS data",
   "verification": {
-    "nodeTestsPassed": 10,
-    "validationScope": "ten focused executive tests and one isolated empty-summary browser flow; no full suite",
+    "nodeTestsPassed": 11,
+    "validationScope": "eleven focused executive tests and one combined compact-output/full-page browser flow; no full suite",
     "fullSuiteRun": false,
     "productionModelOutputVerified": false
   },
-  "revision": "consolidated-20261110-22",
+  "revision": "consolidated-20261110-23",
   "status": "Current GOLDEN BUILD going forward",
-  "includes": "Reject empty-looking AI summaries; suppress empty measure/team cards and clipboard entries while retaining failure diagnostics.",
+  "includes": "One-click compact V2MOM measure/team outcome updates, consolidated clipboard, collapsed epic evidence and natural full-page table.",
   "previousBaseline": {
     "tag": "GOLDEN-BUILD-2.0.0-GA-original",
     "manifest": "releases/2.0.0-GA-original/build.json",
     "sha256": "96ff7a49e2707682511017abbda6dabda6ef1e8370649061a63300415020b5fc"
   },
   "previousRevision": {
-    "commit": "9a76fa56692c3314dcc8cb6e3457849690951e9b",
-    "sha256": "57e254a2a37b7da45603ae3b01fe96890246738f1c297db39ee5985e674b74ba"
+    "commit": "951713d13749fb8e05726fd67531f8c5cf905508",
+    "sha256": "0a579980f20f64d746bfa01d548ae432f48d627812387e4324247c8705354a60"
   },
   "deployment": {
     "activated": true,
     "matchedTextFiles": 24,
-    "verifiedArchiveSha256": "0a579980f20f64d746bfa01d548ae432f48d627812387e4324247c8705354a60"
+    "verifiedArchiveSha256": "5f2214311e3629aeb1d8a408bc6114a58adc0bc52cf0e45fbe915391c9e617d7"
   }
 }

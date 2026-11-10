@@ -1,9 +1,11 @@
 {
   "recommendation": "ApproveWithCaveats",
-  "summary": "Focused implementing-agent review of revision22. All 30 packaged files match source. Empty-looking prose and placeholders are rejected in native/SDK executive and measure validation, with defensive UI readiness checks. Only substantive ready paragraphs create measure/team cards or clipboard output; failures remain inspectable separately. Ten focused tests and one isolated browser flow passed. Existing factual safeguards remain. Not an independent review.",
+  "summary": "Focused implementing-agent review of revision23. All 30 packaged files match source. Runtime SDK measure instructions synthesize all supplied epic paragraphs into outcome-led 500-character/70-word updates while existing evidence validation remains. One-click generation performs source then measure phases; primary view and clipboard use only ready measure output and supporting epic text is collapsed. Overview table uses natural full-page height. Eleven focused executive tests and combined 26-row browser verification passed. Not an independent review.",
   "blockingIssues": [],
   "caveats": [
-    "Insufficient evidence or repeatedly empty/rejected model responses still produce no ready paragraph; they remain reported as failures rather than invented summaries.",
-    "Testing uses mocked model responses and isolated GUS records; actual production model output remains unverified. Existing sharing, writes, source and connector limitations remain."
+    "Actual production model wording/acceptance remains unverified; source limits, missing evidence and failed validation can still prevent a ready update.",
+    "One-click generation adds the requested measure-consolidation SDK phase; separate regeneration reuses the existing epic summaries.",
+    "Source facts must retain material qualifications when compressed; user review before leadership sharing remains necessary.",
+    "Long tables now use page scrolling rather than a vertically capped inner table. Existing write, sharing, connector and concurrency caveats remain."
   ]
 }
