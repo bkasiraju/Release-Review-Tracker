@@ -7,9 +7,10 @@ function validateDoc(d){
  if(d.year!==undefined)check(Number.isInteger(d.year)&&d.year>=2000&&d.year<=2099);
  for(const k of ['name','project','owner','health','team','lead','comments','pathToGreen'])if(d[k]!==undefined&&d[k]!==null)check(typeof d[k]==='string');
  for(const k of ['completion','planned','actual','closed','inProgress','newPoints','waiting'])if(d[k]!==undefined&&d[k]!==null)check(typeof d[k]==='number'&&Number.isFinite(d[k])||typeof d[k]==='string'&&/^-?\d+(?:\.\d+)?$/.test(d[k]));
- if(d.v2momConfirmed!==undefined){const v=d.v2momConfirmed;check(object(v)&&typeof v.none==='boolean'&&typeof v.method==='string'&&v.method.length<=500&&typeof v.measure==='string'&&v.measure.length<=500&&(v.none||v.method.trim()&&v.measure.trim())&&typeof v.referenceUrl==='string'&&typeof v.referenceKey==='string'&&v.referenceKey.length<=3000&&/^FY\d{2,4}$/.test(v.fiscalYear));}
+ if(d.v2momConfirmed!==undefined){const v=d.v2momConfirmed;check(object(v)&&typeof v.none==='boolean'&&typeof v.method==='string'&&v.method.length<=500&&typeof v.measure==='string'&&v.measure.length<=500&&(v.none||v.measure.trim())&&typeof v.referenceUrl==='string'&&typeof v.referenceKey==='string'&&v.referenceKey.length<=3000&&/^FY\d{2,4}$/.test(v.fiscalYear));}
  if(d.v2mom!==undefined)require('./review-policy').reference(d.v2mom);
  if(d.reviewStatus!==undefined){const r=d.reviewStatus;check(object(r)&&['watch','canceled'].includes(r.epicStatus)&&typeof r.value==='string');check(r.value===''||({watch:['Delayed','At-Risk'],canceled:['De-Prioritised','Mistakenly Added','Not a Priority']}[r.epicStatus]).includes(r.value));check(typeof r.updatedAt==='string'&&Number.isFinite(Date.parse(r.updatedAt)));}
+ if(d.detailStatusColumns!==undefined)check(Array.isArray(d.detailStatusColumns)&&d.detailStatusColumns.length<=2&&d.detailStatusColumns.every(k=>['health','reviewStatus'].includes(k)));
  if(d.months!==undefined)check(Array.isArray(d.months)&&d.months.length<=120&&d.months.every(m=>typeof m==='string'&&MONTH.test(m)));
  if(d.visibleMonths!==undefined)check(Array.isArray(d.visibleMonths)&&d.visibleMonths.length<=120&&d.visibleMonths.every(m=>typeof m==='string'&&MONTH.test(m)));
  if(d.hiddenMonths!==undefined)check(Array.isArray(d.hiddenMonths)&&d.hiddenMonths.length<=120&&d.hiddenMonths.every(m=>typeof m==='string'&&MONTH.test(m)));

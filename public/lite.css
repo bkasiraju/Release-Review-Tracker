@@ -490,3 +490,7 @@ body,.workspace,main{background-color:#f5f8fb}
 .health-metrics-strip .health-chart-legend .health-badge{white-space:nowrap}
 
 .monthly-path-field{margin-top:12px;padding-top:10px;border-top:1px solid #cbdde7}.monthly-path-field>.field-label{display:flex;align-items:center;gap:5px}.monthly-path-field textarea{width:100%;padding:9px;border:1px solid #aec7d6;border-radius:6px;line-height:1.5;resize:vertical}.monthly-path-actions{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:6px}.monthly-path-actions small{margin-right:auto}.monthly-path-actions [role=status]{font-size:11px}
+
+.review-summary-cell .epic-summary-trigger{position:static;transform:none;margin:0}.review-summary-heading{white-space:nowrap}#epic-table.epic-accordion>tbody>.epic-summary-row>td:nth-child(4),#epic-table.epic-accordion>tbody>.epic-summary-row>td:nth-child(5){padding-left:7px;padding-right:7px}.view-nav [data-view]{font-size:13px!important;min-height:34px!important;padding:6px 10px!important}.view-nav [data-view] .cfs-icon{width:19px;height:19px}.view-nav [data-view][aria-pressed=true]{border-bottom-width:2px!important}
+
+.executive-inspection{margin-top:12px;padding:8px 10px;border:1px solid #d2dfe7;border-radius:6px;font-size:11px}.executive-inspection>summary{cursor:pointer;font-weight:600}.executive-inspection p{font-size:11px}.executive-team .executive-epic-update{padding:8px 0}.executive-team .executive-blurb{margin:0;font-size:13px;line-height:1.6}

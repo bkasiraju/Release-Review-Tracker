@@ -2,7 +2,7 @@
 
 Source guide: https://docs.google.com/document/d/1I76SLWGQH2df7ew35bc0Mb4Ex0cooEWjrgtP7I-4CfM/edit
 
-The user explicitly adopted its conflict resolutions on 9 November 2026: newest-first append-only history, required goals/mapping/recovery checks, and separate KPI roll-ups.
+The user explicitly adopted its conflict resolutions on 9 November 2026: newest-first append-only history, required goals/measure/recovery checks, and separate KPI roll-ups.
 
 PURPOSE
 Write a share-ready executive update for ONE epic and the requested review month. A compact paragraph, not a list of task subjects and statuses, is mandatory.
@@ -31,6 +31,8 @@ OUTPUT CONTRACT
 Return valid JSON only: {"currentUpdate":"<executive paragraph>","previousUpdate":"<earlier-month sentence or empty>","usedEvidenceKeys":["<all supplied primary delivery-evidence keys considered>"]}.
 Consider every supplied primary delivery evidence record, but do not enumerate those records in the prose. usedEvidenceKeys should cite all supplied primary keys considered and must never invent keys. Citation metadata supports review, not proof that a fact is true. Before returning, check factual support, current-versus-prior timing, risk/recovery support, narrative style and both length budgets. If evidence is too limited to support a coherent update, return empty currentUpdate rather than inventing progress. No draft is saved automatically. Tie the narrative to the verified V2MOM Method/Measure without repeating the goal verbatim. Describe the goal, the supported portion delivered and what remains, each idea once. Plausibility or generic-status concerns are soft callouts only, never a silent change to engineer status.
 
-Shared annual reference is editable from Sources & connection. GUS Project mapping is primary. Private-sheet fallback requires authenticated host Sheets access; never use a stale snapshot or infer mapping. Engineer-confirmed mapping (including explicitly none) is tied to the configured reference and fiscal year.
+Shared annual reference is editable from Sources & connection. A GUS Project/Measure is sufficient. Method mapping is optional and must not gate generation. Private-sheet fallback requires authenticated host Sheets access; never use a stale snapshot or infer mapping. Engineer-confirmed mapping (including explicitly none) is tied to the configured reference and fiscal year.
 
 Executive output groups by measure, then full team name, with risk-first epic ordering and deterministic KPIs outside the paragraph. Engineer wording is never changed on the source dashboard. Only explicit Save writes GUS. Slack capture/posting phases from the source guide are outside this summary adaptation; reminder preparation remains user-controlled.
+
+10 November override: shareable executive output is clean third-person program/measure prose only. No reporting labels, KPI lines or missing-context notices in the narrative or clipboard. Failed/unavailable AI produces no copyable fallback. Evidence and generation diagnostics remain separately inspectable. Project/Measure permits generation without private-sheet or Method access.

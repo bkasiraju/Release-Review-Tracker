@@ -17,3 +17,6 @@ On 9 November 2026 the user explicitly adopted the EpicPulse guide after reviewi
 
 ## Validation speed preference (9 November 2026)
 The user explicitly requests focused validation for the changed feature. Run relevant module tests and one targeted browser flow when UI behavior changes; skip unrelated regression suites unless a concrete cross-cutting risk justifies them. Publish the verified GUS Apps change promptly. Do not delay the live-app completion message for the separate Pages build; report Pages status accurately.
+
+## Executive output refinement (10 November 2026)
+The user explicitly made Method optional: a verified GUS Project/Measure is sufficient; do not force Method lookup or mapping review when Measure exists. Shareable executive/measure output must contain only validated third-person TPM narrative, grouped by measure and full team name. Keep reporting prefixes, source-fallback fragments, KPI inventories, status badges, missing-context notes and validation diagnostics out of copied prose. Put evidence/failures in separate collapsed inspection. Never fill a failed AI paragraph with raw engineer text or fabricated progress. Preserve actual historical timing, source meaning and review/save controls. Expanded detail tables hide Epic Status and Review Status by default; the parent row always retains both.

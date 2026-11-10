@@ -21,7 +21,7 @@ function applyChanges(doc,event){
   for(const op of event._changes){
     if(!Array.isArray(op.path)||op.path.length<1||op.path.length>2||op.path.some(k=>['__proto__','constructor','prototype'].includes(k)))throw Error('Invalid saved dashboard change.');
     const [root,key]=op.path;const target=key?(doc[root]||=(Object.create(null))):doc,field=key||root,actual=target[field];
-    const protectedField=root==='v2momConfirmed'||root==='v2mom'||root==='reviewStatus'||root==='drafts'||['name','year','yearMapping','epicIds','months','columns','columnMode','visibleMonths','hiddenMonths'].includes(root);
+    const protectedField=root==='v2momConfirmed'||root==='v2mom'||root==='reviewStatus'||root==='drafts'||['name','year','yearMapping','epicIds','months','columns','columnMode','visibleMonths','hiddenMonths','detailStatusColumns'].includes(root);
     if(protectedField&&!equal(actual,op.before)&&!equal(actual,op.after)){
       // Clearing a synced revision must never clear a newer draft saved concurrently.
       if(op.remove)continue;
