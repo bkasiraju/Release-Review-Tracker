@@ -1,3 +1,9 @@
+## 2.0.0-GA — review-priority default Epic Status sorting
+
+The landing table now defaults to Epic Status priority rather than epic name. Watch and Not Started precede On Track and Completed. Blocked/At Risk are highest priority; Canceled follows completed work, and unreported status is placed last. Other unrecognized active statuses stay before healthy work. Names provide deterministic ordering within a status priority. Health grouping uses the same priority, while rows inside other groups retain the selected table order. Clicking the status header reverses the priority, and manual name/lead sorting remains available. Reload restores the requested default status sort. No GUS data is changed by sorting.
+
+Validation: four focused grouping/sorting tests and one isolated browser flow covering default row order, reverse status order, manual name sorting and reload. No full suite run; no live GUS writes or model calls.
+
 ## 2.0.0-GA — inline Watch recovery and readable summary tooltips
 
 Selecting a Watch Review Status without Path to Green now opens a small inline popup beside the control. The user enters a recovery action and next step, then Save & apply status writes both GUS Path_to_Green__c and Epic_Health_Comments__c in one Salesforce record update. The selected review month receives a new append-only entry retaining its latest engineer update plus the explicit Path to Green. Original rich comment history and pending dashboard drafts remain intact. Both fields are reread and verified before the shared Review Status is applied. Invalid reasons, changed remote plans, stale shared revisions and unverifiable writes do not silently apply a review reason. Cancel leaves data unchanged. Failed saves retain entered text in the popup.

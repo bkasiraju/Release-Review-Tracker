@@ -1,11 +1,9 @@
 {
   "recommendation": "ApproveWithCaveats",
-  "summary": "Focused implementing-agent review of revision18. All 30 packaged files match source. Watch recovery validates review reason before mutation, checks shared revision and remote plan, uses one GUS update for Path-to-Green plus health comments, verifies both and preserves drafts/history before applying shared Review Status. Retry does not duplicate the latest matching entry. Popup retains text on error and cancel is non-mutating. Tooltips wrap unbroken URLs, size to available space/content, keep Summary controls clear and settle after scrolling. Three focused tests and one isolated browser flow passed. Not an independent review.",
+  "summary": "Focused implementing-agent review of revision19. All 30 packaged files match source. Default sort selects health priority, deterministic name/ID ties remain, status header reverses priority and health groups match review urgency. Four focused tests and an isolated browser flow passed. No GUS writes or AI behavior changed. Not an independent review.",
   "blockingIssues": [],
   "caveats": [
-    "Actual hosted GUS write permissions and production model outputs remain unverified; testing uses an isolated backend.",
-    "A successful GUS write followed by shared dashboard revision/storage failure may require refresh and review; the popup retains text and reports failure.",
-    "REST conditional writes are used where exposed; facade-only writes retain the existing pre-save/post-save protection without atomic guarantees.",
-    "The new monthly recovery entry is append-only and preserves original rich history; older history may include earlier recovery plans. No broad suite was run."
+    "Blocked/At Risk sort before Watch; Canceled follows completed work and unreported statuses sort last.",
+    "Reload restores the requested default; manual sorting remains session-local. Existing deployment/data/AI caveats remain unchanged."
   ]
 }
