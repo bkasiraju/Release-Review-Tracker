@@ -5,7 +5,7 @@
   "designatedBy": "User",
   "baselineDate": "2026-11-09",
   "artifact": "cfs-release-review-tracker.zip",
-  "sha256": "fbf819e39f9f13e5a08063928bb26592feec71a61edbd433b4228e5b0055a820",
+  "sha256": "0c6fbd20dcf989a88270a50ca95effc000ab45a172ffab8cb287451ed361212c",
   "gitTags": [
     "v2.0.0-GA",
     "GOLDEN-BUILD-2.0.0-GA"
@@ -14,28 +14,28 @@
   "rollbackScope": "Application files only; preserve all shared GUS data",
   "verification": {
     "nodeTestsPassed": 0,
-    "validationScope": "CSS-only change; one focused browser flow at wide and narrow widths",
+    "validationScope": "Monthly editor interaction change; focused review workflow browser flow and JS syntax check",
     "fullSuiteRun": false,
     "browserChecks": [
-      "inline-legend-adjacent-pairs-responsive-wrap-no-clipping-existing-filter"
+      "no-row-ptg-monthly-editor-required-field-gus-save-review-workflow"
     ],
     "productionModelOutputVerified": false
   },
-  "revision": "consolidated-20261110-13",
+  "revision": "consolidated-20261110-14",
   "status": "Current GOLDEN BUILD going forward",
-  "includes": "Inline Epic Health status/count legend with small gaps and responsive wrapping.",
+  "includes": "Move Path to Green capture from epic rows into the monthly-update editor; require and verify saved recovery plans.",
   "previousBaseline": {
     "tag": "GOLDEN-BUILD-2.0.0-GA-original",
     "manifest": "releases/2.0.0-GA-original/build.json",
     "sha256": "96ff7a49e2707682511017abbda6dabda6ef1e8370649061a63300415020b5fc"
   },
   "previousRevision": {
-    "commit": "cc886f92613169be66c3d4cbbef8ec873ef38943",
-    "sha256": "00f627c9f9e66a21694e51a8444fa01f634219431c61c8a27ea319e99da1fe86"
+    "commit": "302beeec528e2acd523c0d03bb0659f438915e07",
+    "sha256": "fbf819e39f9f13e5a08063928bb26592feec71a61edbd433b4228e5b0055a820"
   },
   "deployment": {
     "activated": true,
     "matchedTextFiles": 24,
-    "verifiedArchiveSha256": "fbf819e39f9f13e5a08063928bb26592feec71a61edbd433b4228e5b0055a820"
+    "verifiedArchiveSha256": "0c6fbd20dcf989a88270a50ca95effc000ab45a172ffab8cb287451ed361212c"
   }
 }

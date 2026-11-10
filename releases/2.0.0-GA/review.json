@@ -1,8 +1,8 @@
 {
   "recommendation": "ApproveWithCaveats",
-  "summary": "Focused implementing-agent review of CSS-only inline health legend and cache-key update. SHA256 fbf819e39f9f13e5a08063928bb26592feec71a61edbd433b4228e5b0055a820. All 30 packaged files match source. Status/count pairs remain together, wrap with small gaps, retain existing click filtering, and do not clip at tested 2200px and 1100px widths. One targeted browser flow passed; no Node or broad suites rerun. Backend behavior is unchanged from the prior reviewed GA build.",
+  "summary": "Focused implementing-agent source/artifact review of moving Path to Green capture into the monthly update editor. SHA256 0c6fbd20dcf989a88270a50ca95effc000ab45a172ffab8cb287451ed361212c. All 30 packaged files match source. Epic Status cells now contain only their status badge. Monthly editor displays and validates the saved GUS recovery plan, explicitly saves through the existing verified endpoint, and saves changed Path to Green before queueing monthly publication. Blank Watch/Blocked plans remain rejected. Successful path saves preserve monthly edits and clear stale errors. One combined fixture browser flow passed, plus JS syntax check; backend unchanged.",
   "blockingIssues": [],
   "caveats": [
-    "Prior production LLM, authenticated Google Sheets, shared write concurrency and other backend caveats remain unchanged. This is a focused implementing-agent review, not a new independent whole-application audit."
+    "The saved Path to Green remains an epic-level GUS field, not a separate historical monthly recovery field. Private Sheets authentication and actual production model behavior remain unverified. Existing host concurrency and sharing caveats are unchanged. Focused implementing-agent review only."
   ]
 }
