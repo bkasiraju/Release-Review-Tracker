@@ -1,3 +1,9 @@
+## 2.0.0-GA — full-width executive updates
+
+Removed the 1100px executive paragraph cap. Executive updates now use the full available measure/team content width with the existing compact side padding, matching consolidated updates. Long unbroken text wraps within the available width. No update text, AI rules or GUS data is changed.
+
+Validation: one focused isolated browser flow generates representative executive and consolidated output and verifies paragraph width equals the parent content width with no overflow at 2400px, 1200px and 760px. CSS-only change; no Node or broad regression suite run.
+
 ## 2.0.0-GA — preserve review state during background refresh
 
 Fixed the executive summary disappearing during GUS fetch/repaint. Generated summary scope is now the selected release IDs and review month, independent of cache document revisions. Per-epic fetch revisions no longer hide executive or consolidated measure output or disable its copy action. Meaningful source evidence changes retain the existing summary and show a separate regeneration prompt; summaries are not silently regenerated or represented as newly generated from changed evidence.

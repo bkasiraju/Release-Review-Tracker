@@ -1,10 +1,8 @@
 {
   "recommendation": "ApproveWithCaveats",
-  "summary": "Focused implementing-agent review of revision20. All 30 packaged files match source. Cache revisions are removed from executive display scope, actual evidence changes retain output with an explicit regeneration notice, and memoized rendering preserves routine refresh DOM. View state, scroll/focus and selected filters are retained, and fetch errors cannot replace active editors. Four focused grouping/sort tests plus the isolated refresh-state browser flow passed. No backend/AI validation changes. Not an independent review.",
+  "summary": "Focused implementing-agent review of revision21. All 30 packaged files match source. CSS removes the executive paragraph maximum width, uses available content width and wraps long text. One isolated browser flow verifies executive/consolidated paragraph widths and absence of overflow at three viewport sizes. No backend or AI change. Not an independent review.",
   "blockingIssues": [],
   "caveats": [
-    "Retained summaries are generated snapshots and may be stale after evidence changes; the separate notice requests explicit regeneration.",
-    "Summary state is in memory for the page session; full browser reload starts fresh, as requested. Selecting a different release/month uses its own scope rather than presenting the prior scope as current.",
-    "Actual production SDK/model and hosted browser behavior remain unverified by isolated tests. Existing GUS sharing, connector and concurrency limitations remain unchanged."
+    "CSS-only focused validation; no Node/full suite or hosted production browser/model testing. Existing data, AI and connector limitations unchanged."
   ]
 }
