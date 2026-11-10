@@ -1,3 +1,11 @@
+## 2.0.0-GA — reject empty-looking AI summaries and omit empty cards
+
+Fixed quoted-empty AI responses such as two quote characters being accepted as nonempty summaries. Native executive, SDK executive and consolidated-measure validation now reject quote-only, punctuation-only, placeholder and standalone-status responses while retaining valid short prose. Existing evidence, numeric, chronology and status checks remain. A bounded correction may still recover a usable paragraph; repeated empty output remains non-ready rather than fabricated fallback prose.
+
+UI readiness applies the same content check defensively, including legacy payloads that incorrectly declare empty text ready. Empty epic results cannot create a measure/team group or enter the copied leadership update. Consolidated measure/team cards and their copy action are created only for substantive ready paragraphs. Failed consolidations remain in a separate collapsed generation-details section, rather than empty measure cards. Real source gaps and failures are not hidden as successful coverage.
+
+Validation: ten focused executive tests pass, including quote/punctuation/placeholder/status rejection, bounded native/SDK empty responses, existing evidence checks and preference behavior. One isolated browser flow tests all-empty and mixed valid/legacy-empty responses, zero empty executive/consolidated cards, copy-action visibility and clipboard exclusion, diagnostics, and successful retry. No full suite run or live GUS/model calls.
+
 ## 2.0.0-GA — full-width executive updates
 
 Removed the 1100px executive paragraph cap. Executive updates now use the full available measure/team content width with the existing compact side padding, matching consolidated updates. Long unbroken text wraps within the available width. No update text, AI rules or GUS data is changed.

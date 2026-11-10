@@ -1,8 +1,9 @@
 {
   "recommendation": "ApproveWithCaveats",
-  "summary": "Focused implementing-agent review of revision21. All 30 packaged files match source. CSS removes the executive paragraph maximum width, uses available content width and wraps long text. One isolated browser flow verifies executive/consolidated paragraph widths and absence of overflow at three viewport sizes. No backend or AI change. Not an independent review.",
+  "summary": "Focused implementing-agent review of revision22. All 30 packaged files match source. Empty-looking prose and placeholders are rejected in native/SDK executive and measure validation, with defensive UI readiness checks. Only substantive ready paragraphs create measure/team cards or clipboard output; failures remain inspectable separately. Ten focused tests and one isolated browser flow passed. Existing factual safeguards remain. Not an independent review.",
   "blockingIssues": [],
   "caveats": [
-    "CSS-only focused validation; no Node/full suite or hosted production browser/model testing. Existing data, AI and connector limitations unchanged."
+    "Insufficient evidence or repeatedly empty/rejected model responses still produce no ready paragraph; they remain reported as failures rather than invented summaries.",
+    "Testing uses mocked model responses and isolated GUS records; actual production model output remains unverified. Existing sharing, writes, source and connector limitations remain."
   ]
 }

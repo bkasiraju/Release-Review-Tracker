@@ -30,7 +30,7 @@ function sourceParagraph(sources){
  const words=text.split(/\s+/);return words.length>110?words.slice(0,110).join(' ')+'…':text;
 }
 function validParagraph(text,sources){
- if(typeof text!=='string'||!text.trim()||text.trim().split(/\s+/).length>110||workTerms.test(text)||/\b(?:we|our|I|my)\b/i.test(text)||/(?:^|\n)\s*(?:[-*•#]|Accomplished\s*:|Risks?\s*:|Plan forward\s*:)/i.test(text))return false;
+ if(!hasSummaryContent(text)||text.trim().split(/\s+/).length>110||workTerms.test(text)||/\b(?:we|our|I|my)\b/i.test(text)||/(?:^|\n)\s*(?:[-*•#]|Accomplished\s*:|Risks?\s*:|Plan forward\s*:)/i.test(text))return false;
  const source=sources.map(s=>s.comments).join(' '),numbers=new Set(source.match(/\d+(?:[.,]\d+)*/g)||[]);
  if((text.match(/\d+(?:[.,]\d+)*/g)||[]).some(n=>!numbers.has(n)))return false;
  const blanket=text.match(/\b(?:no (?:risks?|issues?|blockers?)|all [^.]*completed|fully complete)\b/ig)||[];
@@ -62,8 +62,9 @@ function validParagraph(text,sources){
   }
   return {valid:true};
  }
+function hasSummaryContent(text){if(typeof text!=='string')return false;const value=text.replace(/["'“”‘’`]/g,'').trim();return (value.match(/\p{L}+/gu)||[]).length>=2&&!/^(?:n\/?a|none|null|undefined|tbd|no (?:substantive |monthly |health )?updates?(?: (?:available|provided|recorded))?|not available|summary unavailable|not started|on track|in progress|completed|cancelled|canceled|watch|blocked)[.!…\s]*$/i.test(value);}
 function executiveIssue(text,sources,grounding){
- if(typeof text!=='string'||!text.trim())return 'Return a complete executive paragraph.';
+ if(!hasSummaryContent(text))return 'Return a substantive executive paragraph; empty quotes, placeholders and status labels are not summaries.';
  if(text.length>650||text.split(/\s+/).length>90)return 'Keep the update below 650 characters and 90 words.';
  if(/\b(?:the team reports|earlier updates recorded|undated background|source[- ]based|no (?:dated |substantive )?(?:engineer|epic health|monthly).*?update|mapping (?:is )?(?:missing|unavailable|unresolved))\b|\b(?:Done|Pending|Outcome|Context)\s*:|(?:^|\s)\d+[.)]\s+[A-Z]/i.test(text))return 'Return flowing third-person TPM prose without reporting labels, list fragments, missing-context notices or workflow commentary.';
  if(!validParagraph(text,[{comments:JSON.stringify(sources.map(s=>({comments:s.comments,goal:s.goal,work:s.work||[]})))}]))return 'Use factual third-person prose without invented metrics, markup, inventories or unsupported blanket claims.';
@@ -82,4 +83,4 @@ async function summarizeGroup(sf,sources,options={}){
  if(typeof sf?.einsteinPromptGeneration!=='function')return {...base,aiNotice:'GUS Apps AI is unavailable; source evidence remains available for review.'};
  let timer,last='';try{for(let attempt=0;attempt<2;attempt++){const request=attempt?prompt+' Correction required: '+executiveIssue(last,sources,grounding)+' Previous untrusted response: '+JSON.stringify(last.slice(0,4000)):prompt;const result=await Promise.race([sf.einsteinPromptGeneration(request),new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('Summary timed out')),12000);})]);clearTimeout(timer);last=String(result?.generations?.[0]?.text||result?.text||(typeof result==='string'?result:'')).trim();if(!executiveIssue(last,sources,grounding))return {...base,blurb:last,draftReady:true,aiAttempted:true,mode:'assisted'};}return {...base,aiAttempted:true,aiNotice:executiveIssue(last,sources,grounding),aiRejectedDraft:last.slice(0,5000)};}catch{return {...base,aiAttempted:true,aiNotice:'AI could not finish the executive paragraph. Retry generation.'};}finally{clearTimeout(timer);}
 }
-module.exports={healthSource,sourceParagraph,validParagraph,summarizeGroup,conciseParagraph,validateClaims,executiveIssue};
+module.exports={hasSummaryContent,healthSource,sourceParagraph,validParagraph,summarizeGroup,conciseParagraph,validateClaims,executiveIssue};
