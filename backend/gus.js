@@ -176,6 +176,11 @@ class Gus{
     if(typeof this.sf.request==='function'){await this.sf.request({method:'PATCH',url:`/services/data/v62.0/sobjects/ADM_Epic__c/${id}`,headers:{'Content-Type':'application/json','If-Unmodified-Since':new Date(modified).toUTCString()},body:JSON.stringify(fields)});return {conditional:true};}
     const latest=await this.epic(id);if(latest.modified!==modified)throw Error('This epic changed. Refresh before saving Epic Status.');if(typeof this.sf.update!=='function')throw Error('GUS Apps does not expose Salesforce update().');const out=await this.sf.update('ADM_Epic__c',id,fields);if(!out||out.success===false||out.errors?.length)throw Error('GUS rejected Epic Status.');return {conditional:false};
   }
+  async updateRecovery(id,path,comments,modified){
+    id=validId(id);const fields={Path_to_Green__c:path,Epic_Health_Comments__c:comments};
+    if(typeof this.sf.request==='function'){await this.sf.request({method:'PATCH',url:`/services/data/v62.0/sobjects/ADM_Epic__c/${id}`,headers:{'Content-Type':'application/json','If-Unmodified-Since':new Date(modified).toUTCString()},body:JSON.stringify(fields)});return {conditional:true};}
+    const latest=await this.epic(id);if(latest.modified!==modified)throw Error('This epic changed. Refresh before saving Path to Green.');if(typeof this.sf.update!=='function')throw Error('GUS Apps does not expose Salesforce update().');const out=await this.sf.update('ADM_Epic__c',id,fields);if(!out||out.success===false||out.errors?.length)throw Error('GUS rejected the recovery update.');return {conditional:false};
+  }
   async updatePathToGreen(id,text,modified){
     id=validId(id);const fields={Path_to_Green__c:text};
     if(typeof this.sf.request==='function'){await this.sf.request({method:'PATCH',url:`/services/data/v62.0/sobjects/ADM_Epic__c/${id}`,headers:{'Content-Type':'application/json','If-Unmodified-Since':new Date(modified).toUTCString()},body:JSON.stringify(fields)});return {conditional:true};}

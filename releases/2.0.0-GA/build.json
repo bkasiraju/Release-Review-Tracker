@@ -5,7 +5,7 @@
   "designatedBy": "User",
   "baselineDate": "2026-11-09",
   "artifact": "cfs-release-review-tracker.zip",
-  "sha256": "f96b1f5cb28fd2e1cb8d3566fb7618cbff777f92d29251ea939d4397d715c9f9",
+  "sha256": "8a9524d9711800c7e14d92681c0576e152a3c60e9ec5c08b5f12af769b6c5d17",
   "gitTags": [
     "v2.0.0-GA",
     "GOLDEN-BUILD-2.0.0-GA"
@@ -14,25 +14,25 @@
   "rollbackScope": "Application files only; preserve all shared GUS data",
   "verification": {
     "nodeTestsPassed": 3,
-    "validationScope": "three targeted service/adapter tests and one isolated browser flow; no full suite",
+    "validationScope": "three targeted recovery tests and one isolated browser flow; no full suite",
     "fullSuiteRun": false,
     "productionModelOutputVerified": false
   },
-  "revision": "consolidated-20261110-17",
+  "revision": "consolidated-20261110-18",
   "status": "Current GOLDEN BUILD going forward",
-  "includes": "Distinct status colors and verified inline GUS Health editing with shared persistence, recovery gating and review reason reset.",
+  "includes": "Inline Watch recovery popup with verified dual-field GUS save; content-responsive wrapped tooltips and stable clicked opening.",
   "previousBaseline": {
     "tag": "GOLDEN-BUILD-2.0.0-GA-original",
     "manifest": "releases/2.0.0-GA-original/build.json",
     "sha256": "96ff7a49e2707682511017abbda6dabda6ef1e8370649061a63300415020b5fc"
   },
   "previousRevision": {
-    "commit": "d74bc60c154501eca0dceeb2e0fb1c2d97fa286a",
-    "sha256": "3556c36907f00b910d0d84f494b08b3fbb7f7afab0c0cd14a3f2ff42e1c5f297"
+    "commit": "3f69ad51da5efc958d242537f91ce702ffc2e107",
+    "sha256": "f96b1f5cb28fd2e1cb8d3566fb7618cbff777f92d29251ea939d4397d715c9f9"
   },
   "deployment": {
     "activated": true,
     "matchedTextFiles": 24,
-    "verifiedArchiveSha256": "f96b1f5cb28fd2e1cb8d3566fb7618cbff777f92d29251ea939d4397d715c9f9"
+    "verifiedArchiveSha256": "8a9524d9711800c7e14d92681c0576e152a3c60e9ec5c08b5f12af769b6c5d17"
   }
 }

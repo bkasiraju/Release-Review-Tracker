@@ -1,11 +1,11 @@
 {
   "recommendation": "ApproveWithCaveats",
-  "summary": "Focused implementing-agent review of revision17. All 30 packaged files match source. Inline Epic Status checks membership, shared revision, active picklist and fresh remote status; writes only Health__c, verifies it, preserves comments/drafts and clears obsolete Review Status. Existing Watch Path-to-Green requirement enforced before change. Distinct status palette does not alter healthy/attention filters. Three focused Node tests and one combined isolated browser flow passed. This is not an independent review.",
+  "summary": "Focused implementing-agent review of revision18. All 30 packaged files match source. Watch recovery validates review reason before mutation, checks shared revision and remote plan, uses one GUS update for Path-to-Green plus health comments, verifies both and preserves drafts/history before applying shared Review Status. Retry does not duplicate the latest matching entry. Popup retains text on error and cancel is non-mutating. Tooltips wrap unbroken URLs, size to available space/content, keep Summary controls clear and settle after scrolling. Three focused tests and one isolated browser flow passed. Not an independent review.",
   "blockingIssues": [],
   "caveats": [
-    "Production GUS write permissions depend on the signed-in user and were not verified through a hosted browser.",
-    "If host REST is unavailable, status writes use a pre-save recheck and post-save verification rather than atomic conditional writes.",
-    "Missing Health metadata uses the known status choices; Salesforce remains authoritative and rejects invalid values.",
-    "No broad suite or live data mutation was performed in tests. Existing AI evidence, sharing and connector limitations remain."
+    "Actual hosted GUS write permissions and production model outputs remain unverified; testing uses an isolated backend.",
+    "A successful GUS write followed by shared dashboard revision/storage failure may require refresh and review; the popup retains text and reports failure.",
+    "REST conditional writes are used where exposed; facade-only writes retain the existing pre-save/post-save protection without atomic guarantees.",
+    "The new monthly recovery entry is append-only and preserves original rich history; older history may include earlier recovery plans. No broad suite was run."
   ]
 }

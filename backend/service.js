@@ -90,14 +90,22 @@ class Service{
   async saveReviewStatus(data){
     const id=validId(data.epicId),r=await this.release(data.releaseId);if(!r.epicIds.includes(id))throw Error('Epic is not part of this release.');
     const old=await this.store.get('epic',id);if(!old||data.revision!==old.revision)throw Error('Epic changed. Refresh before saving Review Status.');
-    const row=await this.gus.epic(id),status=String(row.health||'').trim().toLowerCase(),key=status==='cancelled'?'canceled':status;
+    let row=await this.gus.epic(id);const status=String(row.health||'').trim().toLowerCase(),key=status==='cancelled'?'canceled':status;
     if(key!==data.epicStatus)throw Error('Epic Status changed in GUS. Refresh before choosing Review Status.');
-    if(key==='watch'&&!plainText(row.pathToGreen).trim())throw Error('Enter and save Path to Green before saving Review Status for a Watch epic.');
     const choices={watch:['Delayed','At-Risk'],canceled:['De-Prioritised','Mistakenly Added','Not a Priority'],'not started':['Planned','Bandwidth Constraints','Dependency-Blocker','To be re-prioritised']}[key];
     if(!choices||typeof data.value!=='string'||(data.value!==''&&!choices.includes(data.value)))throw Error('Choose a Review Status valid for the current Epic Status.');
+    if(data.recoveryText!==undefined){
+      validMonth(data.month);if(key!=='watch'||typeof data.recoveryText!=='string'||!data.recoveryText.trim()||data.recoveryText.length>30000)throw Error('Enter a Path to Green of up to 30,000 characters for this Watch epic.');
+      const recovery=data.recoveryText.trim();if(plainText(row.pathToGreen)!==plainText(old.pathToGreen)&&plainText(row.pathToGreen)!==plainText(recovery))throw Error('Path to Green changed in GUS. Refresh before saving.');
+      const parsed=publicParsed(this.parsed({...old,...row})),current=parsed.latestMonths?.[data.month]||parsed.months?.[data.month]||'',entry='Path to Green:\n'+recovery,value=current.endsWith(entry)?current:[current,entry].filter(Boolean).join('\n\n'),comments=mergeComments(row.comments,old.year,{[data.month]:value});
+      await this.gus.updateRecovery(id,recovery,comments,row.modified);const verified=await this.gus.epic(id);if(plainText(verified.pathToGreen)!==plainText(recovery)||plainText(verified.comments)!==plainText(comments))throw Error('Both GUS recovery fields could not be verified. Your text is retained; refresh before retrying.');if(verified.health!==row.health)throw Error('Epic Status changed during the recovery save. Refresh before choosing Review Status.');row=verified;
+    }
+    if(key==='watch'&&!plainText(row.pathToGreen).trim())throw Error('Enter and save Path to Green before saving Review Status for a Watch epic.');
+    const latest=await this.store.get('epic',id);if(latest.revision!==old.revision)throw Error('The shared epic changed during this save. Refresh to review the verified GUS update.');
     const saved=await this.store.put('epic',id,{...old,...row,extra:{...old.extra,...row.extra},drafts:old.drafts||{},reviewStatus:{value:data.value,epicStatus:key,updatedAt:new Date().toISOString()},_storageConflicts:(old._storageConflicts||[]).filter(c=>c.path!=='reviewStatus')},old.revision);
     return {...saved,parsed:publicParsed(this.parsed(saved)),pathToGreen:plainText(saved.pathToGreen)};
   }
+
   async saveSettings(data){
     const r=await this.release(data.releaseId);
     if(data.revision!==r.revision)throw Error('This release changed. Reload its latest settings before saving.');
