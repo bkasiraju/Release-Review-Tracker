@@ -8,12 +8,14 @@ const fresh=time=>{const age=Date.now()-Date.parse(time);return Number.isFinite(
 function signature(e){return hash(e?{name:e.name,health:e.health,comments:e.comments,project:e.project,team:e.team,pathToGreen:e.pathToGreen,extra:e.extra,year:e.year,yearMapping:e.yearMapping,completion:e.completion,actual:e.actual,closed:e.closed}:null);}
 async function many(store,type,ids){const all=new Map();for(let i=0;i<ids.length;i+=100){const part=ids.slice(i,i+100),rows=typeof store.getMany==='function'?await store.getMany(type,part):new Map(await Promise.all(part.map(async id=>[id,await store.get(type,id)])));for(const [id,row] of rows)all.set(id,row);}return all;}
 async function put(store,id,value,old){if(store.readOnly)return null;try{return await store.put('settings',id,{id,...value},old?.revision??null);}catch{return null;}}
+// A dashboard-fetched epic may predate or omit the goal fields; reusing it would falsely report a missing Description/Success Criteria.
+const hasPolicyFields=e=>!!e&&['Description__c','Success_Criteria__c'].every(f=>Object.prototype.hasOwnProperty.call(e.extra||{},f));
 async function snapshots(service,ids,releases,month){
  if(service.readOnly)return service.gus.epics(ids,require('./review-policy').FIELDS);
  const saved=await many(service.store,'epic',ids),keys=ids.map(id=>key('snapshot',[id,month])),cached=await many(service.store,'settings',keys),rows=new Map(),stale=[];
  for(const id of ids){const old=saved.get(id),entry=cached.get(key('snapshot',[id,month])),s=entry?.summarySnapshot;
-  if(s?.version===VERSION&&fresh(s.checkedAt)&&s.localSignature===signature(old)&&s.epic.fetchedAt===old?.fetchedAt)rows.set(id,s.epic);
-  else if(old&&fresh(old.fetchedAt))rows.set(id,old);
+  if(s?.version===VERSION&&fresh(s.checkedAt)&&s.localSignature===signature(old)&&s.epic.fetchedAt===old?.fetchedAt&&hasPolicyFields(s.epic))rows.set(id,s.epic);
+  else if(old&&fresh(old.fetchedAt)&&hasPolicyFields(old))rows.set(id,old);
   else stale.push(id);
  }
  for(let i=0;i<stale.length;i+=50){const batch=stale.slice(i,i+50),out=await service.gus.epics(batch,require('./review-policy').FIELDS);if(out.epics.length!==batch.length)throw Error('Some epics are not visible in GUS. Refresh before summarizing.');for(const e of out.epics){const old=saved.get(e.id),r=releases.find(r=>r.epicIds.includes(e.id));rows.set(e.id,{...old,...e,year:old?.year??r.year,yearMapping:old?.yearMapping||{}});}}
