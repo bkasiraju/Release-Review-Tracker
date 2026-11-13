@@ -10,6 +10,7 @@ import sys
 import urllib.error
 import urllib.request
 import uuid
+from pathlib import Path
 from package_app import package, ROOT
 
 HOST = 'https://gus-apps.internal.salesforce.com'
@@ -77,9 +78,18 @@ def main():
         return
     print('Upload accepted. Activating the approved update…')
     try:
-        promoted = unwrap(call(HOST + '/api/applets/' + SLUG + '/promote',
-                              {**headers, 'Content-Type': 'application/json'},
-                              json.dumps({'promoted': True}).encode(), method='PATCH'))
+        # The platform requires a current review verdict for the staged build before promotion.
+        # It comes from an independent review (see .local/platform-review-verdict.json), never auto-generated here.
+        verdict_path = ROOT / '.local' / 'platform-review-verdict.json'
+        if '--verdict' in sys.argv:
+            verdict_path = Path(sys.argv[sys.argv.index('--verdict') + 1])
+        if not verdict_path.is_file():
+            raise RuntimeError('Staged but not activated: no review verdict at ' + str(verdict_path) + '. Run an independent review of this build and save its verdict there.')
+        json_headers = {**headers, 'Content-Type': 'application/json'}
+        unwrap(call(HOST + '/api/applets/' + SLUG + '/review-verdict', json_headers,
+                    verdict_path.read_bytes(), method='POST'))
+        promoted = unwrap(call(HOST + '/api/applets/' + SLUG + '/promote', json_headers,
+                              json.dumps({'decision': 'approve'}).encode(), method='PATCH'))
         if promoted.get('promoted') is not True:
             raise RuntimeError('GUS Apps did not confirm activation. The update remains staged.')
         report['activated'] = True
