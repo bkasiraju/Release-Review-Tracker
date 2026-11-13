@@ -120,7 +120,7 @@ async function init(){
 function bind(){
   $('sp-team').onchange=e=>loadTeam(e.target.value);
   $('sp-sprint').onchange=e=>loadSprint(e.target.value);
-  $('sp-refresh').onclick=()=>loadTeam(S.teamId).then(()=>window.toast?.('Sprint data refreshed from GUS.'));
+  $('sp-refresh').onclick=()=>loadTeam(S.teamId);
   $('sp-expand').onclick=()=>{S.members.forEach(m=>S.open.add(m.name));renderMembers();};
   $('sp-collapse').onclick=()=>{S.open.clear();renderMembers();};
   $('sp-search').oninput=e=>{S.search=e.target.value;renderMembers();};

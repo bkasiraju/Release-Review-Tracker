@@ -34,6 +34,7 @@ function today() {
 
 async function queryAll(sf, soql) {
   const result = await sf.query(soql);
+  if (result.done === false) throw new Error('Sprint data exceeds one query page; refusing to show partial totals.');
   return result.records || [];
 }
 
