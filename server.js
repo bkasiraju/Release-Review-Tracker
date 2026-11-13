@@ -17,7 +17,7 @@ function createServer(context={}){
     }
     if(req.method!=='GET'){res.writeHead(405);return res.end();}
     // Explicit public asset map: no database, credentials, backend code or traversal exposure.
-    const assets={'/':'index.html','/index.html':'index.html','/styles.css':'styles.css','/lite.css':'lite.css','/ai.js':'ai.js','/app.js':'app.js','/queue.js':'queue.js','/controls.js':'controls.js','/tooltips.js':'tooltips.js','/favicon.svg':'favicon.svg','/SalesforceSans-Regular.woff':'SalesforceSans-Regular.woff','/SalesforceSans-Bold.woff':'SalesforceSans-Bold.woff'};
+    const assets={'/':'index.html','/index.html':'index.html','/styles.css':'styles.css','/lite.css':'lite.css','/sprint.css':'sprint.css','/sprint.js':'sprint.js','/ai.js':'ai.js','/app.js':'app.js','/queue.js':'queue.js','/controls.js':'controls.js','/tooltips.js':'tooltips.js','/favicon.svg':'favicon.svg','/SalesforceSans-Regular.woff':'SalesforceSans-Regular.woff','/SalesforceSans-Bold.woff':'SalesforceSans-Bold.woff'};
     for(const name of ['open-source','sla','deviation','automation'])assets['/icon-3d-'+name+'.webp']='icon-3d-'+name+'.webp';assets['/icons.js']='icons.js';assets['/comments-view.js']='comments-view.js';
     const file=assets[url.pathname];if(!file){res.writeHead(404);return res.end('Not found');}
     const ext=path.extname(file),types={'.html':'text/html; charset=utf-8','.css':'text/css','.js':'text/javascript','.svg':'image/svg+xml','.woff':'font/woff','.webp':'image/webp'};

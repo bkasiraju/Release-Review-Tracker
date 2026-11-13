@@ -1,0 +1,55 @@
+/* Sprint Insights — built on the Release Intelligence tokens (lite.css / styles.css). */
+.sprint-panel{display:block}
+.sprint-panel.hidden{display:none}
+body.view-sprint .release-toolbar{display:none}
+.sprint-panel .executive-heading{margin-bottom:12px;flex-wrap:wrap}
+.sp-select{min-height:34px;max-width:260px;border:1px solid #d8dde6;border-radius:6px;background:#fff;padding:0 10px;font-size:13px;color:inherit}
+.sp-goal{margin:0 0 12px}
+.sp-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin-bottom:16px}
+.sp-metrics .metric{min-height:0;cursor:default}
+.sp-trend,.sprint-panel .table-card{margin-bottom:16px}
+.sp-tabs{display:flex;gap:4px;background:#f1f5f9;border-radius:8px;padding:3px}
+.sp-tabs button{border:0;background:transparent;border-radius:6px;padding:5px 12px;font-size:12px}
+.sp-tabs button.selected{background:#fff;font-weight:700;color:#176b91;box-shadow:0 1px 2px #0001}
+.sp-trend-body{display:grid;grid-template-columns:minmax(0,1fr) 210px;gap:0;overflow:hidden}
+.sp-chart{min-width:0;padding:10px 14px 6px;overflow:hidden}
+.sp-chart svg{display:block;width:100%;height:auto;max-height:300px}
+.sp-grid{stroke:#e9e6f1;stroke-width:1}
+.sp-tick{font-size:9px;fill:#6b7280}
+.sp-val{font-size:9.5px;font-weight:700;fill:#1f293c}
+.sp-target{stroke:#2e844a;stroke-width:1.5;stroke-dasharray:6 4;opacity:.7}
+.sp-target-label{fill:#2e844a}
+.sp-line{fill:none;stroke:#176b91;stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}
+.sp-area{fill:#176b91;opacity:.08}
+.sp-dot{stroke:#fff;stroke-width:2}
+.sp-bar-a{fill:#a9c9dc}.sp-bar-b{fill:#176b91}
+.sp-loading{padding:60px 0;text-align:center;color:#6b7280;font-size:13px}
+.sp-trend-stats{border-left:1px solid #e8e4f1;padding:10px 16px;display:flex;flex-direction:column}
+.sp-stat{display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:9px 0;border-bottom:1px solid #f0edf5}
+.sp-stat:last-child{border-bottom:0}.sp-stat span{color:#6b7280}.sp-stat strong{font-size:14px}
+.sp-members{display:flex;flex-direction:column}
+.sp-member{border-bottom:1px solid #eee9f3}
+.sp-member>summary{list-style:none;display:grid;grid-template-columns:minmax(150px,1.2fr) minmax(90px,1fr) 120px minmax(0,1.6fr);align-items:center;gap:14px;padding:11px 16px;cursor:pointer;font-size:13px}
+.sp-member>summary::-webkit-details-marker{display:none}
+.sp-member>summary::before{content:'›';position:absolute;margin-left:-12px;color:#6b7280;transition:transform .15s}
+.sp-member[open]>summary::before{transform:rotate(90deg)}
+.sp-member>summary:hover{background:#f5f8fb}
+.sp-name{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-left:6px}
+.sp-bar{height:8px;border-radius:4px;background:#e9e6f1;overflow:hidden}.sp-bar i{display:block;height:100%;border-radius:4px}
+.sp-pts{font-size:12px;color:#4b5563;white-space:nowrap}
+.sp-chips{display:flex;flex-wrap:wrap;gap:5px}
+.sp-chip{display:inline-block;font-size:11px;line-height:1.3;padding:2px 7px;border-radius:10px;background:#edf5fa;color:#176b91;white-space:nowrap}
+.sp-chip.ok{background:#e6f4ea;color:#1e6b34}.sp-chip.warn{background:#fdf1dd;color:#8a5a00}.sp-chip.add{background:#e3f1fb;color:#0b5a8a}.sp-chip.rem{background:#fde7ea;color:#9b1c2c}.sp-chip.chg{background:#f1e9fb;color:#5b3a8a;margin-left:4px}
+.sp-items{max-height:380px;margin:0 16px 14px;border:1px solid #e8e4f1;border-radius:8px}
+.sp-items td.num,.sp-items th.num{text-align:right;white-space:nowrap}
+.sp-subject{max-width:520px}
+.sp-removed td{opacity:.55;text-decoration:line-through}
+.sp-status{font-size:11px;padding:2px 7px;border-radius:10px;white-space:nowrap}
+.sp-status.closed{background:#e6f4ea;color:#1e6b34}.sp-status.open{background:#fdf1dd;color:#8a5a00}
+.sp-empty{padding:34px 16px}
+@media(max-width:900px){.sp-trend-body{grid-template-columns:1fr}.sp-trend-stats{border-left:0;border-top:1px solid #e8e4f1;flex-direction:row;flex-wrap:wrap;gap:0 18px}.sp-member>summary{grid-template-columns:1fr 100px}.sp-bar,.sp-chips{grid-column:1/-1}}
+
+.sp-metrics .metric-header{font-size:14px}.sp-metrics .metric-value{font-size:30px}
+.sp-items{overflow-x:auto}.sp-items table{min-width:0;width:100%;table-layout:auto}
+.sp-chart svg{max-height:260px}
+.sp-items{width:calc(100% - 32px);max-width:calc(100% - 32px);min-width:0;box-sizing:border-box}.sp-items th,.sp-items td{padding-left:10px;padding-right:10px}

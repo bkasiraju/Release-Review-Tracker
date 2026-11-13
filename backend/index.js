@@ -1,5 +1,5 @@
 'use strict';
-const {Gus,safeError,validId}=require('./gus');const {ContentStore}=require('./store');const {Service}=require('./service');
+const {Gus,safeError,validId}=require('./gus');const {ContentStore}=require('./store');const {Service}=require('./service');const sprint=require('./sprint');
 function connection(ctx){
   const roots=[['ctx',ctx],['request',ctx.request],['invocation',ctx.invocation],['runtime',ctx.runtime],['context',ctx.context],['applet',ctx.applet],['auth',ctx.auth],['user',ctx.user],['salesforce',ctx.salesforce],['request.context',ctx.request?.context]].filter(([,r])=>r&&typeof r==='object');
   // Prefer delegated clients across every known host root before the generic facade.
@@ -48,6 +48,11 @@ async function handleRequest(ctx){
       case 'executive-blurb':payload=await service.executiveBlurb(b);break;
       case 'executive':payload=await service.executive(b);break;
       case 'slack-nudge':case 'slack-nudge-plan':{const {nudgeIds,prepareNudge,nudgePlan}=require('./nudge'),ids=nudgeIds(b),saved={};for(let i=0;i<ids.length;i+=100){const chunk=ids.slice(i,i+100);if(typeof store.getMany==='function'){for(const [id,e] of await store.getMany('epic',chunk))if(e)saved[id]=e;}else for(const id of chunk){const e=await store.get('epic',id);if(e)saved[id]=e;}}payload=action==='slack-nudge-plan'?await nudgePlan(gus,b,saved):await prepareNudge(gus,ctx.slack,b,saved);break;}
+      case 'sprint-teams':payload=await sprint.getTeams(sf);break;
+      case 'sprint-initial':payload=await sprint.getInitial(sf,b.teamId);break;
+      case 'sprint-sprints':payload=await sprint.getSprints(sf,b.teamId);break;
+      case 'sprint-data':payload=await sprint.loadSprintData(sf,b.teamId,b.sprintId);break;
+      case 'sprint-history':payload=await sprint.getHistory(sf,b.teamId);break;
       case 'work-items':payload=await gus.workItems(validId(b.epicId));break;
       case 'preview':payload=await service.preview(b.releaseId,validId(b.epicId));break;
       case 'sync':if(!Array.isArray(b.approved)||!b.approved.length||b.approved.length>1)throw Error('Review the preview before syncing.');payload=await service.sync(b.releaseId,b.approved);break;
