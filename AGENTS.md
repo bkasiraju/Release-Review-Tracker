@@ -37,7 +37,7 @@ Compact/Full Updates changes monthly-text clipping only. Single/all row and grou
 
 Every requested change follows this sequence end to end without asking the user to promote manually:
 1. `git pull`, implement, run focused tests, commit and push to `main`.
-2. Stage with `python3 scripts/deploy.py --staging-only` (packages `dist/cfs-release-review-tracker.zip`; note its SHA-256).
-3. Run an independent read-only review (code-review subagent) of `git diff <last deployed commit> HEAD` against `.local/gus-review-rubric.md`. Save its honest verdict (`recommendation`, `summary`, `blockingIssues`, `caveats`; include the ZIP SHA-256 and say whether it was static-only) to `.local/platform-review-verdict.json`. Never write an approval the reviewer did not give.
+2. Stage with `python3 scripts/deploy.py --staging-only` (packages `dist/cfs-release-review-tracker.zip`).
+3. Run an independent read-only review (code-review subagent) of `git diff <last deployed commit> HEAD` against `.local/gus-review-rubric.md`. Save its honest verdict (`recommendation`, `summary`, `blockingIssues`, `caveats`; reference the reviewed commit and say whether it was static-only; the final deploy repackages, so match by commit, not ZIP hash) to `.local/platform-review-verdict.json`. Never write an approval the reviewer did not give.
 4. If `blockingIssues` is non-empty or the recommendation is Reject: stop, fix or report to the user. Otherwise run `python3 scripts/deploy.py`, which POSTs the verdict to `/api/applets/cfs-release-review-tracker/review-verdict`, promotes with `{"decision":"approve"}`, and verifies the live version.
 5. Report git and GUS Apps status accurately (uploaded / activated / verified).
