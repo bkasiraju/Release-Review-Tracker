@@ -182,3 +182,6 @@ Release Intelligence opens on a tile-based hub. A **team filter** in the top bar
 | Test Failures, Quick Links | placeholders ("coming soon") |
 
 Inline edits (work status/priority/assignee/points, TD status/deliver-by, sprint items) are optimistic and sent as **delta** updates through the allow-listed `gus-update` action (`backend/hub.js` `WRITABLE`), one parallel request per flush. Add a page: `Hub.register({id,label,icon,tone,desc,render(el,Hub)})` in a new `public/*.js`, add the id to `NAV` in `public/hub.js`, add backend actions in `backend/hub.js`.
+
+### Bugs SLA board
+The Bugs page follows the Trust Champion layout: SLA tiles (Triage 2d, Bugfix P0/P1/P2 2/15/30d, Investigations 7d, Cases/KI 30d, 180-day, TF 5d, ≤6 bugs per dev), a per-tile priority queue, member filter and a per-team Trust Champion (stored in the GUS Apps ContentStore). SLA ages run from GUS CreatedDate; At Risk = last 25% of the window, Warning = last 50%; urgency = % of SLA consumed + priority weight/2. Code coverage is a placeholder (no GUS source).

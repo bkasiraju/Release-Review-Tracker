@@ -48,3 +48,14 @@ test('rotation rota is validated, sorted and stored per team through the handler
 test('picklists fall back to defaults when describe is unavailable',async()=>{
   const p=await hub.getPicklists({async request(){throw new Error('no');}});assert.ok(p.workStatus.includes('In Progress'));assert.ok(p.priority.includes('P0'));
 });
+test('SLA cards classify breached / at-risk / ok and per-dev overload',()=>{
+  const now=new Date('2026-11-14T00:00:00Z').getTime(),day=864e5,mk=(o)=>({id:'i'+Math.random(),name:'W',subject:'s',status:'In Progress',priority:'P1',assigneeId:'u1',assignee:'Ann',recordType:'Bug',type:'',cases:0,knownIssue:'',created:new Date(now-5*day).toISOString(),...o});
+  const rows=[mk({created:new Date(now-20*day).toISOString()}),mk({priority:'P0',created:new Date(now-0.5*day).toISOString()}),mk({status:'New',created:new Date(now-3*day).toISOString()}),mk({type:'Test Failure',created:new Date(now-4.5*day).toISOString()}),mk({recordType:'Investigation',created:new Date(now-1*day).toISOString()}),mk({cases:2}),mk({created:new Date(now-200*day).toISOString()})];
+  const c=Object.fromEntries(hub.__test.computeSla(rows,now).map(x=>[x.id,x]));
+  assert.equal(c.bugfix.breached,2);// P1 20d>15d and P1 200d
+  assert.ok(c.bugfix.items.some(i=>i.priority==='P0'&&i.state==='ok'));
+  assert.equal(c.triage.breached,1);assert.equal(c.tf.risk,1);assert.equal(c.investigations.ok,1);assert.equal(c.cases.items.length,1);assert.equal(c.stale.breached,1);
+  assert.equal(c.perdev.over,0);
+  const many=Array.from({length:7},()=>mk({}));assert.equal(hub.__test.computeSla(many,now).find(x=>x.id==='perdev').over,1);
+  assert.ok(c.bugfix.items[0].urgency>=c.bugfix.items.at(-1).urgency);
+});

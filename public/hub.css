@@ -81,3 +81,14 @@ td .hub-inline[type=text]{width:120px}
 
 .table-scroll .sp-subject{max-width:340px}
 .rota-grid .table-card{align-self:start;min-height:0;height:auto}.rota-card .hub-inline[type=date]{max-width:132px}
+/* Bugs: SLA board */
+.bug-head{gap:12px;align-items:flex-end}.hub-field{display:grid;gap:3px;font-size:11px;font-weight:700;color:#5b6b7c;text-transform:uppercase;letter-spacing:.04em}.hub-field select{font-weight:400;text-transform:none;letter-spacing:0}
+.champ{display:inline-block;padding:5px 12px;border-radius:999px;font-size:12px;background:#f1f5f9;color:#5b6b7c}.champ.on{background:#e3f1fb;color:#0b5a8a;font-weight:700}
+.sla-tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;padding:12px 16px 16px}
+.sla-tile{display:grid;gap:4px;text-align:left;border:1px solid #d8dde6;border-radius:10px;background:#fff;padding:12px;cursor:pointer;font:inherit;color:inherit}
+.sla-tile:hover{border-color:#176b91;box-shadow:0 2px 8px #176b9122}.sla-tile.on{border-color:#176b91;box-shadow:0 0 0 2px #176b9133}.sla-tile.bad{border-top:3px solid #ba0517}.sla-tile.soon{opacity:.6;cursor:default}
+.sla-tile small{color:#5b6b7c;font-size:11px}.sla-nums{display:flex;gap:12px;margin-top:6px}.sla-n{display:grid;font-size:10px;text-transform:uppercase;color:#5b6b7c}.sla-n b{font-size:20px;line-height:1.1;color:#16325c}
+.sla-n.breached b{color:#ba0517}.sla-n.risk b{color:#b57b22}.sla-n.ok b{color:#2e844a}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:#2e844a;margin:0 4px 0 10px;vertical-align:middle}td .dot{margin:0}
+.dot.breached{background:#ba0517}.dot.risk{background:#e07b00}.dot.warn{background:#e6c200}.dot.ok{background:#2e844a}
+.sla-legend{font-size:12px;color:#5b6b7c}td.late{color:#ba0517;font-weight:700}.bug-link{color:#ba0517;font-weight:600}

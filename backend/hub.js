@@ -64,6 +64,70 @@ async function getBugs(sf, teamId, opts = {}) {
   return { bugs: (res.records || []).map(w => ({ id: w.Id, name: w.Name, subject: w.Subject__c || '', status: w.Status__c, priority: w.Priority__c, points: w.Story_Points__c, assigneeId: w.Assignee__c, assignee: (w.Assignee__r && w.Assignee__r.Name) || '', build: w.Found_In_Build__c || '', created: w.CreatedDate })), truncated: res.done === false };
 }
 
+// ── Bug SLAs (Trust Champion view) ──────────────────────────────────────────────
+const BUGFIX_DAYS = { P0: 2, P1: 15, P2: 30 };
+const PRI_WEIGHT = { P0: 100, P1: 60, P2: 30, P3: 10, P4: 5 };
+const MAX_OPEN_PER_DEV = 6;
+const SLA_CARDS = [
+  { id: 'triage', label: 'Triage SLA', note: 'SLA: 2 days' },
+  { id: 'bugfix', label: 'Bugfix SLA', note: 'SLA: P0:2d, P1:15d, P2:30d' },
+  { id: 'investigations', label: 'Investigations', note: 'SLA: 7 days' },
+  { id: 'cases', label: 'Bugs w/ Cases/KI', note: 'SLA: 30 days' },
+  { id: 'stale', label: '180-day bugs', note: 'Open longer than 180 days' },
+  { id: 'tf', label: 'TF SLA', note: 'SLA: 5 days with team' },
+  { id: 'perdev', label: 'Bugs per dev', note: `SLA: ≤${MAX_OPEN_PER_DEV} per engineer` }
+];
+function slaState(age, sla) {
+  const remaining = sla - age;
+  return { remaining, state: remaining < 0 ? 'breached' : remaining <= sla * 0.25 ? 'risk' : remaining <= sla * 0.5 ? 'warn' : 'ok' };
+}
+/** Pure: classify open bugs/investigations into SLA cards. `rows` are normalised work items (see getSla). */
+function computeSla(rows, now = Date.now()) {
+  const cards = Object.fromEntries(SLA_CARDS.map(c => [c.id, { ...c, items: [] }]));
+  const push = (id, w, sla) => {
+    const age = (now - new Date(w.created)) / 864e5;
+    cards[id].items.push({ ...w, age: Math.round(age * 10) / 10, sla, ...slaState(age, sla), urgency: Math.round((100 * age / sla + (PRI_WEIGHT[w.priority] || 0) / 2) * 100) / 100 });
+  };
+  for (const w of rows) {
+    if (w.recordType === 'Investigation') { push('investigations', w, 7); continue; }
+    if (w.status === 'New') push('triage', w, 2);
+    if (BUGFIX_DAYS[w.priority]) push('bugfix', w, BUGFIX_DAYS[w.priority]);
+    if (w.cases > 0 || w.knownIssue) push('cases', w, 30);
+    if ((now - new Date(w.created)) / 864e5 >= 150) push('stale', w, 180);
+    if (w.type === 'Test Failure') push('tf', w, 5);
+  }
+  const perDev = new Map();
+  for (const w of rows) if (w.recordType !== 'Investigation' && w.assigneeId) { const d = perDev.get(w.assigneeId) || { name: w.assignee, items: [] }; d.items.push(w); perDev.set(w.assigneeId, d); }
+  const over = [...perDev.values()].filter(d => d.items.length > MAX_OPEN_PER_DEV);
+  cards.perdev.items = over.flatMap(d => d.items.map(w => ({ ...w, age: Math.round((now - new Date(w.created)) / 864e5 * 10) / 10, sla: null, remaining: null, state: 'breached', urgency: d.items.length })));
+  cards.perdev.over = over.length; cards.perdev.ok = perDev.size - over.length;
+  for (const c of Object.values(cards)) {
+    c.items.sort((a, b) => b.urgency - a.urgency);
+    if (c.id !== 'perdev') for (const k of ['breached', 'risk', 'warn', 'ok']) c[k] = c.items.filter(i => i.state === k).length;
+  }
+  return SLA_CARDS.map(c => cards[c.id]);
+}
+async function getSla(sf, teamId) {
+  requireTeam(teamId);
+  const res = await sf.query(
+    `SELECT Id, Name, Subject__c, Status__c, Priority__c, Assignee__c, Assignee__r.Name, CreatedDate, RecordType.Name, Type__c, Number_of_Cases__c, Known_Issue_ID__c ` +
+    `FROM ADM_Work__c WHERE Scrum_Team__c = '${teamId}' AND RecordType.Name IN ('Bug','Investigation') AND Status__c NOT IN (${inList(CLOSED_STATUSES)}) AND (NOT Status__c LIKE 'Closed%') ORDER BY CreatedDate ASC LIMIT 2000`);
+  const rows = (res.records || []).map(w => ({ id: w.Id, name: w.Name, subject: w.Subject__c || '', status: w.Status__c, priority: w.Priority__c || '', assigneeId: w.Assignee__c || null, assignee: (w.Assignee__r && w.Assignee__r.Name) || '', created: w.CreatedDate,
+    recordType: (w.RecordType && w.RecordType.Name) || '', type: w.Type__c || '', cases: w.Number_of_Cases__c || 0, knownIssue: w.Known_Issue_ID__c || '' }));
+  return { cards: computeSla(rows), total: rows.length, truncated: res.done === false };
+}
+
+// Trust Champion per team, saved in GUS Apps.
+async function getChampion(store, teamId) {
+  const doc = await store.get('settings', 'champion-' + requireTeam(teamId));
+  return { champion: (doc && doc.champion) || null, revision: (doc && doc.revision) || null };
+}
+async function saveChampion(store, teamId, champion, expected) {
+  const value = champion && champion.name ? { id: SF_ID.test(String(champion.id || '')) ? champion.id : null, name: String(champion.name).slice(0, 80) } : null;
+  const saved = await store.put('settings', 'champion-' + requireTeam(teamId), { champion: value }, expected === undefined ? undefined : expected);
+  return { champion: saved.champion || null, revision: saved.revision };
+}
+
 // ── Team Dependencies ───────────────────────────────────────────────────────────
 async function getTds(sf, teamId) {
   requireTeam(teamId);
@@ -179,4 +243,4 @@ async function getPicklists(sf) {
   return lists;
 }
 
-module.exports = { getTeams, getMembers, getBugs, getTds, getHome, getRotation, saveRotation, updateGus, getPicklists, requireTeam, WRITABLE, __test: { cleanRota, updateOne } };
+module.exports = { getSla, getChampion, saveChampion, getTeams, getMembers, getBugs, getTds, getHome, getRotation, saveRotation, updateGus, getPicklists, requireTeam, WRITABLE, __test: { cleanRota, updateOne, computeSla } };
