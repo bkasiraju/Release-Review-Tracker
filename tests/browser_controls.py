@@ -34,7 +34,7 @@ with tempfile.TemporaryDirectory(prefix='cfs-controls-') as tmp:
    page.evaluate('scrollTo(0,0)');page.screenshot(path=str(ROOT/'dist'/'compact-controls-desktop.png'),full_page=True)
    for width in [390,320]:
     page.set_viewport_size({'width':width,'height':850});page.wait_for_timeout(200);assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+1')
-    page.get_by_role('button',name='Owners',exact=True).click();box=page.locator('#owner-filter-options').bounding_box();assert box['x']>=0 and box['x']+box['width']<=width+1,box;page.keyboard.press('Escape')
+    page.get_by_role('button',name='Development Lead',exact=True).click();box=page.locator('#owner-filter-options').bounding_box();assert box['x']>=0 and box['x']+box['width']<=width+1,box;page.keyboard.press('Escape')
    assert not errors,errors
    browser.close();print('Controls browser checks passed: multi-release dedup, search/select/clear, filters, column saves/reload, width adaptation, month highlight and mobile menus.')
  finally:server.terminate();server.wait(timeout=10)

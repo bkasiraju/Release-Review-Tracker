@@ -12,7 +12,7 @@ with tempfile.TemporaryDirectory(prefix='cfs-esc-') as tmp:
    def escape():
     page.mouse.move(1,1);page.wait_for_timeout(250);page.keyboard.press('Escape')
    def owner():
-    page.get_by_role('button',name='Owners',exact=True).click();page.locator('#owner-filter-options').get_by_text('Avery Morgan',exact=True).click();escape()
+    page.get_by_role('button',name='Development Lead',exact=True).click();page.locator('#owner-filter-options').get_by_text('Avery Morgan',exact=True).click();escape()
    page.locator('#search').fill('cache');owner();page.get_by_role('button',name='Health',exact=True).click();page.locator('#health-filter-options').get_by_text('On Track',exact=True).click();escape();expect(page.locator('#active-filters .active-filter-chip')).to_have_count(3)
    escape();expect(page.locator('#active-filters .active-filter-chip')).to_have_count(2);expect(page.locator('#health-filter')).to_have_js_property('selectedIndex',-1);expect(page.locator('#owner-filter')).not_to_have_js_property('selectedIndex',-1)
    escape();expect(page.locator('#active-filters .active-filter-chip')).to_have_count(1);expect(page.locator('#search')).to_have_value('cache');escape();expect(page.locator('#active-filters')).to_be_hidden();expect(page.locator('#search')).to_have_value('');assert not [c for c in calls if c['action']=='fetch']
