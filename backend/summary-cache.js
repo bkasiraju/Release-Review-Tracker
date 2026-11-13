@@ -12,15 +12,15 @@ async function put(store,id,value,old){if(store.readOnly)return null;try{return 
 const hasPolicyFields=e=>!!e&&['Description__c','Success_Criteria__c'].every(f=>Object.prototype.hasOwnProperty.call(e.extra||{},f));
 async function snapshots(service,ids,releases,month){
  if(service.readOnly)return service.gus.epics(ids,require('./review-policy').FIELDS);
- const saved=await many(service.store,'epic',ids),keys=ids.map(id=>key('snapshot',[id,month])),cached=await many(service.store,'settings',keys),rows=new Map(),stale=[];
+ const saved=await many(service.store,'epic',ids),keys=ids.map(id=>key('snapshot',[id,month])),cached=await many(service.store,'settings',keys),rows=new Map(),stale=[],missing=[];
  for(const id of ids){const old=saved.get(id),entry=cached.get(key('snapshot',[id,month])),s=entry?.summarySnapshot;
   if(s?.version===VERSION&&fresh(s.checkedAt)&&s.localSignature===signature(old)&&s.epic.fetchedAt===old?.fetchedAt&&hasPolicyFields(s.epic))rows.set(id,s.epic);
   else if(old&&fresh(old.fetchedAt)&&hasPolicyFields(old))rows.set(id,old);
   else stale.push(id);
  }
- for(let i=0;i<stale.length;i+=50){const batch=stale.slice(i,i+50),out=await service.gus.epics(batch,require('./review-policy').FIELDS);if(out.epics.length!==batch.length)throw Error('Some epics are not visible in GUS. Refresh before summarizing.');for(const e of out.epics){const old=saved.get(e.id),r=releases.find(r=>r.epicIds.includes(e.id));rows.set(e.id,{...old,...e,year:old?.year??r.year,yearMapping:old?.yearMapping||{}});}}
- for(let i=0;i<stale.length;i+=4)await Promise.all(stale.slice(i,i+4).map(async id=>{const cacheId=key('snapshot',[id,month]),entry=cached.get(cacheId),old=saved.get(id),epic=rows.get(id);if(!epic)throw Error('Epic evidence is unavailable.');await put(service.store,cacheId,{summarySnapshot:{version:VERSION,checkedAt:new Date(Date.now()).toISOString(),localSignature:signature(old),epic}},entry);}));
- return {epics:ids.map(id=>rows.get(id))};
+ for(let i=0;i<stale.length;i+=50){const batch=stale.slice(i,i+50),out=await service.gus.epics(batch,require('./review-policy').FIELDS);const seen=new Set(out.epics.map(e=>e.id));for(const id of batch)if(!seen.has(id))missing.push(id);for(const e of out.epics){const old=saved.get(e.id),r=releases.find(r=>r.epicIds.includes(e.id));rows.set(e.id,{...old,...e,year:old?.year??r.year,yearMapping:old?.yearMapping||{}});}}
+ for(let i=0;i<stale.length;i+=4)await Promise.all(stale.slice(i,i+4).map(async id=>{const cacheId=key('snapshot',[id,month]),entry=cached.get(cacheId),old=saved.get(id),epic=rows.get(id);if(!epic)return;await put(service.store,cacheId,{summarySnapshot:{version:VERSION,checkedAt:new Date(Date.now()).toISOString(),localSignature:signature(old),epic}},entry);}));
+ return {epics:ids.filter(id=>rows.has(id)).map(id=>rows.get(id)),missing};
 }
 async function work(service,id,month,epicFetchedAt){if(service.readOnly)return service.gus.workItems(id,{details:true,month});const cacheId=key('work',[id,month]),entry=await service.store.get('settings',cacheId);if(entry?.summaryWork?.version===VERSION&&fresh(entry.summaryWork.checkedAt)&&entry.summaryWork.epicFetchedAt===epicFetchedAt)return entry.summaryWork.value;const value=await service.gus.workItems(id,{details:true,month});if(value.truncated||value.historyTruncated)throw Error('Delivery evidence is incomplete. No partial executive update was generated.');await put(service.store,cacheId,{summaryWork:{version:VERSION,checkedAt:new Date(Date.now()).toISOString(),epicFetchedAt,value}},entry);return value;}
 function resultId(id,month){return key('epic',[id,month]);}

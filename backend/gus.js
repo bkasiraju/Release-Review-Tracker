@@ -146,7 +146,7 @@ class Gus{
     if(!fields.includes('Epic_Health_Comments__c')||!fields.includes('LastModifiedDate'))throw Error('Read access to Epic Health Comments and Last Modified Date is required.');
     const rows=[];for(let i=0;i<ids.length;i+=100){const batch=ids.slice(i,i+100);rows.push(...await this.queryAll(`SELECT Id, ${fields.join(', ')} FROM ADM_Epic__c WHERE Id IN (${batch.map(id=>`'${id}'`).join(',')})`));}
     const unavailable=Object.entries(EPIC_FIELDS).filter(([,f])=>!fields.includes(f)).map(([k])=>k);
-    return {epics:rows.map(row=>{const e={id:validId(row.Id),unavailable,extra:{}};for(const [key,field] of Object.entries(EPIC_FIELDS))e[key]=fields.includes(field)?getPath(row,field):null;for(const c of extras)e.extra[c.field]=fields.includes(c.field)?getPath(row,c.field):null;e.name=e.name||e.id;e.comments=e.comments||'';return e;}),unavailable};
+    return {epics:rows.map(row=>{const e={id:validId(row.Id),unavailable,unreadableExtra:extras.filter(c=>!fields.includes(c.field)).map(c=>c.field),extra:{}};for(const [key,field] of Object.entries(EPIC_FIELDS))e[key]=fields.includes(field)?getPath(row,field):null;for(const c of extras)e.extra[c.field]=fields.includes(c.field)?getPath(row,c.field):null;e.name=e.name||e.id;e.comments=e.comments||'';return e;}),unavailable};
   }
   async epic(id){const result=await this.epics([id]);if(!result.epics.length)throw Error('Epic is not visible in this GUS org. Check the epic link, user context, and sharing.');return result.epics[0];}
   async comments(id){
