@@ -48,11 +48,12 @@ function itemRow(i){
   const changed=i.ptsChanged?`<span class="sp-chip chg" title="Forecast ${esc(i.forecastPts)} pts, now ${esc(i.storyPoints)} pts">pts changed</span>`:'';
   return `<tr class="${i.itemStatus==='Removed'?'sp-removed':''}"><td><a href="${GUS_WORK}${esc(i.id)}/view" target="_blank" rel="noopener noreferrer">${esc(i.name)}</a></td><td class="sp-subject">${esc(i.subject)} ${flag}${changed}</td><td>${esc(i.recordType)}</td><td>${statusSelect(i)}</td><td class="num">${ptsInput(i)}</td><td class="num">${i.forecastPts==null?'—':esc(i.forecastPts)}</td></tr>`;
 }
+const itemsTable=rows=>`<div class="table-scroll sp-items"><table><thead><tr><th>Work</th><th>Subject</th><th>Type</th><th>Status</th><th class="num">Pts</th><th class="num">Forecast</th></tr></thead><tbody>${rows.map(itemRow).join('')}</tbody></table></div>`;
 function memberHtml(m){
   const forecasted=m.items.filter(i=>i.itemStatus==='Forecasted'),done=forecasted.filter(isClosed).reduce((n,i)=>n+pts(i),0);
   const p=pct(done,m.initialPts),col=p>=80?'#2e844a':p>=50?'#b57b22':'#ba0517',open=S.open.has(m.name);
   const rows=[...m.items].sort((a,b)=>isClosed(a)-isClosed(b)||String(a.name).localeCompare(String(b.name)));
-  return `<details class="sp-member" data-member="${esc(m.name)}"${open?' open':''}><summary><span class="sp-name">${esc(m.name)}</span><span class="sp-bar" title="${p}% of committed points done"><i style="width:${Math.min(p,100)}%;background:${col}"></i></span><span class="sp-pts"><strong>${fmt(done)}</strong> / ${fmt(m.initialPts)} pts</span><span class="sp-chips"><span class="sp-chip ok">${m.closedCount} closed</span>${m.spilloverCount?`<span class="sp-chip warn">${m.spilloverCount} spillover</span>`:''}${m.addedCount?`<span class="sp-chip add">+${m.addedCount}</span>`:''}${m.removedCount?`<span class="sp-chip rem">−${m.removedCount}</span>`:''}</span></summary><div class="table-scroll sp-items"><table><thead><tr><th>Work</th><th>Subject</th><th>Type</th><th>Status</th><th class="num">Pts</th><th class="num">Forecast</th></tr></thead><tbody>${rows.map(itemRow).join('')}</tbody></table></div></details>`;
+  return `<details class="sp-member" data-member="${esc(m.name)}"${open?' open':''}><summary><span class="sp-name">${esc(m.name)}</span><span class="sp-bar" title="${p}% of committed points done"><i style="width:${Math.min(p,100)}%;background:${col}"></i></span><span class="sp-pts"><strong>${fmt(done)}</strong> / ${fmt(m.initialPts)} pts</span><span class="sp-chips"><span class="sp-chip ok">${m.closedCount} closed</span>${m.spilloverCount?`<span class="sp-chip warn">${m.spilloverCount} spillover</span>`:''}${m.addedCount?`<span class="sp-chip add">+${m.addedCount}</span>`:''}${m.removedCount?`<span class="sp-chip rem">−${m.removedCount}</span>`:''}</span></summary>${open?itemsTable(rows):'<div class="sp-items-slot"></div>'}</details>`;
 }
 function renderMembers(){
   const q=S.search.trim().toLowerCase();
@@ -62,31 +63,44 @@ function renderMembers(){
   $('sp-row-count').textContent=`${list.length} contributor${list.length===1?'':'s'}`;
 }
 
-// ── Trend chart (dependency-free SVG, always fits its container) ────────────
+// ── Trend chart (dependency-free SVG sized to its container, interactive tooltip) ──
+const sayColor=v=>v>=80?'#2e844a':v>=50?'#b57b22':'#ba0517';
 function renderChart(){
   const h=S.history?.history||[],host=$('sp-chart');
   if(!h.length){host.innerHTML='<div class="empty-state sp-empty"><h3>No sprint history</h3></div>';$('sp-trend-stats').innerHTML='';return;}
-  const W=760,H=270,L=46,R=18,T=26,B=40,pw=W-L-R,ph=H-T-B,n=h.length,x=i=>L+22+(n===1?(pw-44)/2:(pw-44)*i/(n-1)),bx=i=>L+pw*(i+.5)/n;
-  const axis=(max,step,suffix)=>{let o='';for(let v=0;v<=max;v+=step){const y=T+ph-ph*v/max;o+=`<line x1="${L}" x2="${W-R}" y1="${y}" y2="${y}" class="sp-grid"/><text x="${L-8}" y="${y+4}" text-anchor="end" class="sp-tick">${v}${suffix}</text>`;}return o;};
-  const xl=(i,pos)=>`<text x="${pos}" y="${H-16}" text-anchor="middle" class="sp-tick">${esc(h[i].shortName)}</text>`;
-  let svg='';
+  const W=Math.max(320,Math.round(host.clientWidth||760)),H=300,L=48,R=20,T=30,B=44,pw=W-L-R,ph=H-T-B,n=h.length,slot=pw/n,cx=i=>L+slot*(i+.5);
+  const axis=(max,step,suffix,y)=>{let o='';for(let v=0;v<=max;v+=step)o+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" class="sp-grid"/><text x="${L-10}" y="${y(v)+4}" text-anchor="end" class="sp-tick">${v}${suffix}</text>`;return o;};
+  const xl=h.map((s,i)=>`<text x="${cx(i)}" y="${H-18}" text-anchor="middle" class="sp-tick sp-xl" data-i="${i}">${esc(s.shortName)}</text>`).join('');
+  let svg='',tip;
   if(S.tab==='saydo'){
-    const vals=h.map(s=>s.sayDo),top=Math.max(...vals.filter(v=>v!=null),0),max=Math.max(120,Math.ceil((top+10)/20)*20),y=v=>T+ph-ph*v/max;
-    const pts_=vals.map((v,i)=>v==null?null:[x(i),y(v),v]).filter(Boolean);
-    svg=axis(max,20,'%')+`<line x1="${L}" x2="${W-R}" y1="${y(80)}" y2="${y(80)}" class="sp-target"/><text x="${W-R}" y="${y(80)-5}" text-anchor="end" class="sp-tick sp-target-label">80% target</text>`+
-      (pts_.length>1?`<path d="${pts_.map((p,i)=>(i?'L':'M')+p[0]+' '+p[1]).join(' ')} L${pts_.at(-1)[0]} ${T+ph} L${pts_[0][0]} ${T+ph} Z" class="sp-area"/><path d="${pts_.map((p,i)=>(i?'L':'M')+p[0]+' '+p[1]).join(' ')}" class="sp-line"/>`:'')+
-      pts_.map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="5" fill="${p[2]>=80?'#2e844a':p[2]>=50?'#b57b22':'#ba0517'}" class="sp-dot"><title>${p[2]}%</title></circle><text x="${p[0]}" y="${Math.max(T-6,p[1]-10)}" text-anchor="middle" class="sp-val">${p[2]}%</text>`).join('')+h.map((_,i)=>xl(i,x(i))).join('');
+    const vals=h.map(s=>s.sayDo),top=Math.max(...vals.filter(v=>v!=null),0),max=Math.max(100,Math.ceil((top+10)/20)*20),y=v=>T+ph-ph*v/max;
+    const pts_=vals.map((v,i)=>v==null?null:[cx(i),y(v),v]).filter(Boolean),d=pts_.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+    svg=`<defs><linearGradient id="spg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#176b91" stop-opacity=".28"/><stop offset="1" stop-color="#176b91" stop-opacity="0"/></linearGradient></defs>`+
+      `<rect x="${L}" y="${y(max)}" width="${pw}" height="${y(80)-y(max)}" class="sp-zone"/>`+axis(max,20,'%',y)+
+      `<line x1="${L}" x2="${W-R}" y1="${y(80)}" y2="${y(80)}" class="sp-target"/><text x="${W-R-4}" y="${y(80)-6}" text-anchor="end" class="sp-tick sp-target-label">80% target</text>`+
+      (pts_.length>1?`<path d="${d} L${pts_.at(-1)[0]} ${T+ph} L${pts_[0][0]} ${T+ph} Z" fill="url(#spg)" stroke="none"/><path d="${d}" class="sp-line"/>`:'')+
+      pts_.map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="5.5" fill="${sayColor(p[2])}" class="sp-dot"/><text x="${p[0]}" y="${Math.max(T-8,p[1]-12)}" text-anchor="middle" class="sp-val">${p[2]}%</text>`).join('');
+    tip=i=>{const s=h[i];return `<b>${esc(s.name)}</b><span>Say-do <strong style="color:${s.sayDo==null?'inherit':sayColor(s.sayDo)}">${s.sayDo==null?'—':s.sayDo+'%'}</strong></span><span>Committed ${fmt(s.committed)} pts · Completed ${fmt(s.completedPts)} pts</span><span>${s.completedItems}/${s.committedItems} committed items done</span>`;};
   }else{
-    const a=S.tab==='points'?h.map(s=>s.committed):h.map(s=>s.committedItems),b=S.tab==='points'?h.map(s=>s.completed):h.map(s=>s.completedItems);
-    const top=Math.max(...a,...b,1),step=Math.max(1,Math.ceil(top*1.15/5)),max=step*Math.ceil(top*1.15/step),y=v=>T+ph-ph*v/max,bw=Math.min(26,pw/n/3);
-    svg=axis(max,step,'')+h.map((_,i)=>[[a[i],'sp-bar-a',-bw-1],[b[i],'sp-bar-b',1]].map(([v,c,dx])=>`<rect x="${bx(i)+dx}" y="${y(v)}" width="${bw}" height="${T+ph-y(v)}" rx="3" class="${c}"><title>${v}</title></rect><text x="${bx(i)+dx+bw/2}" y="${y(v)-5}" text-anchor="middle" class="sp-val">${fmt(v)}</text>`).join('')).join('')+h.map((_,i)=>xl(i,bx(i))).join('')+
-      `<g transform="translate(${W-R-190},8)"><rect width="10" height="10" rx="2" class="sp-bar-a"/><text x="15" y="9" class="sp-tick">Committed</text><rect x="90" width="10" height="10" rx="2" class="sp-bar-b"/><text x="105" y="9" class="sp-tick">Completed</text></g>`;
+    const pt=S.tab==='points',a=pt?h.map(s=>s.committed):h.map(s=>s.committedItems),b=pt?h.map(s=>s.completedPts):h.map(s=>s.completedItems);
+    const top=Math.max(...a,...b,1),step=Math.max(1,Math.ceil(top*1.15/5)),max=step*Math.ceil(top*1.15/step),y=v=>T+ph-ph*v/max,bw=Math.min(30,slot/2.6),avg=b.reduce((x,v)=>x+v,0)/n;
+    svg=axis(max,step,'',y)+h.map((_,i)=>[[a[i],'sp-bar-a',-bw-2],[b[i],'sp-bar-b',2]].map(([v,c,dx])=>`<rect x="${cx(i)+dx}" y="${y(v)}" width="${bw}" height="${Math.max(0,T+ph-y(v))}" rx="3" class="${c}"/><text x="${cx(i)+dx+bw/2}" y="${y(v)-6}" text-anchor="middle" class="sp-val">${fmt(v)}</text>`).join('')).join('')+
+      `<line x1="${L}" x2="${W-R}" y1="${y(avg)}" y2="${y(avg)}" class="sp-target"/><text x="${W-R-4}" y="${y(avg)-6}" text-anchor="end" class="sp-tick sp-target-label">avg completed ${fmt(Math.round(avg*10)/10)}</text>`+
+      `<g transform="translate(${L},6)"><rect width="10" height="10" rx="2" class="sp-bar-a"/><text x="15" y="9" class="sp-tick">Committed</text><rect x="86" width="10" height="10" rx="2" class="sp-bar-b"/><text x="101" y="9" class="sp-tick">Completed</text></g>`;
+    tip=i=>{const s=h[i];return `<b>${esc(s.name)}</b><span>Committed <strong>${fmt(a[i])}</strong> ${pt?'pts':'items'}</span><span>Completed <strong>${fmt(b[i])}</strong> ${pt?'pts':'items'}</span><span>Say-do ${s.sayDo==null?'—':s.sayDo+'%'}</span>`;};
   }
-  host.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Sprint trend: ${esc(S.tab)}" preserveAspectRatio="xMidYMid meet">${svg}</svg>`;
+  host.innerHTML=`<svg width="100%" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="Sprint trend: ${esc(S.tab)}"><g class="sp-draw">${svg}</g>${xl}<line class="sp-guide" y1="${T}" y2="${T+ph}" x1="0" x2="0" visibility="hidden"/></svg><div class="sp-tip" role="status" hidden></div>`;
+  const svgEl=host.firstElementChild,guide=svgEl.querySelector('.sp-guide'),tipEl=host.querySelector('.sp-tip');
+  const move=e=>{const r=svgEl.getBoundingClientRect(),x=(e.clientX-r.left)*W/r.width,i=Math.min(n-1,Math.max(0,Math.floor((x-L)/slot)));
+    guide.setAttribute('x1',cx(i));guide.setAttribute('x2',cx(i));guide.setAttribute('visibility','visible');tipEl.innerHTML=tip(i);tipEl.hidden=false;
+    const px=cx(i)*r.width/W,tw=tipEl.offsetWidth;tipEl.style.left=Math.min(Math.max(4,px-tw/2),r.width-tw-4)+'px';tipEl.style.top='6px';
+    svgEl.querySelectorAll('.sp-xl').forEach(t=>t.classList.toggle('on',Number(t.dataset.i)===i));};
+  svgEl.onmousemove=move;svgEl.onmouseleave=()=>{guide.setAttribute('visibility','hidden');tipEl.hidden=true;svgEl.querySelectorAll('.sp-xl.on').forEach(t=>t.classList.remove('on'));};
   const valid=h.filter(s=>s.sayDo!=null),avg=valid.length?Math.round(valid.reduce((n,s)=>n+s.sayDo,0)/valid.length):null,last=h.at(-1);
-  const stat=(k,v)=>`<div class="sp-stat"><span>${k}</span><strong>${v}</strong></div>`;
-  $('sp-trend-stats').innerHTML=stat('Avg say-do',avg==null?'—':avg+'%')+stat('Latest',last.sayDo==null?'—':last.sayDo+'%')+stat('Best',valid.length?Math.max(...valid.map(s=>s.sayDo))+'%':'—')+stat('Avg completed',fmt(Math.round(h.reduce((n,s)=>n+s.completedPts,0)/h.length*10)/10)+' pts')+stat('Sprints',h.length);
+  const stat=(k,v,c)=>`<div class="sp-stat"><span>${k}</span><strong${c?` style="color:${c}"`:''}>${v}</strong></div>`;
+  $('sp-trend-stats').innerHTML=stat('Avg say-do',avg==null?'—':avg+'%',avg==null?'':sayColor(avg))+stat('Latest',last.sayDo==null?'—':last.sayDo+'%',last.sayDo==null?'':sayColor(last.sayDo))+stat('Best',valid.length?Math.max(...valid.map(s=>s.sayDo))+'%':'—')+stat('Avg completed',fmt(Math.round(h.reduce((n,s)=>n+s.completedPts,0)/h.length*10)/10)+' pts')+stat('Sprints',h.length);
 }
+let rz=null;if(window.ResizeObserver)new ResizeObserver(()=>{clearTimeout(rz);rz=setTimeout(()=>{if(S.history&&$('sp-chart').clientWidth&&Math.abs($('sp-chart').clientWidth-(S.cw||0))>8){S.cw=$('sp-chart').clientWidth;renderChart();}},120);}).observe($('sp-chart'));
 
 // ── Standup (member carousel + epics in sprint + numbered items) ───────────
 const spOf=i=>i.storyPoints==null?0:i.storyPoints;
@@ -163,7 +177,7 @@ function bind(){
   $('sp-expand').onclick=()=>{S.members.forEach(m=>S.open.add(m.name));renderMembers();};
   $('sp-collapse').onclick=()=>{S.open.clear();renderMembers();};
   $('sp-search').oninput=e=>{S.search=e.target.value;renderMembers();};
-  $('sp-members').addEventListener('toggle',e=>{const d=e.target;if(!d.dataset?.member)return;d.open?S.open.add(d.dataset.member):S.open.delete(d.dataset.member);},true);
+  $('sp-members').addEventListener('toggle',e=>{const d=e.target;if(!d.dataset?.member)return;d.open?S.open.add(d.dataset.member):S.open.delete(d.dataset.member);if(d.open){const slot=d.querySelector('.sp-items-slot');const m=S.members.find(x=>x.name===d.dataset.member);if(slot&&m)slot.outerHTML=itemsTable([...m.items].sort((a,b)=>isClosed(a)-isClosed(b)||String(a.name).localeCompare(String(b.name))));}},true);
   document.querySelectorAll('[data-sp-tab]').forEach(b=>b.onclick=()=>{S.tab=b.dataset.spTab;document.querySelectorAll('[data-sp-tab]').forEach(x=>{const on=x===b;x.classList.toggle('selected',on);x.setAttribute('aria-pressed',String(on));});renderChart();});
 }
 window.SprintInsights={show};
