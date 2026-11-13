@@ -51,10 +51,10 @@ function toast(text,error=false){const el=document.createElement('div');el.class
 function banner(text,type='',options={}){const el=$('global-banner');clearTimeout(bannerTimer);if(options.key){try{if(sessionStorage.getItem('cfs-banner-'+options.key)){el.classList.add('hidden');return;}}catch{}}el.className='banner'+(type?' '+type:'')+(options.duration?' flash-note':'');el.innerHTML=`<span>${esc(text)}</span>${options.dismissible?'<button class="banner-close" aria-label="Dismiss notice" title="Dismiss notice">×</button>':''}`;const dismiss=()=>{el.classList.add('hidden');clearTimeout(bannerTimer);if(options.key){try{sessionStorage.setItem('cfs-banner-'+options.key,'dismissed');}catch{}}};el.querySelector('.banner-close')?.addEventListener('click',dismiss);if(options.duration)bannerTimer=setTimeout(dismiss,options.duration);} 
 // Host handlers have a 25 s limit. These actions persist partial progress (snapshot/work caches), so a retry resumes cheaply.
 const RETRY_ACTIONS=new Set(['executive-plan','executive-blurb','measure-summary-cache','executive-cache-save']);
-const isHostTimeout=error=>/timed out|took too long|25 seconds|HTTP 50[234]/i.test(error?.message||'')||error?.name==='TimeoutError';
+const isHostTimeout=error=>error?.name!=='TimeoutError'&&/timed out|took too long|25 seconds|HTTP 50[234]/i.test(error?.message||'');
 async function api(action,data={},metric=null){
   const attempts=RETRY_ACTIONS.has(action)?4:1;
-  for(let attempt=1;;attempt++){try{return await apiOnce(action,data,metric);}catch(error){if(attempt>=attempts||!isHostTimeout(error))throw error;await new Promise(r=>setTimeout(r,1000*attempt));}}
+  for(let attempt=1;;attempt++){try{return await apiOnce(action,data,metric);}catch(error){if(!isHostTimeout(error))throw error;if(attempt>=attempts){if(attempts>1)error.message+=` (retried ${attempts} times; the request exceeded the GUS Apps time limit. Try again shortly.)`;throw error;}await new Promise(r=>setTimeout(r,1000*attempt));}}
 }
 async function apiOnce(action,data={},metric=null){
   if(metric)metric.requests++;
