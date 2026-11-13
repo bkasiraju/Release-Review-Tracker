@@ -122,7 +122,7 @@ function renderHome(el){
   draw(null,null);
   if(!H.hasTeam()){
     el.querySelector('.hub-banner h2').textContent='All CFS teams';
-    el.querySelector('.hub-banner small').textContent='';
+    const sm=el.querySelector('.hub-banner small');if(sm)sm.textContent='';
     el.querySelector('.hub-banner p')?.remove();
     el.insertAdjacentHTML('beforeend','<p class="note hub-hint">Pick a team in the filter above to see its sprint, bugs, TDs and rotation.</p>');
     return;

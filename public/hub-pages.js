@@ -8,9 +8,13 @@ const failed=(el,e)=>{el.innerHTML=`<div class="empty-state hub-empty"><h3>Could
 const heading=(ic,tone,title,sub,actions='')=>`<div class="executive-heading"><div><h2>${icon(ic,tone)} ${esc(title)}</h2><p>${esc(sub)}</p></div><div class="heading-actions">${actions}</div></div>`;
 const age=d=>{const n=Math.floor((Date.now()-new Date(d))/864e5);return n<1?'today':n+'d';};
 const refreshBtn='<button class="button primary" data-refresh title="Reload from GUS"><span data-icon3d="sync" data-tone="blue"></span> Refresh</button>';
+const edits={fn:null,bound:new WeakSet()};
+// Hub pages share one container: bind the edit listener once and route to the active page.
+const bindPage=(el,fn)=>{edits.fn=fn;if(!edits.bound.has(el)){edits.bound.add(el);H.bindEdit(el,(...a)=>edits.fn&&edits.fn(...a));}};
 const withIcons=el=>el.querySelectorAll('[data-icon3d]').forEach(n=>{n.outerHTML=icon(n.dataset.icon3d,n.dataset.tone);});
 
 // ── Bugs (Trust Champion–style SLA board) ───────────────────────────────────
+let bugTeam='';
 const B={pri:new Set(['P0','P1','P2']),closed:false,status:'',who:'',q:'',bugs:[],sla:[],champ:null,members:[],pick:null,sel:'all',seq:0};
 const PCLS=p=>p==='P0'?'rem':p==='P1'?'warn':'add';
 const STATES={breached:'Breached',risk:'At risk',warn:'Warning',ok:'Within SLA'};
@@ -75,6 +79,7 @@ H.register({id:'bugs',label:'Bugs',icon:'bug',tone:'rose',desc:'SLA board and op
     `<section class="table-card"><div class="filterbar bug-head"><label class="hub-field">Team<select disabled aria-label="Team (set in the top filter)"><option>${esc(H.team.short||H.team.Name)}</option></select></label><label class="hub-field">Member<select id="bug-who" class="sp-select" aria-label="Member filter"><option value="">All members</option></select></label><span id="bug-champ"></span><select id="bug-champ-set" class="sp-select" aria-label="Set Trust Champion"></select></div>
     <div id="sla-tiles" class="sla-tiles" role="group" aria-label="SLA tiles"></div></section>
     <section class="table-card"><div class="filterbar" id="bug-allbar"><div class="epic-toolbar-title"><h2>Open bugs <span class="count-pill" id="bug-count">0</span></h2></div><div class="hub-chips" aria-label="Priority">${['P0','P1','P2','P3','P4'].map(p=>chipBtn('data-pri',p,p,B.pri.has(p))).join('')}</div><span id="bug-counts" class="sp-chips"></span><span class="toolbar-spacer"></span><select id="bug-status" class="sp-select" aria-label="Status filter"></select><label class="hub-check"><input type="checkbox" id="bug-closed"${B.closed?' checked':''}> Include closed</label><div class="search-box"><svg viewBox="0 0 20 20"><circle cx="8.5" cy="8.5" r="5.5"/><path d="m13 13 4 4"/></svg><input id="bug-q" placeholder="Search bugs…" aria-label="Search bugs" value="${esc(B.q)}"></div></div><div id="bug-queue"></div><div class="table-footer"><span>Source: GUS · ADM_Work__c (Bug, Investigation) · ${esc(H.team.Name)} · SLA thresholds and urgency are computed in the dashboard</span></div></section>`;
+    if(bugTeam!==H.team.Id){bugTeam=H.team.Id;B.who='';B.status='';B.sel='all';}
     withIcons(el);
     el.onclick=e=>{
       const c=e.target.closest('[data-pri]');if(c){const p=c.dataset.pri;B.pri.has(p)?B.pri.delete(p):B.pri.add(p);c.classList.toggle('on',B.pri.has(p));c.setAttribute('aria-pressed',String(B.pri.has(p)));loadBugs(el);return;}
@@ -88,10 +93,10 @@ H.register({id:'bugs',label:'Bugs',icon:'bug',tone:'rose',desc:'SLA board and op
     el.querySelector('#bug-champ-set').onchange=async e=>{const m=B.members.find(x=>x.id===e.target.value);
       try{const r=await call('hub-champion-save',{teamId:H.team.Id,champion:m?{id:m.id,name:m.name}:null,revision:B.champ&&B.champ.revision});B.champ=r;drawChamp(el);window.toast?.(m?`Trust Champion set to ${m.name}`:'Trust Champion cleared',false);}
       catch(err){window.toast?.('Could not save Trust Champion: '+err.message,true);drawChamp(el);}};
-    if(!el.dataset.bound){el.dataset.bound='1';H.bindEdit(el,(id,field,val)=>{
+    bindPage(el,(id,field,val)=>{
       const lists=[B.bugs,...B.sla.map(c=>c.items)];
       for(const l of lists)for(const b of l)if(b.id===id){if(field==='Priority__c')b.priority=val;else if(field==='Status__c')b.status=val;else if(field==='Assignee__c'){b.assigneeId=val;b.assignee=(B.members.find(m=>m.id===val)||{}).name||'';}else if(field==='Story_Points__c')b.points=val;}
-      drawTiles(el);if(!B.sla.some(c=>c.id===B.sel)){el.querySelector('#bug-counts').innerHTML=['P0','P1','P2'].map(p=>`<span class="sp-chip ${PCLS(p)}">${p} ${B.bugs.filter(x=>x.priority===p&&inMember(x)).length}</span>`).join('');}});}
+      drawTiles(el);if(!B.sla.some(c=>c.id===B.sel)){el.querySelector('#bug-counts').innerHTML=['P0','P1','P2'].map(p=>`<span class="sp-chip ${PCLS(p)}">${p} ${B.bugs.filter(x=>x.priority===p&&inMember(x)).length}</span>`).join('');}});
     loadBugs(el);
   }});
 
@@ -119,7 +124,7 @@ H.register({id:'tds',label:"TDs",icon:'td',tone:'amber',desc:'Incoming and outgo
     `<section class="table-card"><div class="filterbar"><div class="epic-toolbar-title"><h2>Dependencies</h2></div><nav class="sp-tabs" id="td-tabs" aria-label="Direction"></nav><span id="td-hint" class="note"></span></div><div class="table-scroll"><table><thead><tr><th>TD</th><th>Deliverable</th><th>Other team</th><th>Status</th><th>Deliver by</th><th>Target build</th><th>Stories</th></tr></thead><tbody id="td-body"></tbody></table></div><div class="table-footer"><span>Source: GUS · ADM_Team_Dependency__c · ${esc(H.team.Name)}</span></div></section>`;
     withIcons(el);
     el.onclick=e=>{const b=e.target.closest('[data-dir]');if(b&&T.data){T.dir=b.dataset.dir;drawTds(el);}if(e.target.closest('[data-refresh]'))loadTds(el);};
-    if(!el.dataset.bound){el.dataset.bound='1';H.bindEdit(el,(id,field,val)=>{const t=[...(T.data?.outgoing||[]),...(T.data?.incoming||[])].find(x=>x.id===id);if(!t)return;if(field==='Dependency_Status__c')t.status=val;else if(field==='Deliver_By__c')t.deliverBy=val;});}
+    bindPage(el,(id,field,val)=>{const t=[...(T.data?.outgoing||[]),...(T.data?.incoming||[])].find(x=>x.id===id);if(!t)return;if(field==='Dependency_Status__c')t.status=val;else if(field==='Deliver_By__c')t.deliverBy=val;});
     loadTds(el);
   }});
 

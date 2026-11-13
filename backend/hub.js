@@ -61,7 +61,7 @@ async function getBugs(sf, teamId, opts = {}) {
     `SELECT Id, Name, Subject__c, Status__c, Priority__c, Story_Points__c, Assignee__c, Assignee__r.Name, Found_In_Build__c, CreatedDate, Scrum_Team__c ` +
     `FROM ADM_Work__c WHERE Scrum_Team__c = '${teamId}' AND RecordType.Name = 'Bug' AND Priority__c IN (${inList(pri)}) ${closed}` +
     `ORDER BY Priority__c ASC, CreatedDate ASC LIMIT 500`);
-  return { bugs: (res.records || []).map(w => ({ id: w.Id, name: w.Name, subject: w.Subject__c || '', status: w.Status__c, priority: w.Priority__c, points: w.Story_Points__c, assigneeId: w.Assignee__c, assignee: (w.Assignee__r && w.Assignee__r.Name) || '', build: w.Found_In_Build__c || '', created: w.CreatedDate })), truncated: res.done === false };
+  return { bugs: (res.records || []).map(w => ({ id: w.Id, name: w.Name, subject: w.Subject__c || '', status: w.Status__c, priority: w.Priority__c, points: w.Story_Points__c, assigneeId: w.Assignee__c, assignee: (w.Assignee__r && w.Assignee__r.Name) || '', build: w.Found_In_Build__c || '', created: w.CreatedDate })), truncated: (res.records || []).length >= 500 };
 }
 
 // ── Bug SLAs (Trust Champion view) ──────────────────────────────────────────────
@@ -114,7 +114,7 @@ async function getSla(sf, teamId) {
     `FROM ADM_Work__c WHERE Scrum_Team__c = '${teamId}' AND RecordType.Name IN ('Bug','Investigation') AND Status__c NOT IN (${inList(CLOSED_STATUSES)}) AND (NOT Status__c LIKE 'Closed%') ORDER BY CreatedDate ASC LIMIT 2000`);
   const rows = (res.records || []).map(w => ({ id: w.Id, name: w.Name, subject: w.Subject__c || '', status: w.Status__c, priority: w.Priority__c || '', assigneeId: w.Assignee__c || null, assignee: (w.Assignee__r && w.Assignee__r.Name) || '', created: w.CreatedDate,
     recordType: (w.RecordType && w.RecordType.Name) || '', type: w.Type__c || '', cases: w.Number_of_Cases__c || 0, knownIssue: w.Known_Issue_ID__c || '' }));
-  return { cards: computeSla(rows), total: rows.length, truncated: res.done === false };
+  return { cards: computeSla(rows), total: rows.length, truncated: (res.records || []).length >= 2000 };
 }
 
 // Trust Champion per team, saved in GUS Apps.
@@ -141,7 +141,7 @@ async function getTds(sf, teamId) {
     dependentStory: (t.Dependent_User_Story__r && t.Dependent_User_Story__r.Name) || '', providerStory: (t.Provider_User_Story__r && t.Provider_User_Story__r.Name) || '' });
   const rows = res.records || [];
   // Outgoing: we depend on another team. Incoming: another team depends on us.
-  return { outgoing: rows.filter(t => t.Dependent_Team__c === teamId).map(map), incoming: rows.filter(t => t.Provider_Team__c === teamId && t.Dependent_Team__c !== teamId).map(map), truncated: res.done === false };
+  return { outgoing: rows.filter(t => t.Dependent_Team__c === teamId).map(map), incoming: rows.filter(t => t.Provider_Team__c === teamId && t.Dependent_Team__c !== teamId).map(map), truncated: (res.records || []).length >= 500 };
 }
 
 // ── Home summary (parallel, one round trip for the landing tiles) ───────────────
