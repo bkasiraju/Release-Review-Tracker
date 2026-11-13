@@ -6,6 +6,7 @@
   missingUpdate:'<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M7 3v4M17 3v4M3 10h18M12 13v3"/><circle cx="12" cy="18" r=".5"/>',
   stack:'<rect x="4" y="4" width="16" height="5" rx="2"/><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 15h8M8 18h5"/>',
   health:'<path d="M3 12h4l2-6 4 12 2-6h6"/><circle cx="12" cy="12" r="10"/>',
+  notstarted:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
   healthy:'<path d="M12 3 4 6v6c0 5 8 9 8 9s8-4 8-9V6Z"/><path d="m8 12 3 3 5-6"/>',
   link:'<path d="m10 8 2-2a4 4 0 0 1 6 6l-2 2M14 16l-2 2a4 4 0 0 1-6-6l2-2m1 5 6-6"/>',
   view:'<circle cx="10" cy="10" r="6"/><path d="m15 15 5 5M7 10h6m-3-3v6"/>',

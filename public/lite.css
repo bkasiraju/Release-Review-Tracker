@@ -428,7 +428,7 @@ main{padding-top:12px}
 @media(max-width:1800px){.table-card .epic-toolbar{flex-wrap:wrap}}
 
 /* A single compact strip: all seven tiles share borders, height and icon scale. */
-#overview-panel .health-metrics-strip{display:grid;grid-template-columns:repeat(7,minmax(176px,1fr));gap:8px;align-items:stretch;overflow-x:auto;padding:2px 1px 7px;scrollbar-width:thin}
+#overview-panel .health-metrics-strip{display:grid;grid-template-columns:repeat(8,minmax(176px,1fr));gap:8px;align-items:stretch;overflow-x:auto;padding:2px 1px 7px;scrollbar-width:thin}
 #overview-panel .health-metrics-strip>#metrics,#overview-panel .health-metrics-strip>#review-insights{display:contents}
 #overview-panel .health-metrics-strip .metric,#overview-panel .health-metrics-strip .insight-card{min-height:142px;height:auto;margin:0;padding:10px;border:1px solid #e1d8eb;border-radius:8px;background:#fff;box-shadow:none;min-width:0;grid-column:auto}
 #overview-panel .health-metrics-strip .metric-header,#overview-panel .health-metrics-strip .insight-card h3{font-size:12px;line-height:1.3;min-height:26px;font-weight:650;margin:0;gap:6px}
