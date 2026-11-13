@@ -7,21 +7,13 @@
  * Forecasted | Added | Removed) joined to ADM_Work__c.
  */
 
-// Teams shown in the dropdown. First entry is the fallback default.
-const TEAMS = [
-  { Id: 'a00B0000000w4ZhIAI', Name: 'Message Queue' },
-  { Id: 'a00EE00001IJPZVYA5', Name: 'Managed Async Processing Service (MAPS)' }
-];
+const hub = require('./hub');
 
 const HISTORY_SPRINTS = 10;
 const SPRINT_LIST_LIMIT = 30;
 const SF_ID = /^[a-zA-Z0-9]{15,18}$/;
 
-function requireTeam(teamId) {
-  const team = TEAMS.find(t => t.Id === teamId);
-  if (!team) throw new Error('Unknown team');
-  return team;
-}
+const requireTeam = hub.requireTeam;
 
 function requireSprintId(sprintId) {
   if (!SF_ID.test(String(sprintId || ''))) throw new Error('Invalid sprint id');
@@ -38,21 +30,8 @@ async function queryAll(sf, soql) {
   return result.records || [];
 }
 
-// ── getTeams ────────────────────────────────────────────────────────────────────
-async function getTeams(sf) {
-  let userId = sf.userId;
-  if (!userId && typeof sf.identity === 'function') { try { const who = await sf.identity(); userId = who.user_id || who.userId; } catch (_) { /* optional */ } }
-  let primaryTeamId = null;
-  try {
-    if (!userId) throw new Error('no user');
-    const ids = TEAMS.map(t => `'${t.Id}'`).join(',');
-    const rows = await queryAll(sf,
-      `SELECT Scrum_Team__c FROM ADM_Scrum_Team_Member__c ` +
-      `WHERE Member_Name__c = '${String(userId||'').replace(/'/g, "''")}' AND Scrum_Team__c IN (${ids}) LIMIT 1`);
-    if (rows.length) primaryTeamId = rows[0].Scrum_Team__c;
-  } catch (_) { /* membership is only a default-selection hint */ }
-  return { teams: TEAMS, primaryTeamId };
-}
+// ── getTeams (GUS is the system of record; see hub.js) ──────────────────────────
+const getTeams = hub.getTeams;
 
 // ── Sprints ─────────────────────────────────────────────────────────────────────
 async function getSprints(sf, teamId) {
@@ -112,7 +91,7 @@ async function loadSprintData(sf, teamId, sprintId) {
     queryAll(sf,
       `SELECT Id, Item_Status__c, Committed_Story_Points__c, Work__c, Work__r.Name, Work__r.Subject__c, ` +
       `Work__r.Status__c, Work__r.Story_Points__c, Work__r.Priority__c, Work__r.RecordType.Name, ` +
-      `Work__r.Assignee__r.Name FROM ADM_Work_Commitment__c ` +
+      `Work__r.Assignee__c, Work__r.Assignee__r.Name, Work__r.Epic__c, Work__r.Epic__r.Name FROM ADM_Work_Commitment__c ` +
       `WHERE Sprint__c = '${sprintId}' AND Sprint__r.Scrum_Team__c = '${teamId}' LIMIT 2000`)
   ]);
   if (!sprints.length) throw new Error('Sprint not found for this team');
@@ -131,6 +110,9 @@ async function loadSprintData(sf, teamId, sprintId) {
       subject: w.Subject__c || '',
       status: w.Status__c,
       priority: w.Priority__c || '',
+      assigneeId: w.Assignee__c || null,
+      epicId: w.Epic__c || null,
+      epic: (w.Epic__r && w.Epic__r.Name) || '',
       recordType: (w.RecordType && w.RecordType.Name) || '',
       storyPoints,
       forecastPts,

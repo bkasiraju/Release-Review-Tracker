@@ -6,7 +6,7 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const CLOSED=new Set(['Closed','Fixed','Completed','Duplicate','Will Not Fix','Never','Inactive','Rejected']);
 const CLOSED_BUG=new Set([...CLOSED,'Not a bug','Not Reproducible']);
 const GUS_WORK='https://gus.lightning.force.com/lightning/r/ADM_Work__c/';
-const S={ready:false,loading:false,teamId:'',sprintId:'',members:[],sprint:null,history:null,tab:'saydo',open:new Set(),search:'',seq:0};
+const S={pick:null,view:'pulse',standupIdx:0,ready:false,loading:false,teamId:'',sprintId:'',members:[],sprint:null,history:null,tab:'saydo',open:new Set(),search:'',seq:0};
 const icon=(n,t)=>window.ReviewIcons?window.ReviewIcons.icon(n,t):'';
 const isClosed=i=>(i.status&&i.status.startsWith('Closed'))||(i.recordType==='Bug'?CLOSED_BUG:CLOSED).has(i.status);
 const pts=i=>i.forecastPts!=null?i.forecastPts:(i.storyPoints||0);
@@ -41,10 +41,12 @@ function renderGoal(){
 
 // ── Members ─────────────────────────────────────────────────────────────────
 const statusClass=i=>isClosed(i)?'closed':'open';
+const statusSelect=i=>`<select class="hub-inline" data-edit="ADM_Work__c" data-id="${esc(i.id)}" data-field="Status__c" data-prev="${esc(i.status)}" data-label="${esc(i.name)} status" aria-label="Status of ${esc(i.name)}">${window.Hub.options(S.pick?S.pick.workStatus:[],i.status)}</select>`;
+const ptsInput=i=>`<input class="hub-inline num" type="number" min="0" step="0.5" data-edit="ADM_Work__c" data-type="num" data-id="${esc(i.id)}" data-field="Story_Points__c" data-prev="${i.storyPoints==null?'':esc(i.storyPoints)}" data-label="${esc(i.name)} points" aria-label="Story points of ${esc(i.name)}" value="${i.storyPoints==null?'':esc(i.storyPoints)}">`;
 function itemRow(i){
   const flag=i.itemStatus==='Added'?'<span class="sp-chip add">Added</span>':i.itemStatus==='Removed'?'<span class="sp-chip rem">Removed</span>':'';
   const changed=i.ptsChanged?`<span class="sp-chip chg" title="Forecast ${esc(i.forecastPts)} pts, now ${esc(i.storyPoints)} pts">pts changed</span>`:'';
-  return `<tr class="${i.itemStatus==='Removed'?'sp-removed':''}"><td><a href="${GUS_WORK}${esc(i.id)}/view" target="_blank" rel="noopener noreferrer">${esc(i.name)}</a></td><td class="sp-subject">${esc(i.subject)} ${flag}${changed}</td><td>${esc(i.recordType)}</td><td><span class="sp-status ${statusClass(i)}">${esc(i.status)}</span></td><td class="num">${i.storyPoints==null?'—':esc(i.storyPoints)}</td><td class="num">${i.forecastPts==null?'—':esc(i.forecastPts)}</td></tr>`;
+  return `<tr class="${i.itemStatus==='Removed'?'sp-removed':''}"><td><a href="${GUS_WORK}${esc(i.id)}/view" target="_blank" rel="noopener noreferrer">${esc(i.name)}</a></td><td class="sp-subject">${esc(i.subject)} ${flag}${changed}</td><td>${esc(i.recordType)}</td><td>${statusSelect(i)}</td><td class="num">${ptsInput(i)}</td><td class="num">${i.forecastPts==null?'—':esc(i.forecastPts)}</td></tr>`;
 }
 function memberHtml(m){
   const forecasted=m.items.filter(i=>i.itemStatus==='Forecasted'),done=forecasted.filter(isClosed).reduce((n,i)=>n+pts(i),0);
@@ -86,6 +88,34 @@ function renderChart(){
   $('sp-trend-stats').innerHTML=stat('Avg say-do',avg==null?'—':avg+'%')+stat('Latest',last.sayDo==null?'—':last.sayDo+'%')+stat('Best',valid.length?Math.max(...valid.map(s=>s.sayDo))+'%':'—')+stat('Avg completed',fmt(Math.round(h.reduce((n,s)=>n+s.completedPts,0)/h.length*10)/10)+' pts')+stat('Sprints',h.length);
 }
 
+// ── Standup (member carousel + epics in sprint + numbered items) ───────────
+const spOf=i=>i.storyPoints==null?0:i.storyPoints;
+const initials=n=>String(n).split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();
+const activeItems=m=>m.items.filter(i=>i.itemStatus!=='Removed');
+function epicCards(items,title){
+  const g=new Map();for(const i of items){const k=i.epic||'No epic';const e=g.get(k)||{name:k,id:i.epicId,n:0,done:0,sp:0};e.n++;e.sp+=spOf(i);if(isClosed(i))e.done++;g.set(k,e);}
+  const list=[...g.values()].sort((a,b)=>b.sp-a.sp);
+  return `<div class="su-epics"><h3>${esc(title)} <span class="count-pill">${list.length}</span></h3><div class="su-epic-grid">${list.map(e=>`<article class="su-epic"><strong title="${esc(e.name)}">${e.id?`<a href="https://gus.lightning.force.com/lightning/r/ADM_Epic__c/${esc(e.id)}/view" target="_blank" rel="noopener noreferrer">${esc(e.name)}</a>`:esc(e.name)}</strong><span>${e.done}/${e.n} items · ${fmt(e.sp)} SP</span><span class="sp-bar"><i style="width:${pct(e.done,e.n)}%;background:#2e844a"></i></span></article>`).join('')}</div></div>`;
+}
+function renderStandup(){
+  const host=$('sp-standup');if(S.view!=='standup')return;
+  const ms=S.members.filter(m=>activeItems(m).length).sort((a,b)=>a.name.localeCompare(b.name));
+  if(!ms.length){host.innerHTML='<div class="empty-state sp-empty"><h3>No work in this sprint</h3><p>There are no committed items for the selected sprint.</p></div>';return;}
+  S.standupIdx=Math.min(Math.max(S.standupIdx,0),ms.length-1);const m=ms[S.standupIdx],items=activeItems(m).sort((a,b)=>isClosed(a)-isClosed(b)||String(a.name).localeCompare(String(b.name)));
+  const sp=items.reduce((n,i)=>n+spOf(i),0),doneSp=items.filter(isClosed).reduce((n,i)=>n+spOf(i),0);
+  const pills=ms.map((x,k)=>{const a=activeItems(x);return `<button class="su-pill${k===S.standupIdx?' active':''}" data-su="${k}" aria-pressed="${k===S.standupIdx}"><span class="su-av">${esc(initials(x.name))}</span><span>${esc(x.name)}</span><small>${a.length} WI · ${fmt(a.reduce((n,i)=>n+spOf(i),0))} SP</small></button>`;}).join('');
+  host.innerHTML=`<section class="table-card su-card"><div class="su-pills" role="group" aria-label="Team members">${pills}</div>
+  ${epicCards(ms.flatMap(activeItems),'Epics in sprint')}
+  <div class="su-carousel"><div class="su-nav"><button class="button small" data-su-step="-1" aria-label="Previous member"${S.standupIdx===0?' disabled':''}>‹ Prev</button><div class="su-dots" role="tablist">${ms.map((x,k)=>`<button class="su-dot${k===S.standupIdx?' active':''}" data-su="${k}" role="tab" aria-selected="${k===S.standupIdx}" aria-label="${esc(x.name)}"></button>`).join('')}</div><button class="button small" data-su-step="1" aria-label="Next member"${S.standupIdx===ms.length-1?' disabled':''}>Next ›</button></div>
+  <div class="su-member"><div class="su-member-head"><span class="su-av big">${esc(initials(m.name))}</span><div><h3>${esc(m.name)}</h3><p>${S.standupIdx+1} of ${ms.length} · ${items.filter(isClosed).length}/${items.length} items done · ${fmt(doneSp)}/${fmt(sp)} SP</p></div><span class="sp-bar su-bar"><i style="width:${Math.min(100,pct(doneSp,sp))}%;background:#2e844a"></i></span></div>
+  ${epicCards(items,'Epics')}
+  <ol class="su-items">${items.map(i=>`<li class="${isClosed(i)?'done':''}"><span class="su-no"></span><a href="${GUS_WORK}${esc(i.id)}/view" target="_blank" rel="noopener noreferrer">${esc(i.name)}</a><span class="su-subject" title="${esc(i.subject)}">${esc(i.subject)}${i.itemStatus==='Added'?' <span class="sp-chip add">Added</span>':''}${i.epic?` <span class="sp-chip">${esc(i.epic)}</span>`:''}</span>${statusSelect(i)}${ptsInput(i)}</li>`).join('')}</ol></div></div></section>`;
+}
+function bindStandup(){
+  $('sp-standup').addEventListener('click',e=>{const t=e.target.closest('[data-su],[data-su-step]');if(!t)return;S.standupIdx=t.dataset.su!=null?Number(t.dataset.su):S.standupIdx+Number(t.dataset.suStep);renderStandup();});
+  document.addEventListener('keydown',e=>{if(S.view!=='standup'||document.body.dataset.hub!=='sprints'||/INPUT|SELECT|TEXTAREA/.test(document.activeElement?.tagName))return;if(e.key==='ArrowRight'){S.standupIdx++;renderStandup();}else if(e.key==='ArrowLeft'){S.standupIdx--;renderStandup();}});
+}
+
 // ── Loading ─────────────────────────────────────────────────────────────────
 function fill(sel,list,value,label){sel.innerHTML=list.map(o=>`<option value="${esc(o.Id)}"${o.Id===value?' selected':''}>${esc(label(o))}</option>`).join('');}
 function busy(on,text){S.loading=on;$('sp-status').textContent=text||'';$('sp-status').classList.toggle('hidden',!text);$('sp-panel-body').setAttribute('aria-busy',String(on));$('sp-refresh').disabled=on;}
@@ -94,7 +124,7 @@ async function loadHistory(){
   try{const r=await call('sprint-history',{teamId:S.teamId});if(my===S.seq){S.history=r;renderChart();}}
   catch(e){if(my===S.seq)$('sp-chart').innerHTML=`<div class="empty-state sp-empty"><h3>Trend unavailable</h3><p>${esc(e.message)}</p></div>`;}
 }
-function applyData(d){S.sprint=d.sprint;S.members=d.members||[];S.sprintId=d.sprint?.Id||S.sprintId;renderGoal();renderMetrics();renderMembers();}
+function applyData(d){S.sprint=d.sprint;S.members=d.members||[];S.sprintId=d.sprint?.Id||S.sprintId;renderGoal();renderMetrics();renderMembers();renderStandup();}
 async function loadTeam(teamId){
   const my=++S.seq;S.teamId=teamId;S.history=null;S.members=[];S.open.clear();busy(true,'Loading sprint data from GUS…');
   $('sp-chart').innerHTML='<div class="sp-loading">Loading trend…</div>';
@@ -110,15 +140,24 @@ async function loadSprint(sprintId){
   try{const d=await call('sprint-data',{teamId:S.teamId,sprintId});if(my!==S.seq)return;applyData(d);busy(false);if(!S.history)void loadHistory();else renderChart();}
   catch(e){if(my!==S.seq)return;busy(false,'');window.toast?.('Sprint Insights: '+e.message,true);}
 }
-async function init(){
-  if(S.ready)return;S.ready=true;
-  try{
-    const t=await call('sprint-teams',{});fill($('sp-team'),t.teams,t.primaryTeamId||t.teams[0].Id,x=>x.Name);
-    await loadTeam($('sp-team').value);
-  }catch(e){S.ready=false;window.toast?.('Sprint Insights: '+e.message,true);}
+async function show(){
+  const H=window.Hub;
+  if(!S.pick)H.picklists().then(p=>{S.pick=p;if(S.members.length){renderMembers();renderStandup();}},()=>{});
+  if(!H.hasTeam()){S.teamId='';S.members=[];$('sp-metrics').innerHTML='';$('sp-chart').innerHTML='';$('sp-trend-stats').innerHTML='';$('sp-standup').innerHTML='';
+    $('sp-members').innerHTML='<div class="empty-state sp-empty"><h3>Select a team</h3><p>Pick MQ, MAPS or VegaCache in the team filter at the top.</p></div>';$('sp-member-count').textContent='0';$('sp-row-count').textContent='';return;}
+  if(S.teamId!==H.team.Id&&!S.loading)await loadTeam(H.team.Id);
+}
+function setSubview(v){
+  S.view=v;$('sp-pulse').classList.toggle('hidden',v!=='pulse');$('sp-standup').classList.toggle('hidden',v!=='standup');
+  document.querySelectorAll('[data-sp-view]').forEach(x=>{const on=x.dataset.spView===v;x.classList.toggle('selected',on);x.setAttribute('aria-pressed',String(on));});
+  if(v==='standup')renderStandup();
 }
 function bind(){
-  $('sp-team').onchange=e=>loadTeam(e.target.value);
+  document.querySelectorAll('[data-sp-view]').forEach(b=>b.onclick=()=>setSubview(b.dataset.spView));
+  window.Hub.onTeam(()=>{if(document.body.dataset.hub==='sprints')show();});
+  window.Hub.bindEdit($('sp-panel-body'),(id,field,val)=>{
+    for(const m of S.members)for(const i of m.items)if(i.id===id){if(field==='Status__c')i.status=val;else if(field==='Story_Points__c'){i.storyPoints=val;i.ptsChanged=i.itemStatus!=='Removed'&&i.forecastPts!=null&&val!=null&&i.forecastPts!==val;}}
+    renderMetrics();renderMembers();if(S.view==='standup')renderStandup();});
   $('sp-sprint').onchange=e=>loadSprint(e.target.value);
   $('sp-refresh').onclick=()=>loadTeam(S.teamId);
   $('sp-expand').onclick=()=>{S.members.forEach(m=>S.open.add(m.name));renderMembers();};
@@ -127,6 +166,9 @@ function bind(){
   $('sp-members').addEventListener('toggle',e=>{const d=e.target;if(!d.dataset?.member)return;d.open?S.open.add(d.dataset.member):S.open.delete(d.dataset.member);},true);
   document.querySelectorAll('[data-sp-tab]').forEach(b=>b.onclick=()=>{S.tab=b.dataset.spTab;document.querySelectorAll('[data-sp-tab]').forEach(x=>{const on=x===b;x.classList.toggle('selected',on);x.setAttribute('aria-pressed',String(on));});renderChart();});
 }
-window.SprintInsights={show:init};
-bind();
+window.SprintInsights={show};
+bind();bindStandup();
+// Page registry entry: the Sprint panel is an existing view, so the hub just switches to it.
+window.Hub.register({id:'sprints',label:'Sprints',icon:'sprint',tone:'blue',desc:'Sprint pulse, say-do and daily standup',legacy:'sprint',needsTeam:false,
+  stat:h=>{const s=h&&h.sprint;return s?{big:s.sayDo!=null?Math.round(s.sayDo)+'%':'—',text:`say-do · ${s.name}`}:{text:'Sprint pulse, say-do and daily standup'};}});
 })();

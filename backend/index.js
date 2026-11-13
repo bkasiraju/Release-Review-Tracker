@@ -1,5 +1,5 @@
 'use strict';
-const {Gus,safeError,validId}=require('./gus');const {ContentStore}=require('./store');const {Service}=require('./service');const sprint=require('./sprint');
+const {Gus,safeError,validId}=require('./gus');const {ContentStore}=require('./store');const {Service}=require('./service');const sprint=require('./sprint');const hub=require('./hub');
 function connection(ctx){
   const roots=[['ctx',ctx],['request',ctx.request],['invocation',ctx.invocation],['runtime',ctx.runtime],['context',ctx.context],['applet',ctx.applet],['auth',ctx.auth],['user',ctx.user],['salesforce',ctx.salesforce],['request.context',ctx.request?.context]].filter(([,r])=>r&&typeof r==='object');
   // Prefer delegated clients across every known host root before the generic facade.
@@ -53,6 +53,15 @@ async function handleRequest(ctx){
       case 'sprint-sprints':payload=await sprint.getSprints(sf,b.teamId);break;
       case 'sprint-data':payload=await sprint.loadSprintData(sf,b.teamId,b.sprintId);break;
       case 'sprint-history':payload=await sprint.getHistory(sf,b.teamId);break;
+      case 'hub-teams':payload=await hub.getTeams(sf);break;
+      case 'hub-members':payload=await hub.getMembers(sf,b.teamId);break;
+      case 'hub-home':payload=await hub.getHome(sf,b.teamId);break;
+      case 'hub-bugs':payload=await hub.getBugs(sf,b.teamId,b);break;
+      case 'hub-tds':payload=await hub.getTds(sf,b.teamId);break;
+      case 'hub-picklists':payload=await hub.getPicklists(sf);break;
+      case 'hub-rotation':payload=await hub.getRotation(store,b.teamId);break;
+      case 'hub-rotation-save':payload=await hub.saveRotation(store,b.teamId,b.rota,b.revision);break;
+      case 'gus-update':payload=await hub.updateGus(sf,b.updates);break;
       case 'work-items':payload=await gus.workItems(validId(b.epicId));break;
       case 'preview':payload=await service.preview(b.releaseId,validId(b.epicId));break;
       case 'sync':if(!Array.isArray(b.approved)||!b.approved.length||b.approved.length>1)throw Error('Review the preview before syncing.');payload=await service.sync(b.releaseId,b.approved);break;

@@ -23,6 +23,15 @@
   copy:'<rect x="8" y="8" width="13" height="13" rx="2"/><path d="M16 8V3H3v13h5"/>',
   plus:'<path d="M12 5v14M5 12h14"/>',
   chart:'<path d="M4 4v16h16M8 15v-4m5 4V7m5 8V5"/>',
+  bug:'<rect x="8" y="8" width="8" height="11" rx="4"/><path d="M9 8a3 3 0 0 1 6 0M4 12h4m8 0h4M5 6l3 3m11-3-3 3M5 19l3-3m11 3-3-3"/>',
+  rotation:'<path d="M20 12a8 8 0 0 1-14 5M4 12a8 8 0 0 1 14-5"/><path d="M18 3v4h-4M6 21v-4h4"/><circle cx="12" cy="12" r="2"/>',
+  board:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8 4v16M3 9h18M12 13h6M12 16h4"/>',
+  td:'<circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.5 6H14a3 3 0 0 1 3 3v6.5M14 13l3 3 3-3"/>',
+  flask:'<path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3"/><path d="M8 15h8"/>',
+  bolt:'<path d="M13 2 4 14h7l-1 8 9-12h-7Z"/>',
+  sprint:'<path d="M4 20 20 4M14 4h6v6M4 12v8h8"/>',
+  users:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14a6 6 0 0 1 3.5 6"/>',
+  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/>',
   database:'<ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v7c0 4 16 4 16 0V5M4 12v7c0 4 16 4 16 0v-7"/>'
  };
  const tones=new Set(['violet','blue','green','amber','rose','teal']);

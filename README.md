@@ -167,3 +167,18 @@ Slack Nudge in the toolbar reviews all saved epics in selected releases (up to50
 
 ### Epic leadership AI policy
 The reusable guide is `docs/AI_EPIC_SUMMARY_INSTRUCTIONS.md`; its runtime source is `backend/monthly-instructions.js`. GUS data is fetched by the backend before the SDK summarises it. Current-month comments and sprint evidence lead a short third-person leadership paragraph, with supported risks/Path to Green and separately labelled older context. Failed AI attempts keep the original editor text; task/status inventories are never supplied as a ready AI fallback. Nothing is saved without Save update.
+
+## Team hub (MQ · MAPS · VegaCache)
+
+Release Intelligence opens on a tile-based hub. A **team filter** in the top bar (before *Sources & connection*) scopes every page, including the release picker, Epics and Status Report. The choice is remembered in the browser.
+
+| Page | Source |
+|------|--------|
+| Sprints (Pulse + Standup) | `ADM_Sprint__c`, `ADM_Work_Commitment__c`, `ADM_Work__c` |
+| Bugs (default P0–P2, open) | `ADM_Work__c` bugs for the team |
+| TDs (incoming/outgoing) | `ADM_Team_Dependency__c` |
+| Rotations (PD, Trust Hero) | rota saved in GUS Apps (ContentStore `settings`); import by pasting the Slack rota message — the backend cannot read Slack history |
+| Epics / Status Report | existing release review and V2MOM views |
+| Test Failures, Quick Links | placeholders ("coming soon") |
+
+Inline edits (work status/priority/assignee/points, TD status/deliver-by, sprint items) are optimistic and sent as **delta** updates through the allow-listed `gus-update` action (`backend/hub.js` `WRITABLE`), one parallel request per flush. Add a page: `Hub.register({id,label,icon,tone,desc,render(el,Hub)})` in a new `public/*.js`, add the id to `NAV` in `public/hub.js`, add backend actions in `backend/hub.js`.
