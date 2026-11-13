@@ -143,7 +143,7 @@ async function loadSprintData(sf, teamId, sprintId) {
 async function getHistory(sf, teamId) {
   requireTeam(teamId);
   const rows = await queryAll(sf,
-    `SELECT Name, Committed_Points__c, Committed_Items__c, Committed_Story_Points_Completed__c, ` +
+    `SELECT Name, End_Date__c, Committed_Points__c, Committed_Items__c, Committed_Story_Points_Completed__c, ` +
     `Committed_Items_Completed__c, Completed_Story_Points__c, Completion_Committed_Story_Points__c ` +
     `FROM ADM_Sprint__c WHERE Scrum_Team__c = '${teamId}' AND Start_Date__c <= TODAY ` +
     `ORDER BY Start_Date__c DESC LIMIT ${HISTORY_SPRINTS}`);
@@ -152,6 +152,7 @@ async function getHistory(sf, teamId) {
     const completed = s.Committed_Story_Points_Completed__c || 0;
     return {
       name: s.Name,
+      inProgress: !!s.End_Date__c && s.End_Date__c >= today(),
       shortName: String(s.Name).split(' - ')[0],
       sayDo: s.Completion_Committed_Story_Points__c != null && committed > 0
         ? Math.round(s.Completion_Committed_Story_Points__c) : null,

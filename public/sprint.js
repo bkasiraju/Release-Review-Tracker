@@ -57,10 +57,10 @@ function memberSummary(m){
   if(!act.length&&removed.length)head='Sprint cleared by full scope removal';
   else if(!fc.length&&added.length)head='No committed work; all items were added mid-sprint';
   else if(!fc.length)head='No committed work';
-  else if(spill.length&&fcClosed.length)head=`Partial delivery, ${spill.length} committed item${spill.length>1?'s':''} carried forward`;
+  else if(spill.length&&fcClosed.length)head=`${spill.length} committed item${spill.length>1?'s':''} still open`;
   else if(spill.length)head='No committed items closed';
-  else if(added.length||removed.length)head='All committed work delivered despite mid-sprint scope change';
-  else head='All committed work delivered';
+  else if(added.length||removed.length)head='All committed items closed despite mid-sprint scope change';
+  else head='All committed items closed';
   const bits=[];
   if(fc.length)bits.push(`Closed ${fcClosed.length} of ${fc.length} committed item${fc.length>1?'s':''} (${fmt(fcClosed.reduce((n,i)=>n+pts(i),0))}/${fmt(m.initialPts)} pts).`);
   if(added.length)bits.push(`Added: ${names(added)}.`);
@@ -74,7 +74,8 @@ function memberBody(m){
   return `${sm.added.length?`<h4 class="sp-sec add">Added mid-sprint</h4><ul class="sp-mini">${miniItems(sm.added,'')}</ul>`:''}${sm.removed.length?`<h4 class="sp-sec rem">Removed mid-sprint</h4><ul class="sp-mini">${miniItems(sm.removed,'rem')}</ul>`:''}${rows.length?`<h4 class="sp-sec">Committed work</h4>${itemsTable(rows)}`:''}`;
 }
 function memberHtml(m){
-  const sm=memberSummary(m),done=sm.fc.filter(isClosed).reduce((n,i)=>n+pts(i),0),p=pct(done,m.initialPts),open=S.open.has(m.name);
+  const sm=memberSummary(m);m={...m,initialPts:sm.fc.reduce((n,i)=>n+pts(i),0),closedCount:m.items.filter(i=>i.itemStatus!=='Removed'&&isClosed(i)).length,spilloverCount:sm.spill.length,ptsChangedCount:m.items.filter(i=>i.itemStatus!=='Removed'&&i.forecastPts!=null&&i.storyPoints!=null&&i.forecastPts!==i.storyPoints).length};
+  const done=sm.fc.filter(isClosed).reduce((n,i)=>n+pts(i),0),p=pct(done,m.initialPts),open=S.open.has(m.name);
   const col=!m.initialPts?(sm.removed.length?'#ba0517':'#9aa5b1'):p>=80?'#2e844a':p>=50?'#b57b22':'#ba0517';
   const chips=`${m.closedCount?`<span class="sp-chip ok">✓ ${m.closedCount} closed</span>`:''}${m.spilloverCount?`<span class="sp-chip bad">⚠ ${m.spilloverCount} spillover</span>`:''}${m.addedCount?`<span class="sp-chip add">+${m.addedCount} added</span>`:''}${m.removedCount?`<span class="sp-chip chg">−${m.removedCount} removed</span>`:''}${m.ptsChangedCount?`<span class="sp-chip chg">Δ${m.ptsChangedCount} pts chg</span>`:''}`;
   return `<article class="sp-card${open?' open':''}" style="--card:${col}" data-member="${esc(m.name)}"><button class="sp-card-head" data-toggle="${esc(m.name)}" aria-expanded="${open}"><span class="su-av">${esc(initials(m.name))}</span><strong>${esc(m.name)}</strong><span class="sp-card-pts" title="Points done / committed">${fmt(done)}/${fmt(m.initialPts)}p <i>${open?'▾':'▸'}</i></span></button>
@@ -122,11 +123,11 @@ function renderChart(){
     const px=cx(i)*r.width/W,tw=tipEl.offsetWidth;tipEl.style.left=Math.min(Math.max(4,px-tw/2),r.width-tw-4)+'px';tipEl.style.top='6px';
     svgEl.querySelectorAll('.sp-xl').forEach(t=>t.classList.toggle('on',Number(t.dataset.i)===i));};
   svgEl.onmousemove=move;svgEl.onmouseleave=()=>{guide.setAttribute('visibility','hidden');tipEl.hidden=true;svgEl.querySelectorAll('.sp-xl.on').forEach(t=>t.classList.remove('on'));};
-  const valid=h.filter(s=>s.sayDo!=null),vs=valid.map(s=>s.sayDo),avg=vs.length?Math.round(vs.reduce((n,v)=>n+v,0)/vs.length):null,last=h.at(-1);
+  const done_=h.filter(s=>!s.inProgress),valid=done_.filter(s=>s.sayDo!=null),vs=valid.map(s=>s.sayDo),avg=vs.length?Math.round(vs.reduce((n,v)=>n+v,0)/vs.length):null,last=done_.at(-1)||h.at(-1);
   const mean=a=>a.length?a.reduce((n,v)=>n+v,0)/a.length:null,recent=mean(vs.slice(-3)),prior=mean(vs.slice(-6,-3));
   const trend=recent==null||prior==null?['—','']:recent-prior>=5?['↑ rising','#2e844a']:prior-recent>=5?['↓ falling','#ba0517']:['→ steady','#5b6b7c'];
   const stat=(k,v,c)=>`<div class="sp-stat"><span>${k}</span><strong${c?` style="color:${c}"`:''}>${v}</strong></div>`;
-  $('sp-trend-stats').innerHTML=stat('Avg say-do',avg==null?'—':avg+'%',avg==null?'':sayColor(avg))+stat('Best sprint',vs.length?Math.max(...vs)+'%':'—','#2e844a')+stat('Worst sprint',vs.length?Math.min(...vs)+'%':'—',vs.length?sayColor(Math.min(...vs)):'')+stat('Trend',trend[0],trend[1])+stat('Latest',last.sayDo==null?'—':last.sayDo+'%',last.sayDo==null?'':sayColor(last.sayDo))+stat('Avg pts/sprint',fmt(Math.round(mean(h.map(s=>s.completedPts))*10)/10)+' pts')+stat('Peak delivery',fmt(Math.max(...h.map(s=>s.completedPts)))+' pts')+stat('Sprints ≥80%',vs.length?Math.round(vs.filter(v=>v>=80).length/vs.length*100)+'%':'—','#2e844a')+stat('Sprints tracked',h.length);
+  $('sp-trend-stats').innerHTML=stat('Avg say-do',avg==null?'—':avg+'%',avg==null?'':sayColor(avg))+stat('Best sprint',vs.length?Math.max(...vs)+'%':'—','#2e844a')+stat('Worst sprint',vs.length?Math.min(...vs)+'%':'—',vs.length?sayColor(Math.min(...vs)):'')+stat('Trend',trend[0],trend[1])+stat('Latest',last.sayDo==null?'—':last.sayDo+'%',last.sayDo==null?'':sayColor(last.sayDo))+stat('Avg pts/sprint',fmt(Math.round(mean(done_.map(s=>s.completedPts))*10)/10)+' pts')+stat('Peak delivery',fmt(Math.max(0,...done_.map(s=>s.completedPts)))+' pts')+stat('Sprints ≥80%',vs.length?Math.round(vs.filter(v=>v>=80).length/vs.length*100)+'%':'—','#2e844a')+stat('Sprints tracked',done_.length+(h.length>done_.length?' + current':''));
 }
 let rz=null;if(window.ResizeObserver)new ResizeObserver(()=>{clearTimeout(rz);rz=setTimeout(()=>{if(S.history&&$('sp-chart').clientWidth&&Math.abs($('sp-chart').clientWidth-(S.cw||0))>8){S.cw=$('sp-chart').clientWidth;renderChart();}},120);}).observe($('sp-chart'));
 
