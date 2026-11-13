@@ -3,17 +3,17 @@
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#4f46e5"><title>Release Intelligence</title>
-  <link rel="icon" href="./favicon.svg"><link rel="preload" href="./SalesforceSans-Regular.woff" as="font" type="font/woff" crossorigin><link rel="stylesheet" href="./styles.css?v=3.0.0-GA-consolidated-20261114-5"><link rel="stylesheet" href="./lite.css?v=3.0.0-GA-consolidated-20261114-5"><link rel="stylesheet" href="./sprint.css?v=3.0.0-GA-consolidated-20261114-5"><link rel="stylesheet" href="./hub.css?v=3.0.0-GA-consolidated-20261114-5">
-  <script src="./queue.js?v=3.0.0-GA-consolidated-20261114-5" defer></script>
-  <script src="./controls.js?v=3.0.0-GA-consolidated-20261114-5" defer></script>
-  <script src="./ai.js?v=3.0.0-GA-consolidated-20261114-5" defer></script>
-  <script src="./icons.js?v=3.0.0-GA-consolidated-20261114-5" defer></script>
-  <script src="./comments-view.js?v=3.0.0-GA-consolidated-20261114-5" defer></script>
-  <script src="./tooltips.js?v=3.0.0-GA-consolidated-20261114-5" defer></script>
-  <script src="./app.js?v=3.0.0-GA-consolidated-20261114-5" defer></script>
-  <script src="./hub.js?v=3.0.0-GA-consolidated-20261114-5" defer></script>
-  <script src="./sprint.js?v=3.0.0-GA-consolidated-20261114-5" defer></script>
-  <script src="./hub-pages.js?v=3.0.0-GA-consolidated-20261114-5" defer></script>
+  <link rel="icon" href="./favicon.svg"><link rel="preload" href="./SalesforceSans-Regular.woff" as="font" type="font/woff" crossorigin><link rel="stylesheet" href="./styles.css?v=3.0.0-GA-consolidated-20261114-6"><link rel="stylesheet" href="./lite.css?v=3.0.0-GA-consolidated-20261114-6"><link rel="stylesheet" href="./sprint.css?v=3.0.0-GA-consolidated-20261114-6"><link rel="stylesheet" href="./hub.css?v=3.0.0-GA-consolidated-20261114-6">
+  <script src="./queue.js?v=3.0.0-GA-consolidated-20261114-6" defer></script>
+  <script src="./controls.js?v=3.0.0-GA-consolidated-20261114-6" defer></script>
+  <script src="./ai.js?v=3.0.0-GA-consolidated-20261114-6" defer></script>
+  <script src="./icons.js?v=3.0.0-GA-consolidated-20261114-6" defer></script>
+  <script src="./comments-view.js?v=3.0.0-GA-consolidated-20261114-6" defer></script>
+  <script src="./tooltips.js?v=3.0.0-GA-consolidated-20261114-6" defer></script>
+  <script src="./app.js?v=3.0.0-GA-consolidated-20261114-6" defer></script>
+  <script src="./hub.js?v=3.0.0-GA-consolidated-20261114-6" defer></script>
+  <script src="./sprint.js?v=3.0.0-GA-consolidated-20261114-6" defer></script>
+  <script src="./hub-pages.js?v=3.0.0-GA-consolidated-20261114-6" defer></script>
 </head>
 <body class="loading-dashboard">
   <aside class="rail" aria-label="Application navigation">
@@ -42,7 +42,7 @@
         <div class="executive-heading"><div><h2><span data-icon3d="sprint" data-tone="blue"></span> Sprints</h2><p>Commitment, say-do and delivery for the selected team. Edit status and points inline; changes save to GUS immediately.</p></div><div class="heading-actions"><nav class="sp-tabs" aria-label="Sprint view"><button class="selected" data-sp-view="pulse" aria-pressed="true">Pulse</button><button data-sp-view="standup" aria-pressed="false">Standup</button></nav><label class="visually-hidden" for="sp-sprint">Sprint</label><select id="sp-sprint" class="sp-select"></select><button class="button primary" id="sp-refresh" title="Reload from GUS"><span data-icon3d="sync" data-tone="blue"></span> Refresh</button></div></div>
         <p id="sp-status" class="note hidden" role="status"></p><p id="sp-goal" class="note sp-goal hidden"></p>
         <div id="sp-pulse"><section class="sp-metrics" id="sp-metrics" aria-label="Sprint summary"></section>
-        <section class="table-card sp-trend" aria-label="Sprint trend"><div class="filterbar"><div class="epic-toolbar-title"><h2>Last 10 sprints</h2></div><span class="toolbar-spacer"></span><nav class="sp-tabs" aria-label="Trend metric"><button class="selected" data-sp-tab="saydo" aria-pressed="true">Say-Do %</button><button data-sp-tab="points" aria-pressed="false">Points</button><button data-sp-tab="items" aria-pressed="false">Items</button></nav></div><div class="sp-trend-body"><div id="sp-chart" class="sp-chart"></div><div id="sp-trend-stats" class="sp-trend-stats"></div></div></section>
+        <section class="table-card sp-trend" aria-label="Sprint trend"><div class="filterbar"><div class="epic-toolbar-title"><h2>Team velocity — last 10 sprints</h2><small class="sp-sub">Commitment completion per sprint · green ≥ 80%, amber ≥ 50%, red below · dashed line = 80% target</small></div><span class="toolbar-spacer"></span><nav class="sp-tabs" aria-label="Trend metric"><button class="selected" data-sp-tab="saydo" aria-pressed="true">Say-Do %</button><button data-sp-tab="points" aria-pressed="false">Points</button><button data-sp-tab="items" aria-pressed="false">Items</button></nav></div><div class="sp-trend-body"><div id="sp-chart" class="sp-chart"></div><div id="sp-trend-stats" class="sp-trend-stats"></div></div></section>
         <section class="table-card" aria-label="Contributors"><div class="filterbar"><div class="epic-toolbar-title"><h2>Contributors <span class="count-pill" id="sp-member-count">0</span></h2></div><div class="search-box"><svg viewBox="0 0 20 20"><circle cx="8.5" cy="8.5" r="5.5"/><path d="m13 13 4 4"/></svg><input id="sp-search" placeholder="Search contributor or work item…" aria-label="Search contributors"></div><span class="toolbar-spacer"></span><button class="button small" id="sp-expand">Expand all</button><button class="button small" id="sp-collapse">Collapse all</button></div><div id="sp-members" class="sp-members"></div><div class="table-footer"><span id="sp-row-count">0 contributors</span></div></section></div>
         <div id="sp-standup" class="hidden" aria-label="Standup"></div>
       </div></section>

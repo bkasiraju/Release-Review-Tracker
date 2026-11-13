@@ -49,11 +49,37 @@ function itemRow(i){
   return `<tr class="${i.itemStatus==='Removed'?'sp-removed':''}"><td><a href="${GUS_WORK}${esc(i.id)}/view" target="_blank" rel="noopener noreferrer">${esc(i.name)}</a></td><td class="sp-subject">${esc(i.subject)} ${flag}${changed}</td><td>${esc(i.recordType)}</td><td>${statusSelect(i)}</td><td class="num">${ptsInput(i)}</td><td class="num">${i.forecastPts==null?'—':esc(i.forecastPts)}</td></tr>`;
 }
 const itemsTable=rows=>`<div class="table-scroll sp-items"><table><thead><tr><th>Work</th><th>Subject</th><th>Type</th><th>Status</th><th class="num">Pts</th><th class="num">Forecast</th></tr></thead><tbody>${rows.map(itemRow).join('')}</tbody></table></div>`;
+// Summary text is derived from GUS commitment data only (no generated claims).
+const names=(a,n=3)=>a.slice(0,n).map(i=>i.name).join(', ')+(a.length>n?` +${a.length-n} more`:'');
+function memberSummary(m){
+  const act=m.items.filter(i=>i.itemStatus!=='Removed'),fc=m.items.filter(i=>i.itemStatus==='Forecasted'),added=m.items.filter(i=>i.itemStatus==='Added'),removed=m.items.filter(i=>i.itemStatus==='Removed'),fcClosed=fc.filter(isClosed),spill=fc.filter(i=>!isClosed(i));
+  let head;
+  if(!act.length&&removed.length)head='Sprint cleared by full scope removal';
+  else if(!fc.length&&added.length)head='No committed work; all items were added mid-sprint';
+  else if(!fc.length)head='No committed work';
+  else if(spill.length&&fcClosed.length)head=`Partial delivery, ${spill.length} committed item${spill.length>1?'s':''} carried forward`;
+  else if(spill.length)head='No committed items closed';
+  else if(added.length||removed.length)head='All committed work delivered despite mid-sprint scope change';
+  else head='All committed work delivered';
+  const bits=[];
+  if(fc.length)bits.push(`Closed ${fcClosed.length} of ${fc.length} committed item${fc.length>1?'s':''} (${fmt(fcClosed.reduce((n,i)=>n+pts(i),0))}/${fmt(m.initialPts)} pts).`);
+  if(added.length)bits.push(`Added: ${names(added)}.`);
+  if(removed.length)bits.push(`Removed: ${names(removed)}.`);
+  if(spill.length)bits.push(`Spillover: ${names(spill)}.`);
+  return {head,text:bits.join(' ')||'No items in this sprint.',fc,added,removed,spill};
+}
+const miniItems=(list,cls)=>list.map(i=>`<li class="${cls}"><span class="sp-mi-top"><a href="${GUS_WORK}${esc(i.id)}/view" target="_blank" rel="noopener noreferrer">${esc(i.name)}</a><span class="sp-pts-tag">${fmt(spOf(i))}p</span><span class="sp-status ${statusClass(i)}">${esc(i.status)}</span></span><span class="sp-mi-sub" title="${esc(i.subject)}">${esc(i.subject)}</span></li>`).join('');
+function memberBody(m){
+  const sm=memberSummary(m),rows=m.items.filter(i=>i.itemStatus==='Forecasted').sort((a,b)=>isClosed(a)-isClosed(b)||String(a.name).localeCompare(String(b.name)));
+  return `${sm.added.length?`<h4 class="sp-sec add">Added mid-sprint</h4><ul class="sp-mini">${miniItems(sm.added,'')}</ul>`:''}${sm.removed.length?`<h4 class="sp-sec rem">Removed mid-sprint</h4><ul class="sp-mini">${miniItems(sm.removed,'rem')}</ul>`:''}${rows.length?`<h4 class="sp-sec">Committed work</h4>${itemsTable(rows)}`:''}`;
+}
 function memberHtml(m){
-  const forecasted=m.items.filter(i=>i.itemStatus==='Forecasted'),done=forecasted.filter(isClosed).reduce((n,i)=>n+pts(i),0);
-  const p=pct(done,m.initialPts),col=p>=80?'#2e844a':p>=50?'#b57b22':'#ba0517',open=S.open.has(m.name);
-  const rows=[...m.items].sort((a,b)=>isClosed(a)-isClosed(b)||String(a.name).localeCompare(String(b.name)));
-  return `<details class="sp-member" data-member="${esc(m.name)}"${open?' open':''}><summary><span class="sp-name">${esc(m.name)}</span><span class="sp-bar" title="${p}% of committed points done"><i style="width:${Math.min(p,100)}%;background:${col}"></i></span><span class="sp-pts"><strong>${fmt(done)}</strong> / ${fmt(m.initialPts)} pts</span><span class="sp-chips"><span class="sp-chip ok">${m.closedCount} closed</span>${m.spilloverCount?`<span class="sp-chip warn">${m.spilloverCount} spillover</span>`:''}${m.addedCount?`<span class="sp-chip add">+${m.addedCount}</span>`:''}${m.removedCount?`<span class="sp-chip rem">−${m.removedCount}</span>`:''}</span></summary>${open?itemsTable(rows):'<div class="sp-items-slot"></div>'}</details>`;
+  const sm=memberSummary(m),done=sm.fc.filter(isClosed).reduce((n,i)=>n+pts(i),0),p=pct(done,m.initialPts),open=S.open.has(m.name);
+  const col=!m.initialPts?(sm.removed.length?'#ba0517':'#9aa5b1'):p>=80?'#2e844a':p>=50?'#b57b22':'#ba0517';
+  const chips=`${m.closedCount?`<span class="sp-chip ok">✓ ${m.closedCount} closed</span>`:''}${m.spilloverCount?`<span class="sp-chip bad">⚠ ${m.spilloverCount} spillover</span>`:''}${m.addedCount?`<span class="sp-chip add">+${m.addedCount} added</span>`:''}${m.removedCount?`<span class="sp-chip chg">−${m.removedCount} removed</span>`:''}${m.ptsChangedCount?`<span class="sp-chip chg">Δ${m.ptsChangedCount} pts chg</span>`:''}`;
+  return `<article class="sp-card${open?' open':''}" style="--card:${col}" data-member="${esc(m.name)}"><button class="sp-card-head" data-toggle="${esc(m.name)}" aria-expanded="${open}"><span class="su-av">${esc(initials(m.name))}</span><strong>${esc(m.name)}</strong><span class="sp-card-pts" title="Points done / committed">${fmt(done)}/${fmt(m.initialPts)}p <i>${open?'▾':'▸'}</i></span></button>
+  <div class="sp-card-sum"><b>★ ${esc(sm.head)}</b><p>${esc(sm.text)}</p></div><div class="sp-chips">${chips}</div>
+  ${open?`<div class="sp-card-body"><div class="sp-prog" title="${p}% of committed points done"><span>${fmt(done)} of ${fmt(m.initialPts)} committed pts done</span><span>${p}%</span></div><span class="sp-bar"><i style="width:${Math.min(p,100)}%;background:${col}"></i></span>${memberBody(m)}</div>`:''}</article>`;
 }
 function renderMembers(){
   const q=S.search.trim().toLowerCase();
@@ -96,9 +122,11 @@ function renderChart(){
     const px=cx(i)*r.width/W,tw=tipEl.offsetWidth;tipEl.style.left=Math.min(Math.max(4,px-tw/2),r.width-tw-4)+'px';tipEl.style.top='6px';
     svgEl.querySelectorAll('.sp-xl').forEach(t=>t.classList.toggle('on',Number(t.dataset.i)===i));};
   svgEl.onmousemove=move;svgEl.onmouseleave=()=>{guide.setAttribute('visibility','hidden');tipEl.hidden=true;svgEl.querySelectorAll('.sp-xl.on').forEach(t=>t.classList.remove('on'));};
-  const valid=h.filter(s=>s.sayDo!=null),avg=valid.length?Math.round(valid.reduce((n,s)=>n+s.sayDo,0)/valid.length):null,last=h.at(-1);
+  const valid=h.filter(s=>s.sayDo!=null),vs=valid.map(s=>s.sayDo),avg=vs.length?Math.round(vs.reduce((n,v)=>n+v,0)/vs.length):null,last=h.at(-1);
+  const mean=a=>a.length?a.reduce((n,v)=>n+v,0)/a.length:null,recent=mean(vs.slice(-3)),prior=mean(vs.slice(-6,-3));
+  const trend=recent==null||prior==null?['—','']:recent-prior>=5?['↑ rising','#2e844a']:prior-recent>=5?['↓ falling','#ba0517']:['→ steady','#5b6b7c'];
   const stat=(k,v,c)=>`<div class="sp-stat"><span>${k}</span><strong${c?` style="color:${c}"`:''}>${v}</strong></div>`;
-  $('sp-trend-stats').innerHTML=stat('Avg say-do',avg==null?'—':avg+'%',avg==null?'':sayColor(avg))+stat('Latest',last.sayDo==null?'—':last.sayDo+'%',last.sayDo==null?'':sayColor(last.sayDo))+stat('Best',valid.length?Math.max(...valid.map(s=>s.sayDo))+'%':'—')+stat('Avg completed',fmt(Math.round(h.reduce((n,s)=>n+s.completedPts,0)/h.length*10)/10)+' pts')+stat('Sprints',h.length);
+  $('sp-trend-stats').innerHTML=stat('Avg say-do',avg==null?'—':avg+'%',avg==null?'':sayColor(avg))+stat('Best sprint',vs.length?Math.max(...vs)+'%':'—','#2e844a')+stat('Worst sprint',vs.length?Math.min(...vs)+'%':'—',vs.length?sayColor(Math.min(...vs)):'')+stat('Trend',trend[0],trend[1])+stat('Latest',last.sayDo==null?'—':last.sayDo+'%',last.sayDo==null?'':sayColor(last.sayDo))+stat('Avg pts/sprint',fmt(Math.round(mean(h.map(s=>s.completedPts))*10)/10)+' pts')+stat('Peak delivery',fmt(Math.max(...h.map(s=>s.completedPts)))+' pts')+stat('Sprints ≥80%',vs.length?Math.round(vs.filter(v=>v>=80).length/vs.length*100)+'%':'—','#2e844a')+stat('Sprints tracked',h.length);
 }
 let rz=null;if(window.ResizeObserver)new ResizeObserver(()=>{clearTimeout(rz);rz=setTimeout(()=>{if(S.history&&$('sp-chart').clientWidth&&Math.abs($('sp-chart').clientWidth-(S.cw||0))>8){S.cw=$('sp-chart').clientWidth;renderChart();}},120);}).observe($('sp-chart'));
 
@@ -177,7 +205,7 @@ function bind(){
   $('sp-expand').onclick=()=>{S.members.forEach(m=>S.open.add(m.name));renderMembers();};
   $('sp-collapse').onclick=()=>{S.open.clear();renderMembers();};
   $('sp-search').oninput=e=>{S.search=e.target.value;renderMembers();};
-  $('sp-members').addEventListener('toggle',e=>{const d=e.target;if(!d.dataset?.member)return;d.open?S.open.add(d.dataset.member):S.open.delete(d.dataset.member);if(d.open){const slot=d.querySelector('.sp-items-slot');const m=S.members.find(x=>x.name===d.dataset.member);if(slot&&m)slot.outerHTML=itemsTable([...m.items].sort((a,b)=>isClosed(a)-isClosed(b)||String(a.name).localeCompare(String(b.name))));}},true);
+  $('sp-members').addEventListener('click',e=>{const t=e.target.closest('[data-toggle]');if(!t)return;const n=t.dataset.toggle;S.open.has(n)?S.open.delete(n):S.open.add(n);renderMembers();});
   document.querySelectorAll('[data-sp-tab]').forEach(b=>b.onclick=()=>{S.tab=b.dataset.spTab;document.querySelectorAll('[data-sp-tab]').forEach(x=>{const on=x===b;x.classList.toggle('selected',on);x.setAttribute('aria-pressed',String(on));});renderChart();});
 }
 window.SprintInsights={show};
