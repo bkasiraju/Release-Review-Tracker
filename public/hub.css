@@ -558,3 +558,9 @@ body.pl-fs-lock{overflow:hidden}
 body[data-hub] main .executive-heading h2{display:none!important}
 .sp-sprintbar{display:flex;align-items:center;gap:10px;margin:14px 0 10px}.sp-sprintbar h2{margin:0;font-size:16px}.sp-bar-l{font-size:12px;font-weight:700;text-transform:uppercase;color:#5b6f82!important;margin-left:6px}
 .sp-mstrip{display:flex;flex-wrap:wrap;gap:6px;padding:8px 18px;border-bottom:1px solid #e3eaf1}.sp-mav{border:2px solid transparent;border-radius:50%;padding:0;background:none;cursor:pointer;line-height:0}.sp-mav .su-av{width:28px;height:28px;font-size:11px}.sp-mav .su-av img{width:100%;height:100%}.sp-mav:hover{border-color:#9fc3df}.sp-mav.on{border-color:#1b73b3;box-shadow:0 0 0 2px #cfe3f2}
+/* Status colours: closed/completed blue; in progress and ready for review green; not started grey; blocked amber; rejected red */
+body select.hub-inline.st-done{background:#e3f1fb!important;color:#0b5a8a!important;border-color:#a6cfe8!important}
+body select.hub-inline.st-prog{background:#e6f4ea!important;color:#1e6b34!important;border-color:#a8d5b5!important}
+body select.hub-inline.st-review{background:#d8f1e6!important;color:#0f6b4a!important;border-color:#8fd0b4!important}
+body select.hub-inline.st-new{background:#eceff3!important;color:#475467!important;border-color:#c9d0d9!important}
+body select.hub-inline.st-block{background:#fdf1dd!important;color:#8a5a00!important;border-color:#e8cf9b!important}

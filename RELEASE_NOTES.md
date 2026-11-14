@@ -1,3 +1,7 @@
+## Unreleased on top of 4.0.0-GA (plan30) — distinct status colours
+
+- Inline status selects: Closed/Fixed/Completed blue; In Progress green; Ready for Review (and other review/QA states) a teal-green; New/Not Started grey; Blocked/Waiting/On hold amber; Never/Duplicate/Rejected red. Checked computed colours on the local harness (New, Closed, Fixed, Never); the green and amber states are the same rules but were not in the seed data. Cache-bust `4.0.0-GA-plan30`.
+
 ## Unreleased on top of 4.0.0-GA (plan29) — standup engineer avatar strip
 
 - The standup review dialog shows a strip of small avatars for the whole team (in the current standup order). Clicking one jumps to that engineer; Previous/Next then follow from that engineer in the same order. Cache-bust `4.0.0-GA-plan29`.

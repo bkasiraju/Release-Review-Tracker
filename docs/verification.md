@@ -902,3 +902,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan28: Pulse order velocity -> sprint bar -> tiles; filter follows into Standup — local harness only.
 
 - plan29: standup avatar strip jumps to the chosen engineer, prev/next follow — local harness only.
+
+- plan30: status colour palette — computed colours checked for 4 of 6 states on the local harness.
