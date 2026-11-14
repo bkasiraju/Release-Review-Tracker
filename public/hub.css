@@ -248,3 +248,4 @@ button.tf-filter.on{box-shadow:0 0 0 2px #176b91;border-color:#fff}
 .tf-chips{display:inline-flex;gap:8px;align-items:center;margin-left:auto}
 .tf-pager{display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:8px 14px;border-top:1px solid #e3e9f0;font-size:12px;color:#44546a}
 .tf-pager span{margin-right:auto}
+.dp-hide{display:none!important}

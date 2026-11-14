@@ -216,10 +216,26 @@ function fitTable(t){
   cg.innerHTML=cols.map(c=>`<col style="width:${c.px}px">`).join('');
   t.classList.add('fit');t.style.minWidth=Math.min(used+FIT_MIN_TEXT*flex.length,avail*3)+'px';
 }
+/** Generic pager: any table with more than 25 rows (and no pager of its own) shows 25 at a time. Re-applied whenever its rows are re-rendered. */
+const DP=25,dpState=new WeakMap();
+const dpSkip=t=>t.closest('#bug-queue,.tf-section,#table-card,.sp-modal,.nd-overlay')||t.classList.contains('nopage');
+function pageTable(t){
+  if(!t.tBodies.length||dpSkip(t))return;
+  const host=t.closest('.table-scroll')||t,rows=[...t.tBodies[0].rows].filter(r=>!r.hidden&&!r.querySelector(':scope>td[colspan]'));
+  let bar=host.nextElementSibling;if(bar&&!bar.classList.contains('dom-pager'))bar=null;
+  if(rows.length<=DP){rows.forEach(r=>r.classList.remove('dp-hide'));if(bar)bar.remove();return;}
+  let st=dpState.get(t);if(!st||st.count!==rows.length){st={pg:1,count:rows.length};dpState.set(t,st);}
+  const pages=Math.ceil(rows.length/DP);st.pg=Math.min(Math.max(st.pg,1),pages);
+  rows.forEach((r,i)=>r.classList.toggle('dp-hide',i<(st.pg-1)*DP||i>=st.pg*DP));
+  if(!bar){bar=document.createElement('div');bar.className='tf-pager dom-pager';bar.setAttribute('role','navigation');bar.setAttribute('aria-label','Table pages');host.after(bar);}
+  bar._table=t;
+  bar.innerHTML=`<span>${(st.pg-1)*DP+1}–${Math.min(rows.length,st.pg*DP)} of ${rows.length}</span><button type="button" class="button small" data-dp="-1" ${st.pg<=1?'disabled':''}>‹ Prev</button><b>Page ${st.pg} / ${pages}</b><button type="button" class="button small" data-dp="1" ${st.pg>=pages?'disabled':''}>Next ›</button>`;
+}
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-dp]');if(!b||b.disabled)return;const bar=b.closest('.dom-pager'),t=bar&&bar._table;if(!t)return;const st=dpState.get(t);st.pg+=+b.dataset.dp;pageTable(t);(t.closest('.table-scroll')||t).scrollIntoView({block:'nearest'});});
 H.fitTable=fitTable;
 (function(){
   const pending=new Set();let raf=0;
-  const run=()=>{raf=0;for(const t of pending)try{fitTable(t);}catch(_){}pending.clear();};
+  const run=()=>{raf=0;for(const t of pending)try{fitTable(t);pageTable(t);}catch(_){}pending.clear();};
   const queue=t=>{if(t&&!t.classList.contains('nofit')){pending.add(t);if(!raf)raf=requestAnimationFrame(run);}};
   new MutationObserver(ms=>{for(const m of ms){
     if(m.target.nodeName==='COLGROUP'||m.target.nodeName==='COL')continue;
@@ -292,7 +308,7 @@ function renderHome(el){
 }
 H.register({id:'home',label:'Team Hub',icon:'home',tone:'violet',desc:'Team hub',render:renderHome});
 H.register({id:'epics',label:'Release Review',icon:'scope',tone:'green',desc:'Release epics, health and monthly updates',legacy:'overview',stat:()=>({text:'Release review · health and monthly updates'})});
-H.register({id:'status',label:'Status Report',icon:'ai',tone:'violet',desc:'V2MOM executive updates',legacy:'executive',stat:()=>({text:'V2MOM executive summary and leadership update'})});
+H.register({id:'status',label:'V2MOM Updates',icon:'ai',tone:'violet',desc:'V2MOM executive updates',legacy:'executive',stat:()=>({text:'V2MOM executive summary and leadership update'})});
 function soon(id,label,ic,tone,desc){
   H.register({id,label,icon:ic,tone,desc,soon:true,render:el=>{el.innerHTML=`<section class="hub-soon-page">${icon(ic,tone)}<h2>${esc(label)}</h2><span class="hub-soon">Coming soon</span><p>${esc(desc)}. This page is on the roadmap and will plug into the same team filter and GUS-backed data.</p><button class="button primary" data-go="home">Back to overview</button></section>`;}});
 }
