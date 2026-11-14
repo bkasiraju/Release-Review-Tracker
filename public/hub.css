@@ -842,3 +842,6 @@ body[data-ready] #hub-boot{display:flex}
 /* plan78: engineer bandwidth headers and values centered (name stays left) */
 .pl-eng-h>span:nth-child(n+2),.pl-eng-r>span:nth-child(n+2){text-align:center!important;justify-content:center}
 .pl-eng-th{justify-content:center}
+
+/* plan79: By theme column removed from Engineer bandwidth */
+.pl-eng-h,.pl-eng-r{grid-template-columns:minmax(130px,1.4fr) 70px 100px 110px minmax(100px,1.2fr);gap:10px}

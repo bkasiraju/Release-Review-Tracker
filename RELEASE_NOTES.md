@@ -1,3 +1,7 @@
+## Unreleased on top of 4.0.0-GA (plan79) — Engineer bandwidth: theme column removed
+
+- The "By theme (effort)" column added in plan77 is removed. Engineer bandwidth shows Engineer, Available, Planned Effort (ABL), Un-planned Effort (BTL) and Load, centred. The per-engineer BTL counting fix stays.
+
 ## Unreleased on top of 4.0.0-GA (plan78) — Engineer bandwidth centred
 
 - Headers and values for Available, By theme, Planned Effort (ABL), Un-planned Effort (BTL) and Load are centre-aligned. The engineer name stays left-aligned.
