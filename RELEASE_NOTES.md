@@ -1,3 +1,7 @@
+## Unreleased on top of 4.0.0-GA (plan44) — labelled work items and SP
+
+- Standup Completed / In progress / Blocked chips now read "11 items · 22 SP" instead of "11 · 22 SP" ("1 item" when singular).
+
 ## Unreleased on top of 4.0.0-GA (plan43) — signal hover card no longer overlaid
 
 - The signal card was drawn underneath the avatar strip and page body, so text collided. The dialog header now sits above the strip and body, and the card is fully opaque with a stronger shadow and outline.

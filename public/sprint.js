@@ -50,7 +50,7 @@ const planOf=items=>items.reduce((n,i)=>n+(i.itemStatus==='Forecasted'?(i.foreca
 const churnSum=items=>items.reduce((n,i)=>n+(churnOf(i)||0),0);
 const sgn=n=>n>0?`+${fmt(n)}`:n<0?`−${fmt(-n)}`:'0';
 /** Planned (green) · Actual (purple) · Churn · Done chips for a set of work items. */
-const statChips=items=>{const act=items.filter(i=>i.itemStatus!=='Removed'),sp=l=>fmt(l.reduce((n,i)=>n+spOf(i),0)),g=(cls,l,lab,tip)=>`<span class="mchip ${cls}" title="${esc(tip)}">${lab} <b>${l.length} · ${sp(l)} SP</b></span>`,
+const statChips=items=>{const act=items.filter(i=>i.itemStatus!=='Removed'),sp=l=>fmt(l.reduce((n,i)=>n+spOf(i),0)),g=(cls,l,lab,tip)=>`<span class="mchip ${cls}" title="${esc(tip)}">${lab} <b>${l.length} ${l.length===1?'item':'items'} · ${sp(l)} SP</b></span>`,
   done=act.filter(isClosed),prog=act.filter(i=>!isClosed(i)&&/st-prog|st-review/.test(stCls(i.status))),blk=act.filter(i=>!isClosed(i)&&stCls(i.status)==='st-block');
   return `<span class="mchip pl" title="Story points planned at sprint start">Planned <b>${fmt(planOf(items))} SP</b></span><span class="mchip ac" title="Story points now (excludes removed items)">Actual <b>${fmt(act.reduce((n,i)=>n+spOf(i),0))} SP</b></span>`
    +g('dn2',done,'Completed','Items in a closed status')+g('ip',prog,'In progress','Items in progress, in review or in QA')+g('bk',blk,'Blocked','Items blocked, waiting or on hold');};

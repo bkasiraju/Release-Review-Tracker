@@ -926,3 +926,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan41/42: sprint selector placement and heading rename — local harness screenshots at 1500px only (Standup row seen on one screen size).
 
 - plan43: signal hover card layering — local harness screenshot (Added card, 1500px) only; other signal cards share the same styles but were not each captured.
+
+- plan44: items/SP labels on group chips — local harness screenshot only.
