@@ -982,3 +982,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan73: wider + Project popup (CSS only; not visually re-checked in a browser, not verified on the live app).
 
 - plan74: + Project popup placeholders set to 'Enter value' (string change; not visually re-checked, not verified on the live app).
+
+- plan75: Back button restyled to match Back to Hub; planner icons flattened (local harness screenshot of the planner; not verified on the live app).

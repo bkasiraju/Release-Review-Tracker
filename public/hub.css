@@ -817,3 +817,13 @@ body[data-ready] #hub-boot{display:flex}
 .pl-newproj{width:min(620px,calc(100vw - 48px))}
 .pl-newproj input.hub-inline,.pl-newproj select.hub-inline{text-overflow:ellipsis}
 .pl-newproj select.hub-inline{height:34px}
+
+/* plan75: Back button matches the dashboard's "Back to Hub" button; planner icons are flat tinted tiles, not glossy 3D */
+.pl-back{height:auto;gap:6px;padding:7px 12px;border-radius:4px;background:#216e91!important;border:1px solid #216e91;box-shadow:none;font-size:12px;font-weight:600;top:4px}
+.pl-back *{color:#fff!important}.pl-back svg{width:14px;height:14px;stroke:#fff}
+.pl-back:hover{background:#225477!important;transform:none;box-shadow:none}.pl-back:hover svg{transform:translateX(-2px)}
+.pl-kpi .cfs-icon,.pl-card .cfs-icon,.pl-sum-grid .cfs-icon{background:var(--k2,#eaf3ff)!important;border:1px solid color-mix(in srgb,var(--k,#3574c2) 30%,#fff)!important;box-shadow:none!important;transform:none!important;animation:none!important}
+.pl-kpi .cfs-icon{border-radius:10px}
+.pl-kpi .cfs-icon svg,.pl-card .cfs-icon svg,.pl-sum-grid .cfs-icon svg{stroke:var(--k,#3574c2)!important}
+.pl-kpi .cfs-icon::before,.pl-kpi .cfs-icon::after,.pl-card .cfs-icon::before,.pl-card .cfs-icon::after{display:none!important}
+.pl-planner-h .cfs-icon{background:#e6f5ee!important;border:1px solid #bfe3d0!important;box-shadow:none!important;transform:none!important}.pl-planner-h .cfs-icon svg{stroke:#248568!important}

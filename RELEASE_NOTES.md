@@ -1,3 +1,8 @@
+## Unreleased on top of 4.0.0-GA (plan75) — Back button matches dashboard; flat planner icons
+
+- "Back to Release Intelligence" now uses the same solid teal button style as "Back to Hub" (white text, small radius), still at the far right of the tab row.
+- Planner KPI tiles, section cards and the Projects & epics heading use flat tinted icon tiles with outline icons instead of glossy 3D gradients.
+
 ## Unreleased on top of 4.0.0-GA (plan74) — "Enter value" placeholders
 
 - Both fields in the + Project popup (Measure name, Short form) now show "Enter value" when empty. The example format stays in the label hint.
