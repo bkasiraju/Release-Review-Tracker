@@ -128,6 +128,38 @@ H.register({id:'tds',label:'Team Dependencies',icon:'td',tone:'amber',desc:'Inco
     loadTds(el);
   }});
 
+// ── Test failures (Patch / Main) ────────────────────────────────────────────
+const TF={data:null,pick:null,members:[],who:'',q:'',seq:0};
+const tfAll=()=>[...(TF.data?.patch||[]),...(TF.data?.main||[])];
+const tfRows=rows=>{const q=TF.q.toLowerCase();return rows.filter(r=>(!TF.who||(TF.who==='none'?!r.assigneeId:r.assigneeId===TF.who))&&(!q||(r.name+' '+r.subject+' '+r.assignee).toLowerCase().includes(q)));};
+const build=(b,patch)=>b?`<span class="tf-build ${patch?'patch':'main'}">${esc(b)}</span>`:'—';
+function tfSection(title,cls,desc,rows,pick){
+  if(!rows.length)return '';
+  return `<section class="tf-section ${cls}"><div class="tf-head"><b>${title}</b><span class="count-pill">${rows.length}</span><span>${esc(desc)}</span></div><div class="table-scroll"><table><thead><tr><th>ID</th><th>Subject</th><th>Assignee</th><th>Found in</th><th>Scheduled</th><th>Age</th><th>Status</th></tr></thead><tbody>${rows.map(r=>`<tr><td><a href="${H.GUS}ADM_Work__c/${esc(r.id)}/view" target="_blank" rel="noopener noreferrer">${esc(r.name)}</a></td><td class="sp-subject" title="${esc(r.subject)}">${esc(r.subject.slice(0,140))}</td><td>${esc(r.assignee||'Unassigned')}</td><td>${build(r.found,r.found.includes('.'))}</td><td>${build(r.scheduled,r.scheduled.includes('.'))}</td><td class="${r.age>14?'tf-stale':''}">${r.age<1?'today':r.age+' days'}</td><td><select class="hub-inline" data-edit="ADM_Work__c" data-id="${esc(r.id)}" data-field="Status__c" data-prev="${esc(r.status)}" data-label="${esc(r.name)} status" aria-label="Status of ${esc(r.name)}">${H.options(pick?pick.workStatus:[],r.status)}</select></td></tr>`).join('')}</tbody></table></div></section>`;
+}
+function drawTests(el){
+  const d=TF.data,patch=tfRows(d.patch),main=tfRows(d.main);
+  el.querySelector('#tf-chips').innerHTML=`<span class="sp-chip rem">${d.patch.length} Patch TFs</span><span class="sp-chip add">${d.main.length} Main TFs</span>${d.truncated?'<span class="sp-chip warn">Showing first 500</span>':''}`;
+  el.querySelector('#tf-body').innerHTML=(patch.length||main.length)?tfSection('Patch Open TFs','patch','Scheduled for a patch build — fix before the patch ships',patch,TF.pick)+tfSection('Main Open TFs','main','Open on main release, oldest first — don’t let these become patch TFs',main,TF.pick):`<div class="empty-state hub-empty"><h3>No open test failures</h3><p>Nothing matches for ${esc(H.team.short)}.</p></div>`;
+}
+async function loadTests(el){
+  const my=++TF.seq;el.querySelector('#tf-body').innerHTML='<div class="hub-loading" role="status"><span class="executive-spinner" aria-hidden="true"></span> Loading test failures from GUS…</div>';
+  try{const [d,p,m]=await Promise.all([call('hub-tests',{teamId:H.team.Id}),H.picklists().catch(()=>null),H.members().catch(()=>[])]);if(my!==TF.seq)return;TF.data=d;TF.pick=p;TF.members=m;
+    el.querySelector('#tf-who').innerHTML='<option value="">All assignees</option><option value="none">Unassigned</option>'+m.map(x=>`<option value="${esc(x.id)}">${esc(x.name)}</option>`).join('');el.querySelector('#tf-who').value=TF.who;drawTests(el);}
+  catch(e){if(my===TF.seq)failed(el.querySelector('#tf-body'),e);}
+}
+H.register({id:'tests',label:'Test Failures',icon:'flask',tone:'rose',desc:'Open test failures: patch first, then main',needsTeam:true,
+  render(el){
+    el.innerHTML=heading('flask','rose','Test Failures',`Open test failures for ${H.team.Name}. Edit status inline; changes save to GUS immediately.`,refreshBtn)+
+    `<section class="table-card"><div class="filterbar"><input id="tf-q" class="hub-inline" placeholder="Search name or subject" aria-label="Search test failures" value="${esc(TF.q)}"><select id="tf-who" class="hub-inline" aria-label="Assignee"></select><span id="tf-chips" class="tf-chips"></span></div><div id="tf-body"></div></section>`;
+    withIcons(el);
+    el.onclick=e=>{if(e.target.closest('[data-refresh]'))loadTests(el);};
+    el.querySelector('#tf-q').oninput=e=>{TF.q=e.target.value;if(TF.data)drawTests(el);};
+    el.querySelector('#tf-who').onchange=e=>{TF.who=e.target.value;if(TF.data)drawTests(el);};
+    bindPage(el,(id,field,val)=>{const r=tfAll().find(x=>x.id===id);if(r&&field==='Status__c')r.status=val;});
+    loadTests(el);
+  }});
+
 // ── Rotations ───────────────────────────────────────────────────────────────
 const KINDS=[['pd','PD on-call','rotation','violet'],['trusthero','Trust Hero','flag','amber']];
 const R={rota:{pd:[],trusthero:[]},revision:null,team:null,members:[]};

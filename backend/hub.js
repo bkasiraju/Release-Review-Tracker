@@ -218,6 +218,54 @@ async function updateOne(sf, u) {
   } else throw new Error('GUS Apps does not expose Salesforce update().');
   return delta;
 }
+// ── Team people (leadership section on the hub home) ─────────────────────────
+const PEOPLE = {
+  'Managed Async Processing Team': ['005EE00000YvpWrYAJ', '005B0000001tCGAIA2', '005EE00000StHjGYAV'],
+  'Message Queue Team': ['005EE00000YvpWrYAJ', '005B0000001tCGAIA2', '005EE00000StHjGYAV'],
+  'VegaCache Team': ['005B0000003OANyIAO', '005B0000006q4KcIAI']
+};
+const groupOf = g => g === 'maps' ? 'Managed Async Processing Team' : g === 'mq' ? 'Message Queue Team' : g === 'vegacache' ? 'VegaCache Team' : null;
+async function slackAvatar(slack, email) {
+  try {
+    if (!email || !slack || typeof slack.resolveIdentity !== 'function') return null;
+    const r = await slack.resolveIdentity({ email }), id = r && ((r.user && r.user.id) || r.userId || r.slackUserId || r.id);
+    if (!id) return null;
+    const direct = r && r.user && r.user.profile && (r.user.profile.image_192 || r.user.profile.image_72);
+    if (direct) return direct;
+    if (typeof slack.getUser === 'function') { const u = await slack.getUser({ user: id }), pr = (u && (u.user || u).profile) || {}; return pr.image_192 || pr.image_72 || null; }
+  } catch (_) { /* avatar is optional */ }
+  return null;
+}
+async function getPeople(sf, slack, group) {
+  const name = groupOf(group);
+  if (!name) return { name: null, people: [] };
+  const ids = PEOPLE[name];
+  const rows = (await sf.query(`SELECT Id, Name, Title, Email, SmallPhotoUrl FROM User WHERE Id IN (${ids.map(i => `'${i}'`).join(',')})`)).records || [];
+  const byId = new Map(rows.map(r => [r.Id, r]));
+  const people = await Promise.all(ids.filter(i => byId.has(i)).map(async i => {
+    const u = byId.get(i);
+    return { id: u.Id, name: u.Name, role: u.Title || '', avatar: (await slackAvatar(slack, u.Email)) || u.SmallPhotoUrl || null, slack: false };
+  }));
+  return { name, people };
+}
+
+// ── Test failures (Patch = scheduled for a patch build such as 264.5; Main = everything else) ──
+async function getTests(sf, teamId) {
+  requireTeam(teamId);
+  const res = await sf.query(
+    `SELECT Id, Name, Subject__c, Status__c, Assignee__c, Assignee__r.Name, Found_In_Build__r.Name, Scheduled_Build__r.Name, CreatedDate ` +
+    `FROM ADM_Work__c WHERE Scrum_Team__c = '${teamId}' AND Type__c = 'Test Failure' AND Status__c NOT IN (${inList(CLOSED_STATUSES)}) AND (NOT Status__c LIKE 'Closed%') ` +
+    `ORDER BY CreatedDate ASC LIMIT 500`);
+  const now = Date.now();
+  const rows = (res.records || []).map(w => ({
+    id: w.Id, name: w.Name, subject: w.Subject__c || '', status: w.Status__c, assigneeId: w.Assignee__c, assignee: (w.Assignee__r && w.Assignee__r.Name) || '',
+    found: (w.Found_In_Build__r && w.Found_In_Build__r.Name) || '', scheduled: (w.Scheduled_Build__r && w.Scheduled_Build__r.Name) || '',
+    created: w.CreatedDate, age: Math.floor((now - new Date(w.CreatedDate)) / 864e5)
+  }));
+  const isPatch = r => r.scheduled.includes('.');
+  return { patch: rows.filter(isPatch), main: rows.filter(r => !isPatch(r)), truncated: rows.length >= 500 };
+}
+
 async function updateGus(sf, updates) {
   if (!Array.isArray(updates) || !updates.length || updates.length > 25) throw new Error('Send between 1 and 25 updates.');
   const out = await Promise.allSettled(updates.map(u => updateOne(sf, u)));
@@ -243,4 +291,4 @@ async function getPicklists(sf) {
   return lists;
 }
 
-module.exports = { getSla, getChampion, saveChampion, getTeams, getMembers, getBugs, getTds, getHome, getRotation, saveRotation, updateGus, getPicklists, requireTeam, WRITABLE, __test: { cleanRota, updateOne, computeSla } };
+module.exports = { getTests, getPeople, getSla, getChampion, saveChampion, getTeams, getMembers, getBugs, getTds, getHome, getRotation, saveRotation, updateGus, getPicklists, requireTeam, WRITABLE, __test: { cleanRota, updateOne, computeSla } };

@@ -49,6 +49,7 @@ function renderCurrent(){
   try{p.render(el,H);}catch(e){el.innerHTML=`<div class="empty-state hub-empty"><h3>Could not load ${esc(p.label)}</h3><p>${esc(e.message)}</p></div>`;}
 }
 H.go=(id,opts={})=>{
+  if(id!=='home')parkOverview();
   const p=H.pages.get(id)||H.pages.get('home');id=p.id;
   H.current=id;document.body.dataset.hub=id;
   const own=!p.legacy;$('hub-panel').classList.toggle('hidden',!own);
@@ -60,7 +61,7 @@ H.go=(id,opts={})=>{
 
 
 // ── Read cache: in-flight dedupe + short TTL so tab switches and reloads are instant; Refresh/saves bust it ──
-const READ=/^(hub-(home|teams|bugs|sla|tds|rotation|champion|members|picklists)|sprint-(initial|history|data))$/,TTL=45000,cache=new Map();
+const READ=/^(hub-(home|tests|people|teams|bugs|sla|tds|rotation|champion|members|picklists)|sprint-(initial|history|data))$/,TTL=45000,cache=new Map();
 H.bust=()=>cache.clear();
 function installCache(){
   const raw=window.api;if(!raw||raw.__cached)return;
@@ -134,6 +135,21 @@ function tile(p,stat){
   const soon=p.soon;
   return `<button class="hub-tile${soon?' soon':''}" data-go="${p.id}"><span class="hub-tile-head">${icon(p.icon,p.tone)}<strong>${esc(p.label)}</strong>${soon?'<em class="hub-soon">Coming soon</em>':''}</span><span class="hub-tile-stat">${stat&&stat.big!=null?`<b>${esc(stat.big)}</b>`:''}<small>${esc((stat&&stat.text)||p.desc)}</small></span>${stat&&stat.chips?`<span class="hub-tile-chips">${stat.chips}</span>`:''}</button>`;
 }
+const groupKey=t=>t.short==='MAPS'?'maps':t.short==='MQ'?'mq':/vega/i.test(t.Name)?'vegacache':null;
+const initials=n=>String(n).split(/\s+/).filter(Boolean).map(w=>w[0]).slice(0,2).join('').toUpperCase();
+let peopleData=null;
+function drawPeople(el){
+  const box=el.querySelector('#hub-people');if(!box)return;
+  const g=groupKey(H.team);if(!g){box.hidden=true;return;}
+  const paint=d=>{if(!box.isConnected||groupKey(H.team)!==g)return;
+    box.hidden=!d||!d.people.length;if(box.hidden)return;
+    box.innerHTML=`<h3>${esc(d.name)}</h3><ul>${d.people.map(p=>`<li><span class="hub-avatar" data-i="${esc(initials(p.name))}">${p.avatar?`<img src="${esc(p.avatar)}" alt="" loading="lazy" onerror="this.remove()">`:''}</span><b>${esc(p.name)}</b><small>${esc(p.role)}</small></li>`).join('')}</ul>`;};
+  if(peopleData&&peopleData.g===g)paint(peopleData.d);
+  call('hub-people',{group:g}).then(d=>{peopleData={g,d};paint(d);},()=>{});
+}
+/** The Release Health tiles live in #overview-panel (owned by app.js); on Team Hub they sit in the top row, elsewhere they go back. */
+function parkOverview(){const ov=$('overview-panel'),hp=$('hub-panel');if(ov&&hp&&ov.parentElement!==hp.parentElement)hp.parentElement.insertBefore(ov,hp);}
+H.parkOverview=parkOverview;
 function renderHome(el){
   const team=H.team,teamId=team.Id;
   const stat={};
@@ -142,7 +158,10 @@ function renderHome(el){
     const banner=s?`<section class="hub-banner" aria-label="Current sprint"><div><span class="hub-eyebrow">${s.current?'Current sprint':'Latest sprint'}</span><h2>${esc(s.name)}</h2><p>${fmtDate(s.start)} – ${fmtDate(s.end)}${s.current?` · ${daysLeft(s.end)} day${daysLeft(s.end)===1?'':'s'} left`:''}${s.goal?` · ${esc(s.goal.replace(/\s+/g,' ').slice(0,140))}`:''}</p></div><div class="hub-banner-stat"><b>${s.sayDo!=null?Math.round(s.sayDo)+'%':'—'}</b><small>say-do</small></div></section>`:`<section class="hub-banner muted"><div><span class="hub-eyebrow">Sprint</span><h2>${home?'No sprint found':'Loading sprint…'}</h2></div></section>`;
     const rot=`<section class="hub-rota" aria-label="On rotation now"><span>${icon('rotation','violet')}<b>PD on-call</b> ${pd?esc(pd.name):'<i>not set</i>'}</span><span>${icon('flag','amber')}<b>Trust Hero</b> ${th?esc(th.name):'<i>not set</i>'}</span><button class="text-button" data-go="rotations">Trust Champion ›</button></section>`;
     const tiles=NAV.filter(id=>id!=='home'&&H.pages.has(id)).map(id=>{const p=H.pages.get(id);return tile(p,p.stat?p.stat(home,{rota,pd,th}):null);}).join('');
-    el.innerHTML=`${banner}${rot}<div class="hub-tiles">${tiles}</div>`;
+    parkOverview();
+    el.innerHTML=`<div class="hub-top">${banner}</div>${rot}<div class="hub-tiles">${tiles}</div><section id="hub-people" class="hub-people" hidden aria-label="Team"></section>`;
+    const top=el.querySelector('.hub-top'),ov=$('overview-panel');if(top&&ov)top.prepend(ov);
+    drawPeople(el);
   };
   draw(null,null);
   if(!H.hasTeam()){
@@ -161,7 +180,6 @@ H.register({id:'status',label:'Status Report',icon:'ai',tone:'violet',desc:'V2MO
 function soon(id,label,ic,tone,desc){
   H.register({id,label,icon:ic,tone,desc,soon:true,render:el=>{el.innerHTML=`<section class="hub-soon-page">${icon(ic,tone)}<h2>${esc(label)}</h2><span class="hub-soon">Coming soon</span><p>${esc(desc)}. This page is on the roadmap and will plug into the same team filter and GUS-backed data.</p><button class="button primary" data-go="home">Back to overview</button></section>`;}});
 }
-soon('tests','Test Failures','flask','rose','Track failing tests and flaky suites for the release');
 soon('links','Quick Links','link','teal','Curated dashboards, runbooks and release resources');
 
 // ── Boot ────────────────────────────────────────────────────────────────────
