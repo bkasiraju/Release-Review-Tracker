@@ -920,3 +920,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan38: engineer dialog chips and avatar strip centred on one axis — local harness, measured at 1500px only.
 
 - plan39: coloured status dropdown list — option colours confirmed via computed styles and the closed select by screenshot on the local harness; the open list itself could not be screenshotted in headless Chrome.
+
+- plan40: engineer navigation dissolve — confirmed by computed styles on the local harness (backdrop animation off, content animation on, ends opaque); motion itself not watched.

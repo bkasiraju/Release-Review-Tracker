@@ -1,3 +1,7 @@
+## Unreleased on top of 4.0.0-GA (plan40) — smooth engineer-to-engineer transition
+
+- Moving between engineers (Prev/Next, avatar strip, arrow keys) no longer re-fades the dark backdrop, which caused the flicker. The header and body now dissolve in over ~0.4s with a brief brightness flash and slight blur; skipped when the system prefers reduced motion.
+
 ## Unreleased on top of 4.0.0-GA (plan39) — coloured status dropdown list
 
 - Status dropdowns (work items, bugs, team dependencies) open a styled list: each option has a solid status-coloured fill, a thick left colour bar, spacing between rows, and an outlined checked option. Uses the customisable select (Chrome 135+); browsers without it keep the native list. The closed select looks as before.

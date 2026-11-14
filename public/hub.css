@@ -634,3 +634,10 @@ body[data-hub=home] .hub-tile-chips{margin-top:auto}
  select.hub-inline[data-field$="Status__c"] option:hover,select.hub-inline[data-field$="Status__c"] option:focus-visible{filter:brightness(.93);outline:2px solid #0b6fa8;outline-offset:-2px}
  select.hub-inline[data-field$="Status__c"] option:checked{box-shadow:inset 0 0 0 2px currentColor}
 }
+
+/* engineer-to-engineer navigation: keep the backdrop steady and dissolve the content in with a soft flash */
+.sp-modal.sp-swap{animation:none}
+.sp-modal.sp-swap .sp-modal-top,.sp-modal.sp-swap .sp-modal-body{animation:sp-dissolve .42s ease-out both}
+.sp-modal.sp-swap .sp-modal-body{animation-delay:.05s}
+@keyframes sp-dissolve{0%{opacity:0;filter:brightness(1.35) blur(2px);transform:translateY(4px)}55%{opacity:.85;filter:brightness(1.12) blur(.4px)}100%{opacity:1;filter:none;transform:none}}
+@media(prefers-reduced-motion:reduce){.sp-modal.sp-swap .sp-modal-top,.sp-modal.sp-swap .sp-modal-body{animation:none}}

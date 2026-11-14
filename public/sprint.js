@@ -221,7 +221,7 @@ function renderModal(){
   const m=ms[k],items=activeItems(m).sort((a,b)=>isClosed(a)-isClosed(b)||String(a.name).localeCompare(String(b.name)));
   const shown=epicFilter(items),sp=items.reduce((n,i)=>n+spOf(i),0),doneSp=items.filter(isClosed).reduce((n,i)=>n+spOf(i),0),pv=ms[k-1],nx=ms[k+1];
   const nav=(o,step,label,arrow)=>`<button type="button" class="sp-mnav" data-modal-step="${step}"${o?'':' disabled'} aria-label="${label}${o?': '+esc(o.name):''}">${step<0?`<b>${arrow}</b>`:''}<span><small>${label}</small>${o?esc(o.name):'—'}</span>${step>0?`<b>${arrow}</b>`:''}</button>`;
-  const el=document.createElement('div');el.id='sp-modal';el.className='sp-modal';
+  const el=document.createElement('div');el.id='sp-modal';el.className='sp-modal'+(keep?' sp-swap':'');
   el.innerHTML=`<div class="sp-modal-card" role="dialog" aria-modal="true" aria-label="Standup review: ${esc(m.name)}">
   <div class="sp-modal-top">${nav(pv,-1,'Previous engineer','‹')}<div class="sp-mtitle">${avImg(m,1)}<div><h3>${esc(m.name)}</h3><div class="mchips su-groups">${statChips(items)}</div>${memberChips(m)}</div></div>${nav(nx,1,'Next engineer','›')}</div>
   <span class="sp-bar sp-bar-thin"><i style="width:${Math.min(100,pct(doneSp,sp))}%;background:#2e844a"></i></span>
