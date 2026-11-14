@@ -1,3 +1,7 @@
+# 4.0.0-GA · CURRENT GOLDEN BUILD
+
+Designated 14 November 2026. Tags `v4.0.0-GA`, `GOLDEN-BUILD-4.0.0-GA`; ZIP and SHA-256 in `releases/4.0.0-GA/`. To revert: deploy that exact ZIP (verify checksum), confirm footer `v4.0.0-GA`. Application rollback must preserve live GUS data. The older 3.0.0-GA procedure below remains valid for that baseline.
+
 # 3.0.0-GA · GOLDEN BUILD
 
 The user designated 3.0.0-GA as the current preferred recovery baseline on 10 November 2026. At the user’s explicit request, the canonical 3.0.0-GA was consolidated with the light-tooltip patch and independent Compact/Full Updates versus expansion controls. Its earlier exact archive is preserved at releases/3.0.0-GA-original/ and GOLDEN-BUILD-3.0.0-GA-original. The private dataset snapshot is unchanged. It includes all changes through the shared executive delta cache, hourly evidence validation, status/review workflow, icon-only exceptions, Completed exemption, and consistently aligned GUS links. This is a user-designated recovery reference; verification limits remain documented below.

@@ -255,3 +255,28 @@ button.tf-filter.on{box-shadow:0 0 0 2px #176b91;border-color:#fff}
 .rail .brand img{width:40px;height:40px;object-fit:contain;display:block}
 .rail .brand:hover{background:#f3ecfb;transform:scale(1.06)}
 .rail .brand:focus-visible{outline:2px solid #0b5cab;outline-offset:2px}
+
+/* Custom dropdown (H.customSelect) */
+select.cs-native{position:absolute!important;width:1px;height:1px;opacity:0;pointer-events:none;overflow:hidden}
+.cs{position:relative;display:inline-block}
+.cs-btn{display:inline-flex;align-items:center;justify-content:space-between;gap:8px;min-height:34px;min-width:150px;padding:0 10px 0 12px;border:1px solid #d8dde6;border-radius:8px;background:#fff;font-size:13px;font-weight:700;color:#16325c;transition:border-color .15s,box-shadow .15s}
+.cs-btn:hover{border-color:#9fcbe6}.cs.open .cs-btn,.cs-btn:focus-visible{border-color:#176b91;box-shadow:0 0 0 3px #176b9122;outline:none}
+.cs-btn svg{width:14px;height:14px;fill:none;stroke:#5b6b7c;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:transform .15s}
+.cs.open .cs-btn svg{transform:rotate(180deg)}
+.cs-menu{display:none;position:absolute;right:0;top:calc(100% + 6px);z-index:90;min-width:100%;width:max-content;max-height:320px;overflow:auto;margin:0;padding:6px;list-style:none;background:#fff;border:1px solid #d8dde6;border-radius:10px;box-shadow:0 12px 28px #16325c26}
+.cs.open .cs-menu{display:block;animation:csIn .12s ease-out}
+.cs-menu li{display:flex;align-items:center;gap:8px;padding:7px 12px 7px 8px;border-radius:7px;font-size:13px;font-weight:600;color:#1f293c;cursor:pointer;white-space:nowrap}
+.cs-menu li i{width:14px;font-style:normal;color:#176b91;font-weight:800}
+.cs-menu li.act{background:#edf5fa}.cs-menu li.on{color:#176b91;background:#e3f0fa}
+@keyframes csIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.cs-menu,.cs-btn svg{animation:none;transition:none}}
+
+/* Team Hub tiles: number on its own line, label directly beneath, chips pinned to the bottom so every tile lines up */
+body[data-hub=home] .hub-tile{min-height:112px;padding:12px;gap:8px}
+body[data-hub=home] .hub-tile-head{flex-wrap:nowrap;min-height:24px}
+body[data-hub=home] .hub-tile-head strong{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body[data-hub=home] .hub-tile-stat{flex-direction:column;align-items:flex-start;flex-wrap:nowrap;gap:3px}
+body[data-hub=home] .hub-tile-stat b{font-size:26px;line-height:1.05;font-weight:800;font-variant-numeric:tabular-nums;color:#16325c}
+body[data-hub=home] .hub-tile-stat small{font-size:11px;line-height:1.35;color:#5b6b7c}
+body[data-hub=home] .hub-tile-chips{margin-top:auto;gap:4px}
+body[data-hub=home] .hub-tile .hub-tile-chips span{font-size:10px;line-height:1.5;padding:1px 6px;font-weight:700;font-variant-numeric:tabular-nums}

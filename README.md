@@ -2,7 +2,7 @@
 
 A GUS Apps dashboard for reviewing a release's epics month by month. Current release: **3.0.0-GA GOLDEN BUILD**, consolidated with unified light tooltips and independent text/expansion controls.
 
-**3.0.0-GA · GOLDEN BUILD** — user-designated stable rollback baseline. See [golden build and recovery](docs/GOLDEN_BUILD.md).
+**4.0.0-GA · GOLDEN BUILD** — user-designated stable rollback baseline (previous: 3.0.0-GA). See [golden build and recovery](docs/GOLDEN_BUILD.md).
 
 ## What it does
 

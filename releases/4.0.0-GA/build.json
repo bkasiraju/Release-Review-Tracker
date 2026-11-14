@@ -1,0 +1,21 @@
+{
+  "version": "4.0.0-GA",
+  "label": "GOLDEN BUILD",
+  "product": "Release Intelligence",
+  "artifact": "cfs-release-review-tracker.zip",
+  "sha256": "2e0375f3fb67d8a0b7ff94bec88ecdc7cfd6299da4b6e0e6ec13a327146eb9a2",
+  "gitTags": [
+    "v4.0.0-GA",
+    "GOLDEN-BUILD-4.0.0-GA"
+  ],
+  "productionUrl": "https://gus-apps.internal.salesforce.com/applets/cfs-release-review-tracker/",
+  "preferredRollbackTag": "GOLDEN-BUILD-4.0.0-GA",
+  "previousBaselineTag": "GOLDEN-BUILD-3.0.0-GA",
+  "revision": "20261114-1",
+  "verification": {
+    "validationScope": "Local stubbed-harness screenshots of Team Hub, custom team dropdown and tiles; node suite 207 pass / 38 fail identical to pre-change baseline; not independently re-reviewed",
+    "fullSuiteRun": false,
+    "productionModelOutputVerified": false,
+    "goldenDatasetCaptured": false
+  }
+}

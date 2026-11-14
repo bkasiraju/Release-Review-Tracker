@@ -1,7 +1,8 @@
 # Release Intelligence
 
-The user designated **3.0.0-GA** as the current **GOLDEN BUILD** and preferred rollback reference on 10 November 2026. On 10 November 2026, the user explicitly requested folding the tooltip and view-state updates into this canonical version. The prior exact 3.0.0-GA archive/source are preserved at releases/3.0.0-GA-original/ and GOLDEN-BUILD-3.0.0-GA-original. Preserve older release tags and archives. The dataset has a separate private GOLDEN Dataset backup; it must never be published in Git or Pages.
+The user designated **4.0.0-GA** (14 November 2026) as the current **GOLDEN BUILD** and preferred rollback reference; it supersedes 3.0.0-GA, which remains immutable at `GOLDEN-BUILD-3.0.0-GA`. Earlier note: the user designated **3.0.0-GA** as the **GOLDEN BUILD** and preferred rollback reference on 10 November 2026. On 10 November 2026, the user explicitly requested folding the tooltip and view-state updates into this canonical version. The prior exact 3.0.0-GA archive/source are preserved at releases/3.0.0-GA-original/ and GOLDEN-BUILD-3.0.0-GA-original. Preserve older release tags and archives. The dataset has a separate private GOLDEN Dataset backup; it must never be published in Git or Pages.
 
+- Keep `v4.0.0-GA`, `GOLDEN-BUILD-4.0.0-GA` and `releases/4.0.0-GA/` immutable unless the user explicitly redesignates a build; for regressions restore that exact artifact/checksum.
 - Keep `v3.0.0-GA`, `GOLDEN-BUILD-3.0.0-GA` and `releases/3.0.0-GA/` immutable unless the user explicitly redesignates a build.
 - For future regressions, restore the exact 3.0.0-GA artifact/checksum; follow `docs/GOLDEN_BUILD.md` and preserve unrelated work.
 - Application rollback must preserve live GUS epics, comments, release lists, drafts and journal history. Dataset restoration is separate and requires explicit user authorization at restore time.

@@ -1,3 +1,7 @@
+## 4.0.0-GA — GOLDEN BUILD (Release Intelligence team hub)
+
+User-designated GOLDEN BUILD and preferred rollback baseline (14 November 2026). Includes the Team Hub redesign (team first, leaders last in fixed order, aligned summary tiles), V2MOM Updates rename, new logo, shared column sizing, 25-row pagination, status colours, Open-in-GUS link bars, Test Failures filters, Bugs pagination, focus mode and custom team dropdown. Tags `v4.0.0-GA`, `GOLDEN-BUILD-4.0.0-GA`; archive `releases/4.0.0-GA/`. Previous baseline: `GOLDEN-BUILD-3.0.0-GA`. Verified on a stubbed harness only; node suite 207 pass / 38 fail, identical to the pre-change baseline. Private GOLDEN Dataset not re-captured for 4.0.0-GA (3.0.0-GA dataset remains the latest).
+
 ## 3.0.0-GA — GOLDEN BUILD tooltip status chips
 
 Summary tooltip headings now show left-aligned Epic Status and Release Review Status chips beneath the epic title. Review Status uses the saved value only when valid for the current Epic Status and free of storage conflict; otherwise shows Not set or Not required. No data is modified.

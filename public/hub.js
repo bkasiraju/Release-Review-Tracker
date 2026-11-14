@@ -19,7 +19,7 @@ H.onTeam=fn=>{listeners.add(fn);return()=>listeners.delete(fn);};
 H.setTeam=id=>{
   H.team=H.teams.find(t=>t.Id===id)||ALL;
   try{localStorage.setItem(LS,H.team.Id);}catch{/* private mode */}
-  $('hub-team').value=H.team.Id;
+  $('hub-team').value=H.team.Id;H.syncSelects();
   window.dispatchEvent(new Event('hub:team'));
   for(const fn of listeners)fn(H.team);
   renderCurrent();
@@ -249,6 +249,37 @@ H.fitTable=fitTable;
 const LEADER_NAMES=['Amit Kumar','Azeem Mohammad','Jayant Kumar','Ram Mantripragada','Venkat Venkatnarayan','Pramit Bhuyan','Karthik Sethuraman','Bhanu Kasiraju'];
 H.leaderRank=name=>LEADER_NAMES.indexOf(String(name||'').trim());
 H.sortPeople=(list,nameOf=x=>x.name)=>[...list.filter(x=>H.leaderRank(nameOf(x))<0),...list.filter(x=>H.leaderRank(nameOf(x))>=0).sort((a,b)=>H.leaderRank(nameOf(a))-H.leaderRank(nameOf(b)))];
+/** Custom dropdown that replaces a native <select>'s OS popup so the menu matches the app (chips, radius, brand colours). The select stays in the DOM as the source of truth. */
+H.customSelect=sel=>{
+  if(sel._cs){sel._cs.sync();return;}
+  const w=document.createElement('div'),btn=document.createElement('button'),menu=document.createElement('ul');
+  w.className='cs';btn.type='button';btn.className='cs-btn';btn.setAttribute('aria-haspopup','listbox');btn.setAttribute('aria-expanded','false');
+  menu.className='cs-menu';menu.setAttribute('role','listbox');menu.tabIndex=-1;
+  sel.classList.add('cs-native');sel.tabIndex=-1;sel.setAttribute('aria-hidden','true');sel.after(w);w.append(btn,menu);
+  let act=-1;
+  const opts=()=>[...sel.options];
+  const sync=()=>{
+    const o=sel.options[sel.selectedIndex];btn.innerHTML=`<span>${esc(o?o.text:'')}</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 8l5 5 5-5"/></svg>`;
+    menu.innerHTML=opts().map((x,i)=>`<li role="option" data-i="${i}" aria-selected="${i===sel.selectedIndex}" class="${i===sel.selectedIndex?'on':''}"><i aria-hidden="true">${i===sel.selectedIndex?'✓':''}</i>${esc(x.text)}</li>`).join('');
+  };
+  const mark=i=>{act=i;[...menu.children].forEach((li,k)=>li.classList.toggle('act',k===i));menu.children[i]?.scrollIntoView({block:'nearest'});};
+  const open=()=>{w.classList.add('open');btn.setAttribute('aria-expanded','true');mark(sel.selectedIndex);};
+  const close=()=>{w.classList.remove('open');btn.setAttribute('aria-expanded','false');};
+  const pick=i=>{if(i<0||!sel.options[i])return;if(sel.selectedIndex!==i){sel.selectedIndex=i;sel.dispatchEvent(new Event('change',{bubbles:true}));}sync();close();btn.focus();};
+  btn.onclick=()=>w.classList.contains('open')?close():open();
+  menu.onclick=e=>{const li=e.target.closest('li');if(li)pick(+li.dataset.i);};
+  menu.onmousemove=e=>{const li=e.target.closest('li');if(li&&+li.dataset.i!==act)mark(+li.dataset.i);};
+  btn.onkeydown=e=>{
+    const n=opts().length,isOpen=w.classList.contains('open');
+    if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();if(!isOpen)return open();mark(Math.min(Math.max((act<0?sel.selectedIndex:act)+(e.key==='ArrowDown'?1:-1),0),n-1));}
+    else if(e.key==='Home'&&isOpen){e.preventDefault();mark(0);}else if(e.key==='End'&&isOpen){e.preventDefault();mark(n-1);}
+    else if((e.key==='Enter'||e.key===' ')&&isOpen){e.preventDefault();pick(act);}
+    else if(e.key==='Tab')close();
+  };
+  document.addEventListener('mousedown',e=>{if(!w.contains(e.target))close();});
+  sel._cs={sync,close};sync();
+};
+H.syncSelects=()=>document.querySelectorAll('select.cs-native').forEach(s=>s._cs&&s._cs.sync());
 /** Status colours: every status dropdown (work item or TD, any page) gets an st-* class from its selected value; styles live in sprint.css. */
 H.stCls=st=>{const x=String(st||'').toLowerCase();
   return /never|duplicate|reject|will not|inactive|not accepted|cancel|declin/.test(x)?'st-off':/^closed|fixed|complete|deliver|accepted|done|resolved/.test(x)?'st-done':/review|qa|verif|test|pending/.test(x)?'st-review':/progress|investigat|commit|triag/.test(x)?'st-prog':/block|wait|hold|risk/.test(x)?'st-block':'st-new';};
@@ -278,6 +309,7 @@ const escHandlers=new Map();
 H.onEsc=(id,fn)=>escHandlers.set(id,fn);
 document.addEventListener('keydown',e=>{
   if(e.key!=='Escape'||e.repeat||e.defaultPrevented)return;
+  const om=document.querySelector('.cs.open');if(om){om.classList.remove('open');om.querySelector('.cs-btn').setAttribute('aria-expanded','false');e.preventDefault();e.stopImmediatePropagation();return;}
   const id=document.body.dataset.hub;if(!id||id==='epics'||document.querySelector('.nd-overlay'))return;
   if(!(escHandlers.get(id)&&escHandlers.get(id)())){
     if(H.focus()){setFocus(false);e.preventDefault();e.stopImmediatePropagation();return;} // generic fallback: empty free-text filters on the page
@@ -330,7 +362,7 @@ async function boot(){
     $('hub-team').innerHTML=[ALL,...H.teams].map(t=>`<option value="${esc(t.Id)}">${esc(t.short||t.Name)}</option>`).join('');
     let saved=null;try{saved=localStorage.getItem(LS);}catch{/* ignore */}
     H.team=H.teams.find(t=>t.Id===saved)||H.teams.find(t=>t.Id===r.primaryTeamId)||H.teams[0]||ALL;
-    $('hub-team').value=H.team.Id;
+    $('hub-team').value=H.team.Id;H.customSelect($('hub-team'));
   }catch(e){window.toast?.('Team list unavailable: '+e.message,true);}
   window.dispatchEvent(new Event('hub:team'));
   try{route();}finally{document.body.dataset.ready='1';}
