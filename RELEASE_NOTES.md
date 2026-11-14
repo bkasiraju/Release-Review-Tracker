@@ -1,3 +1,8 @@
+## Unreleased on top of 4.0.0-GA (plan42) — sprint selector placement, Current Sprint Summary
+
+- (plan41) Standup view: the sprint selector (with Prev/Next/Shuffle/Open) sits before the Pulse/Standup buttons. Pulse view: the selector is pinned to the far right of the bar.
+- (plan42) The "Current sprint" heading is now "Current Sprint Summary" (shown in Pulse; the Standup bar hides the heading as before).
+
 ## Unreleased on top of 4.0.0-GA (plan40) — smooth engineer-to-engineer transition
 
 - Moving between engineers (Prev/Next, avatar strip, arrow keys) no longer re-fades the dark backdrop, which caused the flicker. The header and body now dissolve in over ~0.4s with a brief brightness flash and slight blur; skipped when the system prefers reduced motion.

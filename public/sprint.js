@@ -308,7 +308,7 @@ function setSubview(v){
   S.view=v;$('sp-pulse').classList.toggle('hidden',v!=='pulse');$('sp-standup').classList.toggle('hidden',v!=='standup');
   document.querySelectorAll('[data-sp-view]').forEach(x=>{const on=x.dataset.spView===v;x.classList.toggle('selected',on);x.setAttribute('aria-pressed',String(on));});
   const ba=$('sp-bar-actions');if(ba&&v!=='standup')ba.innerHTML='';
-  const bar=$('sp-sprintbar');if(bar){if(v==='standup')$('sp-standup').before(bar);else $('sp-metrics').before(bar);}
+  const bar=$('sp-sprintbar');if(bar){if(v==='standup'){const hb=document.querySelector('#sp-panel-body .heading-actions, .heading-actions .sp-tabs');const tabs=document.querySelector('.sp-tabs');tabs.before(bar);}else $('sp-metrics').before(bar);}
   if(v==='standup')renderStandup();
 }
 /** Move a work item to another engineer's group right away (the GUS write is already queued by Hub.bindEdit). */

@@ -3,19 +3,19 @@
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#4f46e5"><title>Release Intelligence</title>
-  <link rel="icon" type="image/svg+xml" href="./favicon.svg"><link rel="preload" href="./SalesforceSans-Regular.woff" as="font" type="font/woff" crossorigin><link rel="stylesheet" href="./styles.css?v=4.0.0-GA-plan40"><link rel="stylesheet" href="./lite.css?v=4.0.0-GA-plan40"><link rel="stylesheet" href="./sprint.css?v=4.0.0-GA-plan40"><link rel="stylesheet" href="./hub.css?v=4.0.0-GA-plan40">
-  <script src="./queue.js?v=4.0.0-GA-plan40" defer></script>
-  <script src="./controls.js?v=4.0.0-GA-plan40" defer></script>
-  <script src="./ai.js?v=4.0.0-GA-plan40" defer></script>
-  <script src="./icons.js?v=4.0.0-GA-plan40" defer></script>
-  <script src="./comments-view.js?v=4.0.0-GA-plan40" defer></script>
-  <script src="./tooltips.js?v=4.0.0-GA-plan40" defer></script>
-  <script src="./app.js?v=4.0.0-GA-plan40" defer></script>
-  <script src="./hub.js?v=4.0.0-GA-plan40" defer></script>
-  <script src="./sprint.js?v=4.0.0-GA-plan40" defer></script>
-  <script src="./hub-post.js?v=4.0.0-GA-plan40" defer></script>
-  <script src="./hub-pages.js?v=4.0.0-GA-plan40" defer></script>
-  <script src="./plan.js?v=4.0.0-GA-plan40" defer></script>
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg"><link rel="preload" href="./SalesforceSans-Regular.woff" as="font" type="font/woff" crossorigin><link rel="stylesheet" href="./styles.css?v=4.0.0-GA-plan42"><link rel="stylesheet" href="./lite.css?v=4.0.0-GA-plan42"><link rel="stylesheet" href="./sprint.css?v=4.0.0-GA-plan42"><link rel="stylesheet" href="./hub.css?v=4.0.0-GA-plan42">
+  <script src="./queue.js?v=4.0.0-GA-plan42" defer></script>
+  <script src="./controls.js?v=4.0.0-GA-plan42" defer></script>
+  <script src="./ai.js?v=4.0.0-GA-plan42" defer></script>
+  <script src="./icons.js?v=4.0.0-GA-plan42" defer></script>
+  <script src="./comments-view.js?v=4.0.0-GA-plan42" defer></script>
+  <script src="./tooltips.js?v=4.0.0-GA-plan42" defer></script>
+  <script src="./app.js?v=4.0.0-GA-plan42" defer></script>
+  <script src="./hub.js?v=4.0.0-GA-plan42" defer></script>
+  <script src="./sprint.js?v=4.0.0-GA-plan42" defer></script>
+  <script src="./hub-post.js?v=4.0.0-GA-plan42" defer></script>
+  <script src="./hub-pages.js?v=4.0.0-GA-plan42" defer></script>
+  <script src="./plan.js?v=4.0.0-GA-plan42" defer></script>
 </head>
 <body class="loading-dashboard">
 <script>document.body.dataset.hub=(location.hash.match(/^#\/([a-z]+)/)||[])[1]||"home";setTimeout(function(){document.body.dataset.ready=document.body.dataset.ready||"1";},10000);</script>
@@ -53,7 +53,7 @@
         <p id="sp-status" class="note hidden" role="status"></p><p id="sp-goal" class="note sp-goal hidden"></p>
         <div id="sp-pulse">
         <section class="table-card sp-trend" aria-label="Sprint trend"><div class="filterbar"><div class="epic-toolbar-title"><h2>Team velocity — last 10 sprints</h2><small class="sp-sub">Commitment completion per sprint · green ≥ 80%, amber ≥ 50%, red below · dashed line = 80% target</small></div><span class="toolbar-spacer"></span><nav class="sp-tabs" aria-label="Trend metric"><button class="selected" data-sp-tab="saydo" aria-pressed="true">Say-Do %</button><button data-sp-tab="points" aria-pressed="false">Points</button><button data-sp-tab="items" aria-pressed="false">Items</button></nav></div><div class="sp-trend-body"><div id="sp-chart" class="sp-chart"></div><div id="sp-trend-stats" class="sp-trend-stats"></div></div></section>
-        <div class="sp-sprintbar" id="sp-sprintbar"><h2>Current sprint</h2><label class="sp-bar-l" for="sp-sprint">Sprint</label><select id="sp-sprint" class="sp-select"></select><span class="sp-bar-actions" id="sp-bar-actions"></span></div>
+        <div class="sp-sprintbar" id="sp-sprintbar"><h2>Current Sprint Summary</h2><label class="sp-bar-l" for="sp-sprint">Sprint</label><select id="sp-sprint" class="sp-select"></select><span class="sp-bar-actions" id="sp-bar-actions"></span></div>
         <section class="sp-metrics" id="sp-metrics" aria-label="Sprint summary"></section>
         <section class="table-card" aria-label="Contributors"><div class="filterbar"><div class="epic-toolbar-title"><h2><span id="sp-member-title">Current sprint contributors</span> <span class="count-pill" id="sp-member-count">0</span></h2><small class="sp-sub" id="sp-member-sub"></small></div><div class="search-box"><svg viewBox="0 0 20 20"><circle cx="8.5" cy="8.5" r="5.5"/><path d="m13 13 4 4"/></svg><input id="sp-search" placeholder="Search contributor or work item…" aria-label="Search contributors"></div><span class="toolbar-spacer"></span><button class="button small" id="sp-expand">Expand all</button><button class="button small" id="sp-collapse">Collapse all</button></div><div id="sp-members" class="sp-members"></div><div class="table-footer"><span id="sp-row-count">0 contributors</span></div></section></div>
         <div id="sp-standup" class="hidden" aria-label="Standup"></div>

@@ -641,3 +641,8 @@ body[data-hub=home] .hub-tile-chips{margin-top:auto}
 .sp-modal.sp-swap .sp-modal-body{animation-delay:.05s}
 @keyframes sp-dissolve{0%{opacity:0;filter:brightness(1.35) blur(2px);transform:translateY(4px)}55%{opacity:.85;filter:brightness(1.12) blur(.4px)}100%{opacity:1;filter:none;transform:none}}
 @media(prefers-reduced-motion:reduce){.sp-modal.sp-swap .sp-modal-top,.sp-modal.sp-swap .sp-modal-body{animation:none}}
+/* Pulse: sprint selector pinned to the far right of the Current sprint bar; Standup: bar sits before the Pulse/Standup buttons */
+#sp-pulse .sp-sprintbar .sp-bar-l{margin-left:auto}
+.heading-actions .sp-sprintbar{margin:0 12px 0 0;flex-wrap:nowrap}
+.heading-actions .sp-sprintbar h2{white-space:nowrap}
+#sp-pulse .sp-sprintbar .sp-bar-actions{margin-left:0}
