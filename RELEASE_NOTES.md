@@ -1,3 +1,7 @@
+## Unreleased on top of 4.0.0-GA (plan26) — tab order
+
+- Release Review (Monthly) and Release Planning (Quarterly) now sit just before V2MOM Updates (rail, active-tab bar and Team Hub tiles). Order: Team Hub, Sprints, Team Dependencies, Test Failures, Trust Champion, Bugs, Release Review (Monthly), Release Planning (Quarterly), V2MOM Updates. Cache-bust `4.0.0-GA-plan26`.
+
 ## Unreleased on top of 4.0.0-GA (plan25) — no "Open in GUS" bar on Team Hub
 
 - The "Open in GUS" bar is hidden on Team Hub only; all other tabs keep it. Verified on the local harness (hidden on Hub home, shown on Release Planning). Cache-bust `4.0.0-GA-plan25`.

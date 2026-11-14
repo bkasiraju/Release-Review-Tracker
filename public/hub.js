@@ -50,7 +50,7 @@ let picks;H.picklists=()=>picks||(picks=call('hub-picklists',{}).catch(e=>{picks
 
 // ── Registry + router ───────────────────────────────────────────────────────
 H.register=page=>{H.pages.set(page.id,page);};
-const NAV=['home','epics','plan','sprints','tds','tests','rotations','bugs','status'];
+const NAV=['home','sprints','tds','tests','rotations','bugs','epics','plan','status'];
 /** Breadcrumb follows the team dropdown and the active page: <Team> / <Page>. */
 function setCrumb(){const c=document.querySelector('.page-heading .breadcrumb'),p=H.pages.get(H.current);if(!c||!p||!H.team)return;c.innerHTML=`${esc(H.team.short||H.team.Name)} <span aria-hidden="true">/</span> <strong>${esc(p.label)}</strong>`;}
 function renderNav(){setCrumb(); // only the active tab shows; the left rail switches pages

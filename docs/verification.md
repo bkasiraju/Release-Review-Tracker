@@ -894,3 +894,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan24: Planned Release Summary theme donut, priority/theme cards and executive epic cards; epic/theme dialogs open — local harness only.
 
 - plan25: Open in GUS bar hidden on Team Hub only — local harness only.
+
+- plan26: tab order change (rail, tiles) — local harness only.
