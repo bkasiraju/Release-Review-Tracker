@@ -700,3 +700,8 @@ body[data-hub=home] .hub-tile-chips{margin-top:auto}
 .pl-iss{margin:4px 0 12px;padding-left:18px;font-size:13px;max-height:220px;overflow:auto}.pl-iss li{margin:3px 0}
 .pl-iss-bad{color:#b3261e!important;font-weight:700}.pl-iss-ok{color:#1b7a3d!important;font-weight:700}
 .pl-iss-btns{display:flex;justify-content:flex-end;gap:8px;margin-top:10px}
+/* plan55: Team select leads the action row; product title is a link back to Team Hub */
+.heading-actions .pl-team{display:inline-flex;align-items:center;gap:8px;font-weight:700;color:#16324a}
+.heading-actions #pl-team{min-width:150px;height:36px;font-weight:600;border:2px solid #0b6fa8!important;border-radius:8px;background:#f2f9fd!important;color:#032d60!important}
+.ri-home{color:inherit!important;text-decoration:none}.ri-home:hover,.ri-home:focus-visible{text-decoration:underline}
+.executive-heading:has(#pl-state) .heading-actions{margin-left:auto}

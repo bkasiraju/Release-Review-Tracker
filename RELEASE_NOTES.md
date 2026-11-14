@@ -1,3 +1,8 @@
+## Unreleased on top of 4.0.0-GA (plan55) — planner action order and return to Team Hub
+
+- Release Planning actions now read: Team, Leaves/holidays & on-call, Save, Review & save to GUS.
+- The "Release Intelligence" title in the top bar is a link that returns to the Team Hub for the team currently selected.
+
 ## Unreleased on top of 4.0.0-GA (plan54) — export template and import for Release Planning
 
 - **Export template** downloads an Excel file (.xlsx) of the current plan: a Plan sheet (one row per workstream, with Project short form, Measure name, Epic, Workstream, Epic/Workstream owners, Epic Est, WS Est, ATL/BTL, Sprint, Priority, Status, Planned Release), a Lists sheet with the allowed values, and an Instructions sheet. The Plan sheet has dropdowns for project, ATL/BTL, priority, status and release, and owner cells with a pick-list that also accepts comma-separated names.

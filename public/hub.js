@@ -405,3 +405,6 @@ async function boot(){
 window.Hub=H;
 document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,0));
 })();
+
+// Clicking the product title returns to the Team Hub for the team that is currently selected.
+document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('#ri-home');if(!a)return;e.preventDefault();window.Hub.go('home');});
