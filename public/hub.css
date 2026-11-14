@@ -91,7 +91,7 @@ td .hub-inline[type=text]{width:120px}
 .sla-n.breached b{color:#ba0517}.sla-n.risk b{color:#b57b22}.sla-n.ok b{color:#2e844a}
 .dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:#2e844a;margin:0 4px 0 10px;vertical-align:middle}td .dot{margin:0}
 .dot.breached{background:#ba0517}.dot.risk{background:#e07b00}.dot.warn{background:#e6c200}.dot.ok{background:#2e844a}
-.sla-legend{font-size:12px;color:#5b6b7c}td.late{color:#ba0517;font-weight:700}.bug-link{color:#ba0517;font-weight:600}
+.sla-legend{font-size:12px;color:#5b6b7c}td.late{color:#ba0517;font-weight:700}.bug-link{font-weight:600}
 /* Hub tabs: bordered, spaced */
 .dashboard-bar .hub-nav{gap:8px;align-items:flex-end;border-bottom:1px solid #d8dde6;padding:0 2px;align-self:flex-end}
 .dashboard-bar .hub-nav button{display:inline-flex;align-items:center;gap:6px;font-size:13px;padding:8px 14px;margin-bottom:-1px;border:1px solid #d8dde6;border-bottom-color:transparent;border-radius:9px 9px 0 0;background:#f4f7fa;color:#44546a}
@@ -195,3 +195,48 @@ body[data-ready] #hub-boot{display:none}
 
 /* Team Hub no longer shows Story point delivery / Epic health (they remain on Release Review) */
 body[data-hub=home] #overview-panel{display:none!important}
+
+/* Full screen / focus mode */
+.focus-toggle{position:fixed;top:10px;right:14px;z-index:70;display:inline-flex;align-items:center;gap:6px;border:1px solid #c9d3df;background:#fff;color:#176b91;border-radius:999px;padding:5px 12px;font-size:12px;font-weight:600;box-shadow:0 2px 8px #0f1b2a22;transition:transform .15s,background .15s}
+.focus-toggle:hover{background:#edf5fa;transform:translateY(-1px)}.focus-toggle svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+body.focus-mode .focus-toggle{background:#176b91;color:#fff;border-color:#0b5a8a}
+body.focus-mode .rail,body.focus-mode .topbar,body.focus-mode .page-heading,body.focus-mode .dashboard-footer,body.focus-mode .bottom-note,body.focus-mode #hub-nav,body.focus-mode .legacy-nav{display:none!important}
+body.focus-mode .workspace{margin-left:0}
+body.focus-mode main{padding-top:44px}
+body.focus-mode .dashboard-bar{padding-top:0}
+body.focus-mode .sp-modal{z-index:80}
+@media print{.focus-toggle{display:none}}
+
+/* Only the active page's panels are visible */
+body[data-hub]:not([data-hub=sprints]) #sprint-panel,body[data-hub]:not([data-hub=sprints]) #executive-panel{display:none!important}
+/* Shared column sizing (H.fitTable): fixed layout, short columns stay on one line, text columns wrap */
+table.fit{table-layout:fixed;width:100%}
+table.fit th,table.fit td{overflow:hidden;overflow-wrap:anywhere}
+table.fit td select,table.fit td input{max-width:100%;box-sizing:border-box}
+
+/* Links read as links: blue, underline on hover (buttons, nav, rail and banners keep their own colours) */
+main a[href]:not(.primary):not([class*=btn]):not([class*=button]):not(.rail-link):not(.hub-tile):not(.hub-banner a):not(.focus-toggle):not([role=button]):not([class*=pill]):not([class*=chip]):not([class*=tab]){color:#0b5cab!important;text-decoration:none;cursor:pointer}
+main a[href]:not(.primary):not([class*=btn]):not([class*=button]):not(.rail-link):not(.hub-tile):not(.hub-banner a):not([role=button]):not([class*=pill]):not([class*=chip]):not([class*=tab]):hover{color:#08457f!important;text-decoration:underline}
+main a[href]:focus-visible{outline:2px solid #0b5cab;outline-offset:2px;border-radius:2px}
+.hub-banner:not(.muted) a{color:#fff!important;text-decoration:underline}
+
+.topbar{padding-right:150px}
+body.focus-mode .topbar{padding-right:0}
+.bug-link:hover{text-decoration:underline}
+
+/* "Open in GUS" shortcut bar */
+.gus-links{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:6px 0 10px}
+.gus-links-label{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#5b6b7c;margin-right:2px}
+main a.gus-link{display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border:1px solid #b9d3e6;border-radius:999px;background:#f3f8fc;font-size:12px;font-weight:600;transition:background .15s,transform .15s}
+main a.gus-link.primary[href]{background:#0b5cab;border-color:#0b5cab;color:#fff!important}
+main a.gus-link:hover{background:#e3f0fa;transform:translateY(-1px);text-decoration:none}
+main a.gus-link.primary:hover{background:#08457f}
+.gus-link svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+body.focus-mode .gus-links{display:none}
+/* Segmented direction switch (TDs) and its hint */
+.filterbar .sp-tabs{background:#eef3f8;border:1px solid #d5e0ea;border-radius:999px;padding:3px;gap:2px}
+.filterbar .sp-tabs button{border-radius:999px;padding:5px 14px;font-size:12px;font-weight:600;color:#44546a;border:0;background:transparent;box-shadow:none}
+.filterbar .sp-tabs button.selected{background:#176b91;color:#fff;box-shadow:0 1px 4px #176b9155}
+.filterbar .sp-tabs button .count-pill{margin-left:6px}
+.filterbar .sp-tabs button.selected .count-pill{background:#ffffff33;color:#fff}
+.filterbar .note{background:none;border:0;padding:0;font-size:12px;color:#5b6b7c;margin-left:6px}

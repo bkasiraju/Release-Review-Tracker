@@ -153,3 +153,20 @@ body select.hub-inline[class*=st-]{font-weight:600;border-radius:999px}
 .su-epic.lead{border-color:#e9e6f1;box-shadow:none}
 .su-epic.sel{border-color:#176b91;box-shadow:0 0 0 2px #176b9144;background:#f3f9fd}
 .su-epics h3{display:flex;align-items:center;gap:8px}.su-clear{margin-left:auto}.su-hint{margin-left:auto;font-weight:400;color:#6b7280}
+select.hub-inline.who{max-width:100%;width:100%;overflow:hidden;text-overflow:ellipsis}
+.su-card .su-items li,.su-card .su-cols{grid-template-columns:28px 96px minmax(0,1fr) 140px 150px 60px 70px 56px}
+.sp-items.who table{min-width:1000px}
+.sp-items.who th:nth-child(1){width:100px}.sp-items.who th:nth-child(3){width:140px}.sp-items.who th:nth-child(4){width:84px}.sp-items.who th:nth-child(5),.sp-items.who th:nth-child(6){width:150px}.sp-items.who th:nth-child(7),.sp-items.who th:nth-child(8){width:70px}.sp-items.who th:nth-child(9){width:64px}
+
+/* Planned (green) / Actual (purple) / Churn chips */
+.mchips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.mchip{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:2px 9px;font-size:11px;font-weight:500;border:1px solid transparent;white-space:nowrap}.mchip b{font-weight:700}
+.mchip.pl{background:#e6f4ea;color:#1e6b34;border-color:#b7dfc3}
+.mchip.ac{background:#f1ebfb;color:#6b4aa5;border-color:#d5c8ee}
+.mchip.ch{background:#f1f3f6;color:#475467;border-color:#d8dde6}.mchip.ch.up{background:#fdecea;color:#b42318;border-color:#f4b9b3}.mchip.ch.dn{background:#e6f4ea;color:#1e6b34;border-color:#b7dfc3}
+.mchip.dn2{background:#e3f1fb;color:#0b5a8a;border-color:#b3d5ea}
+.mchip.sm{padding:1px 8px;font-size:12px;font-weight:700;min-width:28px;justify-content:center}
+th.pl,.su-cols .pl{color:#1e6b34!important}th.ac,.su-cols .ac{color:#6b4aa5!important}
+.sp-items input.hub-inline.num,.su-items input.hub-inline.num{background:#f6f2fd;border-color:#d5c8ee;color:#4b2f86;font-weight:700;text-align:center;border-radius:999px;max-width:64px}
+.pill-chips{display:inline-flex;align-items:center;gap:4px}.pill-chips i{font-style:normal;font-weight:700;padding:0 6px;font-size:10px}
+.su-member-head p{margin:0}

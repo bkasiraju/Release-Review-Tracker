@@ -48,13 +48,32 @@ function renderCurrent(){
   if(p.needsTeam&&H.needTeam(el))return;
   try{p.render(el,H);}catch(e){el.innerHTML=`<div class="empty-state hub-empty"><h3>Could not load ${esc(p.label)}</h3><p>${esc(e.message)}</p></div>`;}
 }
+/** "Open in GUS" shortcuts per page: create / list the records that page is about. */
+const GL='https://gus.lightning.force.com/lightning/o/',gnew=o=>GL+o+'/new',glist=o=>GL+o+'/list?filterName=Recent';
+const GUS_LINKS={
+  home:[['New Epic',gnew('ADM_Epic__c'),1],['New work item',gnew('ADM_Work__c')],['Epics',glist('ADM_Epic__c')],['Work items',glist('ADM_Work__c')]],
+  epics:[['New Epic',gnew('ADM_Epic__c'),1],['All epics',glist('ADM_Epic__c')],['New work item',gnew('ADM_Work__c')]],
+  sprints:[['New work item',gnew('ADM_Work__c'),1],['Sprints',glist('ADM_Sprint__c')],['Work items',glist('ADM_Work__c')]],
+  tds:[['New team dependency',gnew('ADM_Team_Dependency__c'),1],['All TDs',glist('ADM_Team_Dependency__c')]],
+  tests:[['New work item',gnew('ADM_Work__c'),1],['Work items',glist('ADM_Work__c')]],
+  bugs:[['New bug',gnew('ADM_Work__c'),1],['Work items',glist('ADM_Work__c')]],
+  status:[['Epics',glist('ADM_Epic__c')],['New Epic',gnew('ADM_Epic__c')]],
+  rotations:[['Work items',glist('ADM_Work__c')]],
+  links:[['New work item',gnew('ADM_Work__c'),1],['Epics',glist('ADM_Epic__c')],['TDs',glist('ADM_Team_Dependency__c')]]
+};
+function renderGusLinks(id){
+  let el=$('gus-links');
+  if(!el){el=document.createElement('nav');el.id='gus-links';el.className='gus-links';el.setAttribute('aria-label','Open in GUS');$('hub-panel').before(el);}
+  const l=GUS_LINKS[id]||GUS_LINKS.home;
+  el.innerHTML='<span class="gus-links-label">Open in GUS</span>'+l.map(([t,u,primary])=>`<a class="gus-link${primary?' primary':''}" href="${u}" target="_blank" rel="noopener noreferrer">${t}<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M8 4H4v12h12v-4M11 4h5v5M16 4l-7 7"/></svg></a>`).join('');
+}
 H.go=(id,opts={})=>{
   if(id!=='home')parkOverview();
   const p=H.pages.get(id)||H.pages.get('home');id=p.id;
   H.current=id;document.body.dataset.hub=id;
   const own=!p.legacy;$('hub-panel').classList.toggle('hidden',!own);
   if(p.legacy)legacy(p.legacy);
-  renderNav();renderCurrent();
+  renderNav();renderCurrent();renderGusLinks(id);
   if(!opts.silent&&location.hash!=='#/'+id)history.pushState(null,'','#/'+id);
   window.scrollTo(0,0);
 };
@@ -159,13 +178,89 @@ function loadPeople(g){
 /** Avatar lookup for other pages (matched by GUS user id, then name); resolves once the team's people are loaded. */
 H.personAvatar=(id,name)=>{const g=groupKey(H.team);if(!g||!peopleData||peopleData.g!==g)return null;const n=String(name||'').toLowerCase();return peopleData.d.people.find(p=>(id&&p.id===id)||(n&&p.name.toLowerCase()===n))||null;};
 H.peopleReady=()=>{const g=groupKey(H.team);return g?loadPeople(g).catch(()=>null):Promise.resolve(null);};
+/** Shared table column sizing. Every table gets a <colgroup>: short columns (status, priority, ids, numbers) take just the width their
+ *  header and values need; long-text columns (subject, summary, notes) share the remaining width in proportion to their text length. */
+const FIT_CH=7.8,FIT_PAD=26,FIT_SHORT=34,FIT_MIN_TEXT=150;
+function cellLen(c){
+  const sel=c.querySelector('select');
+  if(sel){const o=sel.options[sel.selectedIndex];return (o?o.text.length:6)+4;}
+  const inp=c.querySelector('input:not([type=checkbox]):not([type=radio])');
+  if(inp&&!c.textContent.trim())return inp.type==='date'?17:Math.max(String(inp.value||'').length,4)+3;
+  const t=c.textContent.replace(/\s+/g,' ').trim();
+  return t.length;
+}
+function fitTable(t){
+  const host=t.parentElement;if(!host||!t.tHead||!t.tBodies.length)return;
+  const avail=host.clientWidth;if(!avail)return;
+  const hr=t.tHead.rows[t.tHead.rows.length-1];if(!hr)return;
+  const n=hr.cells.length;if(!n||[...hr.cells].some(c=>c.colSpan>1))return;
+  const rows=[...t.tBodies[0].rows].filter(r=>r.cells.length===n&&![...r.cells].some(c=>c.colSpan>1)).slice(0,80);
+  const cols=[];
+  for(let i=0;i<n;i++){
+    const h=hr.cells[i].textContent.trim().length+(hr.cells[i].querySelector('.sort-ind,.arr,svg')?2:1);
+    let max=0,sum=0;for(const r of rows){const l=cellLen(r.cells[i]);max=Math.max(max,l);sum+=l;}
+    cols.push({h,max:Math.max(max,h),avg:rows.length?sum/rows.length:0});
+  }
+  const fixed=c=>c.max<=FIT_SHORT;
+  let used=0,wsum=0;
+  for(const c of cols){if(fixed(c)){c.px=Math.ceil(c.max*FIT_CH+FIT_PAD);used+=c.px;}else{c.w=Math.max(c.avg,c.h);wsum+=c.w;}}
+  const flex=cols.filter(c=>!fixed(c)),room=Math.max(avail-used,FIT_MIN_TEXT*flex.length);
+  for(const c of flex)c.px=Math.max(FIT_MIN_TEXT,Math.floor(room*c.w/wsum));
+  const sig=cols.map(c=>c.px).join(',');
+  // short columns never wrap; applied on every pass because rows are re-rendered without touching the colgroup
+  for(const r of rows)cols.forEach((c,i)=>{r.cells[i].style.whiteSpace=fixed(c)?'nowrap':'';});
+  if(t.dataset.fit===sig)return;
+  t.dataset.fit=sig;
+  let cg=t.querySelector(':scope>colgroup.fit-cols');
+  if(!cg){cg=document.createElement('colgroup');cg.className='fit-cols';t.insertBefore(cg,t.firstChild);}
+  cg.innerHTML=cols.map(c=>`<col style="width:${c.px}px">`).join('');
+  t.classList.add('fit');t.style.minWidth=Math.min(used+FIT_MIN_TEXT*flex.length,avail*3)+'px';
+}
+H.fitTable=fitTable;
+(function(){
+  const pending=new Set();let raf=0;
+  const run=()=>{raf=0;for(const t of pending)try{fitTable(t);}catch(_){}pending.clear();};
+  const queue=t=>{if(t&&!t.classList.contains('nofit')){pending.add(t);if(!raf)raf=requestAnimationFrame(run);}};
+  new MutationObserver(ms=>{for(const m of ms){
+    if(m.target.nodeName==='COLGROUP'||m.target.nodeName==='COL')continue;
+    const own=m.target.closest&&m.target.closest('table');if(own)queue(own);
+    for(const n of m.addedNodes){if(n.nodeType!==1||n.nodeName==='COLGROUP')continue;if(n.nodeName==='TABLE')queue(n);else if(n.querySelectorAll)n.querySelectorAll('table').forEach(queue);}
+  }}).observe(document.body,{childList:true,subtree:true});
+  let rt;window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>document.querySelectorAll('table').forEach(t=>{delete t.dataset.fit;queue(t);}),150);});
+  document.querySelectorAll('table').forEach(queue);
+})();
+/** Status colours: every status dropdown (work item or TD, any page) gets an st-* class from its selected value; styles live in sprint.css. */
+H.stCls=st=>{const x=String(st||'').toLowerCase();
+  return /never|duplicate|reject|will not|inactive|not accepted|cancel|declin/.test(x)?'st-off':/^closed|fixed|complete|deliver|accepted|done|resolved/.test(x)?'st-done':/review|qa|verif|test|pending/.test(x)?'st-review':/progress|investigat|commit|triag/.test(x)?'st-prog':/block|wait|hold|risk/.test(x)?'st-block':'st-new';};
+function paintStatus(sel){
+  if(!/Status__c$/.test(sel.dataset.field||''))return;
+  const o=sel.options[sel.selectedIndex],c=H.stCls(o?o.text:sel.value);
+  if(!sel.classList.contains(c)){sel.classList.remove('st-done','st-prog','st-review','st-block','st-off','st-new');sel.classList.add(c);}
+}
+H.paintStatus=root=>(root||document).querySelectorAll('select[data-field$="Status__c"]').forEach(paintStatus);
+document.addEventListener('change',e=>{if(e.target.matches&&e.target.matches('select[data-field$="Status__c"]'))paintStatus(e.target);},true);
+new MutationObserver(ms=>{for(const m of ms)for(const n of m.addedNodes){if(n.nodeType!==1)continue;if(n.matches&&n.matches('select[data-field$="Status__c"]'))paintStatus(n);else if(n.querySelectorAll)n.querySelectorAll('select[data-field$="Status__c"]').forEach(paintStatus);}}).observe(document.body,{childList:true,subtree:true});
+H.paintStatus();
+/** Focus mode: hides the rail, header, team picker, page tabs and footer (and asks the browser for real full screen) so one page fills the window. */
+function setFocus(on){
+  document.body.classList.toggle('focus-mode',on);
+  const b=document.getElementById('focus-toggle');if(b){b.setAttribute('aria-pressed',String(on));b.querySelector('span').textContent=on?'Exit full screen':'Full screen';b.title=on?'Exit full screen (Esc)':'Focus on this page — hide everything else';}
+  try{if(on&&!document.fullscreenElement&&document.documentElement.requestFullscreen)document.documentElement.requestFullscreen().catch(()=>{});else if(!on&&document.fullscreenElement)document.exitFullscreen().catch(()=>{});}catch(_){}
+}
+H.focus=()=>document.body.classList.contains('focus-mode');
+H.setFocus=setFocus;
+document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement&&H.focus())setFocus(false);});
+(function(){const b=document.createElement('button');b.id='focus-toggle';b.type='button';b.className='focus-toggle';b.setAttribute('aria-pressed','false');
+  b.innerHTML='<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 7V3h4M13 3h4v4M17 13v4h-4M7 17H3v-4"/></svg><span>Full screen</span>';
+  b.onclick=()=>setFocus(!H.focus());document.body.appendChild(b);})();
 /** Escape clears the innermost active filter/selection of the current page, one level per press (Release Review keeps its own Escape handling). */
 const escHandlers=new Map();
 H.onEsc=(id,fn)=>escHandlers.set(id,fn);
 document.addEventListener('keydown',e=>{
   if(e.key!=='Escape'||e.repeat||e.defaultPrevented)return;
   const id=document.body.dataset.hub;if(!id||id==='epics'||document.querySelector('.nd-overlay'))return;
-  if(!(escHandlers.get(id)&&escHandlers.get(id)())){ // generic fallback: empty free-text filters on the page
+  if(!(escHandlers.get(id)&&escHandlers.get(id)())){
+    if(H.focus()){setFocus(false);e.preventDefault();e.stopImmediatePropagation();return;} // generic fallback: empty free-text filters on the page
     const box=document.getElementById('hub-page')||document;
     for(const i of box.querySelectorAll('input[type=text],input[type=search],input:not([type])')){if(i.value&&!i.dataset.edit&&!i.dataset.rk&&!i.closest('[data-edit]')){i.value='';i.dispatchEvent(new Event('input',{bubbles:true}));break;}}
   }

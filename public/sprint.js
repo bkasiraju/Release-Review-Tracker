@@ -6,7 +6,7 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const CLOSED=new Set(['Closed','Fixed','Completed','Duplicate','Will Not Fix','Never','Inactive','Rejected']);
 const CLOSED_BUG=new Set([...CLOSED,'Not a bug','Not Reproducible']);
 const GUS_WORK='https://gus.lightning.force.com/lightning/r/ADM_Work__c/';
-const S={pick:null,view:'pulse',standupIdx:0,ready:false,loading:false,teamId:'',sprintId:'',members:[],sprint:null,history:null,tab:'saydo',open:new Set(),sort:{key:'',dir:'asc'},order:null,modal:null,epic:null,search:'',seq:0};
+const S={pick:null,view:'pulse',standupIdx:0,ready:false,loading:false,teamId:'',sprintId:'',members:[],sprint:null,history:null,tab:'saydo',open:new Set(),sort:{key:'',dir:'asc'},order:null,modal:null,epic:null,mem:[],search:'',seq:0};
 const icon=(n,t)=>window.ReviewIcons?window.ReviewIcons.icon(n,t):'';
 const isClosed=i=>(i.status&&i.status.startsWith('Closed'))||(i.recordType==='Bug'?CLOSED_BUG:CLOSED).has(i.status);
 const pts=i=>i.forecastPts!=null?i.forecastPts:(i.storyPoints||0);
@@ -46,15 +46,23 @@ function renderGoal(){
 // ── Members ─────────────────────────────────────────────────────────────────
 const statusClass=i=>isClosed(i)?'closed':'open';
 const stCls=st=>{const x=String(st||'').toLowerCase();return /^closed|fixed|completed/.test(x)?'st-done':/review|qa|verif|test/.test(x)?'st-review':/progress|investigat/.test(x)?'st-prog':/block|wait|hold/.test(x)?'st-block':/never|duplicate|reject|will not|inactive/.test(x)?'st-off':'st-new';};
+const planOf=items=>items.reduce((n,i)=>n+(i.itemStatus==='Forecasted'?(i.forecastPts||0):0),0);
+const churnSum=items=>items.reduce((n,i)=>n+(churnOf(i)||0),0);
+const sgn=n=>n>0?`+${fmt(n)}`:n<0?`−${fmt(-n)}`:'0';
+/** Planned (green) · Actual (purple) · Churn · Done chips for a set of work items. */
+const statChips=items=>{const p=planOf(items),a=items.reduce((n,i)=>n+spOf(i),0),c=churnSum(items),d=items.filter(isClosed);
+  return `<span class="mchip pl" title="Story points planned at sprint start">Planned <b>${fmt(p)} SP</b></span><span class="mchip ac" title="Story points now">Actual <b>${fmt(a)} SP</b></span><span class="mchip ch ${c>0?'up':c<0?'dn':''}" title="Actual minus planned (added work counts in full)">Churn <b>${sgn(c)}</b></span><span class="mchip dn2" title="Closed items and points">Done <b>${d.length}/${items.length} items · ${fmt(d.reduce((n,i)=>n+spOf(i),0))} SP</b></span>`;};
 const churnOf=i=>i.itemStatus==='Added'?(i.storyPoints||0):i.forecastPts==null?null:(i.storyPoints||0)-i.forecastPts;
-const churnCell=i=>{const c=churnOf(i);return c==null?'—':c>0?`<b class="ch up">+${fmt(c)}</b>`:c<0?`<b class="ch dn">−${fmt(-c)}</b>`:'<b class="ch">0</b>';};
+const planCell=i=>i.forecastPts==null?'<span class="muted">—</span>':`<span class="mchip pl sm">${esc(i.forecastPts)}</span>`;
+const churnCell=i=>{const c=churnOf(i);return c==null?'<span class="muted">—</span>':`<span class="mchip ch sm ${c>0?'up':c<0?'dn':''}">${sgn(c)}</span>`;};
 const planChip=i=>i.itemStatus==='Added'?'<span class="sp-chip add">Added</span>':i.itemStatus==='Removed'?'<span class="sp-chip rem">Removed</span>':'<span class="sp-chip plan">Planned</span>';
+const whoSelect=i=>`<select class="hub-inline who" data-edit="ADM_Work__c" data-type="ref" data-id="${esc(i.id)}" data-field="Assignee__c" data-prev="${esc(i.assigneeId||'')}" data-label="${esc(i.name)} assignee" aria-label="Assignee of ${esc(i.name)}"><option value="">Unassigned</option>${S.mem.map(m=>`<option value="${esc(m.id)}"${m.id===i.assigneeId?' selected':''}>${esc(m.name)}</option>`).join('')}${i.assigneeId&&!S.mem.some(m=>m.id===i.assigneeId)?`<option value="${esc(i.assigneeId)}" selected>${esc((S.members.find(m=>m.items.includes(i))||{}).name||'Assigned')}</option>`:''}</select>`;
 const statusSelect=i=>`<select class="hub-inline ${stCls(i.status)}" data-edit="ADM_Work__c" data-id="${esc(i.id)}" data-field="Status__c" data-prev="${esc(i.status)}" data-label="${esc(i.name)} status" aria-label="Status of ${esc(i.name)}">${window.Hub.options(S.pick?S.pick.workStatus:[],i.status)}</select>`;
 const ptsInput=i=>`<input class="hub-inline num" type="number" min="0" step="0.5" data-edit="ADM_Work__c" data-type="num" data-id="${esc(i.id)}" data-field="Story_Points__c" data-prev="${i.storyPoints==null?'':esc(i.storyPoints)}" data-label="${esc(i.name)} points" aria-label="Story points of ${esc(i.name)}" value="${i.storyPoints==null?'':esc(i.storyPoints)}">`;
-function itemRow(i){
+function itemRow(i,who){
   const flag=i.itemStatus==='Added'?'<span class="sp-chip add">Added</span>':i.itemStatus==='Removed'?'<span class="sp-chip rem">Removed</span>':'';
   const changed=i.ptsChanged?`<span class="sp-chip chg" title="Forecast ${esc(i.forecastPts)} pts, now ${esc(i.storyPoints)} pts">pts changed</span>`:'';
-  return `<tr class="${i.itemStatus==='Removed'?'sp-removed':''}"><td><a href="${GUS_WORK}${esc(i.id)}/view" target="_blank" rel="noopener noreferrer">${esc(i.name)}</a></td><td class="sp-subject" title="${esc(i.subject)}${i.epic?esc('\n\nEpic: '+i.epic):''}"><span class="sp-clip">${esc(i.subject)}</span>${flag}${changed}</td><td class="sp-epic-cell" title="${esc(i.epic)}">${i.epicId?`<a href="${EPIC(esc(i.epicId))}" target="_blank" rel="noopener noreferrer">${esc(i.epic)}</a>`:'<span class="muted">—</span>'}</td><td class="sp-type">${esc(i.recordType)}</td><td>${statusSelect(i)}</td><td class="num">${i.forecastPts==null?'—':esc(i.forecastPts)}</td><td class="num">${ptsInput(i)}</td><td class="num">${churnCell(i)}</td></tr>`;
+  return `<tr class="${i.itemStatus==='Removed'?'sp-removed':''}"><td><a href="${GUS_WORK}${esc(i.id)}/view" target="_blank" rel="noopener noreferrer">${esc(i.name)}</a></td><td class="sp-subject" title="${esc(i.subject)}${i.epic?esc('\n\nEpic: '+i.epic):''}"><span class="sp-clip">${esc(i.subject)}</span>${flag}${changed}</td><td class="sp-epic-cell" title="${esc(i.epic)}">${i.epicId?`<a href="${EPIC(esc(i.epicId))}" target="_blank" rel="noopener noreferrer">${esc(i.epic)}</a>`:'<span class="muted">—</span>'}</td><td class="sp-type">${esc(i.recordType)}</td>${who?`<td>${whoSelect(i)}</td>`:''}<td>${statusSelect(i)}</td><td class="num">${planCell(i)}</td><td class="num">${ptsInput(i)}</td><td class="num">${churnCell(i)}</td></tr>`;
 }
 const SORTS={name:i=>i.name,subject:i=>i.subject,epic:i=>i.epic,recordType:i=>i.recordType,status:i=>i.status,forecast:i=>i.forecastPts,pts:i=>i.storyPoints,churn:churnOf};
 function sortRows(rows){
@@ -62,7 +70,7 @@ function sortRows(rows){
   return [...rows].sort((a,b)=>{const x=f(a),y=f(b);if(none(x))return none(y)?0:1;if(none(y))return -1;return (typeof x==='number'?x-y:String(x).localeCompare(String(y),undefined,{numeric:true,sensitivity:'base'}))*d;});
 }
 const sortTh=(k,label,cls)=>{const on=S.sort.key===k;return `<th class="${cls||''}" aria-sort="${on?(S.sort.dir==='asc'?'ascending':'descending'):'none'}"><button type="button" class="sp-sort${on?' on':''}" data-sort="${k}" title="Sort by ${esc(label)}">${label}<i aria-hidden="true">${on?(S.sort.dir==='asc'?'▲':'▼'):'↕'}</i></button></th>`;};
-const itemsTable=rows=>`<div class="table-scroll sp-items"><table><thead><tr>${sortTh('name','Work')}${sortTh('subject','Subject')}${sortTh('epic','Epic')}${sortTh('recordType','Type')}${sortTh('status','Status')}${sortTh('forecast','Planned','num')}${sortTh('pts','Actual','num')}${sortTh('churn','Churn','num')}</tr></thead><tbody>${sortRows(rows).map(itemRow).join('')}</tbody></table></div>`;
+const itemsTable=(rows,who)=>`<div class="table-scroll sp-items${who?' who':''}"><table><thead><tr>${sortTh('name','Work')}${sortTh('subject','Subject')}${sortTh('epic','Epic')}${sortTh('recordType','Type')}${who?'<th>Assignee</th>':''}${sortTh('status','Status')}${sortTh('forecast','Planned','num pl')}${sortTh('pts','Actual','num ac')}${sortTh('churn','Churn','num')}</tr></thead><tbody>${sortRows(rows).map(r=>itemRow(r,who)).join('')}</tbody></table></div>`;
 // Summary text is derived from GUS commitment data only (no generated claims).
 const names=(a,n=3)=>a.slice(0,n).map(i=>i.name).join(', ')+(a.length>n?` +${a.length-n} more`:'');
 function memberSummary(m){
@@ -183,9 +191,9 @@ function renderModal(){
   const nav=(o,step,label,arrow)=>`<button type="button" class="sp-mnav" data-modal-step="${step}"${o?'':' disabled'} aria-label="${label}${o?': '+esc(o.name):''}">${step<0?`<b>${arrow}</b>`:''}<span><small>${label}</small>${o?esc(o.name):'—'}</span>${step>0?`<b>${arrow}</b>`:''}</button>`;
   const el=document.createElement('div');el.id='sp-modal';el.className='sp-modal';
   el.innerHTML=`<div class="sp-modal-card" role="dialog" aria-modal="true" aria-label="Standup review: ${esc(m.name)}">
-  <div class="sp-modal-top">${nav(pv,-1,'Previous engineer','‹')}<div class="sp-mtitle">${avImg(m,1)}<div><h3>${esc(m.name)}</h3><p>${k+1} of ${ms.length} · ${items.filter(isClosed).length}/${items.length} items done · ${fmt(doneSp)}/${fmt(sp)} SP</p></div></div>${nav(nx,1,'Next engineer','›')}</div>
+  <div class="sp-modal-top">${nav(pv,-1,'Previous engineer','‹')}<div class="sp-mtitle">${avImg(m,1)}<div><h3>${esc(m.name)}</h3><p>${k+1} of ${ms.length}</p><div class="mchips">${statChips(items)}</div></div></div>${nav(nx,1,'Next engineer','›')}</div>
   <div class="sp-modal-tools"><span class="sp-bar"><i style="width:${Math.min(100,pct(doneSp,sp))}%;background:#2e844a"></i></span><button type="button" class="button small" data-shuffle title="Randomise the order of engineers for standup">🔀 Shuffle order</button><button type="button" class="button small" data-modal-close>Close ✕</button></div>
-  <div class="sp-modal-body">${epicCards(items,'Epics',(items.find(i=>i.assigneeId)||{}).assigneeId)}<h4 class="sp-sec">Work items${shown.length<items.length?` <span class="count-pill">${shown.length} of ${items.length}</span>`:''}</h4>${itemsTable(shown)}</div></div>`;
+  <div class="sp-modal-body">${epicCards(items,'Epics',(items.find(i=>i.assigneeId)||{}).assigneeId)}<h4 class="sp-sec">Work items${shown.length<items.length?` <span class="count-pill">${shown.length} of ${items.length}</span>`:''}</h4>${itemsTable(shown,true)}</div></div>`;
   $('sp-panel-body').appendChild(el);const b=el.querySelector('.sp-modal-body');b.scrollTop=top;if(!keep)el.querySelector('.sp-mnav:not([disabled]),[data-modal-close]').focus();
 }
 function bindModal(){
@@ -213,13 +221,13 @@ function renderStandup(){
   if(!ms.length){host.innerHTML='<div class="empty-state sp-empty"><h3>No work in this sprint</h3><p>There are no committed items for the selected sprint.</p></div>';return;}
   S.standupIdx=Math.min(Math.max(S.standupIdx,0),ms.length-1);const m=ms[S.standupIdx],all=activeItems(m).sort((a,b)=>isClosed(a)-isClosed(b)||String(a.name).localeCompare(String(b.name))),items=all;
   const sp=items.reduce((n,i)=>n+spOf(i),0),doneSp=items.filter(isClosed).reduce((n,i)=>n+spOf(i),0);
-  const pills=ms.map((x,k)=>{const a=activeItems(x);return `<button class="su-pill${k===S.standupIdx?' active':''}" data-su="${k}" aria-pressed="${k===S.standupIdx}">${avImg(x)}<span>${esc(x.name)}</span><small>${a.length} WI · ${fmt(a.reduce((n,i)=>n+spOf(i),0))} SP</small></button>`;}).join('');
+  const pills=ms.map((x,k)=>{const a=activeItems(x);return `<button class="su-pill${k===S.standupIdx?' active':''}" data-su="${k}" aria-pressed="${k===S.standupIdx}">${avImg(x)}<span>${esc(x.name)}</span><small class="pill-chips"><i class="mchip pl">${fmt(planOf(a))}</i><i class="mchip ac">${fmt(a.reduce((n,i)=>n+spOf(i),0))}</i><span>${a.length} WI</span></small></button>`;}).join('');
   host.innerHTML=`<section class="table-card su-card"><div class="su-pills" role="group" aria-label="Team members">${pills}</div>
   <div class="su-carousel"><div class="su-nav"><button class="button small" data-su-step="-1" aria-label="Previous member"${S.standupIdx===0?' disabled':''}>‹ Prev</button><div class="su-dots" role="tablist">${ms.map((x,k)=>`<button class="su-dot${k===S.standupIdx?' active':''}" data-su="${k}" role="tab" aria-selected="${k===S.standupIdx}" aria-label="${esc(x.name)}"></button>`).join('')}</div><button class="button small" data-su-step="1" aria-label="Next member"${S.standupIdx===ms.length-1?' disabled':''}>Next ›</button><button class="button small" data-shuffle title="Randomise the order of engineers for standup">🔀 Shuffle</button><button class="button small" data-open-member="${esc(m.name)}" title="Open in popup">Open ⤢</button></div>
-  <div class="su-member"><div class="su-member-head">${avImg(m,1)}<div><h3>${esc(m.name)}</h3><p>${S.standupIdx+1} of ${ms.length} · ${items.filter(isClosed).length}/${items.length} items done · ${fmt(doneSp)}/${fmt(sp)} SP</p></div><span class="sp-bar su-bar"><i style="width:${Math.min(100,pct(doneSp,sp))}%;background:#2e844a"></i></span></div>
+  <div class="su-member"><div class="su-member-head">${avImg(m,1)}<div><h3>${esc(m.name)}</h3><p>${S.standupIdx+1} of ${ms.length}</p><div class="mchips">${statChips(items)}</div></div><span class="sp-bar su-bar"><i style="width:${Math.min(100,pct(doneSp,sp))}%;background:#2e844a"></i></span></div>
   ${epicCards(items,'Epics for '+m.name+'’s sprint work',(items.find(i=>i.assigneeId)||{}).assigneeId)}
-  <div class="su-cols" aria-hidden="true"><span>#</span><span>Work</span><span>Subject / Epic</span><span>Status</span><span class="num">Planned</span><span class="num">Actual</span><span class="num">Churn</span></div>
-  <ol class="su-items">${epicFilter(items).map(i=>`<li class="${isClosed(i)?'done':''}"><span class="su-no"></span><a href="${GUS_WORK}${esc(i.id)}/view" target="_blank" rel="noopener noreferrer">${esc(i.name)}</a><span class="su-subject" title="${esc(i.subject)}${i.epic?esc('\n\nEpic: '+i.epic):''}">${planChip(i)} ${esc(i.subject)}${i.epic?` <span class="sp-chip">${esc(i.epic)}</span>`:''}</span>${statusSelect(i)}<span class="num">${i.forecastPts==null?'—':esc(i.forecastPts)}</span>${ptsInput(i)}<span class="num">${churnCell(i)}</span></li>`).join('')}</ol></div></div></section>`;
+  <div class="su-cols" aria-hidden="true"><span>#</span><span>Work</span><span>Subject / Epic</span><span>Assignee</span><span>Status</span><span class="num pl">Planned</span><span class="num ac">Actual</span><span class="num">Churn</span></div>
+  <ol class="su-items">${epicFilter(items).map(i=>`<li class="${isClosed(i)?'done':''}"><span class="su-no"></span><a href="${GUS_WORK}${esc(i.id)}/view" target="_blank" rel="noopener noreferrer">${esc(i.name)}</a><span class="su-subject" title="${esc(i.subject)}${i.epic?esc('\n\nEpic: '+i.epic):''}">${planChip(i)} ${esc(i.subject)}${i.epic?` <span class="sp-chip">${esc(i.epic)}</span>`:''}</span>${whoSelect(i)}${statusSelect(i)}<span class="num">${planCell(i)}</span>${ptsInput(i)}<span class="num">${churnCell(i)}</span></li>`).join('')}</ol></div></div></section>`;
 }
 function bindStandup(){
   $('sp-standup').addEventListener('click',e=>{const t=e.target.closest('[data-su],[data-su-step]');if(!t)return;S.standupIdx=t.dataset.su!=null?Number(t.dataset.su):S.standupIdx+Number(t.dataset.suStep);renderStandup();});
@@ -252,6 +260,7 @@ async function loadSprint(sprintId){
 }
 async function show(){
   const H=window.Hub;H.peopleReady().then(()=>{if(S.members.length){renderMembers();renderModal();renderStandup();}});
+  H.members().then(m=>{S.mem=m;if(S.members.length){renderMembers();renderModal();renderStandup();}},()=>{});
   if(!S.pick)H.picklists().then(p=>{S.pick=p;if(S.members.length){renderMembers();renderStandup();}},()=>{});
   if(!H.hasTeam()){S.seq++;S.teamId='';S.members=[];$('sp-metrics').innerHTML='';$('sp-chart').innerHTML='';$('sp-trend-stats').innerHTML='';$('sp-standup').innerHTML='';
     $('sp-members').innerHTML='<div class="empty-state sp-empty"><h3>Select a team</h3><p>Pick a team in the filter at the top.</p></div>';$('sp-member-count').textContent='0';$('sp-row-count').textContent='';return;}
@@ -262,10 +271,20 @@ function setSubview(v){
   document.querySelectorAll('[data-sp-view]').forEach(x=>{const on=x.dataset.spView===v;x.classList.toggle('selected',on);x.setAttribute('aria-pressed',String(on));});
   if(v==='standup')renderStandup();
 }
+/** Move a work item to another engineer's group right away (the GUS write is already queued by Hub.bindEdit). */
+function reassign(id,uid){
+  const mem=S.mem.find(x=>x.id===uid),name=uid?(mem?mem.name:'Assigned'):'Unassigned';let item=null;
+  for(const m of S.members){const k=m.items.findIndex(i=>i.id===id);if(k>=0){item=m.items.splice(k,1)[0];break;}}
+  if(!item)return;item.assigneeId=uid||null;
+  let to=S.members.find(m=>m.name===name);if(!to){to={name,items:[]};S.members.push(to);}
+  to.items.push(item);S.members=S.members.filter(m=>m.items.length);
+  for(const m of S.members){m.addedCount=m.items.filter(i=>i.itemStatus==='Added').length;m.removedCount=m.items.filter(i=>i.itemStatus==='Removed').length;}
+}
 function bind(){
   document.querySelectorAll('[data-sp-view]').forEach(b=>b.onclick=()=>setSubview(b.dataset.spView));
   window.Hub.onTeam(()=>{if(document.body.dataset.hub==='sprints')show();});
   window.Hub.bindEdit($('sp-panel-body'),(id,field,val)=>{
+    if(field==='Assignee__c')reassign(id,val);
     for(const m of S.members)for(const i of m.items)if(i.id===id){if(field==='Status__c')i.status=val;else if(field==='Story_Points__c'){i.storyPoints=val;i.ptsChanged=i.itemStatus!=='Removed'&&i.forecastPts!=null&&val!=null&&i.forecastPts!==val;}}
     renderMetrics();renderMembers();renderModal();if(S.view==='standup')renderStandup();});
   $('sp-sprint').onchange=e=>loadSprint(e.target.value);
