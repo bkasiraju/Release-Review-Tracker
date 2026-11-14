@@ -994,3 +994,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan79: theme column removed from engineer bandwidth (local harness: 5 columns, Load bar inside card; not verified on the live app).
 
 - plan80: richer CSS 3D icons in planner tiles and headings (local harness screenshot; not verified on the live app; Planned Release Summary tab not re-screenshotted).
+
+- plan81: Back button navigates to the applet root URL. Only the local-harness fallback (in-page #/home) was exercised; the applet-URL branch was not run live.

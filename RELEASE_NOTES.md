@@ -1,3 +1,7 @@
+## Unreleased on top of 4.0.0-GA (plan81) — Back button goes to the applet root
+
+- "Back to Release Intelligence" now navigates the whole window to `/applets/cfs-release-review-tracker/` (the full app with its header and rail) instead of only switching to the in-page Team Hub, which in full-screen mode left the user on a header-less view. When the path is not an applet path (local harness) it falls back to the in-page Team Hub. The unsaved-changes confirmation is kept.
+
 ## Unreleased on top of 4.0.0-GA (plan80) — Richer 3D icons in the planner
 
 - Reverts the flat icon tiles from plan75. KPI tiles now have larger (52 px) 3D icons: glossy gradient body, top highlight, bevel, coloured underside and glow, and a glyph that floats with a drop shadow. Section-card and Projects & epics heading icons get the same treatment at their own size.
