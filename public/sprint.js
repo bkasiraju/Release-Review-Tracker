@@ -23,15 +23,19 @@ function totals(members){
 }
 function ring(value,caption,color){return `<div class="metric-ring" style="--ring-value:${Math.min(100,Math.max(0,value))}%;--ring-color:${color}" role="img" aria-label="${value}% ${esc(caption)}"><span>${value}%<small>${esc(caption)}</small></span></div>`;}
 function card(title,ic,tone,value,unit,detail,value2,caption,color){
-  return `<article class="metric"><div class="metric-header"><span>${icon(ic,tone)}${esc(title)}</span></div><div class="metric-main"><div><div class="metric-value">${value}<span class="metric-unit">${esc(unit)}</span></div><p class="metric-detail">${esc(detail)}</p></div>${ring(value2,caption,color)}</div></article>`;
+  return `<article class="metric"><div class="metric-header"><span>${icon(ic,tone)}${esc(title)}</span></div><div class="metric-main"><div><div class="metric-value">${value}<span class="metric-unit">${esc(unit)}</span></div><p class="metric-detail">${esc(detail)}</p></div>${value2==null?'':ring(value2,caption,color)}</div></article>`;
 }
 function renderMetrics(){
-  const t=totals(S.members),sayDo=pct(t.committedDone,t.committed);
+  const t=totals(S.members),g=S.sprint&&S.sprint.gus;
+  if(!g){$('sp-metrics').innerHTML='';return;}
+  const fc=g.forecastClosedPct==null?0:Number(g.forecastClosedPct),n=v=>fmt(Math.round((v||0)*100)/100),dl=g.daysLeft;
+  // Same definitions and values as the GUS sprint wall header (sprint record roll-ups).
   $('sp-metrics').innerHTML=
-    card('Say-Do','chart',sayDo>=80?'green':sayDo>=50?'amber':'rose',sayDo,'%',`${fmt(t.committedDone)} of ${fmt(t.committed)} committed pts done`,Math.min(sayDo,100),'say-do',sayDo>=80?'#2e844a':sayDo>=50?'#b57b22':'#ba0517')+
-    card('Committed','stack','violet',fmt(t.committed),'pts',`${S.members.length} contributors`,pct(t.committedDone,t.committed),'done','#176b91')+
-    card('Completed','publish','green',fmt(t.completed),'pts',`of ${fmt(t.activePts)} pts in sprint`,pct(t.completed,t.activePts),'complete','#2e844a')+
-    card('Items closed','healthy','blue',`${t.closed}`,`/ ${t.items}`,`${t.spill} spillover item${t.spill===1?'':'s'}`,pct(t.closed,t.items),'closed','#0b827c')+
+    card('Forecast Closed','chart',fc>=80?'green':fc>=50?'amber':'rose',(Math.round(fc*100)/100).toFixed(2),'%',`${n(g.forecastClosedPts)} of ${n(g.forecast)} forecast pts closed`,Math.min(100,Math.round(fc)),'say-do',sayColor(fc))+
+    card('Forecast','stack','violet',n(g.forecast),'pts',`${S.members.length} contributors`,pct(g.forecastClosedPts,g.forecast),'closed','#176b91')+
+    card('Closed','publish','green',n(g.closed),'pts',`${g.closedItems} of ${g.currentItems} items closed`,pct(g.closed,g.current),'of current','#2e844a')+
+    card('Current','healthy','blue',n(g.current),'pts',`${g.currentItems} work items in sprint`,pct(g.closed,g.current),'closed','#0b827c')+
+    card('Days Left','sync','amber',dl==null?'—':esc(dl),dl&&/^\d+$/.test(dl)?'days':'','sprint time remaining',null)+
     card('Scope change','sync','amber',`+${t.added}`,`/ −${t.removed}`,'items added / removed',t.items?Math.min(100,pct(t.added+t.removed,t.items)):0,'churn','#b57b22');
 }
 function renderGoal(){

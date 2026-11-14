@@ -84,15 +84,18 @@ function buildMember(name, items) {
 async function loadSprintData(sf, teamId, sprintId) {
   requireTeam(teamId);
   requireSprintId(sprintId);
-  const [sprints, commitments] = await Promise.all([
+  const [sprints, commitments, sprintWork] = await Promise.all([
     queryAll(sf,
-      `SELECT Id, Name, Goals__c, Completion_Committed_Story_Points__c FROM ADM_Sprint__c ` +
+      `SELECT Id, Name, Goals__c, Completion_Committed_Story_Points__c, Committed_Points__c, Completed_Story_Points__c, Committed_Story_Points_Completed__c, ` +
+      `Committed_Items__c, Committed_Items_Completed__c, Completed_Items__c, Days_Remaining__c FROM ADM_Sprint__c ` +
       `WHERE Id = '${sprintId}' AND Scrum_Team__c = '${teamId}' LIMIT 1`),
     queryAll(sf,
       `SELECT Id, Item_Status__c, Committed_Story_Points__c, Work__c, Work__r.Name, Work__r.Subject__c, ` +
       `Work__r.Status__c, Work__r.Story_Points__c, Work__r.Priority__c, Work__r.RecordType.Name, ` +
       `Work__r.Assignee__c, Work__r.Assignee__r.Name, Work__r.Epic__c, Work__r.Epic__r.Name, Work__r.Epic__r.Development_Lead__c, Work__r.Epic__r.Development_Lead__r.Name FROM ADM_Work_Commitment__c ` +
-      `WHERE Sprint__c = '${sprintId}' AND Sprint__r.Scrum_Team__c = '${teamId}' LIMIT 2000`)
+      `WHERE Sprint__c = '${sprintId}' AND Sprint__r.Scrum_Team__c = '${teamId}' LIMIT 2000`),
+    // Work currently in the sprint: GUS's sprint wall "Current" total is the sum of its story points.
+    queryAll(sf, `SELECT Story_Points__c FROM ADM_Work__c WHERE Sprint__c = '${sprintId}' LIMIT 2000`)
   ]);
   if (!sprints.length) throw new Error('Sprint not found for this team');
   const sprint = sprints[0];
@@ -135,7 +138,18 @@ async function loadSprintData(sf, teamId, sprintId) {
       Id: sprint.Id,
       Name: sprint.Name,
       Goals__c: sprint.Goals__c,
-      Completion_Committed_Story_Points__c: sprint.Completion_Committed_Story_Points__c
+      Completion_Committed_Story_Points__c: sprint.Completion_Committed_Story_Points__c,
+      // Same figures as the GUS sprint wall header: Forecast Closed %, Forecast, Closed (velocity), Current, Days Left.
+      gus: {
+        forecastClosedPct: sprint.Completion_Committed_Story_Points__c,
+        forecast: sprint.Committed_Points__c || 0,
+        forecastClosedPts: sprint.Committed_Story_Points_Completed__c || 0,
+        closed: sprint.Completed_Story_Points__c || 0,
+        current: sprintWork.reduce((n, w) => n + (w.Story_Points__c || 0), 0),
+        currentItems: sprintWork.length,
+        closedItems: sprint.Completed_Items__c || 0,
+        daysLeft: sprint.Days_Remaining__c
+      }
     },
     members
   };
