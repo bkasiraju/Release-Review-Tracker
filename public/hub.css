@@ -370,3 +370,12 @@ body[data-hub=home] .hub-tile .hub-tile-chips span{font-size:10px;line-height:1.
 .su-nav-c{display:flex;flex-direction:column;align-items:center;gap:6px}.su-count{font-size:11px;font-weight:600;color:#44546a}
 .su-nav .button{min-width:76px;justify-content:center}
 @media(max-width:800px){.su-nav{grid-template-columns:1fr}.su-nav-l,.su-nav-r{justify-content:center}}
+
+/* Standup: QA column with avatar, per-item tags, wide Subject/Epic */
+.sp-qa{display:inline-flex;align-items:center;gap:8px;min-width:0;font-size:12.5px}.sp-qa>span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sp-qa .su-av{flex:none;width:24px;height:24px}
+.sp-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:3px}.sp-tags:empty{display:none}
+.su-metrics{margin-top:6px}
+.su-subject .sp-tags{display:inline-flex;margin:0 0 0 4px;vertical-align:middle}
+.su-card .su-items li,.su-card .su-cols{grid-template-columns:28px 96px minmax(0,1fr) 170px 150px 60px 70px 56px!important}
+.sp-modal-body .sp-items.who th:nth-child(1){width:96px}.sp-modal-body .sp-items.who th:nth-child(2){width:auto}.sp-modal-body .sp-items.who th:nth-child(3){width:34%}.sp-modal-body .sp-items.who th:nth-child(4){width:96px}.sp-modal-body .sp-items.who th:nth-child(5){width:170px}.sp-modal-body .sp-items.who th:nth-child(6){width:150px}.sp-modal-body .sp-items.who th:nth-child(7),.sp-modal-body .sp-items.who th:nth-child(8),.sp-modal-body .sp-items.who th:nth-child(9){width:70px}

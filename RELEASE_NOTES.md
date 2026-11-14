@@ -1,3 +1,7 @@
+## Unreleased — standup per-engineer metrics and QA column
+
+Standup (page and full-screen popup): each engineer header now shows the Pulse metrics (closed, spillover, added, removed, pts chg) and every work item carries its own tag (Closed, Spillover, Added, Removed, Δ pts chg). The Assignee column is replaced by **QA** (the work item's `QA_Engineer__c`, with avatar; "—" when unset; read-only). The sprint query now selects `Work__r.QA_Engineer__c/.Name`. Epic and Subject get the widest columns and wrap. Cache-bust `4.0.0-GA-plan12`.
+
 ## Unreleased — standup roster and navigation alignment
 
 Standup view: engineer pills form an aligned grid (avatar, name, fixed-width Planned/Actual/WI chips); the nav row is grouped as Prev/Next on the left, "n of N" with dots centred, Shuffle/Open on the right. Cache-bust `4.0.0-GA-plan11`.

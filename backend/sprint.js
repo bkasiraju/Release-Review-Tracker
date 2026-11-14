@@ -92,7 +92,7 @@ async function loadSprintData(sf, teamId, sprintId) {
     queryAll(sf,
       `SELECT Id, Item_Status__c, Committed_Story_Points__c, Work__c, Work__r.Name, Work__r.Subject__c, ` +
       `Work__r.Status__c, Work__r.Story_Points__c, Work__r.Priority__c, Work__r.RecordType.Name, ` +
-      `Work__r.Assignee__c, Work__r.Assignee__r.Name, Work__r.Epic__c, Work__r.Epic__r.Name, Work__r.Epic__r.Development_Lead__c, Work__r.Epic__r.Development_Lead__r.Name FROM ADM_Work_Commitment__c ` +
+      `Work__r.Assignee__c, Work__r.Assignee__r.Name, Work__r.QA_Engineer__c, Work__r.QA_Engineer__r.Name, Work__r.Epic__c, Work__r.Epic__r.Name, Work__r.Epic__r.Development_Lead__c, Work__r.Epic__r.Development_Lead__r.Name FROM ADM_Work_Commitment__c ` +
       `WHERE Sprint__c = '${sprintId}' AND Sprint__r.Scrum_Team__c = '${teamId}' LIMIT 2000`),
     // Work currently in the sprint: GUS's sprint wall "Current" total is the sum of its story points.
     queryAll(sf, `SELECT Story_Points__c FROM ADM_Work__c WHERE Sprint__c = '${sprintId}' LIMIT 2000`)
@@ -114,6 +114,8 @@ async function loadSprintData(sf, teamId, sprintId) {
       status: w.Status__c,
       priority: w.Priority__c || '',
       assigneeId: w.Assignee__c || null,
+      qaId: w.QA_Engineer__c || null,
+      qa: (w.QA_Engineer__r && w.QA_Engineer__r.Name) || '',
       epicId: w.Epic__c || null,
       epic: (w.Epic__r && w.Epic__r.Name) || '',
       epicLeadId: (w.Epic__r && w.Epic__r.Development_Lead__c) || null,
