@@ -219,10 +219,10 @@ async function updateOne(sf, u) {
   return delta;
 }
 // ── Team people (leadership section on the hub home) ─────────────────────────
-const PEOPLE = {
-  'Managed Async Processing Team': ['005EE00000YvpWrYAJ', '005B0000001tCGAIA2', '005EE00000StHjGYAV'],
-  'Message Queue Team': ['005EE00000YvpWrYAJ', '005B0000001tCGAIA2', '005EE00000StHjGYAV'],
-  'VegaCache Team': ['005B0000003OANyIAO', '005B0000006q4KcIAI']
+const PEOPLE = { // display order: leadership first, then the rest of the roster A–Z
+  'Managed Async Processing Team': ['005EE00000StHjGYAV', '005B0000001tCGAIA2', '005EE00000YvpWrYAJ'],
+  'Message Queue Team': ['005EE00000StHjGYAV', '005B0000001tCGAIA2', '005EE00000YvpWrYAJ'],
+  'VegaCache Team': ['005B0000006q4KcIAI', '005B0000003OANyIAO', '005EE00000YvpWrYAJ']
 };
 const groupOf = g => g === 'maps' ? 'Managed Async Processing Team' : g === 'mq' ? 'Message Queue Team' : g === 'vegacache' ? 'VegaCache Team' : null;
 const TEAM_LIKE = { 'Managed Async Processing Team': "Name LIKE 'Managed Async Processing%'", 'Message Queue Team': "Name = 'Message Queue'", 'VegaCache Team': "Name LIKE 'VegaCache%'" };
