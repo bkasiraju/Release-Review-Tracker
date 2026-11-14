@@ -812,3 +812,8 @@ body[data-ready] #hub-boot{display:flex}
 .pl-pmenu .pl-pchip{display:flex;align-items:center;gap:6px;min-width:0}
 .pl-pmenu .pl-pname{flex:1 1 140px;min-width:0}.pl-pmenu .pl-pshort{flex:0 1 110px;min-width:0}
 @media (max-width:760px){.pl-pwrap .pl-pmenu{position:fixed;left:16px;right:16px;top:auto;width:auto}}
+
+/* plan73: wider new-project popup for long measure names */
+.pl-newproj{width:min(620px,calc(100vw - 48px))}
+.pl-newproj input.hub-inline,.pl-newproj select.hub-inline{text-overflow:ellipsis}
+.pl-newproj select.hub-inline{height:34px}

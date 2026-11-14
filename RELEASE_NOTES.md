@@ -1,3 +1,7 @@
+## Unreleased on top of 4.0.0-GA (plan73) — Wider New project popup
+
+- The + Project popup is now up to 620 px wide (was 300 px) so long measure names are readable.
+
 ## Unreleased on top of 4.0.0-GA (plan72) — BTL epics force BTL workstreams; Projects popover stays on the page
 
 - An epic marked BTL now treats every workstream under it as BTL (client display, effort/ABL totals, and backend review/commit). The workstream is the unit; the epic is the group.
