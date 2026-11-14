@@ -898,3 +898,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan26: tab order change (rail, tiles) — local harness only.
 
 - plan27: duplicate page titles hidden on all tabs — local harness only.
+
+- plan28: Pulse order velocity -> sprint bar -> tiles; filter follows into Standup — local harness only.

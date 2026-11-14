@@ -1,3 +1,7 @@
+## Unreleased on top of 4.0.0-GA (plan28) — Sprints Pulse layout
+
+- Pulse now shows **Team velocity** first, then a "Current sprint" bar holding the sprint filter, then the sprint tiles and contributors. The sprint filter left the page heading; in Standup the same bar sits above the standup. Cache-bust `4.0.0-GA-plan28`.
+
 ## Unreleased on top of 4.0.0-GA (plan27) — no duplicate page titles
 
 - The page title row (icon + name) under the active tab is hidden on every tab, since the tab and breadcrumb already name the page. Descriptions and action buttons stay. Checked on the local harness for all eight tabs (no visible title). Cache-bust `4.0.0-GA-plan27`.
