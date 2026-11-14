@@ -1,3 +1,8 @@
+## Unreleased on top of 4.0.0-GA (plan52) — row actions and drag-to-move workstreams
+
+- Row actions are now consistent icon buttons with hover states: grip, add workstream (+), remove workstream (minus), delete epic (trash, red on hover). Icons keep a fixed position per row.
+- Workstreams can be dragged by the grip to reorder within an epic or move into another epic (drop line shows above/below the target row). Up/Down on the focused grip nudges it one place. An epic can be left with no workstreams.
+
 ## Unreleased on top of 4.0.0-GA (plan51) — project short code
 
 - The Project column shows the short code (for example HRP M1.1.4) without truncation; hovering shows the full measure or project name. Names without a colon but starting with a code like "HRP M1.1.4 …" are shortened the same way.

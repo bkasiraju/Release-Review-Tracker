@@ -15,6 +15,31 @@ const gridCols=()=>{let v=null;try{v=JSON.parse(localStorage.getItem(GKEY));}cat
 const setGridCols=l=>{try{if(l)localStorage.setItem(GKEY,JSON.stringify(l));else localStorage.removeItem(GKEY);}catch(_){}};
 const priOpts=v=>{const n=v==null||v===''?0:Number(v),L=[0,1,2,3,4,5];if(!L.includes(n))L.push(n);return L.sort((a,b)=>a-b).map(x=>`<option value="${x}"${x===n?' selected':''}>P${x}</option>`).join('');};
 const relNum=r=>{const m=String(r.name||'').match(/(\d+)\s*$/);return m?Number(m[1]):-1;};
+// Drag a workstream (grip) within its epic or into another epic; Up/Down on the focused grip nudges it one place.
+function moveWs(wid,toE,idx){
+  const pl=P.plan;let w=null;
+  for(const e of pl.epics){const k=e.workstreams.findIndex(x=>x.id===wid);if(k>=0){w=e.workstreams.splice(k,1)[0];break;}}
+  const te=pl.epics.find(e=>e.id===toE);if(!w||!te)return false;
+  te.workstreams.splice(idx==null||idx<0?te.workstreams.length:Math.min(idx,te.workstreams.length),0,w);return true;
+}
+function wireDrag(el){
+  const clear=()=>el.querySelectorAll('.pl-dragging,.pl-drop-above,.pl-drop-below').forEach(x=>x.classList.remove('pl-dragging','pl-drop-above','pl-drop-below'));
+  el.ondragstart=ev=>{const g=ev.target.closest&&ev.target.closest('[data-grip]');if(!g)return;const tr=g.closest('tr'),w=g.closest('[data-w]');P.drag={w:w.dataset.w};ev.dataTransfer.effectAllowed='move';ev.dataTransfer.setData('text/plain',w.dataset.w);try{ev.dataTransfer.setDragImage(tr,16,16);}catch(_){}tr.classList.add('pl-dragging');};
+  el.ondragend=()=>{P.drag=null;clear();};
+  el.ondragover=ev=>{if(!P.drag)return;const tr=ev.target.closest('.pl-grid tbody tr[data-e]');if(!tr)return;ev.preventDefault();ev.dataTransfer.dropEffect='move';const r=tr.getBoundingClientRect(),after=ev.clientY>r.top+r.height/2;el.querySelectorAll('.pl-drop-above,.pl-drop-below').forEach(x=>x.classList.remove('pl-drop-above','pl-drop-below'));tr.classList.add(after?'pl-drop-below':'pl-drop-above');};
+  el.ondrop=ev=>{if(!P.drag)return;const tr=ev.target.closest('.pl-grid tbody tr[data-e]');if(!tr)return;ev.preventDefault();
+    const r=tr.getBoundingClientRect(),after=ev.clientY>r.top+r.height/2,wid=P.drag.w,toE=tr.dataset.e,ref=tr.dataset.wr;P.drag=null;
+    if(ref===wid){clear();return;}
+    const te=P.plan.epics.find(e=>e.id===toE);if(!te)return;
+    // index in the target epic once the dragged row is out of it
+    const rest=te.workstreams.filter(x=>x.id!==wid),at=ref?rest.findIndex(x=>x.id===ref):-1,idx=at<0?-1:at+(after?1:0);
+    if(moveWs(wid,toE,idx)){draw();queueSave();}
+  };
+  el.onkeydown=ev=>{const g=ev.target.closest&&ev.target.closest('[data-grip]');if(!g||(ev.key!=='ArrowUp'&&ev.key!=='ArrowDown'))return;ev.preventDefault();
+    const wid=g.closest('[data-w]').dataset.w,e=P.plan.epics.find(x=>x.workstreams.some(w=>w.id===wid));if(!e)return;
+    const k=e.workstreams.findIndex(w=>w.id===wid),n=k+(ev.key==='ArrowUp'?-1:1);if(n<0||n>=e.workstreams.length)return;
+    moveWs(wid,e.id,n);draw();queueSave();P.el.querySelector(`[data-w="${wid}"] [data-grip]`)?.focus();};
+}
 // Inline confirmation popover, shown just above the button that was clicked.
 function confirmAt(btn,msg,onOk){
   document.querySelectorAll('.pl-confirm').forEach(x=>x.remove());
@@ -202,8 +227,9 @@ function drawPlanner(){
           v2mom:()=>tdE('v2mom',txt('v2mom',e.v2mom,'CFS V2MOM',80,80))
         };
         const ep=cols.map(k=>C[k]()).join(''),wc='';
-        const act=`<td class="pl-g-act">${w?`<span data-w="${esc(w.id)}"><button type="button" class="pl-x" data-del-ws aria-label="Delete workstream" title="Delete workstream">×</button></span>`:''}${tail?`<button type="button" class="pl-x pl-g-add" data-add-ws aria-label="Add workstream" title="Add workstream">+</button>`:''}${first?`<button type="button" class="pl-x" data-del-epic aria-label="Delete epic" title="Delete epic">🗑</button>`:''}</td>`;
-        rows.push(`<tr data-e="${esc(e.id)}" class="${e.line==='ABL'?'abl':'btl'}${first?' pl-g-first':''}">${ep}${wc}${act}</tr>`);
+        const ico=d=>`<svg viewBox="0 0 20 20" aria-hidden="true">${d}</svg>`,ib=(cls,attr,lbl,d,on)=>`<button type="button" class="pl-ib ${cls}${on?'':' pl-ib-off'}" ${on?attr:'tabindex="-1" disabled'} aria-label="${lbl}" title="${lbl}">${ico(d)}</button>`;
+        const act=`<td class="pl-g-act"><span class="pl-acts"${w?` data-w="${esc(w.id)}"`:''}>${w?`<button type="button" class="pl-ib pl-grip" draggable="true" data-grip aria-label="Move workstream: drag within this epic or into another epic (or press Up/Down)" title="Drag to move this workstream, within this epic or into another">${ico('<g fill="currentColor" stroke="none"><circle cx="7" cy="5" r="1.4"/><circle cx="13" cy="5" r="1.4"/><circle cx="7" cy="10" r="1.4"/><circle cx="13" cy="10" r="1.4"/><circle cx="7" cy="15" r="1.4"/><circle cx="13" cy="15" r="1.4"/></g>')}</button>`:ib('pl-grip','','',' ',false)}${ib('pl-add','data-add-ws','Add workstream','<path d="M10 4v12M4 10h12"/>',tail)}${ib('pl-rm','data-del-ws','Remove workstream','<circle cx="10" cy="10" r="7"/><path d="M6.8 10h6.4"/>',!!w)}${ib('pl-trash','data-del-epic','Delete epic','<path d="M4 6h12M8 6V4h4v2M6 6l.8 10h6.4L14 6M8.5 9v4M11.5 9v4"/>',first)}</span></td>`;
+        rows.push(`<tr data-e="${esc(e.id)}"${w?` data-wr="${esc(w.id)}"`:''} class="${e.line==='ABL'?'abl':'btl'}${first?' pl-g-first':''}">${ep}${wc}${act}</tr>`);
       });
     });
     const strip=`<div class="pl-pstrip" aria-label="Projects">${pl.projects.map(p=>`<span class="pl-pchip" data-p="${esc(p.id)}"><input class="hub-inline pl-pname" type="text" list="pl-projects" placeholder="Project name (type to link a GUS project)" aria-label="Project name" data-f="name" value="${esc(p.name)}" maxlength="120">${p.gusId?`<a class="pl-gus" href="${H.GUS}PPM_Project__c/${esc(p.gusId)}/view" target="_blank" rel="noopener">GUS ↗</a>`:'<em class="pl-draft">New</em>'}<button type="button" class="pl-x" data-add-epic aria-label="Add epic to this project" title="Add epic to this project">+</button><button type="button" class="pl-x" data-del-proj aria-label="Delete project" title="Delete project">×</button></span>`).join('')}</div>`;
@@ -371,7 +397,7 @@ H.register({id:'plan',label:'Release Planning (Quarterly)',icon:'plan',tone:'gre
     P.tab='plan';
     el.oninput=onInput;
     el.onchange=ev=>{if(ev.target.closest('#pl-start,#pl-end')){const s=el.querySelector('#pl-start').value,e=el.querySelector('#pl-end').value;if(s&&e&&s<=e&&P.plan){P.plan.window={start:s,end:e};drawSummary();queueSave();}else if(s&&e&&s>e)window.toast?.('End date must be on or after the start date.',true);return;}onInput(ev);};
-    el.onclick=onClick;load(el);
+    el.onclick=onClick;wireDrag(el);load(el);
   }});
 H.onEsc('plan',()=>{closeModal();return true;});
 window.addEventListener('beforeunload',e=>{if(P.state==='dirty'||P.state==='saving'){e.preventDefault();e.returnValue='';}});

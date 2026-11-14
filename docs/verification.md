@@ -942,3 +942,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan50: inline delete popover — local harness: popover sits 8px above the button and Delete removes the epic; the project-delete popover and keyboard/Esc paths were not exercised.
 
 - plan51: project short code — local harness with a simulated 'HRP M1.1.4' option (button text, full-name title, width); real GUS project names not checked.
+
+- plan52: row action icons and workstream drag — local harness with synthetic drag events (moved a workstream into another epic); real mouse dragging and keyboard Up/Down not exercised.

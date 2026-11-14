@@ -679,3 +679,15 @@ body[data-hub=home] .hub-tile-chips{margin-top:auto}
 .pl-confirm .danger{background:#b3261e!important;border-color:#b3261e!important;color:#fff!important}
 /* plan51: Project short code (e.g. HRP M1.1.4) is never truncated; full name is the hover title */
 .pl-grid .c-project .cs-btn span,.pl-grid-wrap .pl-grid .c-project .cs-btn span{max-width:none!important;overflow:visible;text-overflow:clip;white-space:nowrap}
+/* plan52: row action icons and drag-to-move workstreams */
+.pl-acts{display:inline-flex;align-items:center;gap:2px}
+.pl-ib{width:28px;height:28px;padding:0;border:1px solid transparent;border-radius:7px;background:none;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;color:#5b6b7c!important}
+.pl-ib svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.pl-ib:hover,.pl-ib:focus-visible{background:#eef5fb;border-color:#c9dcec;outline:none}
+.pl-ib.pl-add{color:#0b6fa8!important}.pl-ib.pl-add:hover{background:#e3f1fb}
+.pl-ib.pl-rm:hover,.pl-ib.pl-trash:hover{color:#b3261e!important;background:#fdecea;border-color:#f3c2be}
+.pl-ib.pl-trash{color:#a14b45!important}
+.pl-ib.pl-grip{cursor:grab;color:#8a98a8!important}.pl-ib.pl-grip:active{cursor:grabbing}
+.pl-ib-off{visibility:hidden;pointer-events:none}
+.pl-grid tr.pl-dragging{opacity:.45}
+.pl-grid tr.pl-drop-above td{box-shadow:inset 0 3px 0 #1b73b3}.pl-grid tr.pl-drop-below td{box-shadow:inset 0 -3px 0 #1b73b3}
