@@ -143,7 +143,7 @@ function drawPeople(el){
   const g=groupKey(H.team);if(!g){box.hidden=true;return;}
   const paint=d=>{if(!box.isConnected||groupKey(H.team)!==g)return;
     box.hidden=!d||!d.people.length;if(box.hidden)return;
-    box.innerHTML=`<h3>${esc(d.name)}</h3><ul>${d.people.map(p=>`<li><span class="hub-avatar" data-i="${esc(initials(p.name))}">${p.avatar?`<img src="${esc(p.avatar)}" alt="" decoding="async" onerror="this.remove()">`:''}</span><b>${esc(p.name)}</b><small>${esc(p.role)}</small></li>`).join('')}</ul>`;};
+    box.innerHTML=`<h3>${esc(d.name)}</h3><ul>${d.people.map(p=>`<li><span class="hub-avatar" data-i="${esc(initials(p.name))}">${p.avatar?`<img src="${esc(p.avatar)}" alt="" decoding="async" ${p.alt&&p.alt!==p.avatar?`data-alt="${esc(p.alt)}"`:''} onerror="var a=this.dataset.alt;if(a){this.removeAttribute('data-alt');this.src=a;}else this.remove()">`:''}</span><b>${esc(p.name)}</b><small>${esc(p.role)}</small></li>`).join('')}</ul>`;};
   if(!peopleData||peopleData.g!==g){try{const c=JSON.parse(localStorage.getItem('hub-people-'+g)||'null');if(c&&c.d)peopleData={g,d:c.d};}catch(_){}}
   if(peopleData&&peopleData.g===g)paint(peopleData.d);
   loadPeople(g).then(d=>paint(d),()=>{});
@@ -153,7 +153,7 @@ const peopleLoads=new Map();
 function loadPeople(g){
   if(!peopleLoads.has(g))peopleLoads.set(g,call('hub-people',{group:g}).then(d=>{
     peopleData={g,d};try{localStorage.setItem('hub-people-'+g,JSON.stringify({d}));}catch(_){}
-    d.people.forEach(p=>{if(p.avatar){const i=new Image();i.src=p.avatar;}});return d;},e=>{peopleLoads.delete(g);throw e;}));
+    d.people.forEach(p=>{if(p.avatar){const i=new Image();i.src=p.avatar;}if(p.alt){const j=new Image();j.src=p.alt;}});return d;},e=>{peopleLoads.delete(g);throw e;}));
   return peopleLoads.get(g);
 }
 H.preloadPeople=()=>{const g=groupKey(H.team);if(g)loadPeople(g).catch(()=>{});};

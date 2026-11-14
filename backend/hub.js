@@ -268,7 +268,7 @@ async function getPeople(sf, slack, group) {
   const list = [...ordered.filter(u => lead.includes(u.Id)), ...rest];
   const people = [];
   for (let k = 0; k < list.length; k += 10)
-    people.push(...await Promise.all(list.slice(k, k + 10).map(async u => ({ id: u.Id, name: u.Name, role: u.Title || '', avatar: (await slackAvatar(slack, u.Email)) || u.SmallPhotoUrl || null }))));
+    people.push(...await Promise.all(list.slice(k, k + 10).map(async u => ({ id: u.Id, name: u.Name, role: u.Title || '', avatar: (await slackAvatar(slack, u.Email)) || u.SmallPhotoUrl || null, alt: u.SmallPhotoUrl || null }))));
   return { name, people };
 }
 
