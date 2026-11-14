@@ -3,17 +3,17 @@
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#4f46e5"><title>Release Intelligence</title>
-  <link rel="icon" href="./favicon.svg"><link rel="preload" href="./SalesforceSans-Regular.woff" as="font" type="font/woff" crossorigin><link rel="stylesheet" href="./styles.css?v=3.0.0-GA-consolidated-20261114-13"><link rel="stylesheet" href="./lite.css?v=3.0.0-GA-consolidated-20261114-13"><link rel="stylesheet" href="./sprint.css?v=3.0.0-GA-consolidated-20261114-13"><link rel="stylesheet" href="./hub.css?v=3.0.0-GA-consolidated-20261114-13">
-  <script src="./queue.js?v=3.0.0-GA-consolidated-20261114-13" defer></script>
-  <script src="./controls.js?v=3.0.0-GA-consolidated-20261114-13" defer></script>
-  <script src="./ai.js?v=3.0.0-GA-consolidated-20261114-13" defer></script>
-  <script src="./icons.js?v=3.0.0-GA-consolidated-20261114-13" defer></script>
-  <script src="./comments-view.js?v=3.0.0-GA-consolidated-20261114-13" defer></script>
-  <script src="./tooltips.js?v=3.0.0-GA-consolidated-20261114-13" defer></script>
-  <script src="./app.js?v=3.0.0-GA-consolidated-20261114-13" defer></script>
-  <script src="./hub.js?v=3.0.0-GA-consolidated-20261114-13" defer></script>
-  <script src="./sprint.js?v=3.0.0-GA-consolidated-20261114-13" defer></script>
-  <script src="./hub-pages.js?v=3.0.0-GA-consolidated-20261114-13" defer></script>
+  <link rel="icon" href="./favicon.svg"><link rel="preload" href="./SalesforceSans-Regular.woff" as="font" type="font/woff" crossorigin><link rel="stylesheet" href="./styles.css?v=3.0.0-GA-consolidated-20261114-14"><link rel="stylesheet" href="./lite.css?v=3.0.0-GA-consolidated-20261114-14"><link rel="stylesheet" href="./sprint.css?v=3.0.0-GA-consolidated-20261114-14"><link rel="stylesheet" href="./hub.css?v=3.0.0-GA-consolidated-20261114-14">
+  <script src="./queue.js?v=3.0.0-GA-consolidated-20261114-14" defer></script>
+  <script src="./controls.js?v=3.0.0-GA-consolidated-20261114-14" defer></script>
+  <script src="./ai.js?v=3.0.0-GA-consolidated-20261114-14" defer></script>
+  <script src="./icons.js?v=3.0.0-GA-consolidated-20261114-14" defer></script>
+  <script src="./comments-view.js?v=3.0.0-GA-consolidated-20261114-14" defer></script>
+  <script src="./tooltips.js?v=3.0.0-GA-consolidated-20261114-14" defer></script>
+  <script src="./app.js?v=3.0.0-GA-consolidated-20261114-14" defer></script>
+  <script src="./hub.js?v=3.0.0-GA-consolidated-20261114-14" defer></script>
+  <script src="./sprint.js?v=3.0.0-GA-consolidated-20261114-14" defer></script>
+  <script src="./hub-pages.js?v=3.0.0-GA-consolidated-20261114-14" defer></script>
 </head>
 <body class="loading-dashboard">
 <script>document.body.dataset.hub=(location.hash.match(/^#\/([a-z]+)/)||[])[1]||"home";</script>
@@ -23,6 +23,10 @@
     <button class="rail-button active" data-page="home" title="Team Hub" aria-label="Team Hub"><span data-icon3d="home" data-tone="violet"></span></button>
     <button class="rail-button" data-page="epics" title="Release Review" aria-label="Release Review"><span data-icon3d="scope" data-tone="green"></span></button>
     <button class="rail-button" data-page="sprints" title="Sprints" aria-label="Sprints"><span data-icon3d="sprint" data-tone="blue"></span></button>
+    <button class="rail-button" data-page="tds" title="Team Dependencies" aria-label="Team Dependencies"><span data-icon3d="td" data-tone="amber"></span></button>
+    <button class="rail-button" data-page="tests" title="Test Failures" aria-label="Test Failures"><span data-icon3d="flask" data-tone="rose"></span></button>
+    <button class="rail-button" data-page="rotations" title="Trust Champion" aria-label="Trust Champion"><span data-icon3d="rotation" data-tone="violet"></span></button>
+    <button class="rail-button" data-page="links" title="Quick Links" aria-label="Quick Links"><span data-icon3d="link" data-tone="teal"></span></button>
     <button class="rail-button" data-page="bugs" title="Bugs" aria-label="Bugs"><span data-icon3d="bug" data-tone="rose"></span></button>
     <button class="rail-button" data-page="status" title="Status Report" aria-label="Status Report"><span data-icon3d="chart" data-tone="amber"></span></button>
     <span hidden><button id="home-button"></button><button id="rail-executive"></button><button id="rail-sprint"></button></span>

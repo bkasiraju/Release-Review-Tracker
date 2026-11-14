@@ -110,3 +110,7 @@ td .hub-inline[type=text]{width:120px}
 .hub-banner .hub-eyebrow{opacity:.8;letter-spacing:.08em}
 .hub-banner.muted,.hub-banner.muted h2,.hub-banner.muted p,.hub-banner.muted small,.hub-banner.muted span,.hub-banner.muted b{color:#1f293c}
 body[data-hub=sprints] #overview-panel,body[data-hub=sprints] #table-card,body[data-hub=status] #overview-panel,body[data-hub=status] #table-card{display:none!important}
+/* Footer pinned to the bottom of the page with breathing room */
+main{display:flex;flex-direction:column;min-height:calc(100dvh - 72px);padding-bottom:28px}
+main>*{flex-shrink:0}
+main>.dashboard-footer{margin-top:auto;padding-top:24px;padding-bottom:12px}
