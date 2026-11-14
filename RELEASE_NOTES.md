@@ -1,3 +1,7 @@
+## Unreleased on top of 4.0.0-GA (plan49) — Project column width
+
+- The Project column now shrinks to its content with 8px padding (it was stretched by a first-column width rule: 166px down to 112px).
+
 ## Unreleased on top of 4.0.0-GA (plan48) — planner grid column order
 
 - Default columns: Project, Epic Name, Workstream, Epic Owner, Workstream Owner(s), Epic Est, WS Est, ATL/BTL, Sprint, actions. Priority, Status and Release are now off by default and can be turned on from Columns.
