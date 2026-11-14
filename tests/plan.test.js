@@ -70,3 +70,13 @@ test('cleanPlan keeps sheet-parity fields and rejects non-http docs', () => {
   assert.equal(o.theme, 'Feature GA'); assert.equal(o.v2mom, '5.5.2'); assert.equal(o.estimate, 35);
   assert.equal(o.status, 'In Progress'); assert.equal(o.doc, ''); assert.equal(o.workstreams[0].status, '');
 });
+
+test('review includes below-the-line epics only when asked', () => {
+  const { review } = require('../backend/plan.js');
+  const plan = { projects: [{ id: 'p1', name: 'M1: X', gusId: '' }], epics: [
+    { id: 'e1', projectId: 'p1', name: 'A', line: 'ABL', workstreams: [{ days: 1 }] },
+    { id: 'e2', projectId: 'p1', name: 'B', line: 'BTL', workstreams: [{ days: 1 }] }] };
+  assert.equal(review(plan, null, { id: 'x', name: 'P' }, false).items.length, 1);
+  const all = review(plan, null, { id: 'x', name: 'P' }, true);
+  assert.equal(all.items.length, 2); assert.equal(all.skipped, 0);
+});

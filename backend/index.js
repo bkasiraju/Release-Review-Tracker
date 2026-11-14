@@ -71,7 +71,7 @@ async function handleRequest(ctx){
       case 'plan-get':payload=await planner.getPlan(store,b.teamId);break;
       case 'plan-save':payload=await planner.savePlan(store,b.teamId,b.plan,b.revision);break;
       case 'plan-refs':payload=await planner.getRefs(sf,b.teamId);break;
-      case 'plan-commit':payload=await planner.commitPlan(sf,store,b.teamId,b.confirm===true);break;
+      case 'plan-commit':payload=await planner.commitPlan(sf,store,b.teamId,b.confirm===true,b.includeBtl===true);break;
       case 'hub-tds':payload=await hub.getTds(sf,b.teamId);break;
       case 'hub-picklists':payload=await hub.getPicklists(sf);break;
       case 'hub-rotation':payload=await hub.getRotation(store,b.teamId);break;

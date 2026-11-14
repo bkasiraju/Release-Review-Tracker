@@ -1,3 +1,10 @@
+## Unreleased — explicit Save, optional BTL commit, Saved epics list
+
+- **Save** button (always visible next to Review & save to GUS): saves the engineer's entries to the shared GUS Apps backend right now and confirms with a toast (entries were already autosaved; this is the explicit action).
+- **Review & save to GUS** is unchanged by default (ABL epics are created/updated as GUS projects and epics; GUS ids are written back to the plan), and now has a checkbox **Also save below-the-line (BTL) epics to GUS** (off by default; backend `includeBtl`). Failures are listed per epic and retries never duplicate records.
+- **Release Review → Saved epics**: every epic with its project and a link to the GUS epic/project (or "Not saved to GUS"), count in GUS vs total and the last save time.
+- Workstreams, owners, theme, V2MOM, status and doc fields remain plan-only (stored in the GUS Apps backend); GUS receives project, epic, planned release, priority and planned effort. Cache-bust `4.0.0-GA-plan22`.
+
 ## Unreleased — Release Planning: subtabs and header alignment
 
 Subtabs are now **Release Planned** (the planner) and **Release Review** (high-level metrics only: priority KPIs, effort by priority, planning health such as epics, ABL/BTL, in GUS vs draft, capacity used, no owner / no release / unassigned workstreams, plus by-release and by-status counts). The theme and engineer-bandwidth views are not repeated in Release Review. The Release Planning header, planning-window row, tabs and toolbars now share one vertical rhythm and 36px control height. Cache-bust `4.0.0-GA-plan21`.

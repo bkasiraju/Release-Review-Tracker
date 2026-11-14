@@ -73,6 +73,8 @@ function drawRps(){
   const byRel=[...rm.values()].sort((a,b)=>b.n-a.n),sm=new Map();epics.forEach(e=>sm.set(e.status||'No status',(sm.get(e.status||'No status')||0)+1));const byStat=[...sm.entries()];
   const noOwner=epics.filter(e=>!(e.owners||[]).length).length,noRel=epics.filter(e=>!e.releaseId).length,unas=epics.reduce((a,e)=>a+e.workstreams.filter(w=>!wsEngs(w).length).length,0),inGus=epics.filter(e=>e.gusId).length,load=M.avail?Math.round(M.total/M.avail*100):0;
   const hm=[['Epics',epics.length],['ABL / BTL',epics.filter(e=>e.line==='ABL').length+' / '+epics.filter(e=>e.line!=='ABL').length],['In GUS / draft',inGus+' / '+(epics.length-inGus)],['Capacity used',load+'%',load>100?'bad':''],['No owner',noOwner,noOwner?'warn':''],['No release',noRel,noRel?'warn':''],['Unassigned workstreams',unas,unas?'warn':'']];
+  const prjm=new Map(pl.projects.map(p=>[p.id,p])),saved=epics.filter(e=>e.gusId),lc=pl.lastCommit&&pl.lastCommit.at?new Date(pl.lastCommit.at).toLocaleString():'';
+  const savedHtml=`<section class="pl-card pl-saved"><h3>Saved epics <small>${saved.length} of ${epics.length} in GUS${lc?' · last saved '+esc(lc):''}</small></h3>${epics.length?`<table class="pl-rps-t"><thead><tr><th>Epic</th><th>Project</th><th>Release</th><th>Line</th><th>GUS</th></tr></thead><tbody>${epics.map(e=>{const p=prjm.get(e.projectId)||{};return `<tr><td>${esc(e.name||'(unnamed)')}</td><td>${p.gusId?`<a class="pl-gus" href="${H.GUS}PPM_Project__c/${esc(p.gusId)}/view" target="_blank" rel="noopener">${esc(p.name||'project')} ↗</a>`:esc(p.name||'—')}</td><td>${esc(rn(e))}</td><td>${esc(e.line)}</td><td>${e.gusId?`<a class="pl-gus" href="${H.GUS}ADM_Epic__c/${esc(e.gusId)}/view" target="_blank" rel="noopener">Open in GUS ↗</a>`:'<em class="pl-draft">Not saved to GUS</em>'}</td></tr>`;}).join('')}</tbody></table>`:'<p class="note">No epics yet.</p>'}</section>`;
   const R=46,C=2*Math.PI*R;let off=0;
   const arcs=m.themes.filter(t=>t.days>0).map((t,i)=>{const len=t.days/tot*C,a=`<circle cx="60" cy="60" r="${R}" fill="none" stroke="${col(i)}" stroke-width="18" stroke-dasharray="${len} ${C-len}" stroke-dashoffset="${-off}" transform="rotate(-90 60 60)"></circle>`;off+=len;return a;}).join('');
   const seg=(b,l)=>B[b]>0?`<i style="width:${B[b]/(tot||1)*100}%;background:${PCOL[b]}" title="${l}: ${fmt(B[b])} d"></i>`:'';
@@ -83,7 +85,7 @@ function drawRps(){
     <div class="pl-pbar">${seg(0,'P0')}${seg(1,'P1')}${seg(2,'P2')}${seg(3,'P3+')}</div>
     <h4 class="pl-sub">Planning health</h4><div class="pl-hm">${hm.map(([l,v,t])=>`<div class="${t||''}"><b>${v}</b><span>${l}</span></div>`).join('')}</div></section>
   <section class="pl-card"><h3>By planned release</h3>${byRel.length?`<table class="pl-rps-t"><thead><tr><th>Release</th><th>Epics</th><th>ABL d</th><th>BTL d</th></tr></thead><tbody>${byRel.map(r=>`<tr><td>${esc(r.name)}</td><td>${r.n}</td><td>${fmt(r.abl)}</td><td>${fmt(r.btl)}</td></tr>`).join('')}</tbody></table>`:'<p class="note">No epics yet.</p>'}
-    <h4 class="pl-sub">By status</h4>${byStat.length?`<div class="pl-hm">${byStat.map(([k,n])=>`<div><b>${n}</b><span>${esc(k)}</span></div>`).join('')}</div>`:'<p class="note">No epics yet.</p>'}</section></div>`;
+    <h4 class="pl-sub">By status</h4>${byStat.length?`<div class="pl-hm">${byStat.map(([k,n])=>`<div><b>${n}</b><span>${esc(k)}</span></div>`).join('')}</div>`:'<p class="note">No epics yet.</p>'}</section></div>${savedHtml}`;
 }
 function openRps(k,opener){
   const pl=P.plan,prj=new Map(pl.projects.map(p=>[p.id,p]));let title,list;
@@ -244,8 +246,9 @@ function onClick(ev){
   const md=t.closest('[data-mode]');if(md){P.view.mode=md.dataset.mode;drawTools();drawPlanner();wire();return;}
   if(t.closest('[data-grid-add-epic]')){if(!pl.projects.length)pl.projects.push({id:uid('p'),name:'',theme:'',gusId:''});const e=newEpic(pl.projects[0].id);pl.epics.push(e);draw();queueSave();P.el.querySelector(`[data-e="${e.id}"] input`)?.focus();return;}
   if(t.closest('[data-clear-view]')){P.view=Object.assign(P.view,{q:'',release:'',line:'',eng:'',theme:''});drawTools();drawPlanner();wire();return;}
+  if(t.closest('#pl-save')){const b=t.closest('#pl-save');b.disabled=true;P.state='dirty';flush().then(()=>{b.disabled=false;if(P.state==='saved')window.toast?.('Plan saved to GUS Apps for the whole team.');else window.toast?.('Could not save the plan.',true);},()=>{b.disabled=false;});return;}
   if(t.closest('#pl-leaves'))return openLeaves();
-  if(t.closest('#pl-commit'))return openCommit();
+  if(t.closest('#pl-commit'))return openCommit(false);
   if(t.closest('[data-add-epic]')){const e=newEpic(c.p);pl.epics.push(e);draw();queueSave();P.el.querySelector(`[data-e="${e.id}"] .pl-ename`)?.focus();return;}
   if(t.closest('[data-add-ws]')){const e=findE(c.e);if(!e)return;const w={id:uid('w'),name:'',priority:0,engId:'',engName:'',engIds:[],engNames:[],days:0,sprint:''};e.workstreams.push(w);draw();queueSave();P.el.querySelector(`[data-w="${w.id}"] input`)?.focus();return;}
   const line=t.closest('[data-line]');if(line){const e=findE(c.e);if(e){e.line=line.dataset.line;draw();queueSave();}return;}
@@ -277,17 +280,18 @@ function openLeaves(){
     closeModal();drawSummary();queueSave();
   };
 }
-async function openCommit(){
+async function openCommit(btl){
   const opener=document.getElementById('pl-commit');await flush();
   if(P.state==='conflict'||P.state==='error')return window.toast?.('Resolve the save problem before saving to GUS.',true);
   const el=openModal('Save to GUS','<div class="hub-loading" role="status"><span class="executive-spinner" aria-hidden="true"></span> Checking the plan…</div>',opener);
   try{
-    const {preview}=await call('plan-commit',{teamId:H.team.Id,confirm:false}),it=preview.items,bl=preview.blockers.length;
-    el.querySelector('#pl-mb').innerHTML=`<p class="note">${it.length?`${it.length} epic(s) above the line will be saved to GUS.`:'No epics are above the line (ABL) yet.'} ${preview.skipped?`${preview.skipped} below-the-line epic(s) stay in the dashboard.`:''}</p>
+    const {preview}=await call('plan-commit',{teamId:H.team.Id,confirm:false,includeBtl:!!btl}),it=preview.items,bl=preview.blockers.length;
+    el.querySelector('#pl-mb').innerHTML=`<label class="pl-btl-opt"><input type="checkbox" id="pl-incl-btl"${btl?' checked':''}> Also save below-the-line (BTL) epics to GUS</label><p class="note">${it.length?`${it.length} epic(s) above the line will be saved to GUS.`:'No epics are above the line (ABL) yet.'} ${preview.skipped?`${preview.skipped} below-the-line epic(s) stay in the dashboard.`:''}</p>
     ${it.length?`<div class="pl-review">${it.map(x=>`<div class="pl-review-r${x.problems.length?' bad':''}"><b>${esc(x.name||'(unnamed epic)')}</b><span>${x.action==='update'?'Update existing':'Create'} · project ${esc(x.project||'—')}${x.projectAction==='create-or-link'?' (created or linked)':''} · program ${esc(x.program||'—')}</span><span>Release ${esc(x.release||'—')} · priority ${x.priority==null?'—':esc(x.priority)} · planned effort ${fmt(x.effort)} days</span>${x.problems.map(p=>`<em>⚠ ${esc(p)}</em>`).join('')}</div>`).join('')}</div>`:''}
     <div class="nd-actions"><button type="button" class="button" data-close>Cancel</button><button type="button" class="button primary" id="pl-confirm" ${bl||!it.length?'disabled':''}>Create in GUS</button></div>`;
+    el.querySelector('#pl-incl-btl').onchange=ev=>{closeModal();openCommit(ev.target.checked);};
     el.querySelector('#pl-confirm').onclick=async e=>{const b=e.currentTarget;b.disabled=true;b.textContent='Saving to GUS…';
-      try{const r=await call('plan-commit',{teamId:H.team.Id,confirm:true});showResult(r);}catch(err){el.querySelector('#pl-mb').insertAdjacentHTML('afterbegin',`<p class="nd-msg error">${esc(err.message)}</p>`);b.disabled=false;b.textContent='Create in GUS';}};
+      try{const r=await call('plan-commit',{teamId:H.team.Id,confirm:true,includeBtl:!!btl});showResult(r);}catch(err){el.querySelector('#pl-mb').insertAdjacentHTML('afterbegin',`<p class="nd-msg error">${esc(err.message)}</p>`);b.disabled=false;b.textContent='Create in GUS';}};
   }catch(err){el.querySelector('#pl-mb').innerHTML=`<p class="nd-msg error">${esc(err.message)}</p><div class="nd-actions"><button type="button" class="button" data-close>Close</button></div>`;}
 }
 function showResult(r){
@@ -316,7 +320,7 @@ H.register({id:'plan',label:'Release Planning',icon:'plan',tone:'green',desc:'Pl
   stat:()=>({text:'Planned vs available capacity, ABL and BTL'}),
   render(el){
     P.el=el;
-    el.innerHTML=`<div class="executive-heading"><div><h2>${icon('plan','green')} Release Planning</h2><p>Plan projects, epics and workstreams for ${esc(H.team.Name)}. Effort is in days; epics above the line (ABL) are saved to GUS when you confirm.</p></div><div class="heading-actions"><span id="pl-state" class="pl-state" role="status" aria-live="polite"></span><button type="button" class="button" id="pl-leaves">Leaves, holidays &amp; on-call</button><button type="button" class="button primary" id="pl-commit">Review &amp; save to GUS</button></div></div>
+    el.innerHTML=`<div class="executive-heading"><div><h2>${icon('plan','green')} Release Planning</h2><p>Plan projects, epics and workstreams for ${esc(H.team.Name)}. Effort is in days; epics above the line (ABL) are saved to GUS when you confirm.</p></div><div class="heading-actions"><span id="pl-state" class="pl-state" role="status" aria-live="polite"></span><button type="button" class="button" id="pl-save" title="Save your entries to the shared GUS Apps backend (also saved automatically)">Save</button><button type="button" class="button" id="pl-leaves">Leaves, holidays &amp; on-call</button><button type="button" class="button primary" id="pl-commit">Review &amp; save to GUS</button></div></div>
     <div class="pl-window"><label>Planning window <input type="date" class="hub-inline" id="pl-start" aria-label="Window start"></label><span aria-hidden="true">→</span><input type="date" class="hub-inline" id="pl-end" aria-label="Window end"><span class="note" id="pl-last"></span></div><div id="pl-warn"></div>
     <div class="pl-tabs" role="tablist" aria-label="Release planning views"><button type="button" role="tab" data-tab="plan" class="on" aria-selected="true">Release Planned</button><button type="button" role="tab" data-tab="rps" aria-selected="false">Release Review</button></div>
     <div id="pl-main"><div id="pl-sum"></div>

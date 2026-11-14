@@ -100,10 +100,10 @@ async function teamProgram(sf, teamId) {
 }
 
 // New projects are tagged to the team's program automatically; `program` is that program (or null when GUS has none).
-function review(plan, releaseIds, program) {
+function review(plan, releaseIds, program, includeBtl) {
   const byProject = new Map(plan.projects.map(p => [p.id, p]));
   const items = [], blockers = [];
-  for (const e of plan.epics.filter(x => x.line === 'ABL')) {
+  for (const e of plan.epics.filter(x => includeBtl || x.line === 'ABL')) {
     const problems = [], project = byProject.get(e.projectId), effort = Math.round(e.workstreams.reduce((a, w) => a + w.days, 0) * 100) / 100;
     if (!e.name) problems.push('Epic name is required');
     if (!project) problems.push('Select a project');
@@ -118,21 +118,21 @@ function review(plan, releaseIds, program) {
     items.push(item);
     if (problems.length) blockers.push({ epicId: e.id, name: e.name || '(unnamed epic)', problems });
   }
-  return { items, blockers, skipped: plan.epics.filter(x => x.line !== 'ABL').length };
+  return { items, blockers, skipped: includeBtl ? 0 : plan.epics.filter(x => x.line !== 'ABL').length };
 }
 
-async function commitPlan(sf, store, teamId, confirm) {
+async function commitPlan(sf, store, teamId, confirm, includeBtl) {
   planKey(teamId);
   const { plan } = await getPlan(store, teamId);
   const rel = await teamReleases(sf, teamId, false).then(r => new Set(r.map(x => x.Id)), () => null);
   const program = await teamProgram(sf, teamId);
-  const preview = review(plan, rel, program);
+  const preview = review(plan, rel, program, includeBtl === true);
   if (!confirm) return { preview };
-  if (!preview.items.length) throw new Error('No epics are above the line (ABL). Mark epics ABL to save them to GUS.');
+  if (!preview.items.length) throw new Error('No epics to save. Mark epics ABL (or include below-the-line epics) to save them to GUS.');
   if (preview.blockers.length) throw new Error(`Fix ${preview.blockers.length} epic(s) before saving to GUS.`);
   const done = { projects: new Map(), epics: new Map() }, results = [];
   const byProject = new Map(plan.projects.map(p => [p.id, p]));
-  for (const e of plan.epics.filter(x => x.line === 'ABL')) {
+  for (const e of plan.epics.filter(x => includeBtl === true || x.line === 'ABL')) {
     const project = byProject.get(e.projectId), r = { epicId: e.id, name: e.name };
     try {
       let projectId = project.gusId || done.projects.get(project.id);

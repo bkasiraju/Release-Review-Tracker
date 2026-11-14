@@ -45,6 +45,8 @@ Every requested change follows this sequence end to end without asking the user 
 
 ## Release Planning tab
 
+`#pl-save` forces a plan save (flush) and is always visible. `commitPlan(sf,store,teamId,confirm,includeBtl)`: BTL epics are written only when `includeBtl===true`. Release Review lists saved epics with their GUS links from `epic.gusId` / `project.gusId`.
+
 Planner dropdowns are always `H.customSelect`; multi-selects (`msel`, `.ms`) are plan.js-local. Epic plan-only fields: `theme,hrp,v2mom,estimate,status,doc,owners,ownerNames`; workstream: `priority,status,engIds,engNames`. Defaults: priority 0, release = team's 268 (`defRel`). Grid project cells show `data-short` (hub.js customSelect). Only the original epic fields are written to GUS.
 
 Priority is shown as P<n> (select; stored numeric). Workstreams carry a plan-only `priority`. `P.view.mode` toggles Form/Grid (grid rows are `tr[data-e]` with `td[data-w]` cells so the shared `onInput` ctx logic applies). Summary cards fold via `P.open`. The Release Planning Summary subtab (`P.tab`, `drawRps`) is read-only and derived from the plan.

@@ -188,6 +188,8 @@ The Bugs page follows the Trust Champion layout: SLA tiles (Triage 2d, Bugfix P0
 
 ## Release Planning
 
+A Save button persists entries to the GUS Apps backend; Review & save to GUS writes projects and epics (optionally including below-the-line epics) and records their GUS links, listed under Release Review → Saved epics.
+
 The planner mirrors the team's planning sheets (theme, HRP/CFS V2MOM, owners, estimates, status, doc link) with multi-select owners and engineers and new items defaulting to P0 and release 268.
 
 Priorities display as P1–P5; the Projects & epics list has a Form/Grid toggle, and a Release Planning Summary subtab rolls effort up by priority and theme.
