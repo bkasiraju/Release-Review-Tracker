@@ -408,3 +408,10 @@ body[data-hub=home] .hub-tile .hub-tile-chips span{font-size:10px;line-height:1.
 .sp-tchip:focus-visible{outline:2px solid #0b5a8a;outline-offset:2px}
 .sp-chip[title]{cursor:help}
 .sp-items td.sp-epic-cell,.sp-items td.sp-epic-cell a{font-size:12px!important}
+
+/* Popup prev/next: hug the name, outer edges, no stretched boxes */
+.sp-modal-top{grid-template-columns:auto minmax(0,1fr) auto!important}
+.sp-modal-top .sp-mtitle{justify-self:center}
+.sp-mnav{width:max-content;max-width:100%;padding:4px 10px!important;background:transparent!important;border:0!important;border-bottom:2px solid #c9d6e3!important;border-radius:0!important}
+.sp-mnav:hover:not([disabled]){background:#f1f6fb!important;border-bottom-color:#2a8fd8!important;transform:none!important}
+.sp-mnav:first-child{justify-self:start}.sp-mnav:last-child{justify-self:end}

@@ -1,3 +1,7 @@
+## Unreleased — popup prev/next cleanup
+
+In the standup popup the Previous/Next engineer controls are no longer stretched boxes: they sit at the outer edges, hug the name with a bottom rule only (no side borders), and the "n of N" line under the engineer's name is removed (the Standup page nav keeps its count). Cache-bust `4.0.0-GA-plan16`.
+
 ## Unreleased — metric definitions on hover
 
 Closed / Spillover / Added / Removed / pts chg chips (Pulse cards, standup header, popup header and per-work-item tags) now show a hover definition with the numbers: spillover = committed at sprint start, not closed, carries from the selected sprint to the next sprint (or backlog); added = not in the start forecast, +N SP; removed = committed at N SP and taken out; pts chg = estimate from X to Y. Epic cells in work-item tables use the compact 12px font. Cache-bust `4.0.0-GA-plan15`.
