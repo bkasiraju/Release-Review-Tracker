@@ -187,7 +187,7 @@ function cellLen(c){
   const inp=c.querySelector('input:not([type=checkbox]):not([type=radio])');
   if(inp&&!c.textContent.trim())return inp.type==='date'?17:Math.max(String(inp.value||'').length,4)+3;
   const t=c.textContent.replace(/\s+/g,' ').trim();
-  return t.length;
+  return t.length+(c.querySelector('button')?5:0);
 }
 function fitTable(t){
   const host=t.parentElement;if(!host||!t.tHead||!t.tBodies.length)return;

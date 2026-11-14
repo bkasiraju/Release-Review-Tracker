@@ -129,17 +129,23 @@ H.register({id:'tds',label:'Team Dependencies',icon:'td',tone:'amber',desc:'Inco
   }});
 
 // ── Test failures (Patch / Main) ────────────────────────────────────────────
-const TF={data:null,pick:null,members:[],who:'',q:'',seq:0};
+const TF={data:null,pick:null,members:[],who:'',q:'',kind:'',pg:{patch:1,main:1},seq:0},TF_PAGE=25;
 const tfAll=()=>[...(TF.data?.patch||[]),...(TF.data?.main||[])];
 const tfRows=rows=>{const q=TF.q.toLowerCase();return rows.filter(r=>(!TF.who||(TF.who==='none'?!r.assigneeId:r.assigneeId===TF.who))&&(!q||(r.name+' '+r.subject+' '+r.assignee).toLowerCase().includes(q)));};
 const build=(b,patch)=>b?`<span class="tf-build ${patch?'patch':'main'}">${esc(b)}</span>`:'—';
-function tfSection(title,cls,desc,rows,pick){
-  if(!rows.length)return '';
-  return `<section class="tf-section ${cls}"><div class="tf-head"><b>${title}</b><span class="count-pill">${rows.length}</span><span>${esc(desc)}</span></div><div class="table-scroll"><table><thead><tr><th>ID</th><th>Subject</th><th>Assignee</th><th>Found in</th><th>Scheduled</th><th>Age</th><th>Status</th></tr></thead><tbody>${rows.map(r=>`<tr><td><a href="${H.GUS}ADM_Work__c/${esc(r.id)}/view" target="_blank" rel="noopener noreferrer">${esc(r.name)}</a>${H.nudgeBtn(r)}</td><td class="sp-subject" title="${esc(r.subject)}">${esc(r.subject.slice(0,140))}</td><td>${esc(r.assignee||'Unassigned')}</td><td>${build(r.found,r.found.includes('.'))}</td><td>${build(r.scheduled,r.scheduled.includes('.'))}</td><td class="${r.age>14?'tf-stale':''}">${r.age<1?'today':r.age+' days'}</td><td><select class="hub-inline" data-edit="ADM_Work__c" data-id="${esc(r.id)}" data-field="Status__c" data-prev="${esc(r.status)}" data-label="${esc(r.name)} status" aria-label="Status of ${esc(r.name)}">${H.options(pick?pick.workStatus:[],r.status)}</select></td></tr>`).join('')}</tbody></table></div></section>`;
+function tfPager(cls,total,pg){
+  const pages=Math.ceil(total/TF_PAGE);if(pages<2)return '';
+  const from=(pg-1)*TF_PAGE+1,to=Math.min(total,pg*TF_PAGE);
+  return `<div class="tf-pager" role="navigation" aria-label="${cls} pages"><span>${from}–${to} of ${total}</span><button type="button" class="button small" data-tf-page="${cls}:${pg-1}" ${pg<=1?'disabled':''}>‹ Prev</button><b>Page ${pg} / ${pages}</b><button type="button" class="button small" data-tf-page="${cls}:${pg+1}" ${pg>=pages?'disabled':''}>Next ›</button></div>`;
+}
+function tfSection(title,cls,desc,all,pick){
+  if(!all.length)return '';
+  const pages=Math.ceil(all.length/TF_PAGE),pg=TF.pg[cls]=Math.min(Math.max(TF.pg[cls]||1,1),pages),rows=all.slice((pg-1)*TF_PAGE,pg*TF_PAGE);
+  return `<section class="tf-section ${cls}"><div class="tf-head"><b>${title}</b><span class="count-pill">${all.length}</span><span>${esc(desc)}</span></div><div class="table-scroll"><table><thead><tr><th>ID</th><th>Subject</th><th>Assignee</th><th>Found in</th><th>Scheduled</th><th>Age</th><th>Status</th></tr></thead><tbody>${rows.map(r=>`<tr><td><a href="${H.GUS}ADM_Work__c/${esc(r.id)}/view" target="_blank" rel="noopener noreferrer">${esc(r.name)}</a>${H.nudgeBtn(r)}</td><td class="sp-subject" title="${esc(r.subject)}">${esc(r.subject.slice(0,140))}</td><td>${esc(r.assignee||'Unassigned')}</td><td>${build(r.found,r.found.includes('.'))}</td><td>${build(r.scheduled,r.scheduled.includes('.'))}</td><td class="${r.age>14?'tf-stale':''}">${r.age<1?'today':r.age+' days'}</td><td><select class="hub-inline" data-edit="ADM_Work__c" data-id="${esc(r.id)}" data-field="Status__c" data-prev="${esc(r.status)}" data-label="${esc(r.name)} status" aria-label="Status of ${esc(r.name)}">${H.options(pick?pick.workStatus:[],r.status)}</select></td></tr>`).join('')}</tbody></table></div>${tfPager(cls,all.length,pg)}</section>`;
 }
 function drawTests(el){
-  const d=TF.data,patch=tfRows(d.patch),main=tfRows(d.main);
-  el.querySelector('#tf-chips').innerHTML=`<span class="sp-chip rem">${d.patch.length} Patch TFs</span><span class="sp-chip add">${d.main.length} Main TFs</span>${d.truncated?'<span class="sp-chip warn">Showing first 500</span>':''}`;
+  const d=TF.data,patch=TF.kind==='main'?[]:tfRows(d.patch),main=TF.kind==='patch'?[]:tfRows(d.main);
+  el.querySelector('#tf-chips').innerHTML=`<button type="button" class="sp-chip rem tf-filter${TF.kind==='patch'?' on':''}" data-tf-kind="patch" aria-pressed="${TF.kind==='patch'}" title="Show only Patch TFs">${d.patch.length} Patch TFs</button><button type="button" class="sp-chip add tf-filter${TF.kind==='main'?' on':''}" data-tf-kind="main" aria-pressed="${TF.kind==='main'}" title="Show only Main TFs">${d.main.length} Main TFs</button>${TF.kind?'<button type="button" class="button small" data-tf-kind="">Show all</button>':''}${d.truncated?'<span class="sp-chip warn">Showing first 500</span>':''}`;
   el.querySelector('#tf-body').innerHTML=(patch.length||main.length)?tfSection('Patch Open TFs','patch','Scheduled for a patch build — fix before the patch ships',patch,TF.pick)+tfSection('Main Open TFs','main','Open on main release, oldest first — don’t let these become patch TFs',main,TF.pick):`<div class="empty-state hub-empty"><h3>No open test failures</h3><p>Nothing matches for ${esc(H.team.short)}.</p></div>`;
 }
 async function loadTests(el){
@@ -153,9 +159,14 @@ H.register({id:'tests',label:'Test Failures',icon:'flask',tone:'rose',desc:'Open
     el.innerHTML=heading('flask','rose','Test Failures',`Open test failures for ${H.team.Name}. Edit status inline; changes save to GUS immediately.`,refreshBtn)+
     `<section class="table-card"><div class="filterbar"><input id="tf-q" class="hub-inline" placeholder="Search name or subject" aria-label="Search test failures" value="${esc(TF.q)}"><select id="tf-who" class="hub-inline" aria-label="Assignee"></select><span id="tf-chips" class="tf-chips"></span></div><div id="tf-body"></div></section>`;
     withIcons(el);
-    el.onclick=e=>{if(e.target.closest('[data-refresh]'))loadTests(el);};
-    el.querySelector('#tf-q').oninput=e=>{TF.q=e.target.value;if(TF.data)drawTests(el);};
-    el.querySelector('#tf-who').onchange=e=>{TF.who=e.target.value;if(TF.data)drawTests(el);};
+    el.onclick=e=>{
+      if(e.target.closest('[data-refresh]'))return loadTests(el);
+      const k=e.target.closest('[data-tf-kind]');if(k&&TF.data){const v=k.dataset.tfKind;TF.kind=TF.kind===v?'':v;TF.pg={patch:1,main:1};return drawTests(el);}
+      const g=e.target.closest('[data-tf-page]');if(g&&TF.data){const [c,n]=g.dataset.tfPage.split(':');TF.pg[c]=+n;drawTests(el);el.querySelector('.tf-section.'+c)?.scrollIntoView({block:'start'});}
+    };
+    H.onEsc('tests',()=>{if(TF.kind){TF.kind='';TF.pg={patch:1,main:1};if(TF.data)drawTests(el);return true;}return false;});
+    el.querySelector('#tf-q').oninput=e=>{TF.q=e.target.value;TF.pg={patch:1,main:1};if(TF.data)drawTests(el);};
+    el.querySelector('#tf-who').onchange=e=>{TF.who=e.target.value;TF.pg={patch:1,main:1};if(TF.data)drawTests(el);};
     bindPage(el,(id,field,val)=>{const r=tfAll().find(x=>x.id===id);if(r&&field==='Status__c')r.status=val;});
     loadTests(el);
   }});

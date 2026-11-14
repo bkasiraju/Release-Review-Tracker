@@ -240,3 +240,11 @@ body.focus-mode .gus-links{display:none}
 .filterbar .sp-tabs button .count-pill{margin-left:6px}
 .filterbar .sp-tabs button.selected .count-pill{background:#ffffff33;color:#fff}
 .filterbar .note{background:none;border:0;padding:0;font-size:12px;color:#5b6b7c;margin-left:6px}
+
+/* Test failures: Patch/Main filter chips and per-section pager */
+button.tf-filter{cursor:pointer;border:1.5px solid transparent;font-weight:700;transition:transform .15s,box-shadow .15s}
+button.tf-filter:hover{transform:translateY(-1px)}
+button.tf-filter.on{box-shadow:0 0 0 2px #176b91;border-color:#fff}
+.tf-chips{display:inline-flex;gap:8px;align-items:center;margin-left:auto}
+.tf-pager{display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:8px 14px;border-top:1px solid #e3e9f0;font-size:12px;color:#44546a}
+.tf-pager span{margin-right:auto}
