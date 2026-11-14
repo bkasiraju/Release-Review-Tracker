@@ -192,3 +192,6 @@ body[data-ready] #hub-boot{display:none}
 .hub-top{grid-template-columns:minmax(0,1fr)}
 .hub-top #overview-panel{grid-column:1/-1!important}
 .hub-top #overview-panel .health-metrics-strip{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+
+/* Team Hub no longer shows Story point delivery / Epic health (they remain on Release Review) */
+body[data-hub=home] #overview-panel{display:none!important}

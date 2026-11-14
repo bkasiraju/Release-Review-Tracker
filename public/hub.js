@@ -169,8 +169,7 @@ function renderHome(el){
     const rot=`<section class="hub-rota" aria-label="On rotation now"><span>${icon('rotation','violet')}<b>PD on-call</b> ${pd?esc(pd.name):'<i>not set</i>'}</span><span>${icon('flag','amber')}<b>Trust Hero</b> ${th?esc(th.name):'<i>not set</i>'}</span><button class="text-button" data-go="rotations">Trust Champion ›</button></section>`;
     const tiles=NAV.filter(id=>id!=='home'&&H.pages.has(id)).map(id=>{const p=H.pages.get(id);return tile(p,p.stat?p.stat(home,{rota,pd,th}):null);}).join('');
     parkOverview();
-    el.innerHTML=`<div class="hub-top"></div>${rot}<div class="hub-tiles">${tiles}</div><section id="hub-people" class="hub-people" hidden aria-label="Team"></section>`;
-    const top=el.querySelector('.hub-top'),ov=$('overview-panel');if(top&&ov)top.prepend(ov);
+    el.innerHTML=`${rot}<div class="hub-tiles">${tiles}</div><section id="hub-people" class="hub-people" hidden aria-label="Team"></section>`;
     drawPeople(el);
   };
   draw(null,null);
