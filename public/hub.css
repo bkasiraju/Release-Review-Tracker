@@ -838,3 +838,7 @@ body[data-ready] #hub-boot{display:flex}
 .pl-eng-th{display:flex;flex-wrap:wrap;gap:4px}.pl-eng-th i{font-style:normal;font-size:11px;background:#eef4fa;border:1px solid #d3e1ee;border-radius:10px;padding:1px 7px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pl-eng-th i b{color:#176b91}
 .pl-eng-h,.pl-eng-r{grid-template-columns:minmax(110px,1.2fr) 56px minmax(120px,1.5fr) 74px 80px minmax(80px,1fr);gap:8px}
 .pl-eng-r>*{min-width:0}.pl-eng{overflow:hidden}
+
+/* plan78: engineer bandwidth headers and values centered (name stays left) */
+.pl-eng-h>span:nth-child(n+2),.pl-eng-r>span:nth-child(n+2){text-align:center!important;justify-content:center}
+.pl-eng-th{justify-content:center}

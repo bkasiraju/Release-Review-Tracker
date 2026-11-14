@@ -988,3 +988,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan76: Expand/Collapse labels toggle cards (local harness, headless Chrome: both summary cards went collapsed to open on label click; not verified on the live app).
 
 - plan77: Engineer bandwidth by-theme column, renamed effort columns, BTL now counted (local harness, headless Chrome at 1500 and 1100 px: Load bar inside card; not verified on the live app).
+
+- plan78: engineer bandwidth centred (local harness: header and value centres match, offset 0 px; not verified on the live app).

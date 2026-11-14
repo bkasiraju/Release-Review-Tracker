@@ -1,3 +1,7 @@
+## Unreleased on top of 4.0.0-GA (plan78) — Engineer bandwidth centred
+
+- Headers and values for Available, By theme, Planned Effort (ABL), Un-planned Effort (BTL) and Load are centre-aligned. The engineer name stays left-aligned.
+
 ## Unreleased on top of 4.0.0-GA (plan77) — Engineer bandwidth: By theme (effort), renamed effort columns
 
 - Engineer bandwidth gains a "By theme (effort)" column right after Available: per-engineer effort split by theme as chips.
