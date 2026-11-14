@@ -1,3 +1,7 @@
+## Unreleased on top of 4.0.0-GA (plan29) — standup engineer avatar strip
+
+- The standup review dialog shows a strip of small avatars for the whole team (in the current standup order). Clicking one jumps to that engineer; Previous/Next then follow from that engineer in the same order. Cache-bust `4.0.0-GA-plan29`.
+
 ## Unreleased on top of 4.0.0-GA (plan28) — Sprints Pulse layout
 
 - Pulse now shows **Team velocity** first, then a "Current sprint" bar holding the sprint filter, then the sprint tiles and contributors. The sprint filter left the page heading; in Standup the same bar sits above the standup. Cache-bust `4.0.0-GA-plan28`.

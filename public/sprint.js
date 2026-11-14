@@ -219,6 +219,7 @@ function renderModal(){
   el.innerHTML=`<div class="sp-modal-card" role="dialog" aria-modal="true" aria-label="Standup review: ${esc(m.name)}">
   <div class="sp-modal-top">${nav(pv,-1,'Previous engineer','‹')}<div class="sp-mtitle">${avImg(m,1)}<div><h3>${esc(m.name)}</h3><div class="mchips">${statChips(items)}</div>${memberChips(m)}</div></div>${nav(nx,1,'Next engineer','›')}</div>
   <div class="sp-modal-tools"><span class="sp-bar"><i style="width:${Math.min(100,pct(doneSp,sp))}%;background:#2e844a"></i></span><button type="button" class="button small" data-shuffle title="Randomise the order of engineers for standup">🔀 Shuffle order</button><button type="button" class="button small" data-modal-close>Close ✕</button></div>
+  <div class="sp-mstrip" role="group" aria-label="Jump to engineer">${ms.map(x=>`<button type="button" class="sp-mav${x.name===m.name?' on':''}" data-modal-go="${esc(x.name)}" title="${esc(x.name)}" aria-label="${esc(x.name)}"${x.name===m.name?' aria-current="true"':''}>${avImg(x,0)}</button>`).join('')}</div>
   <div class="sp-modal-body">${epicCards(items,'Epics',(items.find(i=>i.assigneeId)||{}).assigneeId)}<div class="sp-sec-row"><h4 class="sp-sec">Work items <span class="count-pill">${shown.length<items.length?`${shown.length} of ${items.length}`:items.length}</span></h4>${typeChips(items)}</div>${itemsTable(shown,true)}</div></div>`;
   $('sp-panel-body').appendChild(el);const b=el.querySelector('.sp-modal-body');b.scrollTop=top;if(!keep)el.querySelector('.sp-mnav:not([disabled]),[data-modal-close]').focus();
 }
@@ -230,6 +231,7 @@ function bindModal(){
     const ec=t.closest('[data-epic]');if(ec&&!t.closest('a')){S.epic=S.epic===ec.dataset.epic?null:ec.dataset.epic;renderStandup();renderModal();return;}
     const so=t.closest('[data-sort]');if(so){const k=so.dataset.sort;S.sort=S.sort.key===k?{key:k,dir:S.sort.dir==='asc'?'desc':'asc'}:{key:k,dir:'asc'};renderMembers();renderModal();return;}
     const op=t.closest('[data-open-member]');if(op){S.modal=op.dataset.openMember;renderModal();return;}
+    const go=t.closest('[data-modal-go]');if(go){const ms=orderedMembers(),k=ms.findIndex(x=>x.name===go.dataset.modalGo);if(k>=0){S.modal=ms[k].name;S.standupIdx=k;renderModal();renderStandup();}return;}
     const st=t.closest('[data-modal-step]');if(st){const ms=orderedMembers(),k=ms.findIndex(x=>x.name===S.modal)+Number(st.dataset.modalStep);if(ms[k]){S.modal=ms[k].name;S.standupIdx=k;renderModal();renderStandup();}return;}
     if(t.closest('[data-shuffle]')){shuffle();return;}
     if(t.closest('[data-modal-close]')||t.id==='sp-modal'){S.modal=null;renderModal();}

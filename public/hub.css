@@ -557,3 +557,4 @@ body.pl-fs-lock{overflow:hidden}
 .gus-links[hidden]{display:none!important}
 body[data-hub] main .executive-heading h2{display:none!important}
 .sp-sprintbar{display:flex;align-items:center;gap:10px;margin:14px 0 10px}.sp-sprintbar h2{margin:0;font-size:16px}.sp-bar-l{font-size:12px;font-weight:700;text-transform:uppercase;color:#5b6f82!important;margin-left:6px}
+.sp-mstrip{display:flex;flex-wrap:wrap;gap:6px;padding:8px 18px;border-bottom:1px solid #e3eaf1}.sp-mav{border:2px solid transparent;border-radius:50%;padding:0;background:none;cursor:pointer;line-height:0}.sp-mav .su-av{width:28px;height:28px;font-size:11px}.sp-mav .su-av img{width:100%;height:100%}.sp-mav:hover{border-color:#9fc3df}.sp-mav.on{border-color:#1b73b3;box-shadow:0 0 0 2px #cfe3f2}
