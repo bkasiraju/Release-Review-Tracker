@@ -1,3 +1,8 @@
+## Unreleased — palette refresh, contributors heading
+
+- **Palette:** purple/aubergine accents across the CSS were shifted to blue-slate; the velocity chart bars no longer inherit the black SVG outline, chart labels are dark slate, Committed/Completed bars are light blue-grey/bright blue, the chart tooltip is a light card instead of dark navy, the Say-Do/Points/Items and Pulse/Standup pills use a solid blue selected state with a blue focus ring, and the hub banner is a lighter blue gradient. Overrides live at the end of `hub.css`.
+- **Sprints:** the contributors section is titled "Current sprint contributors" with the sprint name beside it (plain "Sprint contributors" when a past sprint is selected). Cache-bust `4.0.0-GA-plan9`.
+
 ## Unreleased — default team fallback, per-team release lists
 
 - **Default team fallback:** if the browser blocks localStorage ("Unable to save locally"), the default team is saved as a per-user preference in the backend settings journal (`pref-<userId>`, actions `pref-get` / `pref-set`). localStorage is still used whenever it works.

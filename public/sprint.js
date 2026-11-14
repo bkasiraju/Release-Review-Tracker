@@ -108,6 +108,7 @@ function renderMembers(){
   const q=S.search.trim().toLowerCase();
   const list=window.Hub.sortPeople(S.members.filter(m=>!q||m.name.toLowerCase().includes(q)||m.items.some(i=>(i.name+' '+i.subject).toLowerCase().includes(q))));
   $('sp-member-count').textContent=list.length;
+  {const sel=$('sp-sprint'),nm=sel&&sel.selectedOptions[0]?sel.selectedOptions[0].textContent:'',cur=!S.defaultSprintId||S.sprintId===S.defaultSprintId;$('sp-member-title').textContent=cur?'Current sprint contributors':'Sprint contributors';$('sp-member-sub').textContent=nm?(cur?'Committed work in ':'Committed work in ')+nm:'';}
   $('sp-members').innerHTML=list.length?list.map(memberHtml).join(''):`<div class="empty-state sp-empty"><h3>${S.members.length?'No contributors match':'No committed work'}</h3><p>${S.members.length?'Try a different search.':'This sprint has no forecasted or added items.'}</p></div>`;
   $('sp-row-count').textContent=`${list.length} contributor${list.length===1?'':'s'}`;
 }
@@ -248,7 +249,7 @@ async function loadTeam(teamId){
   $('sp-chart').innerHTML='<div class="sp-loading">Loading trend…</div>';
   try{
     const d=await call('sprint-initial',{teamId});if(my!==S.seq)return;
-    fill($('sp-sprint'),d.sprints,d.defaultSprintId,s=>s.Name);S.sprintId=d.defaultSprintId||'';
+    fill($('sp-sprint'),d.sprints,d.defaultSprintId,s=>s.Name);S.sprintId=d.defaultSprintId||'';S.defaultSprintId=d.defaultSprintId||'';
     if(d.sprint)applyData(d);else{S.sprint=null;renderGoal();renderMetrics();renderMembers();}
     busy(false);void loadHistory();
   }catch(e){if(my!==S.seq)return;busy(false,'');window.toast?.('Sprint Insights: '+e.message,true);$('sp-members').innerHTML=`<div class="empty-state sp-empty"><h3>Could not load sprint data</h3><p>${esc(e.message)}</p></div>`;}
