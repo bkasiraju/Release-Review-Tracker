@@ -36,7 +36,7 @@ function open(btn){
   const el=document.createElement('div');el.className='nd-overlay';
   el.innerHTML=`<div class="nd-modal" role="dialog" aria-modal="true" aria-labelledby="nd-title"><div class="nd-head"><h2 id="nd-title">Nudge · ${esc(d.name)}</h2><button type="button" class="nd-x" data-close aria-label="Close">×</button></div>
   <div id="nd-tabs" class="nd-tabs" role="tablist"></div>
-  <label class="nd-lab" for="nd-q">To (@user)</label><div id="nd-chosen"></div><input id="nd-q" class="hub-inline" autocomplete="off" placeholder="Search MAPS, MQ and VegaCache members" role="combobox" aria-controls="nd-list"><ul id="nd-list" class="nd-list" role="listbox"></ul>
+  <label class="nd-lab" for="nd-q">To (@user)</label><div id="nd-chosen"></div><input id="nd-q" class="hub-inline" autocomplete="off" placeholder="Search MAPS, MQ, VegaCache, VegaStore and Caching Services members" role="combobox" aria-controls="nd-list"><ul id="nd-list" class="nd-list" role="listbox"></ul>
   <label class="nd-lab" for="nd-text">Message</label><textarea id="nd-text" rows="5" maxlength="4000"></textarea>
   <p id="nd-hint" class="note"></p><div id="nd-msg" class="nd-msg" role="status"></div><div id="nd-actions" class="nd-actions"></div></div>`;
   document.body.appendChild(el);S.el=el;

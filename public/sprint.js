@@ -190,7 +190,7 @@ async function show(){
   const H=window.Hub;
   if(!S.pick)H.picklists().then(p=>{S.pick=p;if(S.members.length){renderMembers();renderStandup();}},()=>{});
   if(!H.hasTeam()){S.seq++;S.teamId='';S.members=[];$('sp-metrics').innerHTML='';$('sp-chart').innerHTML='';$('sp-trend-stats').innerHTML='';$('sp-standup').innerHTML='';
-    $('sp-members').innerHTML='<div class="empty-state sp-empty"><h3>Select a team</h3><p>Pick MQ, MAPS or VegaCache in the team filter at the top.</p></div>';$('sp-member-count').textContent='0';$('sp-row-count').textContent='';return;}
+    $('sp-members').innerHTML='<div class="empty-state sp-empty"><h3>Select a team</h3><p>Pick a team in the filter at the top.</p></div>';$('sp-member-count').textContent='0';$('sp-row-count').textContent='';return;}
   if(S.teamId!==H.team.Id)await loadTeam(H.team.Id);
 }
 function setSubview(v){

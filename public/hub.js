@@ -26,7 +26,7 @@ H.setTeam=id=>{
 };
 H.needTeam=el=>{
   if(H.hasTeam())return false;
-  el.innerHTML=`<div class="empty-state hub-empty">${icon('users','blue')}<h3>Select a team</h3><p>This page shows GUS data for one scrum team. Pick MQ, MAPS or VegaCache in the team filter above.</p></div>`;
+  el.innerHTML=`<div class="empty-state hub-empty">${icon('users','blue')}<h3>Select a team</h3><p>This page shows GUS data for one scrum team. Pick a team (MAPS, MQ, VegaCache, VegaStore or Caching Services) in the filter above.</p></div>`;
   return true;
 };
 let membersCache=new Map();
@@ -135,7 +135,7 @@ function tile(p,stat){
   const soon=p.soon;
   return `<button class="hub-tile${soon?' soon':''}" data-go="${p.id}"><span class="hub-tile-head">${icon(p.icon,p.tone)}<strong>${esc(p.label)}</strong>${soon?'<em class="hub-soon">Coming soon</em>':''}</span><span class="hub-tile-stat">${stat&&stat.big!=null?`<b>${esc(stat.big)}</b>`:''}<small>${esc((stat&&stat.text)||p.desc)}</small></span>${stat&&stat.chips?`<span class="hub-tile-chips">${stat.chips}</span>`:''}</button>`;
 }
-const groupKey=t=>t.short==='MAPS'?'maps':t.short==='MQ'?'mq':/vega/i.test(t.Name)?'vegacache':null;
+const groupKey=t=>t.short==='MAPS'?'maps':t.short==='MQ'?'mq':/vegastore/i.test(t.Name)?'vegastore':/caching services/i.test(t.Name)?'caching':/vega/i.test(t.Name)?'vegacache':null;
 const initials=n=>String(n).split(/\s+/).filter(Boolean).map(w=>w[0]).slice(0,2).join('').toUpperCase();
 let peopleData=null;
 function drawPeople(el){

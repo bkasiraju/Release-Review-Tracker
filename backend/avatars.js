@@ -39,6 +39,14 @@ module.exports = {
  "shreenath.iyer@salesforce.com": "https://avatars.slack-edge.com/2026-02-05/10456619762100_b7b0ddd4f6bd2355ebca_original.jpg",
  "ravindra.kasturi@salesforce.com": "https://avatars.slack-edge.com/2026-02-04/10443866215810_1b33e18595027db19dcb_original.jpg",
  "gauravaggarwal@salesforce.com": "https://avatars.slack-edge.com/2026-04-13/10903888441170_e552b9a22dfd12d22bd1_original.jpg",
- "isha.shah@salesforce.com": "https://avatars.slack-edge.com/2026-01-10/10290431280496_df896b32186b9a4f7d4d_original.png",
- "amit.k@salesforce.com": "https://avatars.slack-edge.com/2021-02-22/1779112622819_243bdaa08c5e9d64ebd2_original.jpg"
+ "isha.shah@salesforce.com": "https://avatars.slack-edge.com/2026-01-08/10290431280496_df896b32186b9a4f7d4d_original.png",
+ "amit.k@salesforce.com": "https://avatars.slack-edge.com/2021-02-22/1779112622819_243bdaa08c5e9d64ebd2_original.jpg",
+ "sperumalla@salesforce.com": "https://avatars.slack-edge.com/2020-08-20/1325726554913_876b5c41b6c169d4e01e_original.jpg",
+ "mayur.dhingra@salesforce.com": "https://avatars.slack-edge.com/2026-09-01/11939094509031_ec1bcccc1494a39fba4c_original.png",
+ "nisha.m@salesforce.com": "https://avatars.slack-edge.com/2024-11-04/7981293457508_c18dbda4e2b2b4aca07f_original.jpg",
+ "nnancy@salesforce.com": "https://avatars.slack-edge.com/2025-09-12/9519574857441_5f79d0b0ef1038e2caa7_original.png",
+ "r.saha@salesforce.com": "https://avatars.slack-edge.com/2022-01-04/2908425067331_76f0ff1b4d6dad56be93_original.jpg",
+ "rajat.surana@salesforce.com": "https://avatars.slack-edge.com/2025-08-21/9373842489415_9319458b8ace23e0b156_original.png",
+ "hdeka@salesforce.com": "https://avatars.slack-edge.com/2024-05-16/7111363785175_80a8d295121b79a03bb7_original.jpg",
+ "mdsarfarazul.haque@salesforce.com": "https://avatars.slack-edge.com/2025-08-04/9296650600917_5291fe17a1786aad212c_original.jpg"
 };

@@ -13,7 +13,7 @@ const SEED_TEAMS = [
   { Id: 'a00B0000000w4ZhIAI', Name: 'Message Queue', short: 'MQ' },
   { Id: 'a00EE00001IJPZVYA5', Name: 'Managed Async Processing Service (MAPS)', short: 'MAPS' }
 ];
-const TEAM_FILTER = "Active__c = true AND (Name = 'Message Queue' OR Name LIKE 'Managed Async Processing%' OR Name LIKE 'VegaCache%')";
+const TEAM_FILTER = "Active__c = true AND (Name = 'Message Queue' OR Name LIKE 'Managed Async Processing%' OR Name LIKE 'VegaCache%' OR Name = 'VegaStore' OR Name = 'Caching Services')";
 const shortName = n => /message queue/i.test(n) ? 'MQ' : /maps|managed async/i.test(n) ? 'MAPS' : String(n).replace(/\s*\(.*\)/, '');
 
 function requireTeam(teamId) {
@@ -223,10 +223,12 @@ const KARTHIK = '005EE00000kbcyIYAQ';
 const PEOPLE = { // display order: leadership first, then the rest of the roster A–Z
   'Managed Async Processing Team': ['005B0000005Lg7WIAS', '005EE00000StHjGYAV', '005B0000001tCGAIA2', '005EE00000YvpWrYAJ'],
   'Message Queue Team': ['005EE00000StHjGYAV', '005B0000001tCGAIA2', '005EE00000YvpWrYAJ'],
+  'VegaStore Team': [],
+  'Caching Services Team': [],
   'VegaCache Team': ['005B0000006q4KcIAI', '005EE00000kbcyIYAQ', '005B0000003OANyIAO', '005EE00000YvpWrYAJ']
 };
-const groupOf = g => g === 'maps' ? 'Managed Async Processing Team' : g === 'mq' ? 'Message Queue Team' : g === 'vegacache' ? 'VegaCache Team' : null;
-const TEAM_LIKE = { 'Managed Async Processing Team': "Name LIKE 'Managed Async Processing%'", 'Message Queue Team': "Name = 'Message Queue'", 'VegaCache Team': "Name LIKE 'VegaCache%'" };
+const groupOf = g => g === 'maps' ? 'Managed Async Processing Team' : g === 'mq' ? 'Message Queue Team' : g === 'vegacache' ? 'VegaCache Team' : g === 'vegastore' ? 'VegaStore Team' : g === 'caching' ? 'Caching Services Team' : null;
+const TEAM_LIKE = { 'Managed Async Processing Team': "Name LIKE 'Managed Async Processing%'", 'Message Queue Team': "Name = 'Message Queue'", 'VegaCache Team': "Name LIKE 'VegaCache%'", 'VegaStore Team': "Name = 'VegaStore'", 'Caching Services Team': "Name = 'Caching Services'" };
 const SLACK_PHOTOS = require('./avatars');
 const avatarCache = new Map(); // email -> { url, at }; Slack avatars rarely change, so reuse for 6h across requests
 const AVATAR_TTL = 6 * 3600e3;
