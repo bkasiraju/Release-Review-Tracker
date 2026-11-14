@@ -1,3 +1,7 @@
+## Unreleased — standup modal shows every detail
+
+The per-engineer standup modal is wider (up to 1560px), its work-item table no longer clips the Actual/Churn columns, and long subjects, epic names and epic-card titles wrap instead of truncating with an ellipsis. Cache-bust `4.0.0-GA-plan10`.
+
 ## Unreleased — palette refresh, contributors heading
 
 - **Palette:** purple/aubergine accents across the CSS were shifted to blue-slate; the velocity chart bars no longer inherit the black SVG outline, chart labels are dark slate, Committed/Completed bars are light blue-grey/bright blue, the chart tooltip is a light card instead of dark navy, the Say-Do/Points/Items and Pulse/Standup pills use a solid blue selected state with a blue focus ring, and the hub banner is a lighter blue gradient. Overrides live at the end of `hub.css`.

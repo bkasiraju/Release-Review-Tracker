@@ -349,3 +349,13 @@ body[data-hub=home] .hub-tile .hub-tile-chips span{font-size:10px;line-height:1.
 .sp-stat span{color:#44546a}.sp-stat strong{color:#1b2733}
 .hub-banner:not(.muted){background:linear-gradient(120deg,#1b73b3,#2282c8 60%,#2a8fd8)!important;border-color:#1b73b3!important;box-shadow:0 2px 10px #2a8fd833!important}
 .sp-tabs [data-sp-view=pulse].selected,.sp-tabs [data-sp-view=standup].selected{background:#2a8fd8!important;border-color:#1b73b3!important;color:#fff!important;box-shadow:0 2px 8px #2a8fd855!important}
+
+/* Standup modal: show every column (no clipped Actual/Churn), wrap long subjects/epics */
+.sp-modal{padding:12px}.sp-modal-card{width:min(1560px,98vw)!important;max-height:94vh!important}
+.sp-modal-body .sp-items.who{width:100%!important;max-width:100%!important;overflow-x:auto}
+.sp-modal-body .sp-items.who table{min-width:0!important;width:100%;table-layout:fixed}
+.sp-modal-body .sp-items.who th:nth-child(1){width:104px}.sp-modal-body .sp-items.who th:nth-child(2){width:auto}.sp-modal-body .sp-items.who th:nth-child(3){width:190px}.sp-modal-body .sp-items.who th:nth-child(4){width:108px}.sp-modal-body .sp-items.who th:nth-child(5){width:150px}.sp-modal-body .sp-items.who th:nth-child(6){width:170px}.sp-modal-body .sp-items.who th:nth-child(7),.sp-modal-body .sp-items.who th:nth-child(8),.sp-modal-body .sp-items.who th:nth-child(9){width:78px}
+.sp-modal-body .sp-items.who td.sp-subject .sp-clip,.sp-modal-body .sp-items.who .sp-epic-cell,.sp-modal-body .sp-items.who .sp-type{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;line-height:1.35}
+.sp-modal-body .sp-items.who .hub-inline{max-width:100%}.sp-modal-body .sp-items.who input.hub-inline.num{max-width:60px}
+@media(max-width:1100px){.sp-modal-body .sp-items.who table{min-width:980px!important}}
+.sp-modal .su-epic strong,.sp-modal .su-epic strong a{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;display:block;line-height:1.3}
