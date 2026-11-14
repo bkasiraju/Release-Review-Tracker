@@ -44,7 +44,7 @@ function wireDrag(el){
 function newProjectAt(btn){
   document.querySelectorAll('.pl-confirm').forEach(x=>x.remove());
   const d=document.createElement('div');d.className='pl-confirm pl-newproj';d.setAttribute('role','dialog');d.setAttribute('aria-label','New project');
-  d.innerHTML=`<label>Measure name <small>(project in GUS)</small><input class="hub-inline" type="text" list="pl-projects" data-n maxlength="120" placeholder="Full measure / project name"></label><label>Short form <small>e.g. HRP M1.1.3</small><input class="hub-inline" type="text" data-s maxlength="30" placeholder="HRP M1.1.3"></label><div><button type="button" class="button small" data-no>Cancel</button><button type="button" class="button small primary" data-yes>Add project</button></div>`;
+  d.innerHTML=`<label>Measure name <small>(project in GUS)</small><input class="hub-inline" type="text" list="pl-projects" data-n maxlength="120" placeholder="Enter value"></label><label>Short form <small>e.g. HRP M1.1.3</small><input class="hub-inline" type="text" data-s maxlength="30" placeholder="Enter value"></label><div><button type="button" class="button small" data-no>Cancel</button><button type="button" class="button small primary" data-yes>Add project</button></div>`;
   document.body.appendChild(d);
   const r=btn.getBoundingClientRect(),w=d.offsetWidth,h=d.offsetHeight;
   d.style.left=Math.max(8,Math.min(innerWidth-w-8,r.right-w))+'px';d.style.top=(r.bottom+h+8>innerHeight&&r.top-h-8>8?r.top-h-8:r.bottom+8)+'px';

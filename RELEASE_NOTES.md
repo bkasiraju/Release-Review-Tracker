@@ -1,3 +1,7 @@
+## Unreleased on top of 4.0.0-GA (plan74) — "Enter value" placeholders
+
+- Both fields in the + Project popup (Measure name, Short form) now show "Enter value" when empty. The example format stays in the label hint.
+
 ## Unreleased on top of 4.0.0-GA (plan73) — Wider New project popup
 
 - The + Project popup is now up to 620 px wide (was 300 px) so long measure names are readable.
