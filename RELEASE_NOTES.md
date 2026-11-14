@@ -1,3 +1,7 @@
+## Unreleased on top of 4.0.0-GA (plan27) — no duplicate page titles
+
+- The page title row (icon + name) under the active tab is hidden on every tab, since the tab and breadcrumb already name the page. Descriptions and action buttons stay. Checked on the local harness for all eight tabs (no visible title). Cache-bust `4.0.0-GA-plan27`.
+
 ## Unreleased on top of 4.0.0-GA (plan26) — tab order
 
 - Release Review (Monthly) and Release Planning (Quarterly) now sit just before V2MOM Updates (rail, active-tab bar and Team Hub tiles). Order: Team Hub, Sprints, Team Dependencies, Test Failures, Trust Champion, Bugs, Release Review (Monthly), Release Planning (Quarterly), V2MOM Updates. Cache-bust `4.0.0-GA-plan26`.

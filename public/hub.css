@@ -555,3 +555,4 @@ body.pl-fs-lock{overflow:hidden}
 .pl-ec-f{margin-top:auto;border-top:1px solid #eef2f6;padding-top:8px}
 @media(max-width:1000px){.pl-rps-top{grid-template-columns:1fr}.pl-tcards{grid-template-columns:1fr}}
 .gus-links[hidden]{display:none!important}
+body[data-hub] main .executive-heading h2{display:none!important}
