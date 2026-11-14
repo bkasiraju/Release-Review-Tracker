@@ -564,3 +564,5 @@ body select.hub-inline.st-prog{background:#e6f4ea!important;color:#1e6b34!import
 body select.hub-inline.st-review{background:#d8f1e6!important;color:#0f6b4a!important;border-color:#8fd0b4!important}
 body select.hub-inline.st-new{background:#eceff3!important;color:#475467!important;border-color:#c9d0d9!important}
 body select.hub-inline.st-block{background:#fdf1dd!important;color:#8a5a00!important;border-color:#e8cf9b!important}
+.sp-bar-actions{margin-left:auto;display:inline-flex;gap:8px;align-items:center}.sp-bar-actions .su-nav-l{display:inline-flex;gap:8px}
+.su-nav{grid-template-columns:1fr!important;justify-items:center}

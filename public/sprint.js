@@ -247,12 +247,13 @@ function bindModal(){
 function renderStandup(){
   const host=$('sp-standup');if(S.view!=='standup')return;
   const ms=orderedMembers();
-  if(!ms.length){host.innerHTML='<div class="empty-state sp-empty"><h3>No work in this sprint</h3><p>There are no committed items for the selected sprint.</p></div>';return;}
+  if(!ms.length){{const a=$('sp-bar-actions');if(a)a.innerHTML='';}host.innerHTML='<div class="empty-state sp-empty"><h3>No work in this sprint</h3><p>There are no committed items for the selected sprint.</p></div>';return;}
   S.standupIdx=Math.min(Math.max(S.standupIdx,0),ms.length-1);const m=ms[S.standupIdx],all=activeItems(m).sort((a,b)=>isClosed(a)-isClosed(b)||String(a.name).localeCompare(String(b.name))),items=all;
   const sp=items.reduce((n,i)=>n+spOf(i),0),doneSp=items.filter(isClosed).reduce((n,i)=>n+spOf(i),0);
   const pills=ms.map((x,k)=>{const a=activeItems(x);return `<button class="su-pill${k===S.standupIdx?' active':''}" data-su="${k}" aria-pressed="${k===S.standupIdx}">${avImg(x)}<span>${esc(x.name)}</span><small class="pill-chips"><i class="mchip pl">${fmt(planOf(a))}</i><i class="mchip ac">${fmt(a.reduce((n,i)=>n+spOf(i),0))}</i><span>${a.length} WI</span></small></button>`;}).join('');
+  const acts=$('sp-bar-actions');if(acts)acts.innerHTML=`<button class="button small" data-su-step="-1" aria-label="Previous member"${S.standupIdx===0?' disabled':''}>‹ Prev</button><button class="button small" data-su-step="1" aria-label="Next member"${S.standupIdx===ms.length-1?' disabled':''}>Next ›</button><button class="button small" data-shuffle title="Randomise the order of engineers for standup">🔀 Shuffle</button><button class="button small" data-open-member="${esc(m.name)}" title="Open in popup">Open ⤢</button>`;
   host.innerHTML=`<section class="table-card su-card"><div class="su-pills" role="group" aria-label="Team members">${pills}</div>
-  <div class="su-carousel"><div class="su-nav"><div class="su-nav-l"><button class="button small" data-su-step="-1" aria-label="Previous member"${S.standupIdx===0?' disabled':''}>‹ Prev</button><button class="button small" data-su-step="1" aria-label="Next member"${S.standupIdx===ms.length-1?' disabled':''}>Next ›</button></div><div class="su-nav-c"><span class="su-count">${S.standupIdx+1} of ${ms.length}</span><div class="su-dots" role="tablist">${ms.map((x,k)=>`<button class="su-dot${k===S.standupIdx?' active':''}" data-su="${k}" role="tab" aria-selected="${k===S.standupIdx}" aria-label="${esc(x.name)}"></button>`).join('')}</div></div><div class="su-nav-r"><button class="button small" data-shuffle title="Randomise the order of engineers for standup">🔀 Shuffle</button><button class="button small" data-open-member="${esc(m.name)}" title="Open in popup">Open ⤢</button></div></div>
+  <div class="su-carousel"><div class="su-nav"><div class="su-nav-c"><span class="su-count">${S.standupIdx+1} of ${ms.length}</span><div class="su-dots" role="tablist">${ms.map((x,k)=>`<button class="su-dot${k===S.standupIdx?' active':''}" data-su="${k}" role="tab" aria-selected="${k===S.standupIdx}" aria-label="${esc(x.name)}"></button>`).join('')}</div></div></div>
   <div class="su-member"><div class="su-member-head">${avImg(m,1)}<div><h3>${esc(m.name)}</h3><p>${S.standupIdx+1} of ${ms.length}</p><div class="mchips">${statChips(items)}</div>${memberChips(m)}</div><span class="sp-bar su-bar"><i style="width:${Math.min(100,pct(doneSp,sp))}%;background:#2e844a"></i></span></div>
   ${epicCards(items,'Epics for '+m.name+'’s sprint work',(items.find(i=>i.assigneeId)||{}).assigneeId)}
   <div class="sp-sec-row su-sec-row"><h4 class="sp-sec">Work items <span class="count-pill">${epicFilter(items).length<items.length?`${epicFilter(items).length} of ${items.length}`:items.length}</span></h4>${typeChips(items)}</div>
@@ -260,7 +261,8 @@ function renderStandup(){
   <ol class="su-items">${epicFilter(items).map(i=>`<li class="${isClosed(i)?'done':''}"><span class="su-no"></span><a href="${GUS_WORK}${esc(i.id)}/view" target="_blank" rel="noopener noreferrer">${esc(i.name)}</a><span class="su-subject" title="${esc(i.subject)}${i.epic?esc('\n\nEpic: '+i.epic):''}">${esc(i.subject)}${i.epic?` <span class="sp-chip">${esc(i.epic)}</span>`:''} <span class="sp-tags">${itemTags(i)}</span></span>${qaCell(i)}${statusSelect(i)}<span class="num">${planCell(i)}</span>${ptsInput(i)}<span class="num">${churnCell(i)}</span></li>`).join('')}</ol></div></div></section>`;
 }
 function bindStandup(){
-  $('sp-standup').addEventListener('click',e=>{const t=e.target.closest('[data-su],[data-su-step]');if(!t)return;S.standupIdx=t.dataset.su!=null?Number(t.dataset.su):S.standupIdx+Number(t.dataset.suStep);renderStandup();});
+  const stepClick=e=>{const t=e.target.closest('[data-su],[data-su-step]');if(!t)return;S.standupIdx=t.dataset.su!=null?Number(t.dataset.su):S.standupIdx+Number(t.dataset.suStep);renderStandup();};
+  $('sp-standup').addEventListener('click',stepClick);$('sp-sprintbar').addEventListener('click',stepClick);
   document.addEventListener('keydown',e=>{if(S.modal||S.view!=='standup'||document.body.dataset.hub!=='sprints'||/INPUT|SELECT|TEXTAREA/.test(document.activeElement?.tagName))return;if(e.key==='ArrowRight'){S.standupIdx++;renderStandup();}else if(e.key==='ArrowLeft'){S.standupIdx--;renderStandup();}});
 }
 
@@ -299,6 +301,7 @@ async function show(){
 function setSubview(v){
   S.view=v;$('sp-pulse').classList.toggle('hidden',v!=='pulse');$('sp-standup').classList.toggle('hidden',v!=='standup');
   document.querySelectorAll('[data-sp-view]').forEach(x=>{const on=x.dataset.spView===v;x.classList.toggle('selected',on);x.setAttribute('aria-pressed',String(on));});
+  const ba=$('sp-bar-actions');if(ba&&v!=='standup')ba.innerHTML='';
   const bar=$('sp-sprintbar');if(bar){if(v==='standup')$('sp-standup').before(bar);else $('sp-metrics').before(bar);}
   if(v==='standup')renderStandup();
 }

@@ -1,3 +1,7 @@
+## Unreleased on top of 4.0.0-GA (plan31) — standup controls in the Current sprint bar
+
+- Prev / Next and Shuffle / Open moved from the standup card into the "Current sprint" bar, at the far right (Standup view only). Prev/Next, Shuffle and Open were clicked-tested for Next on the local harness; the card keeps the member pills, count and dots. Cache-bust `4.0.0-GA-plan31`.
+
 ## Unreleased on top of 4.0.0-GA (plan30) — distinct status colours
 
 - Inline status selects: Closed/Fixed/Completed blue; In Progress green; Ready for Review (and other review/QA states) a teal-green; New/Not Started grey; Blocked/Waiting/On hold amber; Never/Duplicate/Rejected red. Checked computed colours on the local harness (New, Closed, Fixed, Never); the green and amber states are the same rules but were not in the seed data. Cache-bust `4.0.0-GA-plan30`.
