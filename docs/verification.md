@@ -966,3 +966,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan62: back button; harness check in focus mode: visible and routes to #/home.
 
 - plan63/64: tile styling checked by headless screenshots; column toggle and reorder checked by script on the local harness.
+
+- plan65: owners popover; scripted check on local harness: opens above the button, Save applies, button label updates, plan marked unsaved.

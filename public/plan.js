@@ -200,7 +200,7 @@ const wsNames=w=>wsEngs(w).map(id=>memName(id)||(id===w.engId?w.engName:'')||'En
 const shortProj=n=>{n=n||'';if(/^[^:]{1,30}:/.test(n))return n.split(':')[0].trim();const m=n.match(/^(?:[A-Za-z]{2,6}\s+)?[A-Za-z]?\d+(?:\.\d+)+/);return m?m[0]:(n||'(unnamed project)');};
 const msLabel=(ids,empty)=>{const n=ids.map(memName).filter(Boolean);return n.length?(n.length>1?`${n[0].split(' ')[0]} +${n.length-1}`:n[0]):empty;};
 const msel=(f,ids,label,empty)=>{const mem=P.members.filter(m=>H.leaderRank(m.name)<0);
-  return `<div class="cs ms" data-ms="${f}"><button type="button" class="cs-btn" aria-haspopup="listbox" aria-expanded="false" aria-label="${label}" title="${esc(ids.map(memName).join(', '))}"><span>${esc(msLabel(ids,empty))}</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 8l5 5 5-5"/></svg></button><ul class="cs-menu" role="listbox" aria-multiselectable="true">${mem.map(m=>`<li role="option" data-val="${esc(m.id)}" aria-selected="${ids.includes(m.id)}" class="${ids.includes(m.id)?'on':''}"><i aria-hidden="true">${ids.includes(m.id)?'✓':''}</i><span class="cs-t">${esc(m.name)}</span></li>`).join('')||'<li class="note">No team members</li>'}</ul></div>`;};
+  return `<div class="cs ms" data-ms="${f}"><button type="button" class="cs-btn" aria-haspopup="listbox" aria-expanded="false" aria-label="${label}" title="${esc(ids.map(memName).join(', '))}"><span>${esc(msLabel(ids,empty))}</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 8l5 5 5-5"/></svg></button></div>`;};
 const uid=p=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 const r2=n=>Math.round(n*100)/100,fmt=n=>String(r2(Number(n)||0));
 const iso=d=>d.toISOString().slice(0,10);
@@ -394,10 +394,29 @@ function draw(){drawSummary();drawTools();drawPlanner();wire();}
 const closeMs=()=>document.querySelectorAll('.ms.open').forEach(w=>{w.classList.remove('open');w.querySelector('.cs-btn').setAttribute('aria-expanded','false');});
 document.addEventListener('click',e=>{if(!e.target.closest('.ms'))closeMs();
   const w=e.target.closest('.pl-grid .cs.open,.pl-grid .ms.open');if(w){const b=w.querySelector('.cs-btn'),m=w.querySelector('.cs-menu'),r=b.getBoundingClientRect();m.style.position='fixed';m.style.left=Math.min(r.left,innerWidth-m.offsetWidth-8)+'px';m.style.right='auto';m.style.top=(r.bottom+4>innerHeight-200?Math.max(8,r.top-m.offsetHeight-4):r.bottom+4)+'px';}});
-addEventListener('scroll',ev=>{if(ev.target.closest&&ev.target.closest('.cs-menu'))return;document.querySelectorAll('.pl-grid .cs.open').forEach(w=>{w.classList.remove('open');});closeMs();},true);
+addEventListener('scroll',ev=>{if(ev.target.closest&&ev.target.closest('.cs-menu,.pl-mspop'))return;closeMsPop();document.querySelectorAll('.pl-grid .cs.open').forEach(w=>{w.classList.remove('open');});closeMs();},true);
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMs();});
 // ── Edits ───────────────────────────────────────────────────────────────────
 const findE=id=>P.plan.epics.find(e=>e.id===id),findP=id=>P.plan.projects.find(p=>p.id===id);
+function closeMsPop(){document.querySelectorAll('.pl-mspop').forEach(x=>x.remove());}
+function openMsPop(btn,c){
+  closeMsPop();const wd=btn.closest('.ms'),f=wd.dataset.ms;let cur;
+  if(c.w){const e=findE(c.e),w=e&&e.workstreams.find(x=>x.id===c.w);if(!w)return;cur=wsEngs(w);}else if(c.e){const e=findE(c.e);if(!e)return;cur=e.owners||[];}else return;
+  const mem=P.members.filter(m=>H.leaderRank(m.name)<0),pop=document.createElement('div');pop.className='pl-mspop';pop.setAttribute('role','dialog');pop.setAttribute('aria-label',f==='owners'?'Epic owners':'Workstream owners');
+  pop.innerHTML=`<b>${f==='owners'?'Epic owners':'Workstream owners'}</b><div class="pl-ms-l">${mem.map(m=>`<label><input type="checkbox" value="${esc(m.id)}"${cur.includes(m.id)?' checked':''}> ${esc(m.name)}</label>`).join('')||'<p class="note">No team members</p>'}</div><div class="pl-ms-a"><button type="button" class="button" data-x>Cancel</button><button type="button" class="button primary" data-ok>Save</button></div>`;
+  document.body.appendChild(pop);
+  const r=btn.getBoundingClientRect(),h=pop.offsetHeight,w=pop.offsetWidth;
+  pop.style.left=Math.max(8,Math.min(r.left,innerWidth-w-8))+'px';pop.style.top=(r.top-h-6>=8?r.top-h-6:Math.min(r.bottom+6,innerHeight-h-8))+'px';
+  const off=ev=>{if(!pop.contains(ev.target)&&!btn.contains(ev.target))end();},esc_=ev=>{if(ev.key==='Escape'){end();btn.focus();}};
+  function end(){pop.remove();document.removeEventListener('mousedown',off,true);document.removeEventListener('keydown',esc_,true);}
+  document.addEventListener('mousedown',off,true);document.addEventListener('keydown',esc_,true);
+  pop.querySelector('[data-x]').onclick=end;
+  pop.querySelector('[data-ok]').onclick=()=>{const ids=[...pop.querySelectorAll('input:checked')].map(i=>i.value);
+    if(c.w){const e=findE(c.e),w=e&&e.workstreams.find(x=>x.id===c.w);if(w){w.engIds=ids;w.engId=ids[0]||'';w.engName=memName(ids[0]);w.engNames=ids.map(memName);}}
+    else{const e=findE(c.e);if(e){e.owners=ids;e.ownerNames=ids.map(memName);}}
+    btn.firstElementChild.textContent=msLabel(ids,f==='owners'?'Owners':'Unassigned');btn.title=ids.map(memName).join(', ');end();drawSummary();queueSave();};
+  pop.querySelector('input')?.focus();
+}
 const ctxOf=t=>{const w=t.closest('[data-w]'),e=t.closest('[data-e]'),p=t.closest('[data-p]');return {w:w&&w.dataset.w,e:e&&e.dataset.e,p:p&&p.dataset.p};};
 function redrawCols(){const m=P.el.querySelector('.pl-cols-menu'),top=m?m.scrollTop:0;drawPlanner();wire();const n=P.el.querySelector('.pl-cols-menu');if(n)n.scrollTop=top;}
 function wireColDrag(el){let from=null;
@@ -448,15 +467,7 @@ function onClick(ev){
   if(t.closest('#pl-export')){exportTemplate();return;}
   if(t.closest('#pl-import')){P.el.querySelector('#pl-import-file').click();return;}
   if(t.closest('#pl-add-proj')){newProjectAt(t.closest('#pl-add-proj'));return;}
-  const mb=t.closest('.ms .cs-btn');if(mb){const w=mb.closest('.ms'),was=w.classList.contains('open');closeMs();if(!was){w.classList.add('open');mb.setAttribute('aria-expanded','true');}return;}
-  const ml=t.closest('.ms li[data-val]');if(ml){const wd=ml.closest('.ms'),f=wd.dataset.ms,id=ml.dataset.val;
-    const tog=a=>a.includes(id)?a.filter(x=>x!==id):[...a,id];let ids;
-    if(c.w){const e=findE(c.e),w=e&&e.workstreams.find(x=>x.id===c.w);if(!w)return;ids=tog(wsEngs(w));w.engIds=ids;w.engId=ids[0]||'';w.engName=memName(ids[0]);}
-    else if(c.e){const e=findE(c.e);if(!e)return;ids=tog(e.owners||[]);e.owners=ids;e.ownerNames=ids.map(memName);}
-    else return;
-    wd.querySelectorAll('li[data-val]').forEach(li=>{const on=ids.includes(li.dataset.val);li.classList.toggle('on',on);li.setAttribute('aria-selected',on);li.firstElementChild.textContent=on?'✓':'';});
-    const b=wd.querySelector('.cs-btn');b.firstElementChild.textContent=msLabel(ids,f==='owners'?'Owners':'Unassigned');b.title=ids.map(memName).join(', ');
-    drawSummary();queueSave();return;}
+  const mb=t.closest('.ms .cs-btn');if(mb){openMsPop(mb,c);return;}
   const tb=t.closest('[data-tab]');if(tb){setTab(tb.dataset.tab);return;}
   const rp=t.closest('[data-rps]');if(rp){openRps(rp.dataset.rps,rp);return;}
   const fd=t.closest('[data-fold]');if(fd){P.open[fd.dataset.fold]=!P.open[fd.dataset.fold];drawSummary();return;}

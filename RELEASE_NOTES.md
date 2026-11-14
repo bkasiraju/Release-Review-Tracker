@@ -1,3 +1,7 @@
+## Unreleased on top of 4.0.0-GA (plan65) — Owners multi-select popover
+
+- Epic Owner and Workstream Owner(s) now open a small popover just above the button (below if there is no room) with checkboxes, Cancel and Save, replacing the full-width dropdown list. Nothing changes until Save in the popover; Esc or clicking outside cancels. The plan itself is still saved with the Save button.
+
 ## Unreleased on top of 4.0.0-GA (plan63–plan64) — Colourful tiles with icons; column picker with ordering
 
 - Release Planner KPI tiles are tinted per metric (blue/green/amber/violet/teal, rose when over capacity) with a glossy icon and a status chip. Section headings on both tabs carry icons and a coloured top accent.
