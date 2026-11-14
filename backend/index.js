@@ -1,5 +1,5 @@
 'use strict';
-const {Gus,safeError,validId}=require('./gus');const {ContentStore}=require('./store');const {Service}=require('./service');const sprint=require('./sprint');const hub=require('./hub');
+const {Gus,safeError,validId}=require('./gus');const {ContentStore}=require('./store');const {Service}=require('./service');const sprint=require('./sprint');const hub=require('./hub');const post=require('./post');
 function connection(ctx){
   const roots=[['ctx',ctx],['request',ctx.request],['invocation',ctx.invocation],['runtime',ctx.runtime],['context',ctx.context],['applet',ctx.applet],['auth',ctx.auth],['user',ctx.user],['salesforce',ctx.salesforce],['request.context',ctx.request?.context]].filter(([,r])=>r&&typeof r==='object');
   // Prefer delegated clients across every known host root before the generic facade.
@@ -55,6 +55,9 @@ async function handleRequest(ctx){
       case 'sprint-history':payload=await sprint.getHistory(sf,b.teamId);break;
       case 'hub-people':payload=await hub.getPeople(sf,ctx.slack,String(b.group||''));break;
       case 'hub-tests':payload=await hub.getTests(sf,b.teamId);break;
+      case 'post-users':payload=await post.searchUsers(sf,b.q);break;
+      case 'post-slack':payload=await post.slackTarget(sf,ctx.slack,b.userId);break;
+      case 'post-chatter':payload=await post.postChatter(sf,b);break;
       case 'hub-teams':payload=await hub.getTeams(sf);break;
       case 'hub-members':payload=await hub.getMembers(sf,b.teamId);break;
       case 'hub-home':payload=await hub.getHome(sf,b.teamId);break;

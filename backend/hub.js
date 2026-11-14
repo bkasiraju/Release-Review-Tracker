@@ -225,27 +225,39 @@ const PEOPLE = {
   'VegaCache Team': ['005B0000003OANyIAO', '005B0000006q4KcIAI']
 };
 const groupOf = g => g === 'maps' ? 'Managed Async Processing Team' : g === 'mq' ? 'Message Queue Team' : g === 'vegacache' ? 'VegaCache Team' : null;
+const TEAM_LIKE = { 'Managed Async Processing Team': "Name LIKE 'Managed Async Processing%'", 'Message Queue Team': "Name = 'Message Queue'", 'VegaCache Team': "Name LIKE 'VegaCache%'" };
+const avatarCache = new Map(); // email -> { url, at }; Slack avatars rarely change, so reuse for 6h across requests
+const AVATAR_TTL = 6 * 3600e3;
 async function slackAvatar(slack, email) {
+  if (!email || !slack || typeof slack.resolveIdentity !== 'function') return null;
+  const hit = avatarCache.get(email);
+  if (hit && Date.now() - hit.at < AVATAR_TTL) return hit.url;
+  let url = null;
   try {
-    if (!email || !slack || typeof slack.resolveIdentity !== 'function') return null;
     const r = await slack.resolveIdentity({ email }), id = r && ((r.user && r.user.id) || r.userId || r.slackUserId || r.id);
-    if (!id) return null;
-    const direct = r && r.user && r.user.profile && (r.user.profile.image_192 || r.user.profile.image_72);
-    if (direct) return direct;
-    if (typeof slack.getUser === 'function') { const u = await slack.getUser({ user: id }), pr = (u && (u.user || u).profile) || {}; return pr.image_192 || pr.image_72 || null; }
+    if (id) {
+      const pick = pr => pr && (pr.image_512 || pr.image_192 || pr.image_72);
+      url = pick(r.user && r.user.profile);
+      if (!url && typeof slack.getUser === 'function') { const u = await slack.getUser({ user: id }); url = pick((u && (u.user || u).profile) || {}); }
+    }
   } catch (_) { /* avatar is optional */ }
-  return null;
+  if (url) avatarCache.set(email, { url, at: Date.now() });
+  return url || null;
 }
 async function getPeople(sf, slack, group) {
   const name = groupOf(group);
   if (!name) return { name: null, people: [] };
-  const ids = PEOPLE[name];
-  const rows = (await sf.query(`SELECT Id, Name, Title, Email, SmallPhotoUrl FROM User WHERE Id IN (${ids.map(i => `'${i}'`).join(',')})`)).records || [];
+  const lead = PEOPLE[name];
+  const memberRows = (await sf.query(`SELECT Member_Name__c FROM ADM_Scrum_Team_Member__c WHERE Scrum_Team__r.Active__c = true AND Scrum_Team__r.${TEAM_LIKE[name]} LIMIT 200`)).records || [];
+  const ids = [...new Set([...lead, ...memberRows.map(r => r.Member_Name__c).filter(Boolean)])];
+  const rows = (await sf.query(`SELECT Id, Name, Title, Email, SmallPhotoUrl FROM User WHERE IsActive = true AND Id IN (${ids.map(i => `'${q(i)}'`).join(',')})`)).records || [];
   const byId = new Map(rows.map(r => [r.Id, r]));
-  const people = await Promise.all(ids.filter(i => byId.has(i)).map(async i => {
-    const u = byId.get(i);
-    return { id: u.Id, name: u.Name, role: u.Title || '', avatar: (await slackAvatar(slack, u.Email)) || u.SmallPhotoUrl || null, slack: false };
-  }));
+  const ordered = ids.filter(i => byId.has(i)).map(i => byId.get(i));
+  const rest = ordered.filter(u => !lead.includes(u.Id)).sort((a, b) => a.Name.localeCompare(b.Name));
+  const list = [...ordered.filter(u => lead.includes(u.Id)), ...rest];
+  const people = [];
+  for (let k = 0; k < list.length; k += 10)
+    people.push(...await Promise.all(list.slice(k, k + 10).map(async u => ({ id: u.Id, name: u.Name, role: u.Title || '', avatar: (await slackAvatar(slack, u.Email)) || u.SmallPhotoUrl || null }))));
   return { name, people };
 }
 

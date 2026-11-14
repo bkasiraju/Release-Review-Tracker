@@ -143,10 +143,20 @@ function drawPeople(el){
   const g=groupKey(H.team);if(!g){box.hidden=true;return;}
   const paint=d=>{if(!box.isConnected||groupKey(H.team)!==g)return;
     box.hidden=!d||!d.people.length;if(box.hidden)return;
-    box.innerHTML=`<h3>${esc(d.name)}</h3><ul>${d.people.map(p=>`<li><span class="hub-avatar" data-i="${esc(initials(p.name))}">${p.avatar?`<img src="${esc(p.avatar)}" alt="" loading="lazy" onerror="this.remove()">`:''}</span><b>${esc(p.name)}</b><small>${esc(p.role)}</small></li>`).join('')}</ul>`;};
+    box.innerHTML=`<h3>${esc(d.name)}</h3><ul>${d.people.map(p=>`<li><span class="hub-avatar" data-i="${esc(initials(p.name))}">${p.avatar?`<img src="${esc(p.avatar)}" alt="" decoding="async" onerror="this.remove()">`:''}</span><b>${esc(p.name)}</b><small>${esc(p.role)}</small></li>`).join('')}</ul>`;};
+  if(!peopleData||peopleData.g!==g){try{const c=JSON.parse(localStorage.getItem('hub-people-'+g)||'null');if(c&&c.d)peopleData={g,d:c.d};}catch(_){}}
   if(peopleData&&peopleData.g===g)paint(peopleData.d);
-  call('hub-people',{group:g}).then(d=>{peopleData={g,d};paint(d);},()=>{});
+  loadPeople(g).then(d=>paint(d),()=>{});
 }
+/** Fetch the team once per group, persist it, and pre-load every avatar image so the browser has it cached before it paints. */
+const peopleLoads=new Map();
+function loadPeople(g){
+  if(!peopleLoads.has(g))peopleLoads.set(g,call('hub-people',{group:g}).then(d=>{
+    peopleData={g,d};try{localStorage.setItem('hub-people-'+g,JSON.stringify({d}));}catch(_){}
+    d.people.forEach(p=>{if(p.avatar){const i=new Image();i.src=p.avatar;}});return d;},e=>{peopleLoads.delete(g);throw e;}));
+  return peopleLoads.get(g);
+}
+H.preloadPeople=()=>{const g=groupKey(H.team);if(g)loadPeople(g).catch(()=>{});};
 /** The Release Health tiles live in #overview-panel (owned by app.js); on Team Hub they sit in the top row, elsewhere they go back. */
 function parkOverview(){const ov=$('overview-panel'),hp=$('hub-panel');if(ov&&hp&&ov.parentElement!==hp.parentElement)hp.parentElement.insertBefore(ov,hp);}
 H.parkOverview=parkOverview;
@@ -198,7 +208,7 @@ async function boot(){
   }catch(e){window.toast?.('Team list unavailable: '+e.message,true);}
   window.dispatchEvent(new Event('hub:team'));
   route();
-  H.prefetch(H.team.Id);
+  H.prefetch(H.team.Id);H.preloadPeople();
 }
 window.Hub=H;
 document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,0));
