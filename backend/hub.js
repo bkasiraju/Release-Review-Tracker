@@ -227,7 +227,7 @@ const PEOPLE = { // display order: leadership first, then the rest of the roster
 };
 const groupOf = g => g === 'maps' ? 'Managed Async Processing Team' : g === 'mq' ? 'Message Queue Team' : g === 'vegacache' ? 'VegaCache Team' : null;
 const TEAM_LIKE = { 'Managed Async Processing Team': "Name LIKE 'Managed Async Processing%'", 'Message Queue Team': "Name = 'Message Queue'", 'VegaCache Team': "Name LIKE 'VegaCache%'" };
-const SLACK_PHOTOS = require('./avatars.json');
+const SLACK_PHOTOS = require('./avatars');
 const avatarCache = new Map(); // email -> { url, at }; Slack avatars rarely change, so reuse for 6h across requests
 const AVATAR_TTL = 6 * 3600e3;
 async function slackAvatar(slack, email) {
