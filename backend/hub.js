@@ -219,6 +219,7 @@ async function updateOne(sf, u) {
   return delta;
 }
 // ── Team people (leadership section on the hub home) ─────────────────────────
+const KARTHIK = '005EE00000kbcyIYAQ';
 const PEOPLE = { // display order: leadership first, then the rest of the roster A–Z
   'Managed Async Processing Team': ['005EE00000StHjGYAV', '005B0000001tCGAIA2', '005EE00000YvpWrYAJ'],
   'Message Queue Team': ['005EE00000StHjGYAV', '005B0000001tCGAIA2', '005EE00000YvpWrYAJ'],
@@ -226,14 +227,16 @@ const PEOPLE = { // display order: leadership first, then the rest of the roster
 };
 const groupOf = g => g === 'maps' ? 'Managed Async Processing Team' : g === 'mq' ? 'Message Queue Team' : g === 'vegacache' ? 'VegaCache Team' : null;
 const TEAM_LIKE = { 'Managed Async Processing Team': "Name LIKE 'Managed Async Processing%'", 'Message Queue Team': "Name = 'Message Queue'", 'VegaCache Team': "Name LIKE 'VegaCache%'" };
+const SLACK_PHOTOS = require('./avatars.json');
 const avatarCache = new Map(); // email -> { url, at }; Slack avatars rarely change, so reuse for 6h across requests
 const AVATAR_TTL = 6 * 3600e3;
 async function slackAvatar(slack, email) {
-  if (!email || !slack || typeof slack.resolveIdentity !== 'function') return null;
+  if (!email) return null;
   const hit = avatarCache.get(email);
   if (hit && Date.now() - hit.at < AVATAR_TTL) return hit.url;
   let url = null;
   try {
+    if (!slack || typeof slack.resolveIdentity !== 'function') throw new Error('no slack');
     const r = await slack.resolveIdentity({ email }), id = r && ((r.user && r.user.id) || r.userId || r.slackUserId || r.id);
     if (id) {
       const pick = pr => pr && (pr.image_512 || pr.image_192 || pr.image_72);
@@ -241,6 +244,7 @@ async function slackAvatar(slack, email) {
       if (!url && typeof slack.getUser === 'function') { const u = await slack.getUser({ user: id }); url = pick((u && (u.user || u).profile) || {}); }
     }
   } catch (_) { /* avatar is optional */ }
+  if (!url) url = SLACK_PHOTOS[String(email).toLowerCase()] || null; // snapshot of Slack profile photos for when the live lookup is unavailable
   if (url) avatarCache.set(email, { url, at: Date.now() });
   return url || null;
 }
@@ -249,7 +253,14 @@ async function getPeople(sf, slack, group) {
   if (!name) return { name: null, people: [] };
   const lead = PEOPLE[name];
   const memberRows = (await sf.query(`SELECT Member_Name__c FROM ADM_Scrum_Team_Member__c WHERE Scrum_Team__r.Active__c = true AND Scrum_Team__r.${TEAM_LIKE[name]} LIMIT 200`)).records || [];
-  const ids = [...new Set([...lead, ...memberRows.map(r => r.Member_Name__c).filter(Boolean)])];
+  let own = memberRows.map(r => r.Member_Name__c).filter(Boolean);
+  if (name === 'Message Queue Team') { // anyone already shown under MAPS is not repeated under MQ (leadership stays on both)
+    const maps = new Set(((await sf.query(`SELECT Member_Name__c FROM ADM_Scrum_Team_Member__c WHERE Scrum_Team__r.Active__c = true AND Scrum_Team__r.${TEAM_LIKE['Managed Async Processing Team']} LIMIT 200`)).records || []).map(r => r.Member_Name__c));
+    own = own.filter(i => !maps.has(i));
+  }
+  // Karthik Sethuraman's direct reports are part of the team he is on
+  if (own.includes(KARTHIK)) own.push(...((await sf.query(`SELECT Id FROM User WHERE IsActive = true AND ManagerId = '${KARTHIK}' LIMIT 100`)).records || []).map(r => r.Id));
+  const ids = [...new Set([...lead, ...own])];
   const rows = (await sf.query(`SELECT Id, Name, Title, Email, SmallPhotoUrl FROM User WHERE IsActive = true AND Id IN (${ids.map(i => `'${q(i)}'`).join(',')})`)).records || [];
   const byId = new Map(rows.map(r => [r.Id, r]));
   const ordered = ids.filter(i => byId.has(i)).map(i => byId.get(i));

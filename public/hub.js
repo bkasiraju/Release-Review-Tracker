@@ -44,7 +44,7 @@ function renderNav(){
 function legacy(view){const b=document.querySelector(`[data-view="${view}"]`);if(b)b.click();}
 function renderCurrent(){
   const p=H.pages.get(H.current);if(!p||p.legacy)return;
-  const el=$('hub-page');el.innerHTML='';
+  parkOverview();const el=$('hub-page');el.innerHTML=''; // overview-panel is app.js-owned: never let a page re-render destroy it
   if(p.needsTeam&&H.needTeam(el))return;
   try{p.render(el,H);}catch(e){el.innerHTML=`<div class="empty-state hub-empty"><h3>Could not load ${esc(p.label)}</h3><p>${esc(e.message)}</p></div>`;}
 }
@@ -169,15 +169,12 @@ function renderHome(el){
     const rot=`<section class="hub-rota" aria-label="On rotation now"><span>${icon('rotation','violet')}<b>PD on-call</b> ${pd?esc(pd.name):'<i>not set</i>'}</span><span>${icon('flag','amber')}<b>Trust Hero</b> ${th?esc(th.name):'<i>not set</i>'}</span><button class="text-button" data-go="rotations">Trust Champion ›</button></section>`;
     const tiles=NAV.filter(id=>id!=='home'&&H.pages.has(id)).map(id=>{const p=H.pages.get(id);return tile(p,p.stat?p.stat(home,{rota,pd,th}):null);}).join('');
     parkOverview();
-    el.innerHTML=`<div class="hub-top">${banner}</div>${rot}<div class="hub-tiles">${tiles}</div><section id="hub-people" class="hub-people" hidden aria-label="Team"></section>`;
+    el.innerHTML=`<div class="hub-top"></div>${rot}<div class="hub-tiles">${tiles}</div><section id="hub-people" class="hub-people" hidden aria-label="Team"></section>`;
     const top=el.querySelector('.hub-top'),ov=$('overview-panel');if(top&&ov)top.prepend(ov);
     drawPeople(el);
   };
   draw(null,null);
   if(!H.hasTeam()){
-    el.querySelector('.hub-banner h2').textContent='All CFS teams';
-    const sm=el.querySelector('.hub-banner small');if(sm)sm.textContent='';
-    el.querySelector('.hub-banner p')?.remove();
     el.insertAdjacentHTML('beforeend','<p class="note hub-hint">Pick a team in the filter above to see its sprint, bugs, team dependencies and rotation.</p>');
     return;
   }
@@ -207,7 +204,7 @@ async function boot(){
     $('hub-team').value=H.team.Id;
   }catch(e){window.toast?.('Team list unavailable: '+e.message,true);}
   window.dispatchEvent(new Event('hub:team'));
-  route();
+  try{route();}finally{document.body.dataset.ready='1';}
   H.prefetch(H.team.Id);H.preloadPeople();
 }
 window.Hub=H;
