@@ -1,3 +1,7 @@
+## Unreleased — work-item type chips in Standup
+
+A "Work items" header with the item count and small Type chips (All plus one per Type with counts, e.g. User Story 12, Bug 1) now sits above the work-item list on the Standup page and in the full-screen popup. Chips multi-select, the selection carries across engineers, a selected type with no items for an engineer shows count 0, and "All" clears it. It combines with the epic filter. Cache-bust `4.0.0-GA-plan14`.
+
 ## Unreleased — readable Subject/Epic, true full-screen standup popup
 
 Work-item tables (Pulse, Standup page, popup): Subject (14px) and Epic (13.5px) are the widest columns and wrap fully; Type, QA, Status and the effort/churn columns use a compact 11–11.5px. The standup popup now fills the whole viewport (100vw × 100vh, no rounded corners). Cache-bust `4.0.0-GA-plan13`.

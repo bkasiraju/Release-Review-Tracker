@@ -172,7 +172,11 @@ const EPIC=id=>`https://gus.lightning.force.com/lightning/r/ADM_Epic__c/${id}/vi
 const epicKey=i=>i.epicId||'__none';
 /** The selected epic only applies while it exists in the member's items; otherwise no filter. */
 const epicSel=items=>S.epic&&items.some(i=>epicKey(i)===S.epic)?S.epic:null;
-const epicFilter=items=>{const k=epicSel(items);return k?items.filter(i=>epicKey(i)===k):items;};
+S.types=S.types||new Set();
+const typeOf=i=>i.recordType||'Other';
+const epicFilter=items=>{const k=epicSel(items);let r=k?items.filter(i=>epicKey(i)===k):items;if(S.types.size)r=r.filter(i=>S.types.has(typeOf(i)));return r;};
+const typeChips=items=>{const c=new Map();items.forEach(i=>c.set(typeOf(i),(c.get(typeOf(i))||0)+1));S.types.forEach(t=>{if(!c.has(t))c.set(t,0);});
+  const all=!S.types.size;return `<div class="sp-typechips" role="group" aria-label="Filter work items by type"><button type="button" class="sp-tchip${all?' on':''}" data-type-chip="" aria-pressed="${all}">All <b>${items.length}</b></button>${[...c.entries()].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0])).map(([t,n])=>`<button type="button" class="sp-tchip${S.types.has(t)?' on':''}" data-type-chip="${esc(t)}" aria-pressed="${S.types.has(t)}">${esc(t)} <b>${n}</b></button>`).join('')}</div>`;};
 function epicCards(items,title,uid){
   const g=new Map();
   for(const i of items){const k=i.epicId||'__none';const e=g.get(k)||{name:i.epicId?i.epic:'Others — no epic linked',id:i.epicId,n:0,done:0,sp:0,lead:!!(uid&&i.epicLeadId===uid),leadName:i.epicLead};e.n++;e.sp+=spOf(i);if(isClosed(i))e.done++;g.set(k,e);}
@@ -201,13 +205,14 @@ function renderModal(){
   el.innerHTML=`<div class="sp-modal-card" role="dialog" aria-modal="true" aria-label="Standup review: ${esc(m.name)}">
   <div class="sp-modal-top">${nav(pv,-1,'Previous engineer','‹')}<div class="sp-mtitle">${avImg(m,1)}<div><h3>${esc(m.name)}</h3><p>${k+1} of ${ms.length}</p><div class="mchips">${statChips(items)}</div>${memberChips(m)}</div></div>${nav(nx,1,'Next engineer','›')}</div>
   <div class="sp-modal-tools"><span class="sp-bar"><i style="width:${Math.min(100,pct(doneSp,sp))}%;background:#2e844a"></i></span><button type="button" class="button small" data-shuffle title="Randomise the order of engineers for standup">🔀 Shuffle order</button><button type="button" class="button small" data-modal-close>Close ✕</button></div>
-  <div class="sp-modal-body">${epicCards(items,'Epics',(items.find(i=>i.assigneeId)||{}).assigneeId)}<h4 class="sp-sec">Work items${shown.length<items.length?` <span class="count-pill">${shown.length} of ${items.length}</span>`:''}</h4>${itemsTable(shown,true)}</div></div>`;
+  <div class="sp-modal-body">${epicCards(items,'Epics',(items.find(i=>i.assigneeId)||{}).assigneeId)}<div class="sp-sec-row"><h4 class="sp-sec">Work items <span class="count-pill">${shown.length<items.length?`${shown.length} of ${items.length}`:items.length}</span></h4>${typeChips(items)}</div>${itemsTable(shown,true)}</div></div>`;
   $('sp-panel-body').appendChild(el);const b=el.querySelector('.sp-modal-body');b.scrollTop=top;if(!keep)el.querySelector('.sp-mnav:not([disabled]),[data-modal-close]').focus();
 }
 function bindModal(){
   $('sp-panel-body').addEventListener('click',e=>{
     const t=e.target;
     if(t.closest('[data-epic-clear]')){S.epic=null;renderStandup();renderModal();return;}
+    const tc=t.closest('[data-type-chip]');if(tc){const v=tc.dataset.typeChip;if(!v)S.types.clear();else S.types.has(v)?S.types.delete(v):S.types.add(v);renderStandup();renderModal();return;}
     const ec=t.closest('[data-epic]');if(ec&&!t.closest('a')){S.epic=S.epic===ec.dataset.epic?null:ec.dataset.epic;renderStandup();renderModal();return;}
     const so=t.closest('[data-sort]');if(so){const k=so.dataset.sort;S.sort=S.sort.key===k?{key:k,dir:S.sort.dir==='asc'?'desc':'asc'}:{key:k,dir:'asc'};renderMembers();renderModal();return;}
     const op=t.closest('[data-open-member]');if(op){S.modal=op.dataset.openMember;renderModal();return;}
@@ -234,6 +239,7 @@ function renderStandup(){
   <div class="su-carousel"><div class="su-nav"><div class="su-nav-l"><button class="button small" data-su-step="-1" aria-label="Previous member"${S.standupIdx===0?' disabled':''}>‹ Prev</button><button class="button small" data-su-step="1" aria-label="Next member"${S.standupIdx===ms.length-1?' disabled':''}>Next ›</button></div><div class="su-nav-c"><span class="su-count">${S.standupIdx+1} of ${ms.length}</span><div class="su-dots" role="tablist">${ms.map((x,k)=>`<button class="su-dot${k===S.standupIdx?' active':''}" data-su="${k}" role="tab" aria-selected="${k===S.standupIdx}" aria-label="${esc(x.name)}"></button>`).join('')}</div></div><div class="su-nav-r"><button class="button small" data-shuffle title="Randomise the order of engineers for standup">🔀 Shuffle</button><button class="button small" data-open-member="${esc(m.name)}" title="Open in popup">Open ⤢</button></div></div>
   <div class="su-member"><div class="su-member-head">${avImg(m,1)}<div><h3>${esc(m.name)}</h3><p>${S.standupIdx+1} of ${ms.length}</p><div class="mchips">${statChips(items)}</div>${memberChips(m)}</div><span class="sp-bar su-bar"><i style="width:${Math.min(100,pct(doneSp,sp))}%;background:#2e844a"></i></span></div>
   ${epicCards(items,'Epics for '+m.name+'’s sprint work',(items.find(i=>i.assigneeId)||{}).assigneeId)}
+  <div class="sp-sec-row su-sec-row"><h4 class="sp-sec">Work items <span class="count-pill">${epicFilter(items).length<items.length?`${epicFilter(items).length} of ${items.length}`:items.length}</span></h4>${typeChips(items)}</div>
   <div class="su-cols" aria-hidden="true"><span>#</span><span>Work</span><span>Subject / Epic</span><span>QA</span><span>Status</span><span class="num pl">Planned</span><span class="num ac">Actual</span><span class="num">Churn</span></div>
   <ol class="su-items">${epicFilter(items).map(i=>`<li class="${isClosed(i)?'done':''}"><span class="su-no"></span><a href="${GUS_WORK}${esc(i.id)}/view" target="_blank" rel="noopener noreferrer">${esc(i.name)}</a><span class="su-subject" title="${esc(i.subject)}${i.epic?esc('\n\nEpic: '+i.epic):''}">${esc(i.subject)}${i.epic?` <span class="sp-chip">${esc(i.epic)}</span>`:''} <span class="sp-tags">${itemTags(i)}</span></span>${qaCell(i)}${statusSelect(i)}<span class="num">${planCell(i)}</span>${ptsInput(i)}<span class="num">${churnCell(i)}</span></li>`).join('')}</ol></div></div></section>`;
 }
