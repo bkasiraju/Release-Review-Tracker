@@ -1,3 +1,7 @@
+## Unreleased — Release Planning: filter and group epics
+
+"Projects & epics" now has a toolbar: search (epic, workstream or project name), filters for Planned release, Line (ABL/BTL), Engineer and Theme, a Clear filters button, an "x of N epics" count, and **Group by** Project (default, editable), Planned release, ABL/BTL or Theme. Grouped views show per-group epic count and ABL/BTL days, list each epic under its project name, and are for review (add epics/projects from the Project grouping). Filters are view-only session state: they never change or save the plan. Cache-bust `4.0.0-GA-plan17`.
+
 ## Unreleased — popup prev/next cleanup
 
 In the standup popup the Previous/Next engineer controls are no longer stretched boxes: they sit at the outer edges, hug the name with a bottom rule only (no side borders), and the "n of N" line under the engineer's name is removed (the Standup page nav keeps its count). Cache-bust `4.0.0-GA-plan16`.

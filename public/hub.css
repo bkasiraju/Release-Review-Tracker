@@ -415,3 +415,12 @@ body[data-hub=home] .hub-tile .hub-tile-chips span{font-size:10px;line-height:1.
 .sp-mnav{width:max-content;max-width:100%;padding:4px 10px!important;background:transparent!important;border:0!important;border-bottom:2px solid #c9d6e3!important;border-radius:0!important}
 .sp-mnav:hover:not([disabled]){background:#f1f6fb!important;border-bottom-color:#2a8fd8!important;transform:none!important}
 .sp-mnav:first-child{justify-self:start}.sp-mnav:last-child{justify-self:end}
+
+/* Release Planning: filter and group toolbar */
+.pl-tools{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px 12px;margin:0 0 12px;padding:10px 12px;border:1px solid #d8e2ec;border-radius:10px;background:#fff}
+.pl-tf{display:flex;flex-direction:column;gap:3px;font-size:11px;font-weight:600;color:#44546a}.pl-tf .cs,.pl-tf select{min-width:140px}.pl-q{flex:1 1 220px}.pl-q input{width:100%}
+.pl-count{margin-left:auto;align-self:center}
+.pl-group-h{display:flex;align-items:baseline;gap:12px;padding:10px 12px;border-bottom:1px solid #e3e8ee}.pl-group-h h4{margin:0;font-size:14px}.pl-gsum{font-size:12px;color:#44546a}
+.pl-gproj{padding:8px 14px 0;font-size:11.5px;font-weight:600;color:#0b5a8a}
+.pl-q input{height:36px;border:1px solid #c5d3e0;border-radius:8px;padding:0 10px;background:#fff}
+.pl-count{padding:0;border:0;background:none;white-space:nowrap}

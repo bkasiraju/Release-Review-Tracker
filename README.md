@@ -188,4 +188,6 @@ The Bugs page follows the Trust Champion layout: SLA tiles (Triage 2d, Bugfix P0
 
 ## Release Planning
 
+The Projects & epics section can be searched, filtered (release, ABL/BTL, engineer, theme) and grouped (project, planned release, ABL/BTL, theme); view state is not saved.
+
 Team tab for planning projects, epics and workstreams against capacity (leaves/holidays aware). ABL epics are saved to GUS on confirm; BTL stays in the dashboard. See RELEASE_NOTES.md.
