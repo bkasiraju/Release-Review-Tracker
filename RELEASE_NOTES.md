@@ -1,3 +1,7 @@
+## Unreleased on top of 4.0.0-GA (plan35) — tile titles without (Monthly)/(Quarterly)
+
+- Team Hub tiles show "Release Review" and "Release Planning"; the tile caption no longer says "monthly". Tab and rail names are unchanged.
+
 ## Unreleased on top of 4.0.0-GA (plan34) — Team Hub tile layout
 
 - Tiles now have a fixed rhythm: header (icon, title, go-arrow), value, caption, chips pinned to the bottom. The big value sits on its own line above its caption. A small arrow icon on every tile signals it opens that tab; it nudges on hover.

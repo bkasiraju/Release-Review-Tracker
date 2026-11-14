@@ -912,3 +912,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan33: grouped standup chips with signal hover cards and updated tagline — local harness screenshot only (spillover card seen; In progress/Blocked have 0 items in seed data).
 
 - plan34: Team Hub tile layout and go-arrow — local harness screenshot at 1500px only.
+
+- plan35: Team Hub tile titles without Monthly/Quarterly — local harness screenshot only.
