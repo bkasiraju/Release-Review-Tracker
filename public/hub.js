@@ -35,7 +35,7 @@ let picks;H.picklists=()=>picks||(picks=call('hub-picklists',{}).catch(e=>{picks
 
 // ── Registry + router ───────────────────────────────────────────────────────
 H.register=page=>{H.pages.set(page.id,page);};
-const NAV=['home','epics','sprints','tds','tests','rotations','bugs','status','links'];
+const NAV=['home','epics','sprints','tds','plan','tests','rotations','bugs','status','links'];
 function renderNav(){
   $('hub-nav').innerHTML=NAV.filter(id=>H.pages.has(id)).map(id=>{const p=H.pages.get(id),on=id===H.current;
     return `<button data-page="${id}" class="${on?'selected':''}" aria-pressed="${on}" ${on?'aria-current="page"':''}>${icon(p.icon,p.tone)} ${esc(p.label)}</button>`;}).join('');
@@ -55,6 +55,7 @@ const GUS_LINKS={
   epics:[['New Epic',gnew('ADM_Epic__c'),1],['All epics',glist('ADM_Epic__c')],['New work item',gnew('ADM_Work__c')]],
   sprints:[['New work item',gnew('ADM_Work__c'),1],['Sprints',glist('ADM_Sprint__c')],['Work items',glist('ADM_Work__c')]],
   tds:[['New team dependency',gnew('ADM_Team_Dependency__c'),1],['All TDs',glist('ADM_Team_Dependency__c')]],
+  plan:[['New Epic',gnew('ADM_Epic__c'),1],['Epics',glist('ADM_Epic__c')],['Projects',glist('PPM_Project__c')],['Programs',glist('PPM_Program__c')]],
   tests:[['New work item',gnew('ADM_Work__c'),1],['Work items',glist('ADM_Work__c')]],
   bugs:[['New bug',gnew('ADM_Work__c'),1],['Work items',glist('ADM_Work__c')]],
   status:[['Epics',glist('ADM_Epic__c')],['New Epic',gnew('ADM_Epic__c')]],

@@ -1,3 +1,11 @@
+## Unreleased (on top of 4.0.0-GA) — Release Planning tab
+
+New hub tab **Release Planning** (`public/plan.js`, `backend/plan.js`, actions `plan-get`, `plan-save`, `plan-refs`, `plan-commit`). Engineers plan per team: projects (linked to a GUS Program), epics (priority, planned release, project, ABL/BTL) and workstreams (engineer, effort in days, tentative sprint). The dashboard recomputes live: available capacity (working days in the planning window minus per-engineer leave and holidays, entered in the "Leaves & holidays" popup), planned ABL/BTL, headroom, effort by theme/method (project theme, else the project-name prefix before ":") and per-engineer load. The draft is stored in the settings journal under `plan-<teamId>`.
+
+"Review & save to GUS" previews, then writes ONLY ABL epics: creates or links the `PPM_Project__c` (with its `PPM_Program__c`), then creates or updates the `ADM_Epic__c` with Project, Planned Release, Priority and Planned Effort (days, in `Planned_Story_Points__c`). BTL epics, tentative sprint, workstreams, leaves and holidays stay dashboard-only. Retries update rather than duplicate. The 4.0.0-GA golden build is unchanged. Team Hub tile grid now fits 9 tiles. Cache-bust suffix `4.0.0-GA-plan1`.
+
+Validation: `tests/plan.test.js` (5 tests, mocked GUS) and a stubbed browser harness. The commit path has NOT been exercised against live GUS. Node suite 212 pass / 38 fail (the same 38 pre-existing failures).
+
 ## 4.0.0-GA — GOLDEN BUILD (Release Intelligence team hub)
 
 User-designated GOLDEN BUILD and preferred rollback baseline (14 November 2026). Includes the Team Hub redesign (team first, leaders last in fixed order, aligned summary tiles), V2MOM Updates rename, new logo, shared column sizing, 25-row pagination, status colours, Open-in-GUS link bars, Test Failures filters, Bugs pagination, focus mode and custom team dropdown. Tags `v4.0.0-GA`, `GOLDEN-BUILD-4.0.0-GA`; archive `releases/4.0.0-GA/`. Previous baseline: `GOLDEN-BUILD-3.0.0-GA`. Verified on a stubbed harness only; node suite 207 pass / 38 fail, identical to the pre-change baseline. Private GOLDEN Dataset not re-captured for 4.0.0-GA (3.0.0-GA dataset remains the latest).

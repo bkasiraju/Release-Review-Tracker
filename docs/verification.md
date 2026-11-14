@@ -876,3 +876,7 @@ Automatic approval review rejected an attempted reuse of a named existing browse
 - When the host exposes only query/create/update, sync uses a pre-save recheck plus readback verification, and the interface states that atomic conditional updates are unavailable. Full REST-capable connections use conditional PATCH.
 - The append-only state history requires full pagination support as it grows. The backend fails explicitly rather than silently loading an incomplete history.
 - The first version imports individual epic links/IDs; GUS list-view URL/column-metadata import was not confirmed and is not included.
+
+## Release Planning (post-4.0.0-GA)
+
+Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on stub harness: tab renders, live KPI/theme/engineer recompute, 9-tile hub grid. Not verified: live GUS create/update of PPM_Project__c and ADM_Epic__c; first real commit should be previewed and reviewed by the user.

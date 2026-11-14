@@ -42,3 +42,7 @@ Every requested change follows this sequence end to end without asking the user 
 3. Run an independent read-only review (code-review subagent) of `git diff <last deployed commit> HEAD` against `.local/gus-review-rubric.md`. Save its honest verdict (`recommendation`, `summary`, `blockingIssues`, `caveats`; reference the reviewed commit and say whether it was static-only; the final deploy repackages, so match by commit, not ZIP hash) to `.local/platform-review-verdict.json`. Never write an approval the reviewer did not give.
 4. If `blockingIssues` is non-empty or the recommendation is Reject: stop, fix or report to the user. Otherwise run `python3 scripts/deploy.py`, which POSTs the verdict to `/api/applets/cfs-release-review-tracker/review-verdict`, promotes with `{"decision":"approve"}`, and verifies the live version.
 5. Report git and GUS Apps status accurately (uploaded / activated / verified).
+
+## Release Planning tab
+
+`public/plan.js` (client) + `backend/plan.js` (actions `plan-get|plan-save|plan-refs|plan-commit`). Draft stored as settings key `plan-<teamId>`. Only ABL epics are written to GUS (project -> program, epic -> project + planned release, days -> `Planned_Story_Points__c`); everything else is dashboard-only. Leaders are excluded from capacity via `H.leaderRank(name)`.

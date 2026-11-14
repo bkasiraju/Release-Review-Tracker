@@ -27,6 +27,7 @@
   bug:'<rect x="8" y="8" width="8" height="11" rx="4"/><path d="M9 8a3 3 0 0 1 6 0M4 12h4m8 0h4M5 6l3 3m11-3-3 3M5 19l3-3m11 3-3-3"/>',
   rotation:'<path d="M20 12a8 8 0 0 1-14 5M4 12a8 8 0 0 1 14-5"/><path d="M18 3v4h-4M6 21v-4h4"/><circle cx="12" cy="12" r="2"/>',
   board:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8 4v16M3 9h18M12 13h6M12 16h4"/>',
+  plan:'<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M4 9h16M9 9v11M13 13h4M13 16.5h3"/>',
   td:'<circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.5 6H14a3 3 0 0 1 3 3v6.5M14 13l3 3 3-3"/>',
   flask:'<path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3"/><path d="M8 15h8"/>',
   bolt:'<path d="M13 2 4 14h7l-1 8 9-12h-7Z"/>',

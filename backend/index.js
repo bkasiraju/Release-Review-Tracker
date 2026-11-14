@@ -1,5 +1,5 @@
 'use strict';
-const {Gus,safeError,validId}=require('./gus');const {ContentStore}=require('./store');const {Service}=require('./service');const sprint=require('./sprint');const hub=require('./hub');const post=require('./post');
+const {Gus,safeError,validId}=require('./gus');const {ContentStore}=require('./store');const {Service}=require('./service');const sprint=require('./sprint');const hub=require('./hub');const planner=require('./plan');const post=require('./post');
 function connection(ctx){
   const roots=[['ctx',ctx],['request',ctx.request],['invocation',ctx.invocation],['runtime',ctx.runtime],['context',ctx.context],['applet',ctx.applet],['auth',ctx.auth],['user',ctx.user],['salesforce',ctx.salesforce],['request.context',ctx.request?.context]].filter(([,r])=>r&&typeof r==='object');
   // Prefer delegated clients across every known host root before the generic facade.
@@ -65,6 +65,10 @@ async function handleRequest(ctx){
       case 'hub-sla':payload=await hub.getSla(sf,b.teamId);break;
       case 'hub-champion':payload=await hub.getChampion(store,b.teamId);break;
       case 'hub-champion-save':payload=await hub.saveChampion(store,b.teamId,b.champion,b.revision);break;
+      case 'plan-get':payload=await planner.getPlan(store,b.teamId);break;
+      case 'plan-save':payload=await planner.savePlan(store,b.teamId,b.plan,b.revision);break;
+      case 'plan-refs':payload=await planner.getRefs(sf,b.teamId);break;
+      case 'plan-commit':payload=await planner.commitPlan(sf,store,b.teamId,b.confirm===true);break;
       case 'hub-tds':payload=await hub.getTds(sf,b.teamId);break;
       case 'hub-picklists':payload=await hub.getPicklists(sf);break;
       case 'hub-rotation':payload=await hub.getRotation(store,b.teamId);break;
