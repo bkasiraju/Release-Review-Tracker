@@ -192,7 +192,7 @@ A Save button persists entries to the GUS Apps backend; Review & save to GUS wri
 
 The planner mirrors the team's planning sheets (theme, HRP/CFS V2MOM, owners, estimates, status, doc link) with multi-select owners and engineers and new items defaulting to P0 and release 268.
 
-Priorities display as P1–P5; the Projects & epics list has a Form/Grid toggle, and a Release Planning Summary subtab rolls effort up by priority and theme.
+Priorities display as P1–P5; the Projects & epics list is grid-only (Form view removed in plan23), and a Release Planning Summary subtab rolls effort up by priority and theme.
 
 The Projects & epics section can be searched, filtered (release, ABL/BTL, engineer, theme) and grouped (project, planned release, ABL/BTL, theme); view state is not saved.
 
