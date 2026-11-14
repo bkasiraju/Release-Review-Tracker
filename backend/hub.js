@@ -223,7 +223,7 @@ const KARTHIK = '005EE00000kbcyIYAQ';
 const PEOPLE = { // display order: leadership first, then the rest of the roster A–Z
   'Managed Async Processing Team': ['005B0000005Lg7WIAS', '005EE00000StHjGYAV', '005B0000001tCGAIA2', '005EE00000YvpWrYAJ'],
   'Message Queue Team': ['005EE00000StHjGYAV', '005B0000001tCGAIA2', '005EE00000YvpWrYAJ'],
-  'VegaCache Team': ['005B0000006q4KcIAI', '005B0000003OANyIAO', '005EE00000YvpWrYAJ']
+  'VegaCache Team': ['005B0000006q4KcIAI', '005EE00000kbcyIYAQ', '005B0000003OANyIAO', '005EE00000YvpWrYAJ']
 };
 const groupOf = g => g === 'maps' ? 'Managed Async Processing Team' : g === 'mq' ? 'Message Queue Team' : g === 'vegacache' ? 'VegaCache Team' : null;
 const TEAM_LIKE = { 'Managed Async Processing Team': "Name LIKE 'Managed Async Processing%'", 'Message Queue Team': "Name = 'Message Queue'", 'VegaCache Team': "Name LIKE 'VegaCache%'" };
@@ -259,7 +259,7 @@ async function getPeople(sf, slack, group) {
     own = own.filter(i => !maps.has(i));
   }
   // Karthik Sethuraman's direct reports are part of the team he is on
-  if (own.includes(KARTHIK)) own.push(...((await sf.query(`SELECT Id FROM User WHERE IsActive = true AND ManagerId = '${KARTHIK}' LIMIT 100`)).records || []).map(r => r.Id));
+  if (own.includes(KARTHIK) || lead.includes(KARTHIK)) own.push(...((await sf.query(`SELECT Id FROM User WHERE IsActive = true AND ManagerId = '${KARTHIK}' LIMIT 100`)).records || []).map(r => r.Id));
   const ids = [...new Set([...lead, ...own])];
   const rows = (await sf.query(`SELECT Id, Name, Title, Email, SmallPhotoUrl FROM User WHERE IsActive = true AND Id IN (${ids.map(i => `'${q(i)}'`).join(',')})`)).records || [];
   const byId = new Map(rows.map(r => [r.Id, r]));
