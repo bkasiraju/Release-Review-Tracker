@@ -1,3 +1,8 @@
+## Unreleased on top of 4.0.0-GA (plan82) — Column picker works when browser storage is blocked
+
+- Column choice and order are now held in memory for the session, with localStorage as best-effort persistence. Before, every toggle/reorder was written only to localStorage and re-read from it; if storage is blocked in the GUS Apps frame the write silently failed, so nothing changed in the picker or the table. This is the likely cause of the live-only "cannot check/uncheck" report that did not reproduce on the local harness.
+- Known, not changed: `ERR_TOO_MANY_REDIRECTS` console errors come from GUS profile-photo URLs (`gus.file.force.com/profilephoto/...`) redirecting in a loop for the browser session. Avatars fall back to initials. This is outside the applet's code.
+
 ## Unreleased on top of 4.0.0-GA (plan81) — Back button goes to the applet root
 
 - "Back to Release Intelligence" now navigates the whole window to `/applets/cfs-release-review-tracker/` (the full app with its header and rail) instead of only switching to the in-page Team Hub, which in full-screen mode left the user on a header-less view. When the path is not an applet path (local harness) it falls back to the in-page Team Hub. The unsaved-changes confirmation is kept.

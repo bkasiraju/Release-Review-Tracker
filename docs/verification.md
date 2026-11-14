@@ -996,3 +996,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan80: richer CSS 3D icons in planner tiles and headings (local harness screenshot; not verified on the live app; Planned Release Summary tab not re-screenshotted).
 
 - plan81: Back button navigates to the applet root URL. Only the local-harness fallback (in-page #/home) was exercised; the applet-URL branch was not run live.
+
+- plan82: column picker keeps state in memory (local harness with localStorage forced to throw: Priority added, Sprint removed, table headers followed). Root cause on live is inferred, not confirmed; not verified on the live app.
