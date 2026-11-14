@@ -68,19 +68,22 @@ function drawRps(){
   const el=P.el&&P.el.querySelector('#pl-rps');if(!el||!P.plan)return;
   const m=rpsModel(),{B}=m,tot=m.abl,col=i=>TCOL[i%TCOL.length];
   const card=(k,label,val,sub,colr)=>`<button type="button" class="pl-rk" data-rps="${k}" style="--c:${colr}"><span>${label}</span><b>${fmt(val)}<small> d</small></b><em>${sub}</em><i>Full screen →</i></button>`;
+  const pl=P.plan,M=model(),epics=pl.epics,rn=e=>e.releaseName||(P.refs.releases.find(r=>r.id===e.releaseId)||{}).name||'No planned release';
+  const rm=new Map();epics.forEach(e=>{const k=rn(e);if(!rm.has(k))rm.set(k,{name:k,n:0,abl:0,btl:0});const x=rm.get(k);x.n++;x[e.line==='ABL'?'abl':'btl']+=epicDays(e);});
+  const byRel=[...rm.values()].sort((a,b)=>b.n-a.n),sm=new Map();epics.forEach(e=>sm.set(e.status||'No status',(sm.get(e.status||'No status')||0)+1));const byStat=[...sm.entries()];
+  const noOwner=epics.filter(e=>!(e.owners||[]).length).length,noRel=epics.filter(e=>!e.releaseId).length,unas=epics.reduce((a,e)=>a+e.workstreams.filter(w=>!wsEngs(w).length).length,0),inGus=epics.filter(e=>e.gusId).length,load=M.avail?Math.round(M.total/M.avail*100):0;
+  const hm=[['Epics',epics.length],['ABL / BTL',epics.filter(e=>e.line==='ABL').length+' / '+epics.filter(e=>e.line!=='ABL').length],['In GUS / draft',inGus+' / '+(epics.length-inGus)],['Capacity used',load+'%',load>100?'bad':''],['No owner',noOwner,noOwner?'warn':''],['No release',noRel,noRel?'warn':''],['Unassigned workstreams',unas,unas?'warn':'']];
   const R=46,C=2*Math.PI*R;let off=0;
   const arcs=m.themes.filter(t=>t.days>0).map((t,i)=>{const len=t.days/tot*C,a=`<circle cx="60" cy="60" r="${R}" fill="none" stroke="${col(i)}" stroke-width="18" stroke-dasharray="${len} ${C-len}" stroke-dashoffset="${-off}" transform="rotate(-90 60 60)"></circle>`;off+=len;return a;}).join('');
   const seg=(b,l)=>B[b]>0?`<i style="width:${B[b]/(tot||1)*100}%;background:${PCOL[b]}" title="${l}: ${fmt(B[b])} d"></i>`:'';
   el.innerHTML=`<div class="pl-rks">${card('abl','Total payload (ABL)',tot,`P0 ${fmt(B[0])} · P1 ${fmt(B[1])} · P2 ${fmt(B[2])} · P3+ ${fmt(B[3])}`,'#1b73b3')}
     ${card('p0','P0 critical path',B[0],`${pctOf(B[0],tot)}% of planned`,'#b3261e')}${card('p1','P1 high',B[1],`${pctOf(B[1],tot)}% of planned`,PCOL[1])}${card('p2','P2 medium',B[2],`${pctOf(B[2],tot)}% of planned`,PCOL[2])}${card('p3','P3+ low',B[3],`${pctOf(B[3],tot)}% of planned`,PCOL[3])}${card('btl','BTL effort',B.b,'Below the line / backlog',PCOL.b)}</div>
-  <div class="pl-rps-grid"><section class="pl-card"><h3>Theme payload distribution</h3><p class="note">Above-the-line effort by theme. Click a theme to open its epics.</p>
-    ${tot?`<div class="pl-donut"><svg viewBox="0 0 120 120" role="img" aria-label="Theme payload distribution">${arcs}</svg><div><b>${fmt(tot)}</b><span>planned days</span></div></div>`:'<p class="note">Add ABL effort to see the distribution.</p>'}
-    <div class="pl-tleg">${m.themes.map((t,i)=>`<button type="button" data-rps="t:${esc(t.name)}"><i style="background:${col(i)}"></i><span>${esc(t.name)}</span><b>${fmt(t.days)}d</b></button>`).join('')}</div></section>
-  <section class="pl-card"><h3>Priority &amp; strategic investment breakdown</h3><p class="note">High-level effort commitment across release goals (days).</p>
-    <div class="pl-pleg"><span style="color:#b3261e">P0 critical: ${fmt(B[0])} d (${pctOf(B[0],tot)}%)</span><span style="color:${PCOL[1]}">P1: ${fmt(B[1])} d</span><span style="color:${PCOL[2]}">P2: ${fmt(B[2])} d</span><span style="color:${PCOL[3]}">P3+: ${fmt(B[3])} d</span><span>BTL: ${fmt(B.b)} d</span></div>
+  <div class="pl-rps-grid pl-rps-2"><section class="pl-card"><h3>Priority &amp; effort mix</h3><p class="note">Above-the-line effort by priority (days).</p>
+    <div class="pl-pleg"><span style="color:#b3261e">P0 critical: ${fmt(B[0])} d (${pctOf(B[0],tot)}%)</span><span style="color:${PCOL[1]}">P1: ${fmt(B[1])} d</span><span style="color:${PCOL[2]}">P2: ${fmt(B[2])} d</span><span style="color:${PCOL[3]}">P3+: ${fmt(B[3])} d</span></div>
     <div class="pl-pbar">${seg(0,'P0')}${seg(1,'P1')}${seg(2,'P2')}${seg(3,'P3+')}</div>
-    <h4 class="pl-sub">Strategic themes portfolio (${m.themes.length} theme${m.themes.length===1?'':'s'})</h4>
-    <div class="pl-tcards">${m.themes.length?m.themes.map((t,i)=>`<button type="button" class="pl-tc" data-rps="t:${esc(t.name)}" style="--c:${col(i)}"><b>${esc(t.name)}</b><span>${fmt(t.days)} d (${pctOf(t.days,tot)}%)</span><u><i style="width:${pctOf(t.days,tot)}%"></i></u><small>${t.epics} epic${t.epics===1?'':'s'}</small><em>Open full screen</em></button>`).join(''):'<p class="note">No above-the-line epics yet.</p>'}</div></section></div>`;
+    <h4 class="pl-sub">Planning health</h4><div class="pl-hm">${hm.map(([l,v,t])=>`<div class="${t||''}"><b>${v}</b><span>${l}</span></div>`).join('')}</div></section>
+  <section class="pl-card"><h3>By planned release</h3>${byRel.length?`<table class="pl-rps-t"><thead><tr><th>Release</th><th>Epics</th><th>ABL d</th><th>BTL d</th></tr></thead><tbody>${byRel.map(r=>`<tr><td>${esc(r.name)}</td><td>${r.n}</td><td>${fmt(r.abl)}</td><td>${fmt(r.btl)}</td></tr>`).join('')}</tbody></table>`:'<p class="note">No epics yet.</p>'}
+    <h4 class="pl-sub">By status</h4>${byStat.length?`<div class="pl-hm">${byStat.map(([k,n])=>`<div><b>${n}</b><span>${esc(k)}</span></div>`).join('')}</div>`:'<p class="note">No epics yet.</p>'}</section></div>`;
 }
 function openRps(k,opener){
   const pl=P.plan,prj=new Map(pl.projects.map(p=>[p.id,p]));let title,list;
@@ -315,7 +318,7 @@ H.register({id:'plan',label:'Release Planning',icon:'plan',tone:'green',desc:'Pl
     P.el=el;
     el.innerHTML=`<div class="executive-heading"><div><h2>${icon('plan','green')} Release Planning</h2><p>Plan projects, epics and workstreams for ${esc(H.team.Name)}. Effort is in days; epics above the line (ABL) are saved to GUS when you confirm.</p></div><div class="heading-actions"><span id="pl-state" class="pl-state" role="status" aria-live="polite"></span><button type="button" class="button" id="pl-leaves">Leaves, holidays &amp; on-call</button><button type="button" class="button primary" id="pl-commit">Review &amp; save to GUS</button></div></div>
     <div class="pl-window"><label>Planning window <input type="date" class="hub-inline" id="pl-start" aria-label="Window start"></label><span aria-hidden="true">→</span><input type="date" class="hub-inline" id="pl-end" aria-label="Window end"><span class="note" id="pl-last"></span></div><div id="pl-warn"></div>
-    <div class="pl-tabs" role="tablist" aria-label="Release planning views"><button type="button" role="tab" data-tab="plan" class="on" aria-selected="true">Planner</button><button type="button" role="tab" data-tab="rps" aria-selected="false">Release Planning Summary</button></div>
+    <div class="pl-tabs" role="tablist" aria-label="Release planning views"><button type="button" role="tab" data-tab="plan" class="on" aria-selected="true">Release Planned</button><button type="button" role="tab" data-tab="rps" aria-selected="false">Release Review</button></div>
     <div id="pl-main"><div id="pl-sum"></div>
     <div class="pl-planner-h"><h3>Projects &amp; epics</h3><button type="button" class="button" id="pl-add-proj">+ Project</button></div><div id="pl-tools" class="pl-tools"></div><div id="pl-planner"></div></div><div id="pl-rps" hidden></div>`;
     P.tab='plan';

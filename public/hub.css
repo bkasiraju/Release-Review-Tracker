@@ -482,3 +482,20 @@ body[data-hub=home] .hub-tile .hub-tile-chips span{font-size:10px;line-height:1.
 .pl-epic-d{display:flex;flex-wrap:wrap;gap:8px 12px;padding:6px 12px 2px 14px}.pl-epic-d label{display:flex;flex-direction:column;gap:2px;font-size:11px;font-weight:600;color:#44546a}.pl-epic-d input.hub-inline{width:140px}.pl-epic-d .pl-days{width:90px}.pl-epic-d .cs-btn{min-width:0}.pl-doc input{width:220px!important}.pl-doc a{font-size:11px}
 .pl-ws-r{grid-template-columns:auto minmax(160px,2fr) minmax(110px,max-content) 70px minmax(120px,1fr) auto 24px}
 .pl-grid-wrap{overflow-x:auto;overflow-y:visible;max-width:100%}
+.pl-rps-2{grid-template-columns:1fr 1fr}.pl-hm{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}.pl-hm div{border:1px solid #d8e2ec;border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;background:#f9fbfd}.pl-hm b{font-size:20px;color:#16324a!important}.pl-hm span{font-size:11px;color:#44546a}.pl-hm .warn{border-color:#e8b36a;background:#fff8ec}.pl-hm .bad{border-color:#e08a85;background:#fdeeed}
+@media(max-width:1100px){.pl-rps-2{grid-template-columns:1fr}}
+
+/* Release Planning header alignment */
+#view-plan .executive-heading,.hub-view .executive-heading:has(#pl-state){display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.executive-heading:has(#pl-state) h2{display:flex;align-items:center;gap:10px;margin:0 0 4px}
+.executive-heading:has(#pl-state) p{margin:0;max-width:none;flex:1 1 auto}
+.executive-heading:has(#pl-state) .heading-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.executive-heading:has(#pl-state) .heading-actions .button{height:36px;display:inline-flex;align-items:center;margin:0}
+.pl-state{min-width:96px;text-align:right;font-size:12px}
+.pl-window{display:flex;align-items:center;gap:10px;margin:14px 0 4px;padding:0}
+.pl-window label{display:flex;align-items:center;gap:10px;font-weight:600;color:#16324a}
+.pl-window input[type=date]{height:36px;box-sizing:border-box}
+.pl-window .note{margin-left:8px}
+.pl-tabs{margin:12px 0 16px}
+.pl-planner-h{display:flex;align-items:center;justify-content:space-between;margin:18px 0 10px}.pl-planner-h h3{margin:0}
+.pl-planner-h .button,.pl-tools .button{height:36px;display:inline-flex;align-items:center}

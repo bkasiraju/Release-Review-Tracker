@@ -1,3 +1,7 @@
+## Unreleased — Release Planning: subtabs and header alignment
+
+Subtabs are now **Release Planned** (the planner) and **Release Review** (high-level metrics only: priority KPIs, effort by priority, planning health such as epics, ABL/BTL, in GUS vs draft, capacity used, no owner / no release / unassigned workstreams, plus by-release and by-status counts). The theme and engineer-bandwidth views are not repeated in Release Review. The Release Planning header, planning-window row, tabs and toolbars now share one vertical rhythm and 36px control height. Cache-bust `4.0.0-GA-plan21`.
+
 ## Unreleased — planner: inline dropdowns, owners, defaults, sheet-parity fields
 
 - **Inline dropdowns everywhere** in the planner, including the Grid (the app's custom dropdown, not the native one), sized to their values. In Grid the Project column shows the short code (text before ":", e.g. M1) with the full name on hover; the full project name is what is stored and saved to GUS.
