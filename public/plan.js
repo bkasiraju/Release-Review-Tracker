@@ -34,7 +34,7 @@ const prj0=e=>P.plan.projects.find(p=>p.id===e.projectId)||null;
 const memName=id=>(P.members.find(m=>m.id===id)||{}).name||'';
 const wsEngs=w=>w.engIds&&w.engIds.length?w.engIds:(w.engId?[w.engId]:[]);
 const wsNames=w=>wsEngs(w).map(id=>memName(id)||(id===w.engId?w.engName:'')||'Engineer');
-const shortProj=n=>/^[^:]{1,30}:/.test(n||'')?n.split(':')[0].trim():(n||'(unnamed project)');
+const shortProj=n=>{n=n||'';if(/^[^:]{1,30}:/.test(n))return n.split(':')[0].trim();const m=n.match(/^(?:[A-Za-z]{2,6}\s+)?[A-Za-z]?\d+(?:\.\d+)+/);return m?m[0]:(n||'(unnamed project)');};
 const msLabel=(ids,empty)=>{const n=ids.map(memName).filter(Boolean);return n.length?(n.length>1?`${n[0].split(' ')[0]} +${n.length-1}`:n[0]):empty;};
 const msel=(f,ids,label,empty)=>{const mem=P.members.filter(m=>H.leaderRank(m.name)<0);
   return `<div class="cs ms" data-ms="${f}"><button type="button" class="cs-btn" aria-haspopup="listbox" aria-expanded="false" aria-label="${label}" title="${esc(ids.map(memName).join(', '))}"><span>${esc(msLabel(ids,empty))}</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 8l5 5 5-5"/></svg></button><ul class="cs-menu" role="listbox" aria-multiselectable="true">${mem.map(m=>`<li role="option" data-val="${esc(m.id)}" aria-selected="${ids.includes(m.id)}" class="${ids.includes(m.id)?'on':''}"><i aria-hidden="true">${ids.includes(m.id)?'✓':''}</i><span class="cs-t">${esc(m.name)}</span></li>`).join('')||'<li class="note">No team members</li>'}</ul></div>`;};

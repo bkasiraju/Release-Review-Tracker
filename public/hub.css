@@ -677,3 +677,5 @@ body[data-hub=home] .hub-tile-chips{margin-top:auto}
 .pl-confirm{position:fixed;z-index:10000;max-width:300px;background:#fff;border:1px solid #c9d6e2;border-radius:10px;box-shadow:0 8px 24px rgba(3,45,96,.22);padding:12px 14px}
 .pl-confirm p{margin:0 0 10px;font-size:13px;color:#16324a!important}.pl-confirm div{display:flex;justify-content:flex-end;gap:8px}
 .pl-confirm .danger{background:#b3261e!important;border-color:#b3261e!important;color:#fff!important}
+/* plan51: Project short code (e.g. HRP M1.1.4) is never truncated; full name is the hover title */
+.pl-grid .c-project .cs-btn span,.pl-grid-wrap .pl-grid .c-project .cs-btn span{max-width:none!important;overflow:visible;text-overflow:clip;white-space:nowrap}

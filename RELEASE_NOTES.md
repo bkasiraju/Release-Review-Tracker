@@ -1,3 +1,7 @@
+## Unreleased on top of 4.0.0-GA (plan51) — project short code
+
+- The Project column shows the short code (for example HRP M1.1.4) without truncation; hovering shows the full measure or project name. Names without a colon but starting with a code like "HRP M1.1.4 …" are shortened the same way.
+
 ## Unreleased on top of 4.0.0-GA (plan50) — inline delete confirmations
 
 - Deleting an epic or project in Release Planning now asks in a small popover just above the clicked button (Cancel / Delete; Esc or a click elsewhere cancels) instead of the browser's confirm dialog.

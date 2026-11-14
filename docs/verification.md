@@ -940,3 +940,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan49: Project column width — local harness measurement at 1500px only.
 
 - plan50: inline delete popover — local harness: popover sits 8px above the button and Delete removes the epic; the project-delete popover and keyboard/Esc paths were not exercised.
+
+- plan51: project short code — local harness with a simulated 'HRP M1.1.4' option (button text, full-name title, width); real GUS project names not checked.
