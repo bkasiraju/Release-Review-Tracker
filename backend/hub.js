@@ -221,7 +221,7 @@ async function updateOne(sf, u) {
 // ── Team people (leadership section on the hub home) ─────────────────────────
 const KARTHIK = '005EE00000kbcyIYAQ';
 const PEOPLE = { // display order: leadership first, then the rest of the roster A–Z
-  'Managed Async Processing Team': ['005EE00000StHjGYAV', '005B0000001tCGAIA2', '005EE00000YvpWrYAJ'],
+  'Managed Async Processing Team': ['005B0000005Lg7WIAS', '005EE00000StHjGYAV', '005B0000001tCGAIA2', '005EE00000YvpWrYAJ'],
   'Message Queue Team': ['005EE00000StHjGYAV', '005B0000001tCGAIA2', '005EE00000YvpWrYAJ'],
   'VegaCache Team': ['005B0000006q4KcIAI', '005B0000003OANyIAO', '005EE00000YvpWrYAJ']
 };
