@@ -21,7 +21,7 @@ body[data-hub=links] #overview-panel,body[data-hub=links] #table-card,body[data-
 .hub-rota{display:flex;flex-wrap:wrap;align-items:center;gap:22px;padding:10px 16px;border:1px solid #e6ecf1;border-radius:10px;background:#fff;margin-bottom:16px;font-size:13px}
 .hub-rota span{display:inline-flex;align-items:center;gap:8px}.hub-rota i{color:#6b7280}
 .hub-rota .text-button{margin-left:auto}
-.hub-tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.hub-tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
 .hub-tile{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;gap:12px;min-height:130px;padding:16px;border:1px solid #e6ecf1;border-radius:12px;background:#fff;transition:box-shadow .15s,transform .15s,border-color .15s}
 .hub-tile:hover,.hub-tile:focus-visible{border-color:#176b91;box-shadow:0 4px 18px #176b9122;transform:translateY(-1px)}
 .hub-tile:focus-visible{outline:2px solid #176b91;outline-offset:2px}
@@ -359,3 +359,14 @@ body[data-hub=home] .hub-tile .hub-tile-chips span{font-size:10px;line-height:1.
 .sp-modal-body .sp-items.who .hub-inline{max-width:100%}.sp-modal-body .sp-items.who input.hub-inline.num{max-width:60px}
 @media(max-width:1100px){.sp-modal-body .sp-items.who table{min-width:980px!important}}
 .sp-modal .su-epic strong,.sp-modal .su-epic strong a{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;display:block;line-height:1.3}
+
+/* Standup roster + nav: aligned grid, grouped controls */
+.su-pills{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px 10px}
+.su-pill{display:grid!important;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;border-radius:10px!important;padding:5px 10px 5px 6px!important;text-align:left}
+.su-pill>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}.su-pill.active>span{font-weight:700}
+.su-pill .pill-chips{justify-content:flex-end;min-width:118px}.su-pill .pill-chips>span{min-width:38px;text-align:right}
+.su-nav{display:grid!important;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;padding:10px 16px!important;border-top:1px solid #e9eff3;border-bottom:1px solid #e9eff3}
+.su-nav-l,.su-nav-r{display:flex;gap:8px;align-items:center}.su-nav-r{justify-content:flex-end}
+.su-nav-c{display:flex;flex-direction:column;align-items:center;gap:6px}.su-count{font-size:11px;font-weight:600;color:#44546a}
+.su-nav .button{min-width:76px;justify-content:center}
+@media(max-width:800px){.su-nav{grid-template-columns:1fr}.su-nav-l,.su-nav-r{justify-content:center}}

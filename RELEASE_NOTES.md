@@ -1,3 +1,7 @@
+## Unreleased — standup roster and navigation alignment
+
+Standup view: engineer pills form an aligned grid (avatar, name, fixed-width Planned/Actual/WI chips); the nav row is grouped as Prev/Next on the left, "n of N" with dots centred, Shuffle/Open on the right. Cache-bust `4.0.0-GA-plan11`.
+
 ## Unreleased — standup modal shows every detail
 
 The per-engineer standup modal is wider (up to 1560px), its work-item table no longer clips the Actual/Churn columns, and long subjects, epic names and epic-card titles wrap instead of truncating with an ellipsis. Cache-bust `4.0.0-GA-plan10`.
