@@ -295,9 +295,10 @@ function setTab(t){P.tab=t;const q=s=>P.el.querySelector(s);q('#pl-main').hidden
 const tone=pct=>pct>100?'over':pct>85?'warn':'ok';
 
 // ── Persistence ─────────────────────────────────────────────────────────────
-const stateText=()=>({idle:'',dirty:'Unsaved changes…',saving:'Saving…',saved:'Saved '+P.stateAt,conflict:'Someone else changed this plan. <button type="button" class="text-button" data-reload>Reload</button>',error:'Could not save. <button type="button" class="text-button" data-retry>Retry</button>'}[P.state]||'');
+const stateText=()=>({idle:'',dirty:'Unsaved changes — click Save',saving:'Saving…',saved:'Saved '+P.stateAt,conflict:'Someone else changed this plan. <button type="button" class="text-button" data-reload>Reload</button>',error:'Could not save. <button type="button" class="text-button" data-retry>Retry</button>'}[P.state]||'');
 function setState(s){P.state=s;if(s==='saved')P.stateAt=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});const c=P.el&&P.el.querySelector('#pl-state');if(c){c.className='pl-state '+s;c.innerHTML=stateText();}}
-function queueSave(){setState('dirty');clearTimeout(P.timer);P.timer=setTimeout(flush,700);}
+function queueSave(){setState('dirty');}
+window.addEventListener('beforeunload',ev=>{if(P.state==='dirty'||P.state==='error'){ev.preventDefault();ev.returnValue='';}});
 async function flush(){
   clearTimeout(P.timer);if(P.state!=='dirty'&&P.state!=='error')return P.inflight;
   const my=P.seq;setState('saving');

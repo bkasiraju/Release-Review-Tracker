@@ -118,7 +118,7 @@ function installCache(){
   wrapped.__cached=true;window.api=wrapped;
   document.addEventListener('click',e=>{if(e.target.closest('[data-refresh],#sp-refresh'))H.bust();},true);
 }
-H.prefetch=teamId=>{if(!teamId||teamId==='all')return;const go=()=>['hub-tds','hub-sla','hub-rotation','sprint-initial','sprint-history'].forEach(a=>call(a,{teamId}).catch(()=>{}));(window.requestIdleCallback||setTimeout)(go,1);};
+H.prefetch=teamId=>{if(!teamId||teamId==='all')return;const go=()=>['hub-tds','hub-sla','hub-rotation','sprint-initial','sprint-history'].forEach(a=>call(a,{teamId}).catch(()=>{}));(window.requestIdleCallback?window.requestIdleCallback(go,{timeout:1}):setTimeout(go,1));};
 // ── Delta saves to GUS ──────────────────────────────────────────────────────
 // Optimistic UI. Every record saves independently and in parallel (own debounce, own request, up to MAX_PAR at once),
 // so one slow or failing record never delays or rolls back another. Network errors/timeouts retry once; the status chip

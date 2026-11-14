@@ -1,3 +1,8 @@
+## Unreleased on top of 4.0.0-GA (plan59) — Save only on click; prefetch console error
+
+- The planner no longer autosaves 700 ms after an edit; changes stay as "Unsaved changes — click Save" until Save (or Review & save to GUS) is clicked. Closing the tab with unsaved changes prompts a warning.
+- Fixed `requestIdleCallback` TypeError in `H.prefetch` (it was passed a number instead of `{timeout}`).
+
 ## Unreleased on top of 4.0.0-GA (plan58) — Grid column widths
 
 - Epic Name and Workstream get the spare width; Project, owners, estimates, ATL/BTL and Sprint shrink to content with minimal padding.
