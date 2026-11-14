@@ -1,3 +1,7 @@
+## Unreleased on top of 4.0.0-GA (plan48) — planner grid column order
+
+- Default columns: Project, Epic Name, Workstream, Epic Owner, Workstream Owner(s), Epic Est, WS Est, ATL/BTL, Sprint, actions. Priority, Status and Release are now off by default and can be turned on from Columns.
+
 ## Unreleased on top of 4.0.0-GA (plan47) — ATL-only effort roll-up and planner layout
 
 - New epics default to the latest planned release (highest trailing number in the release name).

@@ -8,9 +8,9 @@ const P={plan:null,rev:null,refs:{releases:[],programs:[],projects:[],sprints:[]
 P.open={theme:false,eng:false};
 P.view={q:'',release:'',line:'',eng:'',theme:'',group:'project'};
 // Grid columns: chooser order = default order; the first GDEF are shown until the user picks their own (saved in this browser).
-const GCOL={project:'Project',name:'Epic Name',ws:'Workstream / Feature',estimate:'Epic est.',days:'WS est.',owners:'Owner(s)',priority:'Priority',status:'Status',engs:'Engineer(s)',sprint:'Sprint target',release:'Release',line:'Line',theme:'Theme',wstatus:'WS status',doc:'Doc',gus:'GUS',hrp:'HRP V2MOM method',v2mom:'CFS V2MOM'};
+const GCOL={project:'Project',name:'Epic Name',ws:'Workstream',owners:'Epic Owner',engs:'Workstream Owner(s)',estimate:'Epic Est',days:'WS Est',line:'ATL/BTL',sprint:'Sprint',priority:'Priority',status:'Status',release:'Release',theme:'Theme',wstatus:'WS status',doc:'Doc',gus:'GUS',hrp:'HRP V2MOM method',v2mom:'CFS V2MOM'};
 const GW={project:112,name:230,ws:200,owners:120,priority:84,estimate:84,status:116,engs:170,days:72,sprint:120,release:150,line:104,theme:130,wstatus:116,doc:150,gus:84,hrp:130,v2mom:130,act:92};
-const GDEF=['project','name','ws','estimate','days','owners','priority','status','engs','sprint','release','line'],GKEY='pl-grid-cols';
+const GDEF=['project','name','ws','owners','engs','estimate','days','line','sprint'],GKEY='pl-grid-cols';
 const gridCols=()=>{let v=null;try{v=JSON.parse(localStorage.getItem(GKEY));}catch(_){}const keep=Array.isArray(v)?v.filter(k=>GCOL[k]):null;return keep&&keep.length?Object.keys(GCOL).filter(k=>keep.includes(k)):GDEF.slice();};
 const setGridCols=l=>{try{if(l)localStorage.setItem(GKEY,JSON.stringify(l));else localStorage.removeItem(GKEY);}catch(_){}};
 const priOpts=v=>{const n=v==null||v===''?0:Number(v),L=[0,1,2,3,4,5];if(!L.includes(n))L.push(n);return L.sort((a,b)=>a-b).map(x=>`<option value="${x}"${x===n?' selected':''}>P${x}</option>`).join('');};

@@ -934,3 +934,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan46: planner grid column sizing — local harness screenshot at 1900px only; very narrow windows and every optional column (Theme, Doc, V2MOM…) not checked.
 
 - plan47: ATL-only roll-up, adjacent read-only Epic est., latest-release default, planning window in tab bar — local harness only (column order, read-only cells, date position); the GUS commit path was not run live.
+
+- plan48: planner default column order/labels — local harness header check only; Priority/Release hidden by default.
