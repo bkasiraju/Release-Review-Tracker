@@ -15,7 +15,7 @@ const withIcons=el=>el.querySelectorAll('[data-icon3d]').forEach(n=>{n.outerHTML
 
 // ── Bugs (Trust Champion–style SLA board) ───────────────────────────────────
 let bugTeam='';
-const B={pri:new Set(['P0','P1','P2']),closed:false,status:'',who:'',q:'',bugs:[],sla:[],champ:null,members:[],pick:null,sel:'all',seq:0};
+const B={pri:new Set(['P0','P1','P2']),closed:false,status:'',who:'',q:'',bugs:[],sla:[],champ:null,members:[],pick:null,sel:'all',pg:1,size:25,seq:0};
 const PCLS=p=>p==='P0'?'rem':p==='P1'?'warn':'add';
 const STATES={breached:'Breached',risk:'At risk',warn:'Warning',ok:'Within SLA'};
 const inMember=b=>!B.who||(B.who==='none'?!b.assigneeId:b.assigneeId===B.who);
@@ -28,6 +28,13 @@ function cardCounts(c){
   const items=c.items.filter(inMember);
   if(c.id==='perdev'){const over=new Set(items.map(i=>i.assigneeId)).size;return {a:over,b:B.who?(over?0:1):c.ok,la:'Over',lb:'OK',items,cls:['breached','ok']};}
   const n=s=>items.filter(i=>i.state===s).length;return {a:n('breached'),b:n('risk')+n('warn'),c:n('ok'),la:'Breached',lb:'At risk',lc:'OK',items,cls:['breached','risk','ok']};
+}
+/** Pager shared by both bug tables: slices to the current page and renders Prev/Next plus a page-size picker. */
+function bugPage(all){const pages=Math.max(1,Math.ceil(all.length/B.size));B.pg=Math.min(Math.max(B.pg,1),pages);return all.slice((B.pg-1)*B.size,B.pg*B.size);}
+function bugPager(total){
+  if(total<=25)return '';
+  const pages=Math.ceil(total/B.size),from=(B.pg-1)*B.size+1,to=Math.min(total,B.pg*B.size);
+  return `<div class="tf-pager" role="navigation" aria-label="Bug pages"><span>${from}–${to} of ${total}</span><label>Per page <select class="hub-inline" data-bug-size aria-label="Rows per page">${[25,50,100].map(n=>`<option${n===B.size?' selected':''}>${n}</option>`).join('')}</select></label><button type="button" class="button small" data-bug-page="${B.pg-1}" ${B.pg<=1?'disabled':''}>‹ Prev</button><b>Page ${B.pg} / ${pages}</b><button type="button" class="button small" data-bug-page="${B.pg+1}" ${B.pg>=pages?'disabled':''}>Next ›</button></div>`;
 }
 function drawTiles(el){
   const tiles=B.sla.map(c=>{const k=cardCounts(c),on=B.sel===c.id;
@@ -43,13 +50,13 @@ function drawQueue(el){
   if(card){
     const items=cardCounts(card).items;
     host.innerHTML=`<div class="filterbar"><div class="epic-toolbar-title"><h2>${esc(card.label)} — Priority Queue <span class="count-pill">${items.length}</span></h2></div><span class="sla-legend"><i class="dot breached"></i>Breached <i class="dot risk"></i>Critical / At Risk <i class="dot warn"></i>Warning <i class="dot ok"></i>Within SLA</span><span class="toolbar-spacer"></span><button class="button small" data-sel="all">Back to all bugs</button></div>
-    <div class="table-scroll"><table><thead><tr><th>#</th><th>SLA</th><th>Priority</th><th>GUS status</th><th>Work item</th><th>Subject</th><th>Assignee</th><th class="num">Age (days)</th><th class="num">Remaining</th><th class="num">Urgency</th></tr></thead><tbody>${items.length?items.map((b,n)=>`<tr><td>${n+1}</td><td><i class="dot ${b.state}" title="${STATES[b.state]}"></i></td><td>${b.priority?`<span class="sp-chip ${PCLS(b.priority)}">${esc(b.priority)}</span>`:'—'}</td><td>${statusSel(b,B.pick)}</td><td>${link(b)}</td><td class="sp-subject">${esc(b.subject)}</td><td>${whoSel(b)}</td><td class="num">${b.age}</td><td class="num ${b.state==='breached'?'late':''}">${remaining(b)}</td><td class="num">${b.urgency}</td></tr>`).join(''):'<tr><td colspan="10"><div class="empty-state hub-empty"><h3>Nothing here</h3><p>No items in this queue.</p></div></td></tr>'}</tbody></table></div>`;
+    <div class="table-scroll"><table><thead><tr><th>#</th><th>SLA</th><th>Priority</th><th>GUS status</th><th>Work item</th><th>Subject</th><th>Assignee</th><th class="num">Age (days)</th><th class="num">Remaining</th><th class="num">Urgency</th></tr></thead><tbody>${items.length?bugPage(items).map((b,n)=>`<tr><td>${(B.pg-1)*B.size+n+1}</td><td><i class="dot ${b.state}" title="${STATES[b.state]}"></i></td><td>${b.priority?`<span class="sp-chip ${PCLS(b.priority)}">${esc(b.priority)}</span>`:'—'}</td><td>${statusSel(b,B.pick)}</td><td>${link(b)}</td><td class="sp-subject">${esc(b.subject)}</td><td>${whoSel(b)}</td><td class="num">${b.age}</td><td class="num ${b.state==='breached'?'late':''}">${remaining(b)}</td><td class="num">${b.urgency}</td></tr>`).join(''):'<tr><td colspan="10"><div class="empty-state hub-empty"><h3>Nothing here</h3><p>No items in this queue.</p></div></td></tr>'}</tbody></table></div>${bugPager(items.length)}`;
     return;
   }
   const rows=bugRows();
-  host.innerHTML=`<div class="table-scroll"><table><thead><tr><th>Bug</th><th>Subject</th><th>Priority</th><th>Status</th><th>Assignee</th><th class="num">Pts</th><th>Found in</th><th class="num">Age</th></tr></thead><tbody>${rows.length?rows.map(b=>`<tr><td>${link(b)}</td><td class="sp-subject">${esc(b.subject)}</td>
+  host.innerHTML=`<div class="table-scroll"><table><thead><tr><th>Bug</th><th>Subject</th><th>Priority</th><th>Status</th><th>Assignee</th><th class="num">Pts</th><th>Found in</th><th class="num">Age</th></tr></thead><tbody>${rows.length?bugPage(rows).map(b=>`<tr><td>${link(b)}</td><td class="sp-subject">${esc(b.subject)}</td>
   <td><select class="hub-inline" data-edit="ADM_Work__c" data-id="${esc(b.id)}" data-field="Priority__c" data-prev="${esc(b.priority)}" data-label="${esc(b.name)} priority" aria-label="Priority of ${esc(b.name)}">${H.options(pr,b.priority)}</select></td><td>${statusSel(b,B.pick)}</td><td>${whoSel(b)}</td>
-  <td class="num"><input class="hub-inline num" type="number" min="0" step="0.5" data-edit="ADM_Work__c" data-type="num" data-id="${esc(b.id)}" data-field="Story_Points__c" data-prev="${b.points==null?'':esc(b.points)}" data-label="${esc(b.name)} points" aria-label="Story points of ${esc(b.name)}" value="${b.points==null?'':esc(b.points)}"></td><td>${esc(b.build)}</td><td class="num">${age(b.created)}</td></tr>`).join(''):`<tr><td colspan="8"><div class="empty-state hub-empty"><h3>No bugs match</h3><p>No ${[...B.pri].join('/')||'selected'} bugs for ${esc(H.team.short)} with these filters.</p></div></td></tr>`}</tbody></table></div>`;
+  <td class="num"><input class="hub-inline num" type="number" min="0" step="0.5" data-edit="ADM_Work__c" data-type="num" data-id="${esc(b.id)}" data-field="Story_Points__c" data-prev="${b.points==null?'':esc(b.points)}" data-label="${esc(b.name)} points" aria-label="Story points of ${esc(b.name)}" value="${b.points==null?'':esc(b.points)}"></td><td>${esc(b.build)}</td><td class="num">${age(b.created)}</td></tr>`).join(''):`<tr><td colspan="8"><div class="empty-state hub-empty"><h3>No bugs match</h3><p>No ${[...B.pri].join('/')||'selected'} bugs for ${esc(H.team.short)} with these filters.</p></div></td></tr>`}</tbody></table></div>${bugPager(rows.length)}`;
   el.querySelector('#bug-count').textContent=rows.length;
   el.querySelector('#bug-counts').innerHTML=['P0','P1','P2'].map(p=>`<span class="sp-chip ${PCLS(p)}">${p} ${B.bugs.filter(b=>b.priority===p&&inMember(b)).length}</span>`).join('');
   const sts=[...new Set(B.bugs.map(b=>b.status))].sort();el.querySelector('#bug-status').innerHTML='<option value="">All statuses</option>'+sts.map(s=>`<option${s===B.status?' selected':''}>${esc(s)}</option>`).join('');
@@ -64,12 +71,16 @@ async function loadBugs(el){
   const my=++B.seq;el.querySelector('#bug-queue').innerHTML='<div class="hub-loading" role="status"><span class="executive-spinner" aria-hidden="true"></span> Loading bugs from GUS…</div>';
   try{
     const id=H.team.Id;
-    const [r,sla,members,pick,champ]=await Promise.all([call('hub-bugs',{teamId:id,priorities:[...B.pri],includeClosed:B.closed}),call('hub-sla',{teamId:id}).catch(e=>({cards:[],error:e.message})),H.members().catch(()=>[]),H.picklists().catch(()=>null),call('hub-champion',{teamId:id}).catch(()=>null)]);
-    if(my!==B.seq)return;B.bugs=r.bugs;B.sla=sla.cards||[];B.members=members;B.pick=pick;B.champ=champ;
+    // Draw as each piece arrives: the table needs bugs + members + picklists; SLA tiles and the champion fill in when ready.
+    const pSla=call('hub-sla',{teamId:id}).catch(e=>({cards:[],error:e.message})),pChamp=call('hub-champion',{teamId:id}).catch(()=>null);
+    const [r,members,pick]=await Promise.all([call('hub-bugs',{teamId:id,priorities:[...B.pri],includeClosed:B.closed}),H.members().catch(()=>[]),H.picklists().catch(()=>null)]);
+    if(my!==B.seq)return;B.bugs=r.bugs;B.members=members;B.pick=pick;B.pg=1;
     el.querySelector('#bug-who').innerHTML='<option value="">All members</option><option value="none">Unassigned</option>'+members.map(m=>`<option value="${esc(m.id)}"${m.id===B.who?' selected':''}>${esc(m.name)}</option>`).join('');
-    drawChamp(el);drawBugs(el);
-    if(sla.error)window.toast?.('SLA tiles unavailable: '+sla.error,true);
+    drawBugs(el);
     if(r.truncated)window.toast?.('Showing the first 500 bugs. Narrow the filters.',false);
+    pChamp.then(champ=>{if(my!==B.seq)return;B.champ=champ;drawChamp(el);});
+    const sla=await pSla;if(my!==B.seq)return;B.sla=sla.cards||[];drawBugs(el);
+    if(sla.error)window.toast?.('SLA tiles unavailable: '+sla.error,true);
   }catch(e){if(my===B.seq)el.querySelector('#bug-queue').innerHTML=`<div class="empty-state hub-empty"><h3>Could not load bugs</h3><p>${esc(e.message)}</p></div>`;}
 }
 H.register({id:'bugs',label:'Bugs',icon:'bug',tone:'rose',desc:'SLA board and open P0–P2 bugs for the team',needsTeam:true,
@@ -82,14 +93,16 @@ H.register({id:'bugs',label:'Bugs',icon:'bug',tone:'rose',desc:'SLA board and op
     if(bugTeam!==H.team.Id){bugTeam=H.team.Id;B.who='';B.status='';B.sel='all';}
     withIcons(el);
     el.onclick=e=>{
-      const c=e.target.closest('[data-pri]');if(c){const p=c.dataset.pri;B.pri.has(p)?B.pri.delete(p):B.pri.add(p);c.classList.toggle('on',B.pri.has(p));c.setAttribute('aria-pressed',String(B.pri.has(p)));loadBugs(el);return;}
-      const t=e.target.closest('[data-sla]');if(t){B.sel=B.sel===t.dataset.sla?'all':t.dataset.sla;drawBugs(el);return;}
-      const s=e.target.closest('[data-sel]');if(s){B.sel=s.dataset.sel;drawBugs(el);return;}
+      const c=e.target.closest('[data-pri]');if(c){B.pg=1;const p=c.dataset.pri;B.pri.has(p)?B.pri.delete(p):B.pri.add(p);c.classList.toggle('on',B.pri.has(p));c.setAttribute('aria-pressed',String(B.pri.has(p)));loadBugs(el);return;}
+      const pgb=e.target.closest('[data-bug-page]');if(pgb&&!pgb.disabled){B.pg=+pgb.dataset.bugPage;drawQueue(el);el.querySelector('#bug-queue').scrollIntoView({block:'start'});return;}
+      const t=e.target.closest('[data-sla]');if(t){B.pg=1;B.sel=B.sel===t.dataset.sla?'all':t.dataset.sla;drawBugs(el);return;}
+      const s=e.target.closest('[data-sel]');if(s){B.pg=1;B.sel=s.dataset.sel;drawBugs(el);return;}
       if(e.target.closest('[data-refresh]'))loadBugs(el);};
-    el.querySelector('#bug-closed').onchange=e=>{B.closed=e.target.checked;loadBugs(el);};
-    el.querySelector('#bug-status').onchange=e=>{B.status=e.target.value;drawQueue(el);};
-    el.querySelector('#bug-who').onchange=e=>{B.who=e.target.value;drawBugs(el);};
-    el.querySelector('#bug-q').oninput=e=>{B.q=e.target.value;drawQueue(el);};
+    el.addEventListener('change',e=>{if(e.target.matches('[data-bug-size]')){B.size=+e.target.value;B.pg=1;drawQueue(el);}});
+    el.querySelector('#bug-closed').onchange=e=>{B.pg=1;B.closed=e.target.checked;loadBugs(el);};
+    el.querySelector('#bug-status').onchange=e=>{B.pg=1;B.status=e.target.value;drawQueue(el);};
+    el.querySelector('#bug-who').onchange=e=>{B.pg=1;B.who=e.target.value;drawBugs(el);};
+    el.querySelector('#bug-q').oninput=e=>{B.pg=1;B.q=e.target.value;drawQueue(el);};
     el.querySelector('#bug-champ-set').onchange=async e=>{const m=B.members.find(x=>x.id===e.target.value);
       try{const r=await call('hub-champion-save',{teamId:H.team.Id,champion:m?{id:m.id,name:m.name}:null,revision:B.champ&&B.champ.revision});B.champ=r;drawChamp(el);window.toast?.(m?`Trust Champion set to ${m.name}`:'Trust Champion cleared',false);}
       catch(err){window.toast?.('Could not save Trust Champion: '+err.message,true);drawChamp(el);}};

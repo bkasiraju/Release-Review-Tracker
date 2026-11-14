@@ -35,7 +35,7 @@ let picks;H.picklists=()=>picks||(picks=call('hub-picklists',{}).catch(e=>{picks
 
 // ── Registry + router ───────────────────────────────────────────────────────
 H.register=page=>{H.pages.set(page.id,page);};
-const NAV=['home','epics','sprints','tds','tests','rotations','links','bugs','status'];
+const NAV=['home','epics','sprints','tds','tests','rotations','bugs','status','links'];
 function renderNav(){
   $('hub-nav').innerHTML=NAV.filter(id=>H.pages.has(id)).map(id=>{const p=H.pages.get(id),on=id===H.current;
     return `<button data-page="${id}" class="${on?'selected':''}" aria-pressed="${on}" ${on?'aria-current="page"':''}>${icon(p.icon,p.tone)} ${esc(p.label)}</button>`;}).join('');

@@ -208,7 +208,7 @@ body.focus-mode .sp-modal{z-index:80}
 @media print{.focus-toggle{display:none}}
 
 /* Only the active page's panels are visible */
-body[data-hub]:not([data-hub=sprints]) #sprint-panel,body[data-hub]:not([data-hub=sprints]) #executive-panel{display:none!important}
+body[data-hub]:not([data-hub=sprints]) #sprint-panel,body[data-hub]:not([data-hub=status]) #executive-panel{display:none!important}
 /* Shared column sizing (H.fitTable): fixed layout, short columns stay on one line, text columns wrap */
 table.fit{table-layout:fixed;width:100%}
 table.fit th,table.fit td{overflow:hidden;overflow-wrap:anywhere}
