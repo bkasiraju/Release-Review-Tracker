@@ -1,3 +1,9 @@
+## Unreleased on top of 4.0.0-GA (plan53) — new project popover with short form
+
+- "+ Project" opens a small popover beside the button asking for the Measure name (the project in GUS, with GUS project suggestions) and the Short form (e.g. HRP M1.1.3). Enter adds, Esc cancels; the name is required, and the short form defaults from the name when left blank.
+- Project chips have a Short form field. The Project column in the grid shows it, with the full name on hover.
+- The plan backend now stores the project short form (`short`, up to 30 characters).
+
 ## Unreleased on top of 4.0.0-GA (plan52) — row actions and drag-to-move workstreams
 
 - Row actions are now consistent icon buttons with hover states: grip, add workstream (+), remove workstream (minus), delete epic (trash, red on hover). Icons keep a fixed position per row.

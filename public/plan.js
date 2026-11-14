@@ -40,6 +40,25 @@ function wireDrag(el){
     const k=e.workstreams.findIndex(w=>w.id===wid),n=k+(ev.key==='ArrowUp'?-1:1);if(n<0||n>=e.workstreams.length)return;
     moveWs(wid,e.id,n);draw();queueSave();P.el.querySelector(`[data-w="${wid}"] [data-grip]`)?.focus();};
 }
+// Inline popover next to "+ Project": measure name (the GUS project) and its short form (e.g. HRP M1.1.3).
+function newProjectAt(btn){
+  document.querySelectorAll('.pl-confirm').forEach(x=>x.remove());
+  const d=document.createElement('div');d.className='pl-confirm pl-newproj';d.setAttribute('role','dialog');d.setAttribute('aria-label','New project');
+  d.innerHTML=`<label>Measure name <small>(project in GUS)</small><input class="hub-inline" type="text" list="pl-projects" data-n maxlength="120" placeholder="Full measure / project name"></label><label>Short form <small>e.g. HRP M1.1.3</small><input class="hub-inline" type="text" data-s maxlength="30" placeholder="HRP M1.1.3"></label><div><button type="button" class="button small" data-no>Cancel</button><button type="button" class="button small primary" data-yes>Add project</button></div>`;
+  document.body.appendChild(d);
+  const r=btn.getBoundingClientRect(),w=d.offsetWidth,h=d.offsetHeight;
+  d.style.left=Math.max(8,Math.min(innerWidth-w-8,r.right-w))+'px';d.style.top=(r.bottom+h+8>innerHeight&&r.top-h-8>8?r.top-h-8:r.bottom+8)+'px';
+  const n=d.querySelector('[data-n]'),sh=d.querySelector('[data-s]');
+  const close=()=>{d.remove();document.removeEventListener('mousedown',away,true);document.removeEventListener('keydown',key,true);btn.focus();};
+  const away=ev=>{if(!d.contains(ev.target)&&!ev.target.closest('.pl-confirm'))close();};
+  const add=()=>{const name=n.value.trim(),short=sh.value.trim();if(!name){n.focus();n.classList.add('bad');return;}
+    const hit=P.refs.projects.find(x=>x.name===name),p={id:uid('p'),name,short:short||shortProj(name),theme:'',gusId:''};
+    if(hit){p.gusId=hit.id;p.programId=hit.programId;p.programName=hit.programName;}
+    P.plan.projects.push(p);close();draw();queueSave();};
+  const key=ev=>{if(ev.key==='Escape'){ev.stopPropagation();close();}else if(ev.key==='Enter'&&d.contains(ev.target)){ev.preventDefault();add();}};
+  d.querySelector('[data-no]').onclick=close;d.querySelector('[data-yes]').onclick=add;n.oninput=()=>n.classList.remove('bad');
+  document.addEventListener('mousedown',away,true);document.addEventListener('keydown',key,true);n.focus();
+}
 // Inline confirmation popover, shown just above the button that was clicked.
 function confirmAt(btn,msg,onOk){
   document.querySelectorAll('.pl-confirm').forEach(x=>x.remove());
@@ -207,7 +226,7 @@ function drawPlanner(){
         const txt=(f,v,ph,max,w2)=>`<input class="hub-inline" type="text" aria-label="${ph}" data-f="${f}" value="${esc(v||'')}" maxlength="${max}" placeholder="${ph}" style="width:${w2}px">`;
         const tdE=(k,h)=>first?`<td class="c-${k}">${h}</td>`:`<td class="c-${k}"></td>`,tdW=(k,h)=>w?`<td class="c-${k}" data-w="${esc(w.id)}">${h}</td>`:`<td class="c-${k}"></td>`;
         const C={
-          project:()=>tdE('project',sel('projectId',pl.projects.map(p=>`<option value="${esc(p.id)}" data-short="${esc(shortProj(p.name))}"${p.id===e.projectId?' selected':''}>${esc(p.name||'(unnamed project)')}</option>`).join(''),'Project')),
+          project:()=>tdE('project',sel('projectId',pl.projects.map(p=>`<option value="${esc(p.id)}" data-short="${esc(p.short||shortProj(p.name))}"${p.id===e.projectId?' selected':''}>${esc(p.name||'(unnamed project)')}</option>`).join(''),'Project')),
           name:()=>tdE('name',`<input class="hub-inline" type="text" aria-label="Epic name" data-f="name" value="${esc(e.name)}" maxlength="255" placeholder="Epic name">`),
           ws:()=>tdW('ws',`<input class="hub-inline" type="text" aria-label="Workstream" data-f="name" value="${esc(w&&w.name)}" maxlength="120" placeholder="Workstream">`),
           owners:()=>tdE('owners',msel('owners',e.owners||[],'Epic owners','Owners')),
@@ -232,7 +251,7 @@ function drawPlanner(){
         rows.push(`<tr data-e="${esc(e.id)}"${w?` data-wr="${esc(w.id)}"`:''} class="${e.line==='ABL'?'abl':'btl'}${first?' pl-g-first':''}">${ep}${wc}${act}</tr>`);
       });
     });
-    const strip=`<div class="pl-pstrip" aria-label="Projects">${pl.projects.map(p=>`<span class="pl-pchip" data-p="${esc(p.id)}"><input class="hub-inline pl-pname" type="text" list="pl-projects" placeholder="Project name (type to link a GUS project)" aria-label="Project name" data-f="name" value="${esc(p.name)}" maxlength="120">${p.gusId?`<a class="pl-gus" href="${H.GUS}PPM_Project__c/${esc(p.gusId)}/view" target="_blank" rel="noopener">GUS ↗</a>`:'<em class="pl-draft">New</em>'}<button type="button" class="pl-x" data-add-epic aria-label="Add epic to this project" title="Add epic to this project">+</button><button type="button" class="pl-x" data-del-proj aria-label="Delete project" title="Delete project">×</button></span>`).join('')}</div>`;
+    const strip=`<div class="pl-pstrip" aria-label="Projects">${pl.projects.map(p=>`<span class="pl-pchip" data-p="${esc(p.id)}"><input class="hub-inline pl-pname" type="text" list="pl-projects" placeholder="Project name (type to link a GUS project)" aria-label="Project name" data-f="name" value="${esc(p.name)}" maxlength="120"><input class="hub-inline pl-pshort" type="text" placeholder="Short form" aria-label="Short form, for example HRP M1.1.3" data-f="short" value="${esc(p.short||'')}" maxlength="30">${p.gusId?`<a class="pl-gus" href="${H.GUS}PPM_Project__c/${esc(p.gusId)}/view" target="_blank" rel="noopener">GUS ↗</a>`:'<em class="pl-draft">New</em>'}<button type="button" class="pl-x" data-add-epic aria-label="Add epic to this project" title="Add epic to this project">+</button><button type="button" class="pl-x" data-del-proj aria-label="Delete project" title="Delete project">×</button></span>`).join('')}</div>`;
     return strip+`<div class="pl-grid-tools"><span class="pl-cols"><button type="button" class="button" data-cols-toggle aria-haspopup="true" aria-expanded="${P.colsOpen?'true':'false'}">Columns ▾</button>${P.colsOpen?`<div class="pl-cols-menu" role="menu">${Object.keys(GCOL).map(k=>`<label><input type="checkbox" data-col="${k}"${cols.includes(k)?' checked':''}> ${esc(GCOL[k])}</label>`).join('')}<button type="button" class="pl-cols-reset" data-cols-reset>Reset to default</button></div>`:''}</span></div><div class="pl-grid-wrap"><table class="pl-grid"><colgroup>${cols.map(k=>`<col class="${k==='name'||k==='ws'?'w-grow':'w-fit'}">`).join('')}<col class="w-fit"></colgroup><thead><tr>${cols.map(k=>`<th class="c-${k}">${esc(GCOL[k])}</th>`).join('')}<th></th></tr></thead><tbody>${rows.join('')||'<tr><td colspan="${cols.length+1}" class="note">No epics match the filters.</td></tr>'}</tbody></table></div><button type="button" class="pl-add" data-grid-add-epic>+ Epic</button>`;};
   el.innerHTML=`<datalist id="pl-projects">${P.refs.projects.map(p=>`<option value="${esc(p.name)}"></option>`).join('')}</datalist><datalist id="pl-sprints">${P.refs.sprints.map(s=>`<option value="${esc(s.name)}"></option>`).join('')}</datalist>`+
     (!pl.projects.length?'<div class="empty-state hub-empty"><h3>No projects yet</h3><p>Add a project, then epics and workstreams with effort in days.</p></div>'
@@ -299,7 +318,7 @@ function onClick(ev){
   if(t.closest('[data-reload]'))return load(P.el);
   if(t.closest('[data-retry]'))return flush();
   if(!pl)return;
-  if(t.closest('#pl-add-proj')){pl.projects.push({id:uid('p'),name:'',theme:'',gusId:''});draw();queueSave();const n=P.el.querySelectorAll('.pl-pname');n[n.length-1]?.focus();return;}
+  if(t.closest('#pl-add-proj')){newProjectAt(t.closest('#pl-add-proj'));return;}
   const mb=t.closest('.ms .cs-btn');if(mb){const w=mb.closest('.ms'),was=w.classList.contains('open');closeMs();if(!was){w.classList.add('open');mb.setAttribute('aria-expanded','true');}return;}
   const ml=t.closest('.ms li[data-val]');if(ml){const wd=ml.closest('.ms'),f=wd.dataset.ms,id=ml.dataset.val;
     const tog=a=>a.includes(id)?a.filter(x=>x!==id):[...a,id];let ids;

@@ -691,3 +691,8 @@ body[data-hub=home] .hub-tile-chips{margin-top:auto}
 .pl-ib-off{visibility:hidden;pointer-events:none}
 .pl-grid tr.pl-dragging{opacity:.45}
 .pl-grid tr.pl-drop-above td{box-shadow:inset 0 3px 0 #1b73b3}.pl-grid tr.pl-drop-below td{box-shadow:inset 0 -3px 0 #1b73b3}
+/* plan53: new-project popover and short-form field on project chips */
+.pl-newproj{width:300px;display:flex;flex-direction:column;gap:10px}
+.pl-newproj label{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:700;color:#16324a}.pl-newproj label small{font-weight:500;color:#5b6b7c}
+.pl-newproj input.hub-inline{width:100%;box-sizing:border-box;height:32px}.pl-newproj input.bad{border-color:#b3261e!important}
+.pl-pshort{width:96px;flex:0 0 96px}
