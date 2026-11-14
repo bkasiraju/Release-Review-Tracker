@@ -1,3 +1,8 @@
+## Unreleased on top of 4.0.0-GA (plan63–plan64) — Colourful tiles with icons; column picker with ordering
+
+- Release Planner KPI tiles are tinted per metric (blue/green/amber/violet/teal, rose when over capacity) with a glossy icon and a status chip. Section headings on both tabs carry icons and a coloured top accent.
+- Columns menu: choosing a column no longer redraws the menu back to the top (which made lower items unselectable). Chosen columns can be reordered by dragging or with the ▲/▼ buttons; the order and selection are remembered in this browser.
+
 ## Unreleased on top of 4.0.0-GA (plan62) — Back to Release Intelligence on the planner
 
 - The planner header has a "← Back to Release Intelligence" button that returns to Team Hub for the same team. It stays visible in full-screen mode (where the top bar is hidden) and warns before leaving with unsaved changes.

@@ -964,3 +964,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan61: effort colouring and serialized saves; double-click Save on local harness ended 'Saved', no conflict.
 
 - plan62: back button; harness check in focus mode: visible and routes to #/home.
+
+- plan63/64: tile styling checked by headless screenshots; column toggle and reorder checked by script on the local harness.
