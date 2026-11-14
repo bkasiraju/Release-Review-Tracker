@@ -177,7 +177,7 @@ const daysLeft=end=>Math.max(0,Math.ceil((new Date(end+'T23:59:59')-Date.now())/
 H.currentRota=rows=>{const t=new Date().toISOString().slice(0,10);return (rows||[]).find(r=>r.start<=t&&r.end>=t)||null;};
 function tile(p,stat){
   const soon=p.soon;
-  return `<button class="hub-tile${soon?' soon':''}" data-go="${p.id}"><span class="hub-tile-head">${icon(p.icon,p.tone)}<strong>${esc(p.label)}</strong>${soon?'<em class="hub-soon">Coming soon</em>':''}</span><span class="hub-tile-stat">${stat&&stat.big!=null?`<b>${esc(stat.big)}</b>`:''}<small>${esc((stat&&stat.text)||p.desc)}</small></span>${stat&&stat.chips?`<span class="hub-tile-chips">${stat.chips}</span>`:''}</button>`;
+  return `<button class="hub-tile${soon?' soon':''}" data-go="${p.id}"><span class="hub-tile-head">${icon(p.icon,p.tone)}<strong>${esc(p.label)}</strong>${soon?'<em class="hub-soon">Coming soon</em>':''}<svg class="hub-tile-go" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="hub-tile-stat${stat&&stat.big!=null?'':' nobig'}">${stat&&stat.big!=null?`<b>${esc(stat.big)}</b>`:''}<small>${esc((stat&&stat.text)||p.desc)}</small></span>${stat&&stat.chips?`<span class="hub-tile-chips">${stat.chips}</span>`:''}</button>`;
 }
 const groupKey=t=>t.short==='MAPS'?'maps':t.short==='MQ'?'mq':/vegastore/i.test(t.Name)?'vegastore':/caching services/i.test(t.Name)?'caching':/vega/i.test(t.Name)?'vegacache':null;
 const initials=n=>String(n).split(/\s+/).filter(Boolean).map(w=>w[0]).slice(0,2).join('').toUpperCase();

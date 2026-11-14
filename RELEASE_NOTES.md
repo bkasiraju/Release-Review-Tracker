@@ -1,3 +1,7 @@
+## Unreleased on top of 4.0.0-GA (plan34) — Team Hub tile layout
+
+- Tiles now have a fixed rhythm: header (icon, title, go-arrow), value, caption, chips pinned to the bottom. The big value sits on its own line above its caption. A small arrow icon on every tile signals it opens that tab; it nudges on hover.
+
 ## Unreleased on top of 4.0.0-GA (plan33) — grouped standup chips, signal tooltips, new tagline
 
 - Standup header line 1 groups Planned, Actual, Completed, In progress and Blocked (items · SP). Line 2 "Signals": Churn, closed, spillover, added, removed, pts changed. Hovering or focusing a signal shows a card with what it means, the metrics, and the work items behind it (W-id, subject, status, SP).
