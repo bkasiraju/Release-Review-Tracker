@@ -928,3 +928,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan43: signal hover card layering — local harness screenshot (Added card, 1500px) only; other signal cards share the same styles but were not each captured.
 
 - plan44: items/SP labels on group chips — local harness screenshot only.
+
+- plan45: Release Planning team dropdown — local harness: switching to MAPS reloaded the page and breadcrumb; unsaved edits were not tested across a switch (plan saves automatically).

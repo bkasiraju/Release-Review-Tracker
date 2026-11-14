@@ -654,3 +654,7 @@ body[data-hub=home] .hub-tile-chips{margin-top:auto}
 .sg-tip *{background:transparent}
 .sp-chip.sg:hover,.sp-chip.sg:focus{z-index:101}
 .sg-tip ul{max-height:240px}
+
+.pl-window .pl-team{display:inline-flex;align-items:center;gap:8px;font-weight:700}
+.pl-window #pl-team{min-width:150px;font-weight:600;border:2px solid #0b6fa8!important;border-radius:8px;background:#f2f9fd!important;color:#032d60!important}
+.pl-window .pl-sep{display:inline-block;width:1px;height:22px;background:#d5dde6;margin:0 14px}

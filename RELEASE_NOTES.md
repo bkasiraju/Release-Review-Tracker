@@ -1,3 +1,7 @@
+## Unreleased on top of 4.0.0-GA (plan45) — team selector on Release Planning
+
+- A highlighted Team dropdown sits left of the Planning window and shows whose release plan this is. Changing it switches the whole app's team (same as the header picker), so the plan, summary and breadcrumb reload for that team.
+
 ## Unreleased on top of 4.0.0-GA (plan44) — labelled work items and SP
 
 - Standup Completed / In progress / Blocked chips now read "11 items · 22 SP" instead of "11 · 22 SP" ("1 item" when singular).
