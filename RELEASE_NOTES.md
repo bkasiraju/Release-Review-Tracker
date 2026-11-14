@@ -1,3 +1,8 @@
+## Unreleased on top of 4.0.0-GA (plan33) — grouped standup chips, signal tooltips, new tagline
+
+- Standup header line 1 groups Planned, Actual, Completed, In progress and Blocked (items · SP). Line 2 "Signals": Churn, closed, spillover, added, removed, pts changed. Hovering or focusing a signal shows a card with what it means, the metrics, and the work items behind it (W-id, subject, status, SP).
+- Tagline now covers all tabs: "Release Priorities - Sprints and standups, dependencies, test and bug health, monthly reviews, quarterly planning, and V2MOM updates."
+
 ## Unreleased on top of 4.0.0-GA (plan32) — compact standup dialog header
 
 - The engineer dialog header is about half its former height: name and chips on one line between Previous/Next, a thin progress line, and one row with the avatar strip centred and Shuffle/Close at the right. Avatars are 50% opaque, full on hover, focus or when selected; clicking one switches to that engineer (Previous/Next follow in the same order). Cache-bust `4.0.0-GA-plan32`.

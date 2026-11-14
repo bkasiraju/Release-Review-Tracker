@@ -908,3 +908,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan31: standup Prev/Next/Shuffle/Open in the sprint bar; Next click advances member — local harness only (Shuffle/Open/Prev not clicked).
 
 - plan32: compact standup dialog header and dim-until-hover avatars — local harness screenshot only.
+
+- plan33: grouped standup chips with signal hover cards and updated tagline — local harness screenshot only (spillover card seen; In progress/Blocked have 0 items in seed data).
