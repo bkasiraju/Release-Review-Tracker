@@ -6,7 +6,7 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const CLOSED=new Set(['Closed','Fixed','Completed','Duplicate','Will Not Fix','Never','Inactive','Rejected']);
 const CLOSED_BUG=new Set([...CLOSED,'Not a bug','Not Reproducible']);
 const GUS_WORK='https://gus.lightning.force.com/lightning/r/ADM_Work__c/';
-const S={pick:null,view:'pulse',standupIdx:0,ready:false,loading:false,teamId:'',sprintId:'',members:[],sprint:null,history:null,tab:'saydo',open:new Set(),sort:{key:'',dir:'asc'},order:null,modal:null,search:'',seq:0};
+const S={pick:null,view:'pulse',standupIdx:0,ready:false,loading:false,teamId:'',sprintId:'',members:[],sprint:null,history:null,tab:'saydo',open:new Set(),sort:{key:'',dir:'asc'},order:null,modal:null,epic:null,search:'',seq:0};
 const icon=(n,t)=>window.ReviewIcons?window.ReviewIcons.icon(n,t):'';
 const isClosed=i=>(i.status&&i.status.startsWith('Closed'))||(i.recordType==='Bug'?CLOSED_BUG:CLOSED).has(i.status);
 const pts=i=>i.forecastPts!=null?i.forecastPts:(i.storyPoints||0);
@@ -153,12 +153,16 @@ const initials=n=>String(n).split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUppe
 const activeItems=m=>m.items.filter(i=>i.itemStatus!=='Removed');
 const EPIC=id=>`https://gus.lightning.force.com/lightning/r/ADM_Epic__c/${id}/view`;
 /** Epics of the selected member's sprint work items; epics they lead come first; items without an epic are grouped as Others. */
+const epicKey=i=>i.epicId||'__none';
+/** The selected epic only applies while it exists in the member's items; otherwise no filter. */
+const epicSel=items=>S.epic&&items.some(i=>epicKey(i)===S.epic)?S.epic:null;
+const epicFilter=items=>{const k=epicSel(items);return k?items.filter(i=>epicKey(i)===k):items;};
 function epicCards(items,title,uid){
   const g=new Map();
   for(const i of items){const k=i.epicId||'__none';const e=g.get(k)||{name:i.epicId?i.epic:'Others — no epic linked',id:i.epicId,n:0,done:0,sp:0,lead:!!(uid&&i.epicLeadId===uid),leadName:i.epicLead};e.n++;e.sp+=spOf(i);if(isClosed(i))e.done++;g.set(k,e);}
   const list=[...g.values()].sort((a,b)=>(a.id==null)-(b.id==null)||b.lead-a.lead||b.sp-a.sp);
   const others=g.get('__none');
-  return `<div class="su-epics"><h3>${esc(title)} <span class="count-pill">${list.length-(others?1:0)}</span></h3>${others?`<p class="su-callout">⚠ ${others.n} work item${others.n>1?'s have':' has'} no epic in GUS — grouped under “Others”.</p>`:''}<div class="su-epic-grid">${list.map(e=>`<article class="su-epic${e.id?'':' others'}${e.lead?' lead':''}"><strong title="${esc(e.name)}">${e.id?`<a href="${EPIC(esc(e.id))}" target="_blank" rel="noopener noreferrer">${esc(e.name)}</a>`:esc(e.name)}</strong>${e.lead?'<span class="sp-chip add">Development lead</span>':e.leadName?`<small class="su-lead">Dev lead: ${esc(e.leadName)}</small>`:''}<span>${e.done}/${e.n} items · ${fmt(e.sp)} SP</span><span class="sp-bar"><i style="width:${pct(e.done,e.n)}%;background:${e.id?'#2e844a':'#9aa5b1'}"></i></span></article>`).join('')}</div></div>`;
+  return `<div class="su-epics"><h3>${esc(title)} <span class="count-pill">${list.length-(others?1:0)}</span>${epicSel(items)?'<button type="button" class="button small su-clear" data-epic-clear title="Clear epic filter (Esc)">Clear filter ✕</button>':'<small class="su-hint">Click an epic to filter its work items</small>'}</h3>${others?`<p class="su-callout">⚠ ${others.n} work item${others.n>1?'s have':' has'} no epic in GUS — grouped under “Others”.</p>`:''}<div class="su-epic-grid">${list.map(e=>`<article class="su-epic${e.id?'':' others'}${(e.id||'__none')===epicSel(items)?' sel':''}" data-epic="${esc(e.id||'__none')}" role="button" tabindex="0" aria-pressed="${(e.id||'__none')===epicSel(items)}"><strong title="${esc(e.name)}">${e.id?`<a href="${EPIC(esc(e.id))}" target="_blank" rel="noopener noreferrer">${esc(e.name)}</a>`:esc(e.name)}</strong>${e.lead?'<span class="sp-chip add">Development lead</span>':e.leadName?`<small class="su-lead">Dev lead: ${esc(e.leadName)}</small>`:''}<span>${e.done}/${e.n} items · ${fmt(e.sp)} SP</span><span class="sp-bar"><i style="width:${pct(e.done,e.n)}%;background:${e.id?'#2e844a':'#9aa5b1'}"></i></span></article>`).join('')}</div></div>`;
 }
 function orderedMembers(){
   const ms=S.members.filter(m=>activeItems(m).length).sort((a,b)=>a.name.localeCompare(b.name));
@@ -175,18 +179,20 @@ function renderModal(){
   if(old)old.remove();if(!S.modal)return;
   const ms=orderedMembers(),k=ms.findIndex(x=>x.name===S.modal);if(k<0){S.modal=null;return;}
   const m=ms[k],items=activeItems(m).sort((a,b)=>isClosed(a)-isClosed(b)||String(a.name).localeCompare(String(b.name)));
-  const sp=items.reduce((n,i)=>n+spOf(i),0),doneSp=items.filter(isClosed).reduce((n,i)=>n+spOf(i),0),pv=ms[k-1],nx=ms[k+1];
+  const shown=epicFilter(items),sp=items.reduce((n,i)=>n+spOf(i),0),doneSp=items.filter(isClosed).reduce((n,i)=>n+spOf(i),0),pv=ms[k-1],nx=ms[k+1];
   const nav=(o,step,label,arrow)=>`<button type="button" class="sp-mnav" data-modal-step="${step}"${o?'':' disabled'} aria-label="${label}${o?': '+esc(o.name):''}">${step<0?`<b>${arrow}</b>`:''}<span><small>${label}</small>${o?esc(o.name):'—'}</span>${step>0?`<b>${arrow}</b>`:''}</button>`;
   const el=document.createElement('div');el.id='sp-modal';el.className='sp-modal';
   el.innerHTML=`<div class="sp-modal-card" role="dialog" aria-modal="true" aria-label="Standup review: ${esc(m.name)}">
   <div class="sp-modal-top">${nav(pv,-1,'Previous engineer','‹')}<div class="sp-mtitle">${avImg(m,1)}<div><h3>${esc(m.name)}</h3><p>${k+1} of ${ms.length} · ${items.filter(isClosed).length}/${items.length} items done · ${fmt(doneSp)}/${fmt(sp)} SP</p></div></div>${nav(nx,1,'Next engineer','›')}</div>
   <div class="sp-modal-tools"><span class="sp-bar"><i style="width:${Math.min(100,pct(doneSp,sp))}%;background:#2e844a"></i></span><button type="button" class="button small" data-shuffle title="Randomise the order of engineers for standup">🔀 Shuffle order</button><button type="button" class="button small" data-modal-close>Close ✕</button></div>
-  <div class="sp-modal-body">${epicCards(items,'Epics',(items.find(i=>i.assigneeId)||{}).assigneeId)}<h4 class="sp-sec">Work items</h4>${itemsTable(items)}</div></div>`;
+  <div class="sp-modal-body">${epicCards(items,'Epics',(items.find(i=>i.assigneeId)||{}).assigneeId)}<h4 class="sp-sec">Work items${shown.length<items.length?` <span class="count-pill">${shown.length} of ${items.length}</span>`:''}</h4>${itemsTable(shown)}</div></div>`;
   $('sp-panel-body').appendChild(el);const b=el.querySelector('.sp-modal-body');b.scrollTop=top;if(!keep)el.querySelector('.sp-mnav:not([disabled]),[data-modal-close]').focus();
 }
 function bindModal(){
   $('sp-panel-body').addEventListener('click',e=>{
     const t=e.target;
+    if(t.closest('[data-epic-clear]')){S.epic=null;renderStandup();renderModal();return;}
+    const ec=t.closest('[data-epic]');if(ec&&!t.closest('a')){S.epic=S.epic===ec.dataset.epic?null:ec.dataset.epic;renderStandup();renderModal();return;}
     const so=t.closest('[data-sort]');if(so){const k=so.dataset.sort;S.sort=S.sort.key===k?{key:k,dir:S.sort.dir==='asc'?'desc':'asc'}:{key:k,dir:'asc'};renderMembers();renderModal();return;}
     const op=t.closest('[data-open-member]');if(op){S.modal=op.dataset.openMember;renderModal();return;}
     const st=t.closest('[data-modal-step]');if(st){const ms=orderedMembers(),k=ms.findIndex(x=>x.name===S.modal)+Number(st.dataset.modalStep);if(ms[k]){S.modal=ms[k].name;S.standupIdx=k;renderModal();renderStandup();}return;}
@@ -195,7 +201,7 @@ function bindModal(){
   });
   document.addEventListener('keydown',e=>{
     if(!S.modal)return;
-    if(e.key==='Escape'){S.modal=null;renderModal();return;}
+    if((e.key==='Enter'||e.key===' ')&&e.target.matches&&e.target.matches('[data-epic]')){e.preventDefault();e.target.click();return;}
     if(/INPUT|SELECT|TEXTAREA/.test(document.activeElement?.tagName))return;
     const d=e.key==='ArrowRight'?1:e.key==='ArrowLeft'?-1:0;if(!d)return;
     const ms=orderedMembers(),k=ms.findIndex(x=>x.name===S.modal)+d;if(ms[k]){S.modal=ms[k].name;S.standupIdx=k;renderModal();renderStandup();}
@@ -205,7 +211,7 @@ function renderStandup(){
   const host=$('sp-standup');if(S.view!=='standup')return;
   const ms=orderedMembers();
   if(!ms.length){host.innerHTML='<div class="empty-state sp-empty"><h3>No work in this sprint</h3><p>There are no committed items for the selected sprint.</p></div>';return;}
-  S.standupIdx=Math.min(Math.max(S.standupIdx,0),ms.length-1);const m=ms[S.standupIdx],items=activeItems(m).sort((a,b)=>isClosed(a)-isClosed(b)||String(a.name).localeCompare(String(b.name)));
+  S.standupIdx=Math.min(Math.max(S.standupIdx,0),ms.length-1);const m=ms[S.standupIdx],all=activeItems(m).sort((a,b)=>isClosed(a)-isClosed(b)||String(a.name).localeCompare(String(b.name))),items=all;
   const sp=items.reduce((n,i)=>n+spOf(i),0),doneSp=items.filter(isClosed).reduce((n,i)=>n+spOf(i),0);
   const pills=ms.map((x,k)=>{const a=activeItems(x);return `<button class="su-pill${k===S.standupIdx?' active':''}" data-su="${k}" aria-pressed="${k===S.standupIdx}">${avImg(x)}<span>${esc(x.name)}</span><small>${a.length} WI · ${fmt(a.reduce((n,i)=>n+spOf(i),0))} SP</small></button>`;}).join('');
   host.innerHTML=`<section class="table-card su-card"><div class="su-pills" role="group" aria-label="Team members">${pills}</div>
@@ -213,7 +219,7 @@ function renderStandup(){
   <div class="su-member"><div class="su-member-head">${avImg(m,1)}<div><h3>${esc(m.name)}</h3><p>${S.standupIdx+1} of ${ms.length} · ${items.filter(isClosed).length}/${items.length} items done · ${fmt(doneSp)}/${fmt(sp)} SP</p></div><span class="sp-bar su-bar"><i style="width:${Math.min(100,pct(doneSp,sp))}%;background:#2e844a"></i></span></div>
   ${epicCards(items,'Epics for '+m.name+'’s sprint work',(items.find(i=>i.assigneeId)||{}).assigneeId)}
   <div class="su-cols" aria-hidden="true"><span>#</span><span>Work</span><span>Subject / Epic</span><span>Status</span><span class="num">Planned</span><span class="num">Actual</span><span class="num">Churn</span></div>
-  <ol class="su-items">${items.map(i=>`<li class="${isClosed(i)?'done':''}"><span class="su-no"></span><a href="${GUS_WORK}${esc(i.id)}/view" target="_blank" rel="noopener noreferrer">${esc(i.name)}</a><span class="su-subject" title="${esc(i.subject)}${i.epic?esc('\n\nEpic: '+i.epic):''}">${planChip(i)} ${esc(i.subject)}${i.epic?` <span class="sp-chip">${esc(i.epic)}</span>`:''}</span>${statusSelect(i)}<span class="num">${i.forecastPts==null?'—':esc(i.forecastPts)}</span>${ptsInput(i)}<span class="num">${churnCell(i)}</span></li>`).join('')}</ol></div></div></section>`;
+  <ol class="su-items">${epicFilter(items).map(i=>`<li class="${isClosed(i)?'done':''}"><span class="su-no"></span><a href="${GUS_WORK}${esc(i.id)}/view" target="_blank" rel="noopener noreferrer">${esc(i.name)}</a><span class="su-subject" title="${esc(i.subject)}${i.epic?esc('\n\nEpic: '+i.epic):''}">${planChip(i)} ${esc(i.subject)}${i.epic?` <span class="sp-chip">${esc(i.epic)}</span>`:''}</span>${statusSelect(i)}<span class="num">${i.forecastPts==null?'—':esc(i.forecastPts)}</span>${ptsInput(i)}<span class="num">${churnCell(i)}</span></li>`).join('')}</ol></div></div></section>`;
 }
 function bindStandup(){
   $('sp-standup').addEventListener('click',e=>{const t=e.target.closest('[data-su],[data-su-step]');if(!t)return;S.standupIdx=t.dataset.su!=null?Number(t.dataset.su):S.standupIdx+Number(t.dataset.suStep);renderStandup();});
@@ -272,6 +278,16 @@ function bind(){
 }
 window.SprintInsights={show};
 bind();bindStandup();bindModal();
+$('sp-standup').addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('[data-epic]')){e.preventDefault();e.target.click();}});
+// Escape peels one level per press: popup → epic filter → search → sort → expanded cards
+window.Hub.onEsc('sprints',()=>{
+  if(S.modal){S.modal=null;renderModal();return true;}
+  if(S.epic){S.epic=null;renderStandup();return true;}
+  if(S.search){S.search='';$('sp-search').value='';renderMembers();return true;}
+  if(S.sort.key){S.sort={key:'',dir:'asc'};renderMembers();return true;}
+  if(S.open.size){S.open.clear();renderMembers();return true;}
+  return false;
+});
 // Page registry entry: the Sprint panel is an existing view, so the hub just switches to it.
 window.Hub.register({id:'sprints',label:'Sprints',icon:'sprint',tone:'blue',desc:'Sprint pulse, say-do and daily standup',legacy:'sprint',needsTeam:false,
   stat:h=>{const s=h&&h.sprint;return s?{big:s.sayDo!=null?Math.round(s.sayDo)+'%':'—',text:`say-do · ${s.name}`}:{text:'Sprint pulse, say-do and daily standup'};}});

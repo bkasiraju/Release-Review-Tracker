@@ -159,6 +159,18 @@ function loadPeople(g){
 /** Avatar lookup for other pages (matched by GUS user id, then name); resolves once the team's people are loaded. */
 H.personAvatar=(id,name)=>{const g=groupKey(H.team);if(!g||!peopleData||peopleData.g!==g)return null;const n=String(name||'').toLowerCase();return peopleData.d.people.find(p=>(id&&p.id===id)||(n&&p.name.toLowerCase()===n))||null;};
 H.peopleReady=()=>{const g=groupKey(H.team);return g?loadPeople(g).catch(()=>null):Promise.resolve(null);};
+/** Escape clears the innermost active filter/selection of the current page, one level per press (Release Review keeps its own Escape handling). */
+const escHandlers=new Map();
+H.onEsc=(id,fn)=>escHandlers.set(id,fn);
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Escape'||e.repeat||e.defaultPrevented)return;
+  const id=document.body.dataset.hub;if(!id||id==='epics'||document.querySelector('.nd-overlay'))return;
+  if(!(escHandlers.get(id)&&escHandlers.get(id)())){ // generic fallback: empty free-text filters on the page
+    const box=document.getElementById('hub-page')||document;
+    for(const i of box.querySelectorAll('input[type=text],input[type=search],input:not([type])')){if(i.value&&!i.dataset.edit&&!i.dataset.rk&&!i.closest('[data-edit]')){i.value='';i.dispatchEvent(new Event('input',{bubbles:true}));break;}}
+  }
+  e.preventDefault();e.stopImmediatePropagation(); // also stops the Release Review double-Escape refresh from firing on other tabs
+},true);
 H.preloadPeople=()=>{const g=groupKey(H.team);if(g)loadPeople(g).catch(()=>{});};
 /** The Release Health tiles live in #overview-panel (owned by app.js); on Team Hub they sit in the top row, elsewhere they go back. */
 function parkOverview(){const ov=$('overview-panel'),hp=$('hub-panel');if(ov&&hp&&ov.parentElement!==hp.parentElement)hp.parentElement.insertBefore(ov,hp);}
