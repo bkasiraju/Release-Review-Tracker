@@ -733,3 +733,7 @@ body.focus-mode main{padding-top:36px}
 .pl-grid-wrap .pl-grid th.c-name,.pl-grid-wrap .pl-grid td.c-name,.pl-grid-wrap .pl-grid th.c-ws,.pl-grid-wrap .pl-grid td.c-ws{width:34%!important}
 .pl-grid-wrap .pl-grid th:not(.c-name):not(.c-ws),.pl-grid-wrap .pl-grid td:not(.c-name):not(.c-ws){width:1px!important;padding-left:6px!important;padding-right:6px!important}
 .pl-grid-wrap .pl-grid td.c-owners .cs,.pl-grid-wrap .pl-grid td.c-engs .cs{width:auto;max-width:none}
+
+/* plan61: effort entered (green) vs not entered (red) */
+.pl-grid input.pl-days.pl-eff-empty{border:1.5px solid #d93025!important;background:#fff5f4!important}
+.pl-grid input.pl-days.pl-eff-set{border:1.5px solid #1e8e3e!important;background:#f1faf3!important}

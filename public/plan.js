@@ -300,7 +300,7 @@ function setState(s){P.state=s;if(s==='saved')P.stateAt=new Date().toLocaleTimeS
 function queueSave(){setState('dirty');}
 window.addEventListener('beforeunload',ev=>{if(P.state==='dirty'||P.state==='error'){ev.preventDefault();ev.returnValue='';}});
 async function flush(){
-  clearTimeout(P.timer);if(P.state!=='dirty'&&P.state!=='error')return P.inflight;
+  clearTimeout(P.timer);if(P.inflight)await P.inflight;if(P.state!=='dirty'&&P.state!=='error')return P.inflight;
   const my=P.seq;setState('saving');
   P.inflight=call('plan-save',{teamId:H.team.Id,plan:P.plan,revision:P.rev}).then(r=>{if(my!==P.seq)return;P.rev=r.revision;if(P.state==='saving')setState('saved');},e=>{if(my!==P.seq)return;setState(/changed/i.test(e.message)?'conflict':'error');window.toast?.(e.message,true);});
   return P.inflight;
@@ -354,7 +354,7 @@ function drawPlanner(){
           estimate:()=>tdE('estimate',`<output class="pl-days pl-ro" data-eff aria-label="Epic effort (sum of workstream effort, ATL only)" title="Sum of workstream effort. Counted only when the epic is ABL (above the line); saved to GUS as Planned Story Points.">${epicDays(e)?fmt(epicDays(e)):'0'}</output>`),
           status:()=>tdE('status',sel('status',statOpts(e.status),'Epic status')),
           engs:()=>tdW('engs',msel('engIds',w?wsEngs(w):[],'Engineers','Unassigned')),
-          days:()=>tdW('days',`<input class="hub-inline pl-days" type="number" min="0" max="1000" step="0.5" aria-label="Effort in days" data-f="days" value="${w&&w.days?fmt(w.days):''}" placeholder="Days">`),
+          days:()=>tdW('days',`<input class="hub-inline pl-days ${w&&w.days?'pl-eff-set':'pl-eff-empty'}" type="number" min="0" max="1000" step="0.5" aria-label="Effort in days" data-f="days" value="${w&&w.days?fmt(w.days):''}" placeholder="Days">`),
           sprint:()=>tdW('sprint',`<input class="hub-inline" type="text" list="pl-sprints" aria-label="Tentative sprint" data-f="sprint" value="${esc(w&&w.sprint)}" maxlength="60" placeholder="Sprint">`),
           release:()=>tdE('release',sel('releaseId',`<option value="">Planned release…</option>${rel.map(r=>opt(r.id,r.name,r.id===e.releaseId)).join('')}${e.releaseId&&!rel.some(r=>r.id===e.releaseId)?opt(e.releaseId,e.releaseName||e.releaseId,true):''}`,'Planned release')),
           line:()=>tdE('line',`<span class="pl-line" role="group" aria-label="Line"><button type="button" class="${e.line==='ABL'?'on abl':''}" data-line="ABL" aria-pressed="${e.line==='ABL'}">ABL</button><button type="button" class="${e.line==='BTL'?'on btl':''}" data-line="BTL" aria-pressed="${e.line==='BTL'}">BTL</button></span>`),
@@ -405,7 +405,7 @@ function onInput(ev){
   const t=ev.target.closest('[data-f]');if(!t||!P.plan)return;
   const f=t.dataset.f,c=ctxOf(t),v=t.value;let structural=false;
   if(c.w){const e=findE(c.e),w=e&&e.workstreams.find(x=>x.id===c.w);if(!w)return;
-    if(f==='days'){w.days=Math.max(0,Number(v)||0);const b=(t.closest('.pl-epic')||P.el).querySelector(`[data-e="${e.id}"] [data-eff]`)||t.closest('.pl-epic')?.querySelector('[data-eff]');if(b)b.textContent=fmt(epicDays(e));}
+    if(f==='days'){w.days=Math.max(0,Number(v)||0);t.classList.toggle('pl-eff-set',w.days>0);t.classList.toggle('pl-eff-empty',!(w.days>0));const b=(t.closest('.pl-epic')||P.el).querySelector(`[data-e="${e.id}"] [data-eff]`)||t.closest('.pl-epic')?.querySelector('[data-eff]');if(b)b.textContent=fmt(epicDays(e));}
     else if(f==='priority')w.priority=v===''?null:Math.max(0,Math.round(Number(v)));
     else if(f==='engId'){w.engId=v;w.engName=(P.members.find(m=>m.id===v)||{}).name||'';}
     else w[f]=v;}

@@ -960,3 +960,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan59: save-on-click and prefetch fix; unit tests only plus code inspection, local harness.
 
 - plan60: Actions header; code change only, tests run, local harness.
+
+- plan61: effort colouring and serialized saves; double-click Save on local harness ended 'Saved', no conflict.

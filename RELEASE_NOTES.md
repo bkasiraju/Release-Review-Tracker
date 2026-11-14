@@ -1,3 +1,8 @@
+## Unreleased on top of 4.0.0-GA (plan61) — Effort entered vs missing; saves serialized
+
+- WS Est cells have a green border when effort is entered and a red border when it is empty/0; updates as you type.
+- Saves are now queued one at a time, so clicking Save while another save is in flight (or twice) no longer sends a stale revision, which caused the "Someone else changed this plan — Reload" conflict.
+
 ## Unreleased on top of 4.0.0-GA (plan60) — Actions column header
 
 - The grid's last column (drag, add, remove, delete icons) now has an "Actions" header.
