@@ -609,3 +609,11 @@ body[data-hub=home] .hub-tile-chips{margin-top:auto}
 .sp-modal-top .sp-mtitle{justify-self:center;justify-content:center;align-items:center;text-align:center;width:100%}
 .sp-modal-top .sp-mtitle>div{display:flex;flex-direction:column;align-items:center;gap:4px}
 .sp-modal-top .sp-mtitle .su-groups,.sp-modal-top .sp-mtitle .su-signals{justify-content:center;flex-basis:auto}
+/* header block centred on the page (same axis as the avatar strip): equal side columns, avatar hangs off the left of the centred text */
+.sp-modal-top{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)!important}
+.sp-modal-top>:first-child{justify-self:start}.sp-modal-top>:last-child{justify-self:end}
+.sp-modal-top .sp-mtitle{display:grid!important;grid-template-columns:0 auto 0;justify-items:center;align-items:center;width:auto}
+.sp-modal-top .sp-mtitle>:first-child{grid-column:1;justify-self:end;margin-right:12px;position:relative;left:0;transform:translateX(calc(-50% + 0px))}
+.sp-modal-top .sp-mtitle>div{grid-column:2}
+.sp-modal-tools{display:grid!important;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)}
+.sp-modal-tools .sp-mstrip{grid-column:2;flex:none;justify-content:center}.sp-modal-tools .sp-mbtns{grid-column:3;justify-self:end}

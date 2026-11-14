@@ -1,3 +1,7 @@
+## Unreleased on top of 4.0.0-GA (plan38) — engineer dialog centre axis
+
+- The name/chips block and the avatar strip now share the page's centre line (both measured at x=750 in a 1500px window). Side columns are equal, so Shuffle/Close no longer pull the strip off-centre; the engineer's avatar hangs to the left of the centred text.
+
 ## Unreleased on top of 4.0.0-GA (plan37) — sprint selector highlight, centred engineer header
 
 - (plan36) The Current sprint selector has an accent border and tinted fill, and its glow pulses three times on load, then stays highlighted (no pulse with reduced-motion).

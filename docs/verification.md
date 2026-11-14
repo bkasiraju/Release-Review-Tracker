@@ -916,3 +916,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan35: Team Hub tile titles without Monthly/Quarterly — local harness screenshot only.
 
 - plan36/37: sprint selector highlight and centred dialog header — local harness screenshots only; pulse animation seen as a single frame, not as motion.
+
+- plan38: engineer dialog chips and avatar strip centred on one axis — local harness, measured at 1500px only.
