@@ -1,3 +1,9 @@
+## Unreleased on top of 4.0.0-GA (plan77) — Engineer bandwidth: By theme (effort), renamed effort columns
+
+- Engineer bandwidth gains a "By theme (effort)" column right after Available: per-engineer effort split by theme as chips.
+- ABL / BTL columns renamed "Planned Effort (ABL)" and "Un-planned Effort (BTL)"; column widths rebalanced so the Load bar stays inside the card.
+- Fix: the BTL column was always 0 because BTL workstreams were never counted per engineer. BTL effort is now counted per engineer and in the theme totals.
+
 ## Unreleased on top of 4.0.0-GA (plan76) — Expand/Collapse labels are clickable
 
 - The "Expand" / "Collapse" text on the By theme / method, Engineer bandwidth and Executive Epics Summary cards now toggles the card, not just the arrow. Hover shows it is clickable.

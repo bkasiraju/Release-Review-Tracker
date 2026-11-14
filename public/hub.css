@@ -829,3 +829,12 @@ body[data-ready] #hub-boot{display:flex}
 .pl-planner-h .cfs-icon{background:#e6f5ee!important;border:1px solid #bfe3d0!important;box-shadow:none!important;transform:none!important}.pl-planner-h .cfs-icon svg{stroke:#248568!important}
 .pl-card>h3>small{cursor:pointer;padding:3px 8px;border-radius:4px}.pl-card>h3>small:hover{background:#e8f1f8;text-decoration:underline}
 .pl-card>h3{cursor:pointer}
+
+/* plan77: engineer bandwidth columns */
+.pl-eng-h,.pl-eng-r{grid-template-columns:minmax(150px,1.3fr) 76px minmax(170px,1.6fr) 96px 104px minmax(120px,1.1fr);gap:12px}
+.pl-eng-h span:nth-child(n+4):nth-child(-n+5),.pl-eng-r>span:nth-child(n+4):nth-child(-n+5){text-align:right}
+.pl-eng-h span:nth-child(2),.pl-eng-r>span:nth-child(2){text-align:right}
+.pl-eng-h{line-height:1.2;align-items:end}
+.pl-eng-th{display:flex;flex-wrap:wrap;gap:4px}.pl-eng-th i{font-style:normal;font-size:11px;background:#eef4fa;border:1px solid #d3e1ee;border-radius:10px;padding:1px 7px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pl-eng-th i b{color:#176b91}
+.pl-eng-h,.pl-eng-r{grid-template-columns:minmax(110px,1.2fr) 56px minmax(120px,1.5fr) 74px 80px minmax(80px,1fr);gap:8px}
+.pl-eng-r>*{min-width:0}.pl-eng{overflow:hidden}
