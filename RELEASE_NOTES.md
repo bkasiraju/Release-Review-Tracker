@@ -1,3 +1,7 @@
+## Unreleased on top of 4.0.0-GA (plan43) — signal hover card no longer overlaid
+
+- The signal card was drawn underneath the avatar strip and page body, so text collided. The dialog header now sits above the strip and body, and the card is fully opaque with a stronger shadow and outline.
+
 ## Unreleased on top of 4.0.0-GA (plan42) — sprint selector placement, Current Sprint Summary
 
 - (plan41) Standup view: the sprint selector (with Prev/Next/Shuffle/Open) sits before the Pulse/Standup buttons. Pulse view: the selector is pinned to the far right of the bar.

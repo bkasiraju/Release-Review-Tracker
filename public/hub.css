@@ -646,3 +646,11 @@ body[data-hub=home] .hub-tile-chips{margin-top:auto}
 .heading-actions .sp-sprintbar{margin:0 12px 0 0;flex-wrap:nowrap}
 .heading-actions .sp-sprintbar h2{white-space:nowrap}
 #sp-pulse .sp-sprintbar .sp-bar-actions{margin-left:0}
+/* signal cards: lift the header above the avatar strip and body so the card is never overlaid */
+.sp-modal-card{overflow:visible}
+.sp-modal-top{position:relative;z-index:30}
+.sp-modal-tools,.sp-modal-body,.sp-bar-thin{position:relative;z-index:1}
+.sg-tip{z-index:100;background:#fff!important;opacity:1;isolation:isolate;box-shadow:0 12px 32px rgba(15,27,42,.28),0 0 0 1px #c9d3de}
+.sg-tip *{background:transparent}
+.sp-chip.sg:hover,.sp-chip.sg:focus{z-index:101}
+.sg-tip ul{max-height:240px}
