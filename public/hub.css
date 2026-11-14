@@ -109,3 +109,4 @@ td .hub-inline[type=text]{width:120px}
 .hub-banner:not(.muted),.hub-banner:not(.muted) h2,.hub-banner:not(.muted) p,.hub-banner:not(.muted) small,.hub-banner:not(.muted) span,.hub-banner:not(.muted) b{color:#fff!important}
 .hub-banner .hub-eyebrow{opacity:.8;letter-spacing:.08em}
 .hub-banner.muted,.hub-banner.muted h2,.hub-banner.muted p,.hub-banner.muted small,.hub-banner.muted span,.hub-banner.muted b{color:#1f293c}
+body[data-hub=sprints] #overview-panel,body[data-hub=sprints] #table-card,body[data-hub=status] #overview-panel,body[data-hub=status] #table-card{display:none!important}
