@@ -106,7 +106,7 @@ function memberHtml(m){
 }
 function renderMembers(){
   const q=S.search.trim().toLowerCase();
-  const list=S.members.filter(m=>!q||m.name.toLowerCase().includes(q)||m.items.some(i=>(i.name+' '+i.subject).toLowerCase().includes(q)));
+  const list=window.Hub.sortPeople(S.members.filter(m=>!q||m.name.toLowerCase().includes(q)||m.items.some(i=>(i.name+' '+i.subject).toLowerCase().includes(q))));
   $('sp-member-count').textContent=list.length;
   $('sp-members').innerHTML=list.length?list.map(memberHtml).join(''):`<div class="empty-state sp-empty"><h3>${S.members.length?'No contributors match':'No committed work'}</h3><p>${S.members.length?'Try a different search.':'This sprint has no forecasted or added items.'}</p></div>`;
   $('sp-row-count').textContent=`${list.length} contributor${list.length===1?'':'s'}`;
@@ -174,8 +174,8 @@ function epicCards(items,title,uid){
 }
 function orderedMembers(){
   const ms=S.members.filter(m=>activeItems(m).length).sort((a,b)=>a.name.localeCompare(b.name));
-  if(!S.order)return ms;const ix=n=>{const k=S.order.indexOf(n);return k<0?1e9:k;};
-  return ms.sort((a,b)=>ix(a.name)-ix(b.name)||a.name.localeCompare(b.name));
+  if(!S.order)return window.Hub.sortPeople(ms);const ix=n=>{const k=S.order.indexOf(n);return k<0?1e9:k;};
+  return window.Hub.sortPeople(ms.sort((a,b)=>ix(a.name)-ix(b.name)||a.name.localeCompare(b.name)));
 }
 function shuffle(){
   const names=orderedMembers().map(m=>m.name);if(names.length<2)return;

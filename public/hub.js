@@ -245,6 +245,10 @@ H.fitTable=fitTable;
   let rt;window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>document.querySelectorAll('table').forEach(t=>{delete t.dataset.fit;queue(t);}),150);});
   document.querySelectorAll('table').forEach(queue);
 })();
+/** CFS leaders always sit at the end of any people list, in this order (no visual marking). Non-leaders keep their incoming order. */
+const LEADER_NAMES=['Amit Kumar','Azeem Mohammad','Jayant Kumar','Ram Mantripragada','Venkat Venkatnarayan','Pramit Bhuyan','Karthik Sethuraman','Bhanu Kasiraju'];
+H.leaderRank=name=>LEADER_NAMES.indexOf(String(name||'').trim());
+H.sortPeople=(list,nameOf=x=>x.name)=>[...list.filter(x=>H.leaderRank(nameOf(x))<0),...list.filter(x=>H.leaderRank(nameOf(x))>=0).sort((a,b)=>H.leaderRank(nameOf(a))-H.leaderRank(nameOf(b)))];
 /** Status colours: every status dropdown (work item or TD, any page) gets an st-* class from its selected value; styles live in sprint.css. */
 H.stCls=st=>{const x=String(st||'').toLowerCase();
   return /never|duplicate|reject|will not|inactive|not accepted|cancel|declin/.test(x)?'st-off':/^closed|fixed|complete|deliver|accepted|done|resolved/.test(x)?'st-done':/review|qa|verif|test|pending/.test(x)?'st-review':/progress|investigat|commit|triag/.test(x)?'st-prog':/block|wait|hold|risk/.test(x)?'st-block':'st-new';};

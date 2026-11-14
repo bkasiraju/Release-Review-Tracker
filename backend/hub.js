@@ -45,7 +45,8 @@ async function getTeams(sf) {
 async function getMembers(sf, teamId) {
   requireTeam(teamId);
   const rows = (await sf.query(`SELECT Member_Name__c, Member_Name__r.Name, Role__c FROM ADM_Scrum_Team_Member__c WHERE Scrum_Team__c = '${teamId}' ORDER BY Member_Name__r.Name LIMIT 200`)).records || [];
-  return { members: rows.filter(r => r.Member_Name__r).map(r => ({ id: r.Member_Name__c, name: r.Member_Name__r.Name, role: r.Role__c || '' })) };
+  const members = rows.filter(r => r.Member_Name__r).map(r => ({ id: r.Member_Name__c, name: r.Member_Name__r.Name, role: r.Role__c || '' }));
+  return { members: [...members.filter(m => leaderRank(m.id) < 0), ...members.filter(m => leaderRank(m.id) >= 0).sort((a, b) => leaderRank(a.id) - leaderRank(b.id))] };
 }
 
 // ── Bugs ────────────────────────────────────────────────────────────────────────
@@ -221,7 +222,9 @@ async function updateOne(sf, u) {
 // ── Team people (leadership section on the hub home) ─────────────────────────
 const KARTHIK = '005EE00000kbcyIYAQ';
 const AMIT = '005B0000005Lg7WIAS', JAYANT = '005B0000001zx4jIAA', RAM = '005B0000001tCGAIA2', AZEEM = '005B0000003OANyIAO', VENKAT = '005B0000006q4KcIAI', PRAMIT = '005EE00000StHjGYAV', BHANU = '005EE00000YvpWrYAJ';
-const PEOPLE = { // leadership, shown after the rest of the roster (A–Z), in this order: Amit, Jayant, Ram, Azeem, Venkat, Pramit, Karthik, Bhanu. Amit and Jayant lead every team; no visual marking.
+const LEADERS = [AMIT, AZEEM, JAYANT, RAM, VENKAT, PRAMIT, KARTHIK, BHANU]; // CFS leaders: always last, in exactly this order, on every team and list; no visual marking
+const leaderRank = id => { const k = LEADERS.indexOf(id); return k < 0 ? -1 : k; };
+const PEOPLE = { // leadership configured per team; any other leader already on a team's roster is moved into the leader block too. Amit and Jayant lead every team.
   'Managed Async Processing Team': [AMIT, JAYANT, RAM, PRAMIT, BHANU],
   'Message Queue Team': [AMIT, JAYANT, RAM, PRAMIT, BHANU],
   'VegaStore Team': [AMIT, JAYANT],
@@ -267,8 +270,8 @@ async function getPeople(sf, slack, group) {
   const rows = (await sf.query(`SELECT Id, Name, Title, Email, SmallPhotoUrl FROM User WHERE IsActive = true AND Id IN (${ids.map(i => `'${q(i)}'`).join(',')})`)).records || [];
   const byId = new Map(rows.map(r => [r.Id, r]));
   const ordered = ids.filter(i => byId.has(i)).map(i => byId.get(i));
-  const rest = ordered.filter(u => !lead.includes(u.Id)).sort((a, b) => a.Name.localeCompare(b.Name));
-  const list = [...rest, ...lead.map(i => byId.get(i)).filter(Boolean)];
+  const rest = ordered.filter(u => leaderRank(u.Id) < 0).sort((a, b) => a.Name.localeCompare(b.Name));
+  const list = [...rest, ...LEADERS.filter(i => byId.has(i)).map(i => byId.get(i))];
   const people = [];
   for (let k = 0; k < list.length; k += 10)
     people.push(...await Promise.all(list.slice(k, k + 10).map(async u => ({ id: u.Id, name: u.Name, role: u.Title || '', avatar: (await slackAvatar(slack, u.Email)) || u.SmallPhotoUrl || null, alt: u.SmallPhotoUrl || null }))));
