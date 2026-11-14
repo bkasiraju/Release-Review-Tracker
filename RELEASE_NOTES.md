@@ -1,3 +1,8 @@
+## Unreleased on top of 4.0.0-GA (plan37) — sprint selector highlight, centred engineer header
+
+- (plan36) The Current sprint selector has an accent border and tinted fill, and its glow pulses three times on load, then stays highlighted (no pulse with reduced-motion).
+- (plan37) In the engineer dialog the avatar, name and chip rows are centred on the page between Previous and Next.
+
 ## Unreleased on top of 4.0.0-GA (plan35) — tile titles without (Monthly)/(Quarterly)
 
 - Team Hub tiles show "Release Review" and "Release Planning"; the tile caption no longer says "monthly". Tab and rail names are unchanged.

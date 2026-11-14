@@ -598,3 +598,14 @@ body[data-hub=home] .hub-tile-stat{display:flex;flex-direction:column;align-item
 body[data-hub=home] .hub-tile-stat b{font-size:26px;line-height:1.05}
 body[data-hub=home] .hub-tile-stat small{font-size:11px;line-height:1.3;color:#5c6b7a!important;white-space:normal}
 body[data-hub=home] .hub-tile-chips{margin-top:auto}
+/* sprint selector: accent border, glow pulse a few times to draw the eye, steady highlight afterwards */
+#sp-sprint.sp-select{border:2px solid #0b6fa8!important;border-radius:8px;background-color:#f2f9fd!important;font-weight:600;color:#032d60!important;box-shadow:0 0 0 3px #0b6fa81f;animation:sp-sel-pulse 1.6s ease-in-out 3}
+#sp-sprint.sp-select:hover,#sp-sprint.sp-select:focus{border-color:#014486!important;box-shadow:0 0 0 4px #0b6fa833;animation:none}
+.sp-sprintbar .sp-bar-l{color:#0b6fa8!important;font-weight:700}
+@keyframes sp-sel-pulse{0%,100%{box-shadow:0 0 0 3px #0b6fa81f}50%{box-shadow:0 0 0 7px #0b6fa84d;border-color:#1b96ff}}
+@media(prefers-reduced-motion:reduce){#sp-sprint.sp-select{animation:none}}
+/* engineer dialog header: avatar, name and chip rows centred on the page */
+.sp-modal-top{padding:8px 16px!important}
+.sp-modal-top .sp-mtitle{justify-self:center;justify-content:center;align-items:center;text-align:center;width:100%}
+.sp-modal-top .sp-mtitle>div{display:flex;flex-direction:column;align-items:center;gap:4px}
+.sp-modal-top .sp-mtitle .su-groups,.sp-modal-top .sp-mtitle .su-signals{justify-content:center;flex-basis:auto}
