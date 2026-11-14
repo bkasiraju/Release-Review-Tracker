@@ -938,3 +938,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan48: planner default column order/labels — local harness header check only; Priority/Release hidden by default.
 
 - plan49: Project column width — local harness measurement at 1500px only.
+
+- plan50: inline delete popover — local harness: popover sits 8px above the button and Delete removes the epic; the project-delete popover and keyboard/Esc paths were not exercised.

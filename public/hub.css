@@ -673,3 +673,7 @@ body[data-hub=home] .hub-tile-chips{margin-top:auto}
 .pl-ro{display:inline-block;min-width:34px;padding:5px 8px;border-radius:6px;background:#eef3f8;color:#16324a;font-weight:700;text-align:right}
 /* plan49: first column (Project) shrinks to its content like the other fit columns */
 .pl-grid-wrap .pl-grid th.c-project,.pl-grid-wrap .pl-grid td.c-project{width:1px!important}
+/* plan50: inline delete confirmation above the clicked button */
+.pl-confirm{position:fixed;z-index:10000;max-width:300px;background:#fff;border:1px solid #c9d6e2;border-radius:10px;box-shadow:0 8px 24px rgba(3,45,96,.22);padding:12px 14px}
+.pl-confirm p{margin:0 0 10px;font-size:13px;color:#16324a!important}.pl-confirm div{display:flex;justify-content:flex-end;gap:8px}
+.pl-confirm .danger{background:#b3261e!important;border-color:#b3261e!important;color:#fff!important}

@@ -1,3 +1,7 @@
+## Unreleased on top of 4.0.0-GA (plan50) — inline delete confirmations
+
+- Deleting an epic or project in Release Planning now asks in a small popover just above the clicked button (Cancel / Delete; Esc or a click elsewhere cancels) instead of the browser's confirm dialog.
+
 ## Unreleased on top of 4.0.0-GA (plan49) — Project column width
 
 - The Project column now shrinks to its content with 8px padding (it was stretched by a first-column width rule: 166px down to 112px).

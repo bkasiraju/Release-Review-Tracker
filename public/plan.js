@@ -15,6 +15,19 @@ const gridCols=()=>{let v=null;try{v=JSON.parse(localStorage.getItem(GKEY));}cat
 const setGridCols=l=>{try{if(l)localStorage.setItem(GKEY,JSON.stringify(l));else localStorage.removeItem(GKEY);}catch(_){}};
 const priOpts=v=>{const n=v==null||v===''?0:Number(v),L=[0,1,2,3,4,5];if(!L.includes(n))L.push(n);return L.sort((a,b)=>a-b).map(x=>`<option value="${x}"${x===n?' selected':''}>P${x}</option>`).join('');};
 const relNum=r=>{const m=String(r.name||'').match(/(\d+)\s*$/);return m?Number(m[1]):-1;};
+// Inline confirmation popover, shown just above the button that was clicked.
+function confirmAt(btn,msg,onOk){
+  document.querySelectorAll('.pl-confirm').forEach(x=>x.remove());
+  const d=document.createElement('div');d.className='pl-confirm';d.setAttribute('role','alertdialog');d.setAttribute('aria-label',msg);
+  d.innerHTML=`<p>${esc(msg)}</p><div><button type="button" class="button small" data-no>Cancel</button><button type="button" class="button small danger" data-yes>Delete</button></div>`;
+  document.body.appendChild(d);
+  const r=btn.getBoundingClientRect(),w=d.offsetWidth,h=d.offsetHeight;
+  d.style.left=Math.max(8,Math.min(innerWidth-w-8,r.left+r.width/2-w/2))+'px';d.style.top=(r.top-h-8<8?r.bottom+8:r.top-h-8)+'px';
+  const close=()=>{d.remove();document.removeEventListener('mousedown',away,true);document.removeEventListener('keydown',key,true);btn.focus();};
+  const away=ev=>{if(!d.contains(ev.target))close();},key=ev=>{if(ev.key==='Escape'){ev.stopPropagation();close();}};
+  d.querySelector('[data-no]').onclick=close;d.querySelector('[data-yes]').onclick=()=>{close();onOk();};
+  document.addEventListener('mousedown',away,true);document.addEventListener('keydown',key,true);d.querySelector('[data-no]').focus();
+}
 const defRel=()=>{const r=P.refs.releases.reduce((b,x)=>!b||relNum(x)>relNum(b)?x:b,null);return r?{releaseId:r.id,releaseName:r.name}:{releaseId:'',releaseName:''};};
 const newEpic=pid=>({id:uid('e'),projectId:pid,name:'',line:'BTL',priority:0,...defRel(),gusId:'',owners:[],ownerNames:[],workstreams:[{id:uid('w'),name:'',priority:0,engId:'',engName:'',engIds:[],engNames:[],days:0,sprint:''}]});
 const prj0=e=>P.plan.projects.find(p=>p.id===e.projectId)||null;
@@ -282,8 +295,8 @@ function onClick(ev){
   if(t.closest('[data-add-ws]')){const e=findE(c.e);if(!e)return;const w={id:uid('w'),name:'',priority:0,engId:'',engName:'',engIds:[],engNames:[],days:0,sprint:''};e.workstreams.push(w);draw();queueSave();P.el.querySelector(`[data-w="${w.id}"] input`)?.focus();return;}
   const line=t.closest('[data-line]');if(line){const e=findE(c.e);if(e){e.line=line.dataset.line;draw();queueSave();}return;}
   if(t.closest('[data-del-ws]')){const e=findE(c.e);if(e){e.workstreams=e.workstreams.filter(w=>w.id!==c.w);draw();queueSave();}return;}
-  if(t.closest('[data-del-epic]')){const e=findE(c.e);if(e&&((!e.gusId&&!e.name&&!epicDays(e))||confirm(e.gusId?'This epic is already in GUS. Delete only the draft here? The GUS epic stays.':'Delete this epic and its workstreams?'))){pl.epics=pl.epics.filter(x=>x.id!==c.e);draw();queueSave();}return;}
-  if(t.closest('[data-del-proj]')){const n=pl.epics.filter(e=>e.projectId===c.p).length;if(!n||confirm(`Delete this project and its ${n} epic draft(s)? Anything already in GUS stays there.`)){pl.projects=pl.projects.filter(p=>p.id!==c.p);pl.epics=pl.epics.filter(e=>e.projectId!==c.p);draw();queueSave();}}
+  if(t.closest('[data-del-epic]')){const e=findE(c.e);if(!e)return;const go=()=>{pl.epics=pl.epics.filter(x=>x.id!==c.e);draw();queueSave();};if(!e.gusId&&!e.name&&!epicDays(e))go();else confirmAt(t.closest('[data-del-epic]'),e.gusId?'This epic is already in GUS. Delete only the draft here? The GUS epic stays.':'Delete this epic and its workstreams?',go);return;}
+  if(t.closest('[data-del-proj]')){const n=pl.epics.filter(e=>e.projectId===c.p).length,go=()=>{pl.projects=pl.projects.filter(p=>p.id!==c.p);pl.epics=pl.epics.filter(e=>e.projectId!==c.p);draw();queueSave();};if(!n)go();else confirmAt(t.closest('[data-del-proj]'),`Delete this project and its ${n} epic draft(s)? Anything already in GUS stays there.`,go);}
 }
 
 // ── Dialogs ─────────────────────────────────────────────────────────────────
