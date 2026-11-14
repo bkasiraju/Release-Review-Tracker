@@ -1,3 +1,7 @@
+## Unreleased — On-call effort in Release Planning
+
+The leaves popup (now "Leaves, holidays & on-call") has an On-call (days) column per engineer, saved in the plan's `people` entry (`oncall`). Available = working days − leave − holidays − on-call. On-call is dashboard-only, not written to GUS. Cache-bust `4.0.0-GA-plan3`.
+
 ## Unreleased fix — team dropdown reopened natively
 
 Picking a team in the custom dropdown re-clicked the hidden native select through the wrapping `<label for>`, so the OS menu popped open again. The label's activation is now suppressed (clicking the TEAM text focuses the custom button). Cache-bust `4.0.0-GA-plan2`.

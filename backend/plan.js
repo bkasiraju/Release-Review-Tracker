@@ -29,7 +29,7 @@ function cleanPlan(input) {
   const people = {};
   for (const [k, v] of Object.entries(p.people && typeof p.people === 'object' ? p.people : {}).slice(0, MAX.people)) {
     if (!SF_ID.test(k)) continue;
-    people[k] = { name: text(v && v.name, 80), leave: days(v && v.leave), holiday: days(v && v.holiday) };
+    people[k] = { name: text(v && v.name, 80), leave: days(v && v.leave), holiday: days(v && v.holiday), oncall: days(v && v.oncall) };
   }
   const last = p.lastCommit && typeof p.lastCommit === 'object' ? { at: text(p.lastCommit.at, 40), created: Number(p.lastCommit.created) || 0, updated: Number(p.lastCommit.updated) || 0 } : null;
   return { window: { start: ISO.test(w.start) ? w.start : '', end: ISO.test(w.end) ? w.end : '' }, people, projects, epics, lastCommit: last };

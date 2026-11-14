@@ -12,7 +12,7 @@ const sfMock=(log,opts={})=>({async query(q){log.push(['q',q]);if(/FROM ADM_Plan
   async update(o,id,f){log.push(['u',o,id,f]);return {success:true};}});
 test('plan is cleaned: bad ids, negative days and oversize text are dropped',()=>{
   const c=plan.cleanPlan({people:{"x' OR 1":{leave:5},[ENG]:{leave:-2,holiday:'3'}},epics:[{name:'a'.repeat(400),line:'zzz',releaseId:'bad id',workstreams:[{days:-4,engId:'nope'}]}]});
-  assert.deepEqual(Object.keys(c.people),[ENG]);assert.equal(c.people[ENG].leave,0);assert.equal(c.people[ENG].holiday,3);
+  assert.deepEqual(Object.keys(c.people),[ENG]);assert.equal(c.people[ENG].leave,0);assert.equal(c.people[ENG].holiday,3);assert.equal(c.people[ENG].oncall,0);assert.equal(plan.cleanPlan({people:{[ENG]:{oncall:'4.5'}}}).people[ENG].oncall,4.5);
   assert.equal(c.epics[0].name.length,255);assert.equal(c.epics[0].line,'BTL');assert.equal(c.epics[0].releaseId,'');assert.equal(c.epics[0].workstreams[0].days,0);assert.equal(c.epics[0].workstreams[0].engId,'');
 });
 test('plan round-trips through the handler per team and rejects stale revisions',async()=>{
