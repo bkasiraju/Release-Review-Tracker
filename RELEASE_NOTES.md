@@ -1,3 +1,7 @@
+## Unreleased on top of 4.0.0-GA (plan25) — no "Open in GUS" bar on Team Hub
+
+- The "Open in GUS" bar is hidden on Team Hub only; all other tabs keep it. Verified on the local harness (hidden on Hub home, shown on Release Planning). Cache-bust `4.0.0-GA-plan25`.
+
 ## Unreleased on top of 4.0.0-GA (plan24) — Planned Release Summary dashboard panels
 
 - Removed the "By planned release / By status" card. Planned Release Summary now follows the MAPS release-plan dashboard: **Theme Payload Distribution** donut (planned pts, all-themes legend), **Priority & Strategic Investment Breakdown** (P0–P3+/BTL bar and tinted theme cards) and a collapsible **Executive Epics Summary** (above-the-line epic cards with workstreams and owner). Slices, themes, priority labels and epics open a full-screen detail dialog; Planning health and Saved epics remain.

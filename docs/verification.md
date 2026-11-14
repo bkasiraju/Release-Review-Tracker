@@ -892,3 +892,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan23: grid-only Release Planning, project strip, active-tab-only nav, Planner/Summary tab names, theme card and Saved epics columns — verified on the local harness (screenshots at 1500px) only.
 
 - plan24: Planned Release Summary theme donut, priority/theme cards and executive epic cards; epic/theme dialogs open — local harness only.
+
+- plan25: Open in GUS bar hidden on Team Hub only — local harness only.

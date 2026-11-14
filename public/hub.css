@@ -554,3 +554,4 @@ body.pl-fs-lock{overflow:hidden}
 .pl-ec-w{display:flex;justify-content:space-between;gap:8px}.pl-ec-w span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pl-ec-w i{font-style:normal;color:#5b6f82!important}.pl-ec-more{color:#6d28d9!important;font-weight:600}
 .pl-ec-f{margin-top:auto;border-top:1px solid #eef2f6;padding-top:8px}
 @media(max-width:1000px){.pl-rps-top{grid-template-columns:1fr}.pl-tcards{grid-template-columns:1fr}}
+.gus-links[hidden]{display:none!important}
