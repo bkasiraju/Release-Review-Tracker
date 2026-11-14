@@ -1,3 +1,7 @@
+## Unreleased on top of 4.0.0-GA (plan70) — Full-page blurred loading overlay
+
+- On page load or refresh the whole page is blurred behind a centred loading animation; it fades out once the first page has finished loading, replacing the intermediate "Loading your team hub…" strip.
+
 ## Unreleased on top of 4.0.0-GA (plan69) — + Epic / + Project popups before Columns
 
 - The project strip above the grid is gone. + Epic, + Project and Projects ▾ now sit just before Columns; nothing opens until clicked.

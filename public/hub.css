@@ -790,3 +790,12 @@ body[data-settled] main>*:not(#hub-boot){animation:riIn .25s ease-out}
 .pl-pmenu{position:absolute;left:0;top:36px;z-index:30;width:max-content;max-width:min(560px,90vw);max-height:min(60vh,420px);overflow:auto;background:#fff;border:1px solid #cfd9e3;border-radius:10px;box-shadow:0 8px 24px rgba(10,30,60,.18);padding:10px;display:flex;flex-direction:column;gap:6px}
 .pl-pmenu>b{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:#176b91}.pl-pmenu .note{margin:2px 0 0;font-size:11px}
 .pl-newproj select.hub-inline{width:100%;height:30px}
+
+/* plan70: full-page blurred loading overlay with a centred animation until the dashboard has settled */
+#hub-boot{position:fixed!important;inset:0;z-index:2000;display:flex!important;align-items:center;justify-content:center;margin:0;padding:0;border:0;border-radius:0;min-height:0;background:rgba(244,247,250,.55);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);opacity:1;visibility:visible;transition:opacity .3s ease,visibility .3s}
+body[data-settled] #hub-boot{opacity:0;visibility:hidden;pointer-events:none}
+body[data-ready] #hub-boot{display:flex}
+.ri-load{display:flex;flex-direction:column;align-items:center;gap:14px;padding:26px 34px;border-radius:18px;background:#fffffff0;box-shadow:0 12px 40px rgba(10,50,90,.18);font-size:14px;color:#16324a}
+.ri-ring{width:52px;height:52px;border-radius:50%;border:5px solid #d6e6f2;border-top-color:#176b91;border-right-color:#1e8e6a;animation:riSpin .9s linear infinite}
+@keyframes riSpin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.ri-ring{animation-duration:2.4s}}
