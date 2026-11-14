@@ -2,7 +2,7 @@
 .hub-panel{display:block}.hub-panel.hidden{display:none}
 body[data-hub]:not([data-hub=epics]):not([data-hub=status]) .release-toolbar,
 body[data-hub]:not([data-hub=epics]):not([data-hub=status]) #selected-release-summary{display:none}
-body[data-hub=home] #overview-panel,body[data-hub=home] #table-card,
+body[data-hub=home] #table-card,
 body[data-hub=bugs] #overview-panel,body[data-hub=bugs] #table-card,body[data-hub=tds] #overview-panel,body[data-hub=tds] #table-card,
 body[data-hub=rotations] #overview-panel,body[data-hub=rotations] #table-card,body[data-hub=tests] #overview-panel,body[data-hub=tests] #table-card,
 body[data-hub=links] #overview-panel,body[data-hub=links] #table-card{display:none!important}
@@ -114,3 +114,13 @@ body[data-hub=sprints] #overview-panel,body[data-hub=sprints] #table-card,body[d
 main{display:flex;flex-direction:column;min-height:calc(100dvh - 72px);padding-bottom:28px}
 main>*{flex-shrink:0}
 main>.dashboard-footer{margin-top:auto;padding-top:24px;padding-bottom:12px}
+
+/* Team Hub: Story point delivery + Epic health tiles first, then the sprint banner and page tiles */
+body[data-hub=home] #overview-panel{order:1;display:block!important}
+body[data-hub=home] #overview-panel .overview-group-summary,body[data-hub=home] #overview-panel #metrics{display:none}
+body[data-hub=home] #overview-panel .health-metrics-strip{overflow:visible}
+body[data-hub=home] #hub-panel{order:2}
+body[data-hub=home] main>.dashboard-footer{order:3}
+body[data-hub=home] #overview-panel .health-metrics-strip{grid-template-columns:repeat(2,minmax(0,1fr));overflow:visible;margin-bottom:14px}
+body[data-hub=home] #overview-panel .health-metrics-strip>.metric{display:none}
+body[data-hub=home] #overview-panel .health-metrics-strip>.insight-card:last-child{display:none}

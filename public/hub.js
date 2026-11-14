@@ -58,32 +58,57 @@ H.go=(id,opts={})=>{
   window.scrollTo(0,0);
 };
 
+
+// ── Read cache: in-flight dedupe + short TTL so tab switches and reloads are instant; Refresh/saves bust it ──
+const READ=/^(hub-(home|teams|bugs|sla|tds|rotation|champion|members|picklists)|sprint-(initial|history|data))$/,TTL=45000,cache=new Map();
+H.bust=()=>cache.clear();
+function installCache(){
+  const raw=window.api;if(!raw||raw.__cached)return;
+  const wrapped=(a,d={},m)=>{
+    if(!READ.test(a))return raw(a,d,m);
+    const k=a+JSON.stringify(d),hit=cache.get(k);
+    if(hit&&Date.now()-hit.t<TTL)return hit.p;
+    const p=raw(a,d,m);cache.set(k,{p,t:Date.now()});p.catch(()=>{if(cache.get(k)&&cache.get(k).p===p)cache.delete(k);});return p;
+  };
+  wrapped.__cached=true;window.api=wrapped;
+  document.addEventListener('click',e=>{if(e.target.closest('[data-refresh],#sp-refresh'))H.bust();},true);
+}
+H.prefetch=teamId=>{if(!teamId||teamId==='all')return;const go=()=>['hub-tds','hub-sla','hub-rotation','sprint-initial','sprint-history'].forEach(a=>call(a,{teamId}).catch(()=>{}));(window.requestIdleCallback||setTimeout)(go,1);};
 // ── Delta saves to GUS ──────────────────────────────────────────────────────
-// Optimistic UI; per-record coalescing; one parallel request per flush; only changed fields are sent.
-const pending=new Map();let timer=null,inflight=0,lastOk=null;
+// Optimistic UI. Every record saves independently and in parallel (own debounce, own request, up to MAX_PAR at once),
+// so one slow or failing record never delays or rolls back another. Network errors/timeouts retry once; the status chip
+// shows saving/saved/failed so the user always sees the outcome.
+const MAX_PAR=6,pending=new Map(),waiting=[];let running=0,failed=0,lastOk=null;
 function chip(){
   const el=$('gus-sync');if(!el)return;
-  const n=pending.size+inflight;
-  el.className='gus-sync '+(n?'busy':lastOk?'ok':'');
-  el.textContent=n?`Saving ${n} change${n>1?'s':''} to GUS…`:lastOk?`Saved to GUS · ${lastOk}`:'';
+  const n=pending.size+waiting.length+running;
+  el.className='gus-sync '+(n?'busy':failed?'bad':lastOk?'ok':'');
+  el.textContent=n?`Saving ${n} change${n>1?'s':''} to GUS…`:failed?`${failed} change${failed>1?'s':''} not saved — see message`:lastOk?`Saved to GUS · ${lastOk}`:'';
 }
-async function flush(){
-  timer=null;const batch=[...pending.values()];pending.clear();if(!batch.length)return;
-  inflight+=batch.length;chip();
-  try{
-    const r=await call('gus-update',{updates:batch.map(e=>({object:e.object,id:e.id,fields:e.fields}))});
-    r.results.forEach((res,i)=>{const e=batch[i];if(res.ok){e.onDone&&e.onDone(true);}else{e.undo&&e.undo();window.toast?.(`GUS did not save ${e.label||'the change'}: ${res.error}`,true);e.onDone&&e.onDone(false);}});
-    if(r.results.some(x=>x.ok))lastOk=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  }catch(e){batch.forEach(x=>{x.undo&&x.undo();x.onDone&&x.onDone(false);});window.toast?.('Could not reach GUS: '+e.message,true);}
-  finally{inflight-=batch.length;chip();}
+async function send(e){
+  const run=()=>call('gus-update',{updates:[{object:e.object,id:e.id,fields:e.fields}]});
+  let r;
+  try{r=await run();}catch(err){await new Promise(ok=>setTimeout(ok,600));r=await run();}
+  return r.results[0];
 }
-/** Queue a delta. `undo` restores the UI if GUS rejects it. delay: 0 for pickers, ~500 for typed text. */
+async function pump(){
+  while(running<MAX_PAR&&waiting.length){
+    const e=waiting.shift();running++;chip();
+    send(e).then(res=>{
+      if(res&&res.ok){e.onDone&&e.onDone(true);lastOk=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'});failed=0;H.bust&&H.bust();}
+      else{failed++;e.undo&&e.undo();window.toast?.(`GUS did not save ${e.label||'the change'}: ${(res&&res.error)||'unknown error'}`,true);e.onDone&&e.onDone(false);}
+    }).catch(err=>{failed++;e.undo&&e.undo();e.onDone&&e.onDone(false);window.toast?.(`Could not reach GUS for ${e.label||'the change'}: ${err.message}`,true);})
+      .finally(()=>{running--;chip();pump();});
+  }
+}
+/** Queue a delta. `undo` restores the UI if GUS rejects it. delay: 0 for pickers, ~400 for typed text. */
 H.save=({object,id,fields,undo,label,delay=0,onDone})=>{
   const key=object+':'+id,e=pending.get(key)||{object,id,fields:{},label,undos:[],dones:[]};
   Object.assign(e.fields,fields);e.undos.push(undo);e.dones.push(onDone);
   e.undo=()=>e.undos.slice().reverse().forEach(u=>u&&u());e.onDone=ok=>e.dones.forEach(d=>d&&d(ok));
   pending.set(key,e);chip();
-  clearTimeout(timer);timer=setTimeout(flush,delay);
+  clearTimeout(e.timer);
+  e.timer=setTimeout(()=>{pending.delete(key);waiting.push(e);pump();},delay);
 };
 /** Generic inline editing: <select|input data-edit="ADM_Work__c" data-id data-field data-type="num|text|date" data-prev>. */
 H.bindEdit=(root,apply)=>{
@@ -142,6 +167,7 @@ soon('links','Quick Links','link','teal','Curated dashboards, runbooks and relea
 // ── Boot ────────────────────────────────────────────────────────────────────
 function route(){const id=(location.hash.match(/^#\/([a-z]+)/)||[])[1];H.go(id||'home',{silent:true});}
 async function boot(){
+  installCache();
   document.addEventListener('click',e=>{const g=e.target.closest('[data-go],[data-page]');if(g){e.preventDefault();H.go(g.dataset.go||g.dataset.page);}});
   window.addEventListener('popstate',route);
   $('hub-team').addEventListener('change',e=>H.setTeam(e.target.value));
@@ -154,6 +180,7 @@ async function boot(){
   }catch(e){window.toast?.('Team list unavailable: '+e.message,true);}
   window.dispatchEvent(new Event('hub:team'));
   route();
+  H.prefetch(H.team.Id);
 }
 window.Hub=H;
 document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,0));
