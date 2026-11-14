@@ -59,6 +59,125 @@ function newProjectAt(btn){
   d.querySelector('[data-no]').onclick=close;d.querySelector('[data-yes]').onclick=add;n.oninput=()=>n.classList.remove('bad');
   document.addEventListener('mousedown',away,true);document.addEventListener('keydown',key,true);n.focus();
 }
+// ── Export template / import (xlsx) ────────────────────────────────────────
+const IO_COLS=['Project (short form)','Measure name (project in GUS)','Epic Name','Workstream','Epic Owner(s)','Workstream Owner(s)','Epic Est (calculated, ignored on import)','WS Est (days)','ATL/BTL','Sprint','Priority','Status','Planned Release'];
+const IO_ROWS=300;
+const projShort=p=>p.short||shortProj(p.name);
+function ioLists(){
+  const pl=P.plan,eng=P.members.filter(m=>H.leaderRank(m.name)<0).map(m=>m.name).sort();
+  return {projects:pl.projects.map(projShort),releases:P.refs.releases.map(r=>r.name),eng,line:['ABL','BTL'],pri:[0,1,2,3,4,5].map(n=>'P'+n),status:STAT};
+}
+function exportTemplate(){
+  const pl=P.plan,L=ioLists(),prj=new Map(pl.projects.map(p=>[p.id,p]));
+  const rows=[IO_COLS.slice()];
+  for(const e of pl.epics){
+    const p=prj.get(e.projectId)||{},names=(e.ownerNames&&e.ownerNames.length?e.ownerNames:(e.owners||[]).map(memName)).filter(Boolean);
+    const ws=e.workstreams.length?e.workstreams:[null];
+    ws.forEach((w,j)=>{const f=j===0,wn=w?(w.engNames&&w.engNames.length?w.engNames:wsEngs(w).map(memName)).filter(Boolean):[];
+      rows.push([projShort(p),p.name||'',e.name||'',w?w.name:'',f?names.join(', '):'',wn.join(', '),f?(epicDays(e)||''):'',w&&w.days?w.days:'',f?e.line:'',w?w.sprint:'',f?'P'+(e.priority==null?0:e.priority):'',f?e.status:'',f?(e.releaseName||(P.refs.releases.find(r=>r.id===e.releaseId)||{}).name||''):'']);});
+  }
+  const lcols=[['Projects',L.projects],['Planned releases',L.releases],['Engineers',L.eng],['ATL/BTL',L.line],['Priority',L.pri],['Status',L.status]];
+  const lrows=[lcols.map(c=>c[0])],lh=Math.max(...lcols.map(c=>c[1].length));
+  for(let i=0;i<lh;i++)lrows.push(lcols.map(c=>c[1][i]==null?'':c[1][i]));
+  const rng=(c,n)=>`Lists!$${c}$2:$${c}$${Math.max(2,n+1)}`,last=Math.max(rows.length+IO_ROWS,IO_ROWS);
+  const V=(col,c,n,o)=>Object.assign({sqref:`${col}2:${col}${last}`,formula:rng(c,n)},o);
+  const help=[['Release Planning template'],[''],['One row per workstream. Rows with the same Project + Epic Name belong to the same epic.'],['Epic-level columns (Epic Owner, ATL/BTL, Priority, Status, Planned Release) are read from the first row that has a value for that epic.'],[''],
+    ['Column','Expected value'],
+    [IO_COLS[0],'Short form such as HRP M1.1.3. Pick from the list, or type a new one (then also fill Measure name).'],[IO_COLS[1],'Full measure / project name as in GUS. Required only for a new project.'],[IO_COLS[2],'Required.'],[IO_COLS[3],'Workstream / feature name. Leave empty for an epic without workstreams.'],
+    [IO_COLS[4],'Engineer names exactly as on the Engineers list; separate several with commas.'],[IO_COLS[5],'Same as Epic Owner(s).'],[IO_COLS[6],'Calculated: the sum of WS Est of an ATL epic. It is ignored when importing.'],[IO_COLS[7],'Days, a number of 0 or more.'],
+    [IO_COLS[8],'ABL (above the line, also accepted as ATL) or BTL. Only ABL epics count toward capacity and are saved to GUS.'],[IO_COLS[9],'Free text, e.g. a sprint name.'],[IO_COLS[10],'P0 to P5 (a plain number also works).'],[IO_COLS[11],'Planned, In Progress, Completed or On Hold.'],[IO_COLS[12],'Release name from the Planned releases list.'],
+    [''],['Importing merges into the plan: an epic that already exists (same project and name) has its fields updated and its workstreams replaced by the rows in the file; epics that are not in the file are left alone.']];
+  const bytes=PlanIO.write({sheets:[
+    {name:'Plan',header:true,freeze:true,rows,widths:[16,34,34,30,28,28,18,12,10,16,10,14,24],validations:[
+      V('A','A',L.projects.length,{title:'Project',prompt:'Pick a project short form, or type a new one.',error:'Not an existing project. A new project will be created if you also fill Measure name.',warn:true}),
+      V('E','C',L.eng.length,{title:'Owners',prompt:'Engineer name; separate several with commas.',error:'Use engineer names from the Engineers list (comma-separated for several).',warn:true}),
+      V('F','C',L.eng.length,{title:'Owners',prompt:'Engineer name; separate several with commas.',error:'Use engineer names from the Engineers list (comma-separated for several).',warn:true}),
+      V('I','D',2,{error:'Use ABL or BTL.'}),V('K','E',6,{error:'Use P0 to P5.'}),V('L','F',STAT.length,{error:'Use one of the listed statuses.'}),V('M','B',L.releases.length,{error:'Pick a planned release from the list.'})]},
+    {name:'Lists',header:true,rows:lrows,widths:[28,30,28,10,10,14]},
+    {name:'Instructions',header:true,rows:help,widths:[40,110],wrap:[1]}]});
+  const a=document.createElement('a'),url=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
+  a.href=url;a.download=`release-plan-${(H.team.short||H.team.Name||'team').replace(/[^\w.-]+/g,'-')}-${new Date().toISOString().slice(0,10)}.xlsx`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);
+}
+// Parse + validate the rows of the Plan sheet. Returns {issues, epics, stats}; nothing is changed until applyImport.
+function checkImport(sheet){
+  const pl=P.plan,issues=[],add=(sev,row,msg)=>issues.push({sev,row,msg});
+  const norm=x=>String(x==null?'':x).replace(/\s+/g,' ').trim().toLowerCase();
+  const head=(sheet[0]||[]).map(norm),idx=i=>head.findIndex(h=>h.startsWith(norm(IO_COLS[i]).split(' (')[0].toLowerCase()));
+  const ci={proj:0,pname:1,epic:2,ws:3,eo:4,wo:5,days:7,line:8,sprint:9,pri:10,status:11,rel:12};
+  for(const k of Object.keys(ci)){const j=idx(ci[k]);ci[k]=j;}
+  if(ci.epic<0||ci.proj<0&&ci.pname<0){add('error',1,'Header row not recognised. Use “Export template” and keep its column headers (Project, Epic Name, … ).');return {issues,epics:[],stats:{}};}
+  const get=(r,k)=>ci[k]<0?'':String(r[ci[k]]==null?'':r[ci[k]]).trim();
+  const projBy=new Map(),projects=[...pl.projects];
+  const findProj=(sh,nm)=>projects.find(p=>(sh&&norm(projShort(p))===norm(sh))||(nm&&norm(p.name)===norm(nm)))||null;
+  const members=P.members.filter(m=>H.leaderRank(m.name)<0),byName=new Map(members.map(m=>[norm(m.name),m]));
+  const names=(txt,row,what)=>{const ids=[],nm=[];for(const part of String(txt||'').split(/[,;\n]/).map(x=>x.trim()).filter(Boolean)){const m=byName.get(norm(part));if(m){if(!ids.includes(m.id)){ids.push(m.id);nm.push(m.name);}}else add('error',row,`${what}: “${part}” is not an engineer on this team.`);}return {ids,nm};};
+  const groups=new Map(),newProj=new Map();
+  for(let i=1;i<sheet.length;i++){
+    const r=sheet[i]||[],row=i+1;if(!r.some(c=>String(c==null?'':c).trim()))continue;
+    const sh=get(r,'proj'),pn=get(r,'pname'),en=get(r,'epic');
+    if(!en){add('error',row,'Epic Name is required.');continue;}
+    if(!sh&&!pn){add('error',row,'Project is required (short form or measure name).');continue;}
+    let pr=findProj(sh,pn),pkey;
+    if(pr)pkey=pr.id;else{
+      const gh=P.refs.projects.find(x=>norm(x.name)===norm(pn));
+      pkey='new:'+norm(sh||pn);
+      if(!newProj.has(pkey)){
+        if(!pn&&!gh){add('error',row,`New project “${sh}” needs a Measure name (project in GUS).`);}
+        else{newProj.set(pkey,{id:uid('p'),name:pn||(gh&&gh.name)||sh,short:sh||shortProj(pn),theme:'',gusId:gh?gh.id:'',programId:gh&&gh.programId,programName:gh&&gh.programName});add('warn',row,`New project “${sh||pn}” will be created${gh?' (linked to the GUS project of the same name)':''}.`);}
+      }
+      if(!newProj.has(pkey))continue;
+      pr=newProj.get(pkey);
+    }
+    const key=pkey+'|'+norm(en);let g=groups.get(key);
+    if(!g){g={pr,name:en,row,line:'',pri:null,status:'',rel:null,eo:null,ws:[]};groups.set(key,g);}
+    const take=(f,v)=>{if(v===''||v==null)return;if(g[f]===''||g[f]==null)g[f]=v;else if(String(g[f])!==String(v))add('warn',row,`Epic “${en}”: ${f==='eo'?'Epic Owner':f==='rel'?'Planned Release':f==='pri'?'Priority':f==='line'?'ATL/BTL':'Status'} differs between rows; the first value (${f==='eo'?g.eo.nm.join(', '):f==='rel'?g.rel.name:f==='pri'?'P'+g.pri:g[f]}) is used.`);};
+    const ln=get(r,'line').toUpperCase();if(ln){if(ln==='ABL'||ln==='ATL')take('line','ABL');else if(ln==='BTL')take('line','BTL');else add('error',row,`ATL/BTL: “${get(r,'line')}” is not valid (use ABL or BTL).`);}
+    const pv=get(r,'pri');if(pv){const m=/^p?\s*(\d{1,4})$/i.exec(pv);if(m)take('pri',Number(m[1]));else add('error',row,`Priority: “${pv}” is not valid (use P0 to P5).`);}
+    const sv=get(r,'status');if(sv){const st=STAT.find(x=>norm(x)===norm(sv));if(st)take('status',st);else add('error',row,`Status: “${sv}” is not one of ${STAT.join(', ')}.`);}
+    const rv=get(r,'rel');if(rv){const rr=P.refs.releases.find(x=>norm(x.name)===norm(rv))||P.refs.releases.find(x=>relNum(x)>=0&&String(relNum(x))===rv);if(rr)take('rel',{id:rr.id,name:rr.name});else add('error',row,`Planned Release: “${rv}” is not a release of this team.`);}
+    const eo=get(r,'eo');if(eo){const o=names(eo,row,'Epic Owner(s)');if(o.ids.length)take('eo',{ids:o.ids,nm:o.nm});}
+    const wn=get(r,'ws'),wd=get(r,'days'),wo=get(r,'wo'),sp=get(r,'sprint');
+    if(wn||wd||wo||sp){
+      let d=0;if(wd!==''){d=Number(String(wd).replace(',','.'));if(!isFinite(d)||d<0||d>5000){add('error',row,`WS Est: “${wd}” must be a number of days between 0 and 5000.`);d=0;}}
+      if(!wn)add('warn',row,'Row has effort or owners but no Workstream name; it is imported as an unnamed workstream.');
+      if(g.ws.some(x=>wn&&norm(x.name)===norm(wn)))add('warn',row,`Workstream “${wn}” appears twice in epic “${en}”.`);
+      const o=names(wo,row,'Workstream Owner(s)');
+      g.ws.push({name:wn,days:d,sprint:sp,ids:o.ids,nm:o.nm});
+    }
+  }
+  const epics=[...groups.values()];
+  for(const g of epics){if(!g.rel&&!(pl.epics.find(e=>e.projectId===g.pr.id&&norm(e.name)===norm(g.name))||{}).releaseId)add('warn',g.row,`Epic “${g.name}” has no Planned Release; it will use ${defRel().releaseName||'none'}.`);
+    if(!g.line)add('warn',g.row,`Epic “${g.name}” has no ATL/BTL value; ${pl.epics.some(e=>e.projectId===g.pr.id&&norm(e.name)===norm(g.name))?'its current value is kept':'it is imported as BTL'}.`);}
+  if(!epics.length&&!issues.some(x=>x.sev==='error'))add('error',1,'No epic rows found in the file.');
+  if(pl.epics.length+epics.filter(g=>!pl.epics.some(e=>e.projectId===g.pr.id&&norm(e.name)===norm(g.name))).length>300)add('error',1,'The plan would exceed 300 epics.');
+  if(epics.some(g=>g.ws.length>40))add('error',1,'An epic has more than 40 workstreams.');
+  const isNew=g=>!pl.epics.some(e=>e.projectId===g.pr.id&&norm(e.name)===norm(g.name));
+  return {issues,epics,newProj,stats:{epics:epics.length,created:epics.filter(isNew).length,updated:epics.filter(g=>!isNew(g)).length,ws:epics.reduce((a,g)=>a+g.ws.length,0),projects:newProj.size}};
+}
+function applyImport(res){
+  const pl=P.plan,norm=x=>String(x==null?'':x).trim().toLowerCase();
+  for(const p of res.newProj.values())pl.projects.push(p);
+  for(const g of res.epics){
+    let e=pl.epics.find(x=>x.projectId===g.pr.id&&norm(x.name)===norm(g.name));
+    if(!e){e=newEpic(g.pr.id);e.name=g.name;e.workstreams=[];pl.epics.push(e);}
+    if(g.line)e.line=g.line;if(g.pri!=null)e.priority=g.pri;if(g.status)e.status=g.status;
+    if(g.rel){e.releaseId=g.rel.id;e.releaseName=g.rel.name;}
+    if(g.eo){e.owners=g.eo.ids;e.ownerNames=g.eo.nm;}
+    const old=e.workstreams;
+    e.workstreams=g.ws.map(x=>{const o=old.find(w=>x.name&&norm(w.name)===norm(x.name));return Object.assign({},o||{},{id:o?o.id:uid('w'),name:x.name,priority:o?o.priority:0,days:x.days,sprint:x.sprint,engIds:x.ids,engNames:x.nm,engId:x.ids[0]||'',engName:x.nm[0]||''});});
+  }
+  draw();queueSave();
+}
+function openImport(file,opener){
+  PlanIO.read(file).then(book=>{
+    const name=Object.keys(book).find(n=>/^plan$/i.test(n))||Object.keys(book)[0],res=checkImport(book[name]||[]);
+    const errs=res.issues.filter(x=>x.sev==='error'),warns=res.issues.filter(x=>x.sev==='warn'),st=res.stats;
+    const list=(a,t)=>a.length?`<h4>${t} (${a.length})</h4><ul class="pl-iss">${a.slice(0,80).map(x=>`<li><b>Row ${x.row}</b> ${esc(x.msg)}</li>`).join('')}${a.length>80?`<li>… and ${a.length-80} more</li>`:''}</ul>`:'';
+    const sum=st.epics?`<p class="note">${st.epics} epic(s) in the file: ${st.created} new, ${st.updated} to update (their workstreams are replaced by the rows in the file) · ${st.ws} workstream(s)${st.projects?` · ${st.projects} new project(s)`:''}. Epics not in the file are left alone.</p>`:'';
+    const el=openModal('Import release plan',`${sum}${errs.length?`<p class="pl-iss-bad">Fix ${errs.length} error(s) in the file and import again. Nothing was changed.</p>`:`<p class="pl-iss-ok">No errors found.${warns.length?' Review the warnings below, then import.':''}</p>`}${list(errs,'Errors')}${list(warns,'Warnings')}<div class="pl-iss-btns"><button type="button" class="button" data-close>${errs.length?'Close':'Cancel'}</button>${errs.length?'':'<button type="button" class="button primary" data-do-import>Import into plan</button>'}</div>`,opener);
+    const go=el.querySelector('[data-do-import]');if(go)go.onclick=()=>{applyImport(res);closeModal();window.toast?.(`Imported ${st.epics} epic(s). Review the plan, then save to GUS when ready.`);};
+  }).catch(err=>openModal('Import release plan',`<p class="pl-iss-bad">${esc(err&&err.message||'The file could not be read.')}</p><div class="pl-iss-btns"><button type="button" class="button" data-close>Close</button></div>`,opener));
+}
 // Inline confirmation popover, shown just above the button that was clicked.
 function confirmAt(btn,msg,onOk){
   document.querySelectorAll('.pl-confirm').forEach(x=>x.remove());
@@ -318,6 +437,8 @@ function onClick(ev){
   if(t.closest('[data-reload]'))return load(P.el);
   if(t.closest('[data-retry]'))return flush();
   if(!pl)return;
+  if(t.closest('#pl-export')){exportTemplate();return;}
+  if(t.closest('#pl-import')){P.el.querySelector('#pl-import-file').click();return;}
   if(t.closest('#pl-add-proj')){newProjectAt(t.closest('#pl-add-proj'));return;}
   const mb=t.closest('.ms .cs-btn');if(mb){const w=mb.closest('.ms'),was=w.classList.contains('open');closeMs();if(!was){w.classList.add('open');mb.setAttribute('aria-expanded','true');}return;}
   const ml=t.closest('.ms li[data-val]');if(ml){const wd=ml.closest('.ms'),f=wd.dataset.ms,id=ml.dataset.val;
@@ -411,12 +532,12 @@ H.register({id:'plan',label:'Release Planning (Quarterly)',icon:'plan',tone:'gre
     <div class="pl-window"><label class="pl-team">Team <select class="hub-inline" id="pl-team" aria-label="Team whose release plan this is">${(H.teams||[]).map(t=>`<option value="${esc(t.Id)}"${t.Id===H.team.Id?' selected':''}>${esc(t.short||t.Name)}</option>`).join('')}</select></label></div><div id="pl-warn"></div>
     <div class="pl-tabs" role="tablist" aria-label="Release planning views"><button type="button" role="tab" data-tab="plan" class="on" aria-selected="true">Release Planner</button><button type="button" role="tab" data-tab="rps" aria-selected="false">Planned Release Summary</button><div class="pl-dates"><label>Planning window <input type="date" class="hub-inline" id="pl-start" aria-label="Window start"></label><span aria-hidden="true">→</span><input type="date" class="hub-inline" id="pl-end" aria-label="Window end"><span class="note" id="pl-last"></span></div></div>
     <div id="pl-main"><div id="pl-sum"></div>
-    <section id="pl-fs" class="pl-fs"><div class="pl-planner-h"><h3>Projects &amp; epics</h3><span class="pl-planner-btns"><button type="button" class="button" id="pl-fs-btn" aria-pressed="false" title="Show Projects &amp; epics full screen">Full screen</button><button type="button" class="button" id="pl-add-proj">+ Project</button></span></div><div id="pl-tools" class="pl-tools"></div><div id="pl-planner"></div></section></div><div id="pl-rps" hidden></div>`;
+    <section id="pl-fs" class="pl-fs"><div class="pl-planner-h"><h3>Projects &amp; epics</h3><span class="pl-planner-btns"><button type="button" class="button" id="pl-fs-btn" aria-pressed="false" title="Show Projects &amp; epics full screen">Full screen</button><button type="button" class="button" id="pl-export" title="Download an Excel template with the current plan, column headers and dropdown lists">Export template</button><button type="button" class="button" id="pl-import" title="Import plan rows from the exported template">Import</button><input type="file" id="pl-import-file" accept=".xlsx" hidden><button type="button" class="button" id="pl-add-proj">+ Project</button></span></div><div id="pl-tools" class="pl-tools"></div><div id="pl-planner"></div></section></div><div id="pl-rps" hidden></div>`;
     el.querySelector('#pl-team').addEventListener('change',e=>H.setTeam(e.target.value));
     P.tab='plan';
     el.oninput=onInput;
     el.onchange=ev=>{if(ev.target.closest('#pl-start,#pl-end')){const s=el.querySelector('#pl-start').value,e=el.querySelector('#pl-end').value;if(s&&e&&s<=e&&P.plan){P.plan.window={start:s,end:e};drawSummary();queueSave();}else if(s&&e&&s>e)window.toast?.('End date must be on or after the start date.',true);return;}onInput(ev);};
-    el.onclick=onClick;wireDrag(el);load(el);
+    el.onclick=onClick;wireDrag(el);el.querySelector('#pl-import-file').onchange=ev=>{const f=ev.target.files[0];ev.target.value='';if(f)f.arrayBuffer().then(b=>openImport(b,el.querySelector('#pl-import')));};load(el);
   }});
 H.onEsc('plan',()=>{closeModal();return true;});
 window.addEventListener('beforeunload',e=>{if(P.state==='dirty'||P.state==='saving'){e.preventDefault();e.returnValue='';}});

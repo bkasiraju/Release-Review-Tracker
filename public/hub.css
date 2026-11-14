@@ -696,3 +696,7 @@ body[data-hub=home] .hub-tile-chips{margin-top:auto}
 .pl-newproj label{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:700;color:#16324a}.pl-newproj label small{font-weight:500;color:#5b6b7c}
 .pl-newproj input.hub-inline{width:100%;box-sizing:border-box;height:32px}.pl-newproj input.bad{border-color:#b3261e!important}
 .pl-pshort{width:96px;flex:0 0 96px}
+/* plan54: import/export template */
+.pl-iss{margin:4px 0 12px;padding-left:18px;font-size:13px;max-height:220px;overflow:auto}.pl-iss li{margin:3px 0}
+.pl-iss-bad{color:#b3261e!important;font-weight:700}.pl-iss-ok{color:#1b7a3d!important;font-weight:700}
+.pl-iss-btns{display:flex;justify-content:flex-end;gap:8px;margin-top:10px}

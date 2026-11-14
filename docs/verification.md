@@ -946,3 +946,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan52: row action icons and workstream drag — local harness with synthetic drag events (moved a workstream into another epic); real mouse dragging and keyboard Up/Down not exercised.
 
 - plan53: new-project popover — local harness: popover added a project with name and short form, and the grid dropdown showed the short form; the backend stores `short` but a live GUS save with it was not run.
+
+- plan54: export template/import — local headless Chrome round trip (export → import shows 0 errors; a deliberately bad row reports 5 errors) and a node test of the zip writer. The exported file was not opened in Excel, Numbers or Google Sheets, so the dropdowns are unconfirmed there; the real file picker and applying an import were not exercised.

@@ -1,3 +1,10 @@
+## Unreleased on top of 4.0.0-GA (plan54) — export template and import for Release Planning
+
+- **Export template** downloads an Excel file (.xlsx) of the current plan: a Plan sheet (one row per workstream, with Project short form, Measure name, Epic, Workstream, Epic/Workstream owners, Epic Est, WS Est, ATL/BTL, Sprint, Priority, Status, Planned Release), a Lists sheet with the allowed values, and an Instructions sheet. The Plan sheet has dropdowns for project, ATL/BTL, priority, status and release, and owner cells with a pick-list that also accepts comma-separated names.
+- **Import** reads the same template, validates every row, and shows errors and warnings in a dialog before anything changes. With errors, nothing can be imported. Without errors, **Import into plan** merges: an existing epic (same project and name) is updated and its workstreams replaced by the file's rows; epics not in the file are untouched; unknown projects are created (Measure name required).
+- Validation covers required Epic Name and Project, numeric WS Est, ATL/BTL, priority, status, planned release and engineer names, plus conflicting epic-level values and duplicate workstreams.
+- Excel files are built and read in the browser (`public/plan-io.js`), with no new dependencies.
+
 ## Unreleased on top of 4.0.0-GA (plan53) — new project popover with short form
 
 - "+ Project" opens a small popover beside the button asking for the Measure name (the project in GUS, with GUS project suggestions) and the Short form (e.g. HRP M1.1.3). Enter adds, Esc cancels; the name is required, and the short form defaults from the name when left blank.
