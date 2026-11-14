@@ -1,3 +1,7 @@
+## Unreleased on top of 4.0.0-GA (plan76) — Expand/Collapse labels are clickable
+
+- The "Expand" / "Collapse" text on the By theme / method, Engineer bandwidth and Executive Epics Summary cards now toggles the card, not just the arrow. Hover shows it is clickable.
+
 ## Unreleased on top of 4.0.0-GA (plan75) — Back button matches dashboard; flat planner icons
 
 - "Back to Release Intelligence" now uses the same solid teal button style as "Back to Hub" (white text, small radius), still at the far right of the tab row.

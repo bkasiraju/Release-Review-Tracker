@@ -984,3 +984,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan74: + Project popup placeholders set to 'Enter value' (string change; not visually re-checked, not verified on the live app).
 
 - plan75: Back button restyled to match Back to Hub; planner icons flattened (local harness screenshot of the planner; not verified on the live app).
+
+- plan76: Expand/Collapse labels toggle cards (local harness, headless Chrome: both summary cards went collapsed to open on label click; not verified on the live app).

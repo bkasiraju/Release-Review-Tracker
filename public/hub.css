@@ -827,3 +827,5 @@ body[data-ready] #hub-boot{display:flex}
 .pl-kpi .cfs-icon svg,.pl-card .cfs-icon svg,.pl-sum-grid .cfs-icon svg{stroke:var(--k,#3574c2)!important}
 .pl-kpi .cfs-icon::before,.pl-kpi .cfs-icon::after,.pl-card .cfs-icon::before,.pl-card .cfs-icon::after{display:none!important}
 .pl-planner-h .cfs-icon{background:#e6f5ee!important;border:1px solid #bfe3d0!important;box-shadow:none!important;transform:none!important}.pl-planner-h .cfs-icon svg{stroke:#248568!important}
+.pl-card>h3>small{cursor:pointer;padding:3px 8px;border-radius:4px}.pl-card>h3>small:hover{background:#e8f1f8;text-decoration:underline}
+.pl-card>h3{cursor:pointer}

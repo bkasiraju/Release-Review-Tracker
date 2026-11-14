@@ -493,7 +493,7 @@ function onClick(ev){
   const mb=t.closest('.ms .cs-btn');if(mb){openMsPop(mb,c);return;}
   const tb=t.closest('[data-tab]');if(tb){setTab(tb.dataset.tab);return;}
   const rp=t.closest('[data-rps]');if(rp){openRps(rp.dataset.rps,rp);return;}
-  const fd=t.closest('[data-fold]');if(fd){P.open[fd.dataset.fold]=!P.open[fd.dataset.fold];drawSummary();return;}
+  const fd=t.closest('[data-fold]')||(t.closest('.pl-card>h3>small')?.parentElement.querySelector('[data-fold]'));if(fd){P.open[fd.dataset.fold]=!P.open[fd.dataset.fold];drawSummary();return;}
   if(t.closest('[data-grid-add-epic]')){newEpicAt(t.closest('[data-grid-add-epic]'));return;}
   if(t.closest('[data-proj-toggle]')){P.projOpen=!P.projOpen;drawPlanner();wire();return;}
   if(t.closest('[data-clear-view]')){P.view=Object.assign(P.view,{q:'',release:'',line:'',eng:'',theme:''});drawTools();drawPlanner();wire();return;}
