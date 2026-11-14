@@ -1,3 +1,7 @@
+## Unreleased fix — team dropdown reopened natively
+
+Picking a team in the custom dropdown re-clicked the hidden native select through the wrapping `<label for>`, so the OS menu popped open again. The label's activation is now suppressed (clicking the TEAM text focuses the custom button). Cache-bust `4.0.0-GA-plan2`.
+
 ## Unreleased (on top of 4.0.0-GA) — Release Planning tab
 
 New hub tab **Release Planning** (`public/plan.js`, `backend/plan.js`, actions `plan-get`, `plan-save`, `plan-refs`, `plan-commit`). Engineers plan per team: projects (linked to a GUS Program), epics (priority, planned release, project, ABL/BTL) and workstreams (engineer, effort in days, tentative sprint). The dashboard recomputes live: available capacity (working days in the planning window minus per-engineer leave and holidays, entered in the "Leaves & holidays" popup), planned ABL/BTL, headroom, effort by theme/method (project theme, else the project-name prefix before ":") and per-engineer load. The draft is stored in the settings journal under `plan-<teamId>`.

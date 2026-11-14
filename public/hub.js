@@ -277,6 +277,8 @@ H.customSelect=sel=>{
     else if((e.key==='Enter'||e.key===' ')&&isOpen){e.preventDefault();pick(act);}
     else if(e.key==='Tab')close();
   };
+  // A wrapping <label for> would re-click the hidden native select after every pick and pop the OS menu open again
+  const lab=sel.closest('label');if(lab)lab.addEventListener('click',e=>{e.preventDefault();if(!w.contains(e.target))btn.focus();});
   document.addEventListener('mousedown',e=>{if(!w.contains(e.target))close();});
   sel._cs={sync,close};sync();
 };
