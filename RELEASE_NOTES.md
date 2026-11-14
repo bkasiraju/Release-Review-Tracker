@@ -1,3 +1,7 @@
+## Unreleased — Release Planning is the last tab and opens full screen in a new tab
+
+Release Planning moved to the end of the page tabs, rail and Team Hub tiles. Clicking it opens `#/plan?full` in a new browser tab in focus (full screen) mode (Esc or Exit full screen returns to the normal layout). Opening the URL directly renders it in place. Cache-bust `4.0.0-GA-plan5`.
+
 ## Unreleased — Release Planning program picker
 
 The Program picker lists only the `<Team> - 268` programs (constant `PROGRAM_RELEASE` in `backend/plan.js`), narrowed to the selected team (MAPS, MQ, VegaCache, VegaCache FACE, VegaStore). Teams with no matching program (Caching Services) see all five. Bump `PROGRAM_RELEASE` for the next release. Cache-bust `4.0.0-GA-plan4`.

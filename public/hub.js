@@ -35,7 +35,7 @@ let picks;H.picklists=()=>picks||(picks=call('hub-picklists',{}).catch(e=>{picks
 
 // ── Registry + router ───────────────────────────────────────────────────────
 H.register=page=>{H.pages.set(page.id,page);};
-const NAV=['home','epics','sprints','tds','plan','tests','rotations','bugs','status','links'];
+const NAV=['home','epics','sprints','tds','tests','rotations','bugs','status','links','plan'];
 function renderNav(){
   $('hub-nav').innerHTML=NAV.filter(id=>H.pages.has(id)).map(id=>{const p=H.pages.get(id),on=id===H.current;
     return `<button data-page="${id}" class="${on?'selected':''}" aria-pressed="${on}" ${on?'aria-current="page"':''}>${icon(p.icon,p.tone)} ${esc(p.label)}</button>`;}).join('');
@@ -357,7 +357,10 @@ soon('links','Quick Links','link','teal','Curated dashboards, runbooks and relea
 function route(){const id=(location.hash.match(/^#\/([a-z]+)/)||[])[1];H.go(id||'home',{silent:true});}
 async function boot(){
   installCache();
-  document.addEventListener('click',e=>{const g=e.target.closest('[data-go],[data-page]');if(g){e.preventDefault();H.go(g.dataset.go||g.dataset.page);}});
+  document.addEventListener('click',e=>{const g=e.target.closest('[data-go],[data-page]');if(g){e.preventDefault();const id=g.dataset.go||g.dataset.page;
+    // Release Planning is a workspace of its own: open it full screen in a new browser tab (it renders in place once there)
+    if(id==='plan'&&H.current!=='plan'&&!H.standalone){if(!window.open(location.href.split('#')[0]+'#/plan?full','_blank'))H.go(id);return;}
+    H.go(id);}});
   window.addEventListener('popstate',route);
   $('hub-team').addEventListener('change',e=>H.setTeam(e.target.value));
   try{
@@ -368,7 +371,9 @@ async function boot(){
     $('hub-team').value=H.team.Id;H.customSelect($('hub-team'));
   }catch(e){window.toast?.('Team list unavailable: '+e.message,true);}
   window.dispatchEvent(new Event('hub:team'));
+  H.standalone=/^#\/plan\?full/.test(location.hash);
   try{route();}finally{document.body.dataset.ready='1';}
+  if(H.standalone)setFocus(true);
   H.prefetch(H.team.Id);H.preloadPeople();
 }
 window.Hub=H;
