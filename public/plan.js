@@ -37,12 +37,6 @@ function model(){
 }
 const tone=pct=>pct>100?'over':pct>85?'warn':'ok';
 
-// GUS programs are named "<Team> - 268"; show only this team's, or all of them when the team has none (e.g. Caching Services)
-function forTeam(list){
-  const t=String(H.team.short||H.team.Name).toLowerCase(),mine=list.filter(p=>String(p.name).replace(/\s*-\s*\d+$/,'').toLowerCase()===t);
-  return mine.length?mine:list;
-}
-
 // ── Persistence ─────────────────────────────────────────────────────────────
 const stateText=()=>({idle:'',dirty:'Unsaved changes…',saving:'Saving…',saved:'Saved '+P.stateAt,conflict:'Someone else changed this plan. <button type="button" class="text-button" data-reload>Reload</button>',error:'Could not save. <button type="button" class="text-button" data-retry>Retry</button>'}[P.state]||'');
 function setState(s){P.state=s;if(s==='saved')P.stateAt=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});const c=P.el&&P.el.querySelector('#pl-state');if(c){c.className='pl-state '+s;c.innerHTML=stateText();}}
@@ -83,12 +77,11 @@ function drawPlanner(){
   const proj=p=>{const es=pl.epics.filter(e=>e.projectId===p.id),theme=themeOf(p);
     return `<section class="pl-proj" data-p="${esc(p.id)}"><div class="pl-proj-h">
     <input class="hub-inline pl-pname" type="text" list="pl-projects" placeholder="Project name (type to link an existing GUS project)" aria-label="Project name" data-f="name" value="${esc(p.name)}" maxlength="120">
-    <input class="hub-inline pl-prog${p.programId||!p.name||p.gusId?'':' bad'}" type="text" list="pl-programs" placeholder="Program" aria-label="Program" data-f="programName" value="${esc(p.programName)}" maxlength="120" ${p.gusId?'readonly title="Program comes from the GUS project"':''}>
     <input class="hub-inline pl-theme" type="text" placeholder="${esc(theme)}" aria-label="Theme or method" title="Theme / method (defaults to the project prefix)" data-f="theme" value="${esc(p.theme)}" maxlength="80">
     ${p.gusId?`<a class="pl-gus" href="${H.GUS}PPM_Project__c/${esc(p.gusId)}/view" target="_blank" rel="noopener">In GUS ↗</a>`:'<em class="pl-draft">New</em>'}
     <button type="button" class="button small" data-add-epic>+ Epic</button><button type="button" class="pl-x" data-del-proj aria-label="Delete project" title="Delete project">×</button></div>
     ${es.length?es.map(epic).join(''):'<p class="note pl-none">No epics yet. Add one to start planning.</p>'}</section>`;};
-  el.innerHTML=`<datalist id="pl-projects">${P.refs.projects.map(p=>`<option value="${esc(p.name)}"></option>`).join('')}</datalist><datalist id="pl-programs">${P.refs.programs.map(p=>`<option value="${esc(p.name)}"></option>`).join('')}</datalist><datalist id="pl-sprints">${P.refs.sprints.map(s=>`<option value="${esc(s.name)}"></option>`).join('')}</datalist>`+
+  el.innerHTML=`<datalist id="pl-projects">${P.refs.projects.map(p=>`<option value="${esc(p.name)}"></option>`).join('')}</datalist><datalist id="pl-sprints">${P.refs.sprints.map(s=>`<option value="${esc(s.name)}"></option>`).join('')}</datalist>`+
     (pl.projects.length?pl.projects.map(proj).join(''):'<div class="empty-state hub-empty"><h3>No projects yet</h3><p>Add a project, then epics and workstreams with effort in days.</p></div>');
 }
 function draw(){drawSummary();drawPlanner();}
@@ -110,7 +103,6 @@ function onInput(ev){
     else e[f]=v;}
   else if(c.p){const p=findP(c.p);if(!p)return;
     if(f==='name'){p.name=v;const hit=P.refs.projects.find(x=>x.name===v);if(hit){p.gusId=hit.id;p.programId=hit.programId;p.programName=hit.programName;structural=true;}else if(p.gusId){p.gusId='';}}
-    else if(f==='programName'){p.programName=v;const hit=P.refs.programs.find(x=>x.name===v);p.programId=hit?hit.id:'';t.classList.toggle('bad',!hit&&!!v);}
     else p[f]=v;}
   if(structural&&ev.type==='change')draw();else drawSummary();
   queueSave();
@@ -120,7 +112,7 @@ function onClick(ev){
   if(t.closest('[data-reload]'))return load(P.el);
   if(t.closest('[data-retry]'))return flush();
   if(!pl)return;
-  if(t.closest('#pl-add-proj')){pl.projects.push({id:uid('p'),name:'',programId:'',programName:'',theme:'',gusId:''});draw();queueSave();const n=P.el.querySelectorAll('.pl-pname');n[n.length-1]?.focus();return;}
+  if(t.closest('#pl-add-proj')){pl.projects.push({id:uid('p'),name:'',theme:'',gusId:''});draw();queueSave();const n=P.el.querySelectorAll('.pl-pname');n[n.length-1]?.focus();return;}
   if(t.closest('#pl-leaves'))return openLeaves();
   if(t.closest('#pl-commit'))return openCommit();
   if(t.closest('[data-add-epic]')){const e={id:uid('e'),projectId:c.p,name:'',line:'BTL',priority:null,releaseId:'',releaseName:'',gusId:'',workstreams:[{id:uid('w'),name:'',engId:'',engName:'',days:0,sprint:''}]};pl.epics.push(e);draw();queueSave();P.el.querySelector(`[data-e="${e.id}"] .pl-ename`)?.focus();return;}
@@ -182,7 +174,7 @@ async function load(el){
   try{
     const id=H.team.Id,[g,refs,members]=await Promise.all([call('plan-get',{teamId:id}),call('plan-refs',{teamId:id}).catch(e=>({releases:[],programs:[],projects:[],sprints:[],warnings:[e.message]})),H.members().catch(()=>[])]);
     if(my!==P.seq)return;
-    P.plan=g.plan.window.start?g.plan:{...g.plan,window:emptyPlan().window};P.rev=g.revision;P.refs=refs;refs.programs=forTeam(refs.programs||[]);P.members=members;
+    P.plan=g.plan.window.start?g.plan:{...g.plan,window:emptyPlan().window};P.rev=g.revision;P.refs=refs;P.members=members;
     const w=refs.warnings||[];el.querySelector('#pl-warn').innerHTML=w.length?`<p class="note pl-warn">Some GUS lists did not load (${esc(w.join('; '))}). Pickers may be incomplete.</p>`:'';
     el.querySelector('#pl-start').value=P.plan.window.start;el.querySelector('#pl-end').value=P.plan.window.end;
     el.querySelector('#pl-last').textContent=P.plan.lastCommit&&P.plan.lastCommit.at?`Last saved to GUS ${new Date(P.plan.lastCommit.at).toLocaleString()} (${P.plan.lastCommit.created} created, ${P.plan.lastCommit.updated} updated)`:'';

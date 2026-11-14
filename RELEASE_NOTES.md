@@ -1,3 +1,7 @@
+## Unreleased — Release Planning: automatic program tagging, validation at save
+
+The Program field is gone from the planner. On save to GUS, new projects are tagged automatically to the team's `<Team> - 268` program (looked up in GUS; existing GUS projects keep theirs). If a team has no such program (Caching Services today) the review blocks with a clear message. The planner itself is free text with no live validation; every check (epic name, project, planned release, effort > 0, program) runs when Review & save to GUS is clicked and is listed per epic. Cache-bust `4.0.0-GA-plan6`.
+
 ## Unreleased — Release Planning is the last tab and opens full screen in a new tab
 
 Release Planning moved to the end of the page tabs, rail and Team Hub tiles. Clicking it opens `#/plan?full` in a new browser tab in focus (full screen) mode (Esc or Exit full screen returns to the normal layout). Opening the URL directly renders it in place. Cache-bust `4.0.0-GA-plan5`.

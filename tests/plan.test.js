@@ -7,7 +7,7 @@ const draft=()=>({window:{start:'2026-11-16',end:'2027-01-29'},people:{[ENG]:{na
   projects:[{id:'p1',name:'M1: Baseline',programId:PROG,programName:'Program A',theme:'M1'}],
   epics:[{id:'e1',projectId:'p1',name:'ABL epic',line:'ABL',priority:2,releaseId:REL,releaseName:'MQ 266',workstreams:[{id:'w1',name:'API',engId:ENG,engName:'Ann',days:6.5},{id:'w2',name:'Tests',engId:ENG,engName:'Ann',days:3}]},
          {id:'e2',projectId:'p1',name:'BTL epic',line:'BTL',workstreams:[{id:'w3',name:'x',days:4}]}]});
-const sfMock=(log,opts={})=>({async query(q){log.push(['q',q]);if(/FROM ADM_Planned_Release__c/.test(q))return {records:[{Id:REL}]};return {records:[]};},
+const sfMock=(log,opts={})=>({async query(q){log.push(['q',q]);if(/FROM ADM_Planned_Release__c/.test(q))return {records:[{Id:REL}]};if(/FROM ADM_Scrum_Team__c/.test(q))return {records:[{Name:'Message Queue'}]};if(/FROM PPM_Program__c/.test(q))return {records:[{Id:PROG,Name:'MQ - 268'}]};return {records:[]};},
   async create(o,f){log.push(['c',o,f]);if(opts.failEpic&&o==='ADM_Epic__c')return {success:false,errors:['BAD']};return {success:true,id:o==='PPM_Project__c'?'a1PEE00000PRJ0001A':'a0XEE00000EPC0001A'};},
   async update(o,id,f){log.push(['u',o,id,f]);return {success:true};}});
 test('plan is cleaned: bad ids, negative days and oversize text are dropped',()=>{
@@ -23,10 +23,11 @@ test('plan round-trips through the handler per team and rejects stale revisions'
   assert.equal((await handleRequest(ctx({action:'plan-get',teamId:'bad id'}))).ok,false);
 });
 test('review only covers ABL epics and reports blockers',()=>{
-  const d=plan.cleanPlan(draft());const r=plan.review(d,new Set([REL]));
+  const d=plan.cleanPlan(draft());const r=plan.review(d,new Set([REL]),{id:PROG,name:'MQ - 268'});
   assert.equal(r.items.length,1);assert.equal(r.skipped,1);assert.equal(r.items[0].effort,9.5);assert.deepEqual(r.blockers,[]);
-  d.epics[0].releaseId='';d.projects[0].programId='';d.epics[0].workstreams.forEach(w=>w.days=0);
-  assert.equal(plan.review(d,new Set([REL])).blockers[0].problems.length,3);
+  d.epics[0].releaseId='';d.epics[0].workstreams.forEach(w=>w.days=0);
+  assert.equal(plan.review(d,new Set([REL]),{id:PROG,name:'MQ - 268'}).blockers[0].problems.length,2);
+  assert.match(plan.review(plan.cleanPlan(draft()),new Set([REL]),null).blockers[0].problems[0],/No “268” program/);
 });
 test('commit creates project then epic for ABL only, saves effort, and stores GUS ids so a retry updates',async()=>{
   const store=mkStore(),log=[];await plan.savePlan(store,T,draft(),null);

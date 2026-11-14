@@ -67,7 +67,18 @@ async function getRefs(sf, teamId) {
 }
 
 // Validate ABL epics against the saved plan and describe exactly what a commit would do.
-function review(plan, releaseIds) {
+async function teamProgram(sf, teamId) {
+  try {
+    const t = ((await sf.query(`SELECT Name FROM ADM_Scrum_Team__c WHERE Id = '${teamId}' LIMIT 1`)).records || [])[0];
+    if (!t) return null;
+    const short = /message queue/i.test(t.Name) ? 'MQ' : /maps|managed async/i.test(t.Name) ? 'MAPS' : String(t.Name).replace(/\s*\(.*\)/, '');
+    const p = ((await sf.query(`SELECT Id, Name FROM PPM_Program__c WHERE Name = '${soql(short)} - ${PROGRAM_RELEASE}' LIMIT 1`)).records || [])[0];
+    return p ? { id: p.Id, name: p.Name } : null;
+  } catch (_) { return null; }
+}
+
+// New projects are tagged to the team's program automatically; `program` is that program (or null when GUS has none).
+function review(plan, releaseIds, program) {
   const byProject = new Map(plan.projects.map(p => [p.id, p]));
   const items = [], blockers = [];
   for (const e of plan.epics.filter(x => x.line === 'ABL')) {
@@ -76,12 +87,12 @@ function review(plan, releaseIds) {
     if (!project) problems.push('Select a project');
     else {
       if (!project.name) problems.push('Project needs a name');
-      if (!project.gusId && !project.programId) problems.push(`Project “${project.name || '?'}” needs a program`);
+      if (!project.gusId && !program) problems.push(`No “${PROGRAM_RELEASE}” program found in GUS for this team, so project “${project.name || '?'}” cannot be tagged to one`);
     }
     if (!e.releaseId) problems.push('Select a planned release');
     else if (releaseIds && !releaseIds.has(e.releaseId)) problems.push('Planned release does not belong to this team');
     if (!(effort > 0)) problems.push('Add effort (days) on at least one workstream');
-    const item = { epicId: e.id, name: e.name, project: project ? project.name : '', program: project ? project.programName : '', projectAction: project ? (project.gusId ? 'existing' : 'create-or-link') : '', release: e.releaseName, priority: e.priority, effort, action: e.gusId ? 'update' : 'create', problems };
+    const item = { epicId: e.id, name: e.name, project: project ? project.name : '', program: project ? (project.gusId ? project.programName : (program ? program.name : '')) : '', projectAction: project ? (project.gusId ? 'existing' : 'create-or-link') : '', release: e.releaseName, priority: e.priority, effort, action: e.gusId ? 'update' : 'create', problems };
     items.push(item);
     if (problems.length) blockers.push({ epicId: e.id, name: e.name || '(unnamed epic)', problems });
   }
@@ -92,7 +103,8 @@ async function commitPlan(sf, store, teamId, confirm) {
   planKey(teamId);
   const { plan } = await getPlan(store, teamId);
   const rel = await sf.query(`SELECT Id FROM ADM_Planned_Release__c WHERE Team__c = '${teamId}' LIMIT 200`).then(r => new Set(((r && r.records) || []).map(x => x.Id)), () => null);
-  const preview = review(plan, rel);
+  const program = await teamProgram(sf, teamId);
+  const preview = review(plan, rel, program);
   if (!confirm) return { preview };
   if (!preview.items.length) throw new Error('No epics are above the line (ABL). Mark epics ABL to save them to GUS.');
   if (preview.blockers.length) throw new Error(`Fix ${preview.blockers.length} epic(s) before saving to GUS.`);
@@ -103,10 +115,10 @@ async function commitPlan(sf, store, teamId, confirm) {
     try {
       let projectId = project.gusId || done.projects.get(project.id);
       if (!projectId) {
-        const hit = ((await sf.query(`SELECT Id FROM PPM_Project__c WHERE Name = '${soql(project.name)}' AND Program__c = '${project.programId}' LIMIT 1`)).records || [])[0];
+        const hit = ((await sf.query(`SELECT Id FROM PPM_Project__c WHERE Name = '${soql(project.name)}' AND Program__c = '${program.id}' LIMIT 1`)).records || [])[0];
         if (hit) { projectId = hit.Id; r.project = 'linked existing project'; }
         else {
-          const c = await sf.create('PPM_Project__c', { Name: project.name, Program__c: project.programId });
+          const c = await sf.create('PPM_Project__c', { Name: project.name, Program__c: program.id });
           if (!ok(c) || !newId(c)) throw new Error('GUS rejected the project: ' + ((c && c.errors) || []).join(', '));
           projectId = newId(c); r.project = 'created project';
         }
