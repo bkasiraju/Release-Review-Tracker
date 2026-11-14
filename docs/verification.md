@@ -958,3 +958,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan58: grid column widths; verified by headless screenshot on the local harness only.
 
 - plan59: save-on-click and prefetch fix; unit tests only plus code inspection, local harness.
+
+- plan60: Actions header; code change only, tests run, local harness.

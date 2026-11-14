@@ -1,3 +1,7 @@
+## Unreleased on top of 4.0.0-GA (plan60) — Actions column header
+
+- The grid's last column (drag, add, remove, delete icons) now has an "Actions" header.
+
 ## Unreleased on top of 4.0.0-GA (plan59) — Save only on click; prefetch console error
 
 - The planner no longer autosaves 700 ms after an edit; changes stay as "Unsaved changes — click Save" until Save (or Review & save to GUS) is clicked. Closing the tab with unsaved changes prompts a warning.
