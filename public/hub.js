@@ -316,6 +316,7 @@ H.stCls=st=>{const x=String(st||'').toLowerCase();
   return /never|duplicate|reject|will not|inactive|not accepted|cancel|declin/.test(x)?'st-off':/^closed|fixed|complete|deliver|accepted|done|resolved/.test(x)?'st-done':/review|qa|verif|test|pending/.test(x)?'st-review':/progress|investigat|commit|triag/.test(x)?'st-prog':/block|wait|hold|risk/.test(x)?'st-block':'st-new';};
 function paintStatus(sel){
   if(!/Status__c$/.test(sel.dataset.field||''))return;
+  if(!sel._optPainted){sel._optPainted=1;[...sel.options].forEach(o=>o.classList.add(H.stCls(o.text)));}
   const o=sel.options[sel.selectedIndex],c=H.stCls(o?o.text:sel.value);
   if(!sel.classList.contains(c)){sel.classList.remove('st-done','st-prog','st-review','st-block','st-off','st-new');sel.classList.add(c);}
 }

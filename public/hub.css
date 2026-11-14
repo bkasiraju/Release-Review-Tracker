@@ -617,3 +617,20 @@ body[data-hub=home] .hub-tile-chips{margin-top:auto}
 .sp-modal-top .sp-mtitle>div{grid-column:2}
 .sp-modal-tools{display:grid!important;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)}
 .sp-modal-tools .sp-mstrip{grid-column:2;flex:none;justify-content:center}.sp-modal-tools .sp-mbtns{grid-column:3;justify-self:end}
+
+/* status dropdown list: coloured, clearly separated options (customisable select; other browsers keep the native list) */
+@supports (appearance:base-select){
+ select.hub-inline[data-field$="Status__c"]{appearance:base-select;display:inline-flex!important;align-items:center;justify-content:space-between;gap:6px;min-height:28px;padding:2px 10px!important;line-height:1.2;box-sizing:border-box}
+ select.hub-inline[data-field$="Status__c"]::picker-icon{color:currentColor;font-size:10px;margin-left:4px}
+ select.hub-inline[data-field$="Status__c"]::picker(select){appearance:base-select;padding:4px;border:1px solid #c9d3de;border-radius:10px;background:#fff;box-shadow:0 10px 28px rgba(0,0,0,.2);min-width:190px}
+ select.hub-inline[data-field$="Status__c"] option{display:flex;align-items:center;gap:8px;padding:7px 12px;margin:2px 0;border-radius:6px;border-left:6px solid transparent;font-size:12.5px;font-weight:600;cursor:pointer;color:#16325c;background:#fff}
+ select.hub-inline[data-field$="Status__c"] option::checkmark{order:2;margin-left:auto;font-weight:700}
+ select.hub-inline[data-field$="Status__c"] option.st-done{background:#d3e9f8;color:#0b5a8a;border-left-color:#1b7fc0}
+ select.hub-inline[data-field$="Status__c"] option.st-prog{background:#d4eedb;color:#1e6b34;border-left-color:#2e844a}
+ select.hub-inline[data-field$="Status__c"] option.st-review{background:#c6ece0;color:#0f6b4a;border-left-color:#0c9f77}
+ select.hub-inline[data-field$="Status__c"] option.st-new{background:#e6e9ee;color:#475467;border-left-color:#8a94a3}
+ select.hub-inline[data-field$="Status__c"] option.st-block{background:#fbe5bd;color:#7a4b00;border-left-color:#d98a00}
+ select.hub-inline[data-field$="Status__c"] option.st-off{background:#f9d4d4;color:#8f1d1d;border-left-color:#c23030}
+ select.hub-inline[data-field$="Status__c"] option:hover,select.hub-inline[data-field$="Status__c"] option:focus-visible{filter:brightness(.93);outline:2px solid #0b6fa8;outline-offset:-2px}
+ select.hub-inline[data-field$="Status__c"] option:checked{box-shadow:inset 0 0 0 2px currentColor}
+}
