@@ -1,3 +1,7 @@
+## Unreleased — readable Subject/Epic, true full-screen standup popup
+
+Work-item tables (Pulse, Standup page, popup): Subject (14px) and Epic (13.5px) are the widest columns and wrap fully; Type, QA, Status and the effort/churn columns use a compact 11–11.5px. The standup popup now fills the whole viewport (100vw × 100vh, no rounded corners). Cache-bust `4.0.0-GA-plan13`.
+
 ## Unreleased — standup per-engineer metrics and QA column
 
 Standup (page and full-screen popup): each engineer header now shows the Pulse metrics (closed, spillover, added, removed, pts chg) and every work item carries its own tag (Closed, Spillover, Added, Removed, Δ pts chg). The Assignee column is replaced by **QA** (the work item's `QA_Engineer__c`, with avatar; "—" when unset; read-only). The sprint query now selects `Work__r.QA_Engineer__c/.Name`. Epic and Subject get the widest columns and wrap. Cache-bust `4.0.0-GA-plan12`.

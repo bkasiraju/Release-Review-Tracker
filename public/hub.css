@@ -379,3 +379,22 @@ body[data-hub=home] .hub-tile .hub-tile-chips span{font-size:10px;line-height:1.
 .su-subject .sp-tags{display:inline-flex;margin:0 0 0 4px;vertical-align:middle}
 .su-card .su-items li,.su-card .su-cols{grid-template-columns:28px 96px minmax(0,1fr) 170px 150px 60px 70px 56px!important}
 .sp-modal-body .sp-items.who th:nth-child(1){width:96px}.sp-modal-body .sp-items.who th:nth-child(2){width:auto}.sp-modal-body .sp-items.who th:nth-child(3){width:34%}.sp-modal-body .sp-items.who th:nth-child(4){width:96px}.sp-modal-body .sp-items.who th:nth-child(5){width:170px}.sp-modal-body .sp-items.who th:nth-child(6){width:150px}.sp-modal-body .sp-items.who th:nth-child(7),.sp-modal-body .sp-items.who th:nth-child(8),.sp-modal-body .sp-items.who th:nth-child(9){width:70px}
+
+/* Work-item tables: Subject and Epic dominate; supporting columns are compact */
+.sp-items table{table-layout:fixed;width:100%;min-width:0!important}
+.sp-items td,.sp-items th{font-size:11.5px}
+.sp-items td.sp-subject,.sp-items td.sp-subject .sp-clip{font-size:14px!important;line-height:1.4;color:#1b2733;font-weight:500}
+.sp-items td.sp-epic-cell,.sp-items td.sp-epic-cell a{font-size:13.5px!important;line-height:1.4;white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
+.sp-items th:nth-child(2),.sp-items th:nth-child(3){font-size:12px}
+.sp-items td.sp-subject .sp-clip{white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
+.sp-items .sp-type,.sp-items .sp-qa,.sp-items .sp-qa>span:last-child{font-size:11px!important}
+.sp-items select.hub-inline,.sp-items input.hub-inline,.sp-items .mchip{font-size:11px!important}
+.sp-items:not(.who) th:nth-child(1){width:92px}.sp-items:not(.who) th:nth-child(3){width:32%}.sp-items:not(.who) th:nth-child(4){width:84px}.sp-items:not(.who) th:nth-child(5){width:128px}.sp-items:not(.who) th:nth-child(6),.sp-items:not(.who) th:nth-child(7),.sp-items:not(.who) th:nth-child(8){width:58px}
+.sp-modal-body .sp-items.who th:nth-child(1){width:92px}.sp-modal-body .sp-items.who th:nth-child(3){width:34%}.sp-modal-body .sp-items.who th:nth-child(4){width:84px}.sp-modal-body .sp-items.who th:nth-child(5){width:150px}.sp-modal-body .sp-items.who th:nth-child(6){width:128px}.sp-modal-body .sp-items.who th:nth-child(7),.sp-modal-body .sp-items.who th:nth-child(8),.sp-modal-body .sp-items.who th:nth-child(9){width:58px}
+.su-subject{font-size:14px}.su-subject .sp-chip{font-size:12px}
+.su-items li>*:not(.su-subject):not(.su-no){font-size:11.5px}
+/* Standup popup: literally full screen */
+.sp-modal{padding:0!important}
+.sp-modal-card{width:100vw!important;max-width:100vw!important;height:100vh!important;max-height:100vh!important;border-radius:0!important}
+.sp-modal-body{flex:1;min-height:0}
+.sp-modal-top{padding-right:130px!important}
