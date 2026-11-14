@@ -104,3 +104,8 @@ td .hub-inline[type=text]{width:120px}
 .bug-head select,.bug-head .champ{height:36px;min-width:170px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:8px}
 .bug-head .champ{padding:0 14px;min-width:200px}
 .bug-head .champ{text-transform:none;letter-spacing:0;font-weight:600;color:#5b6b7c}.bug-head .champ.on{color:#0b5a8a}
+/* Sprint banner: deep navy → teal, always white text */
+.hub-banner{background:linear-gradient(120deg,#16325c,#1b4f7a 50%,#176b91);border:1px solid #0f2547;box-shadow:0 2px 10px #16325c33}
+.hub-banner:not(.muted),.hub-banner:not(.muted) h2,.hub-banner:not(.muted) p,.hub-banner:not(.muted) small,.hub-banner:not(.muted) span,.hub-banner:not(.muted) b{color:#fff!important}
+.hub-banner .hub-eyebrow{opacity:.8;letter-spacing:.08em}
+.hub-banner.muted,.hub-banner.muted h2,.hub-banner.muted p,.hub-banner.muted small,.hub-banner.muted span,.hub-banner.muted b{color:#1f293c}

@@ -172,10 +172,10 @@ async function loadRota(el){
   try{const [r,ms]=await Promise.all([call('hub-rotation',{teamId:R.team}),H.members().catch(()=>[])]);if(R.team!==H.team.Id)return;R.rota=r.rota;R.revision=r.revision;R.members=ms;drawRota(el);}
   catch(e){failed(el.querySelector('#rota-cards'),e);}
 }
-H.register({id:'rotations',label:'Rotations',icon:'rotation',tone:'violet',desc:'PD on-call and Trust Hero rota',needsTeam:true,
+H.register({id:'rotations',label:'Trust Champion',icon:'rotation',tone:'violet',desc:'PD on-call and Trust Hero rota',needsTeam:true,
   stat:(home,x)=>({big:x&&x.pd?x.pd.name.split(' ')[0]:'—',text:x&&x.th?`PD on-call · Trust Hero ${x.th.name.split(' ')[0]}`:'PD on-call and Trust Hero rota'}),
   render(el){
-    el.innerHTML=heading('rotation','violet','Rotations',`PD on-call and Trust Hero rota for ${H.team.Name}, saved in GUS Apps and shared with the team.`,refreshBtn)+
+    el.innerHTML=heading('rotation','violet','Trust Champion — Rotations',`PD on-call and Trust Hero rota for ${H.team.Name}, saved in GUS Apps and shared with the team.`,refreshBtn)+
     `<datalist id="rota-names"></datalist><div id="rota-cards" class="rota-grid"></div>
     <section class="table-card rota-import"><div class="filterbar"><div class="epic-toolbar-title"><h2>Import from Slack</h2></div></div><div class="rota-import-body"><p class="note">The dashboard cannot read Slack history, so copy the rota message from the team channel (#mq-team or the MAPS channel) and paste it here. One shift per line, e.g. <code>Nov 10 - Nov 16: Jane Doe</code> or <code>2026-11-10 to 2026-11-16 Jane Doe</code>. A single date means a one-week shift.</p><div class="rota-import-row"><select id="rota-kind" class="sp-select" aria-label="Rotation type">${KINDS.map(([k,l])=>`<option value="${k}">${l}</option>`).join('')}</select><button class="button primary" id="rota-import">Import shifts</button></div><textarea id="rota-text" rows="5" placeholder="Paste the rota message here…" aria-label="Rota text"></textarea></div></section>`;
     withIcons(el);
