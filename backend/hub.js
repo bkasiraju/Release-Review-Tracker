@@ -222,7 +222,7 @@ async function updateOne(sf, u) {
 // ── Team people (leadership section on the hub home) ─────────────────────────
 const KARTHIK = '005EE00000kbcyIYAQ';
 const AMIT = '005B0000005Lg7WIAS', JAYANT = '005B0000001zx4jIAA', RAM = '005B0000001tCGAIA2', AZEEM = '005B0000003OANyIAO', VENKAT = '005B0000006q4KcIAI', PRAMIT = '005EE00000StHjGYAV', BHANU = '005EE00000YvpWrYAJ';
-const LEADERS = [AMIT, AZEEM, JAYANT, RAM, VENKAT, PRAMIT, KARTHIK, BHANU]; // CFS leaders: always last, in exactly this order, on every team and list; no visual marking
+const LEADERS = [AZEEM, JAYANT, RAM, VENKAT, PRAMIT, KARTHIK, BHANU, AMIT]; // CFS leaders: always last, in exactly this order, on every team and list; no visual marking
 const leaderRank = id => { const k = LEADERS.indexOf(id); return k < 0 ? -1 : k; };
 const PEOPLE = { // leadership configured per team; any other leader already on a team's roster is moved into the leader block too. Amit and Jayant lead every team.
   'Managed Async Processing Team': [AMIT, JAYANT, RAM, PRAMIT, BHANU],

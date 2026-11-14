@@ -1,3 +1,12 @@
+## Unreleased on top of 4.0.0-GA (plan23) — navigation restructure, grid-only Release Planning
+
+- "Open in GUS" bar sits below each page heading (title left, actions right, one line). Tabs reordered: Team Hub, Release Review (Monthly), Release Planning (Quarterly), Sprints, Team Dependencies, Test Failures, Trust Champion, Bugs, V2MOM Updates. Quick Links removed. The tab bar shows only the active tab; the rail switches pages; the breadcrumb reads `<Team> / <Tab>`; the Team Hub people heading follows the team dropdown.
+- Avatar fix for Rachita Saha (snapshot URL corrected; people cache key `hub-people2-`). `amit.k` could not be verified via Slack. Amit Kumar is last in every team.
+- Global Full screen removed; Release Planning's "Projects & epics" has its own Full screen.
+- **Release Planning is grid-only**: Form view and the Form/Grid toggle removed. A project strip above the grid edits project names (GUS link / New), adds an epic to a project and deletes a project. Column chooser (saved per browser in `pl-grid-cols`), new default order, narrower Project column.
+- Tabs renamed **Release Planner** and **Planned Release Summary**; the summary opens with a By theme donut; Saved epics columns are now Project, Epic, Release, Line, GUS, Development Lead (epic owners), Planned Story Points.
+- Verified on the local harness only; commit-to-GUS and BTL paths were not run live. Cache-bust `4.0.0-GA-plan23`.
+
 ## Unreleased — explicit Save, optional BTL commit, Saved epics list
 
 - **Save** button (always visible next to Review & save to GUS): saves the engineer's entries to the shared GUS Apps backend right now and confirms with a toast (entries were already autosaved; this is the explicit action).

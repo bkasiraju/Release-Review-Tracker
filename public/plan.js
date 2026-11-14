@@ -6,7 +6,13 @@
 const H=window.Hub,{esc,icon,call}=H;
 const P={plan:null,rev:null,refs:{releases:[],programs:[],projects:[],sprints:[]},members:[],seq:0,timer:0,state:'idle',stateAt:'',inflight:null,el:null};
 P.open={theme:false,eng:false};
-P.view={q:'',release:'',line:'',eng:'',theme:'',group:'project',mode:'form'};
+P.view={q:'',release:'',line:'',eng:'',theme:'',group:'project'};
+// Grid columns: chooser order = default order; the first GDEF are shown until the user picks their own (saved in this browser).
+const GCOL={project:'Project',name:'Epic Name',ws:'Workstream / Feature',owners:'Owner(s)',priority:'Priority',estimate:'Epic est.',status:'Status',engs:'Engineer(s)',days:'WS est.',sprint:'Sprint target',release:'Release',line:'Line',theme:'Theme',wstatus:'WS status',doc:'Doc',gus:'GUS',hrp:'HRP V2MOM method',v2mom:'CFS V2MOM'};
+const GW={project:112,name:230,ws:200,owners:120,priority:84,estimate:84,status:116,engs:170,days:72,sprint:120,release:150,line:104,theme:130,wstatus:116,doc:150,gus:84,hrp:130,v2mom:130,act:92};
+const GDEF=['project','name','ws','owners','priority','estimate','status','engs','days','sprint','release','line'],GKEY='pl-grid-cols';
+const gridCols=()=>{let v=null;try{v=JSON.parse(localStorage.getItem(GKEY));}catch(_){}const keep=Array.isArray(v)?v.filter(k=>GCOL[k]):null;return keep&&keep.length?Object.keys(GCOL).filter(k=>keep.includes(k)):GDEF.slice();};
+const setGridCols=l=>{try{if(l)localStorage.setItem(GKEY,JSON.stringify(l));else localStorage.removeItem(GKEY);}catch(_){}};
 const priOpts=v=>{const n=v==null||v===''?0:Number(v),L=[0,1,2,3,4,5];if(!L.includes(n))L.push(n);return L.sort((a,b)=>a-b).map(x=>`<option value="${x}"${x===n?' selected':''}>P${x}</option>`).join('');};
 const defRel=()=>{const r=P.refs.releases.find(x=>/(^|\D)268(\D|$)/.test(x.name||''));return r?{releaseId:r.id,releaseName:r.name}:{releaseId:'',releaseName:''};};
 const newEpic=pid=>({id:uid('e'),projectId:pid,name:'',line:'BTL',priority:0,...defRel(),gusId:'',owners:[],ownerNames:[],workstreams:[{id:uid('w'),name:'',priority:0,engId:'',engName:'',engIds:[],engNames:[],days:0,sprint:''}]});
@@ -74,11 +80,13 @@ function drawRps(){
   const noOwner=epics.filter(e=>!(e.owners||[]).length).length,noRel=epics.filter(e=>!e.releaseId).length,unas=epics.reduce((a,e)=>a+e.workstreams.filter(w=>!wsEngs(w).length).length,0),inGus=epics.filter(e=>e.gusId).length,load=M.avail?Math.round(M.total/M.avail*100):0;
   const hm=[['Epics',epics.length],['ABL / BTL',epics.filter(e=>e.line==='ABL').length+' / '+epics.filter(e=>e.line!=='ABL').length],['In GUS / draft',inGus+' / '+(epics.length-inGus)],['Capacity used',load+'%',load>100?'bad':''],['No owner',noOwner,noOwner?'warn':''],['No release',noRel,noRel?'warn':''],['Unassigned workstreams',unas,unas?'warn':'']];
   const prjm=new Map(pl.projects.map(p=>[p.id,p])),saved=epics.filter(e=>e.gusId),lc=pl.lastCommit&&pl.lastCommit.at?new Date(pl.lastCommit.at).toLocaleString():'';
-  const savedHtml=`<section class="pl-card pl-saved"><h3>Saved epics <small>${saved.length} of ${epics.length} in GUS${lc?' · last saved '+esc(lc):''}</small></h3>${epics.length?`<table class="pl-rps-t"><thead><tr><th>Epic</th><th>Project</th><th>Release</th><th>Line</th><th>GUS</th></tr></thead><tbody>${epics.map(e=>{const p=prjm.get(e.projectId)||{};return `<tr><td>${esc(e.name||'(unnamed)')}</td><td>${p.gusId?`<a class="pl-gus" href="${H.GUS}PPM_Project__c/${esc(p.gusId)}/view" target="_blank" rel="noopener">${esc(p.name||'project')} ↗</a>`:esc(p.name||'—')}</td><td>${esc(rn(e))}</td><td>${esc(e.line)}</td><td>${e.gusId?`<a class="pl-gus" href="${H.GUS}ADM_Epic__c/${esc(e.gusId)}/view" target="_blank" rel="noopener">Open in GUS ↗</a>`:'<em class="pl-draft">Not saved to GUS</em>'}</td></tr>`;}).join('')}</tbody></table>`:'<p class="note">No epics yet.</p>'}</section>`;
+  const owners=e=>(e.ownerNames&&e.ownerNames.length?e.ownerNames:(e.owners||[]).map(memName)).filter(Boolean).join(', ')||'—';
+  const savedHtml=`<section class="pl-card pl-saved"><h3>Saved epics <small>${saved.length} of ${epics.length} in GUS${lc?' · last saved '+esc(lc):''}</small></h3>${epics.length?`<table class="pl-rps-t"><thead><tr><th>Project</th><th>Epic</th><th>Release</th><th>Line</th><th>GUS</th><th>Development Lead</th><th>Planned Story Points</th></tr></thead><tbody>${epics.map(e=>{const p=prjm.get(e.projectId)||{};return `<tr><td>${p.gusId?`<a class="pl-gus" href="${H.GUS}PPM_Project__c/${esc(p.gusId)}/view" target="_blank" rel="noopener">${esc(p.name||'project')} ↗</a>`:esc(p.name||'—')}</td><td>${esc(e.name||'(unnamed)')}</td><td>${esc(rn(e))}</td><td>${esc(e.line)}</td><td>${e.gusId?`<a class="pl-gus" href="${H.GUS}ADM_Epic__c/${esc(e.gusId)}/view" target="_blank" rel="noopener">Open in GUS ↗</a>`:'<em class="pl-draft">Not saved to GUS</em>'}</td><td>${esc(owners(e))}</td><td>${fmt(epicDays(e))}</td></tr>`;}).join('')}</tbody></table>`:'<p class="note">No epics yet.</p>'}</section>`;
   const R=46,C=2*Math.PI*R;let off=0;
   const arcs=m.themes.filter(t=>t.days>0).map((t,i)=>{const len=t.days/tot*C,a=`<circle cx="60" cy="60" r="${R}" fill="none" stroke="${col(i)}" stroke-width="18" stroke-dasharray="${len} ${C-len}" stroke-dashoffset="${-off}" transform="rotate(-90 60 60)"></circle>`;off+=len;return a;}).join('');
   const seg=(b,l)=>B[b]>0?`<i style="width:${B[b]/(tot||1)*100}%;background:${PCOL[b]}" title="${l}: ${fmt(B[b])} d"></i>`:'';
-  el.innerHTML=`<div class="pl-rks">${card('abl','Total payload (ABL)',tot,`P0 ${fmt(B[0])} · P1 ${fmt(B[1])} · P2 ${fmt(B[2])} · P3+ ${fmt(B[3])}`,'#1b73b3')}
+  const themeHtml=`<section class="pl-card pl-rps-theme"><h3>By theme</h3>${m.themes.length&&tot>0?`<div class="pl-theme-row"><svg viewBox="0 0 120 120" width="120" height="120" role="img" aria-label="ABL effort by theme" style="stroke:none">${arcs}</svg><ul class="pl-theme-leg">${m.themes.map((t,i)=>`<li><i style="background:${col(i)}"></i>${esc(t.name)} <b>${fmt(t.days)} d</b> <small>${pctOf(t.days,tot)}%</small></li>`).join('')}</ul></div>`:'<p class="note">No above-the-line effort planned yet.</p>'}</section>`;
+  el.innerHTML=themeHtml+`<div class="pl-rks">${card('abl','Total payload (ABL)',tot,`P0 ${fmt(B[0])} · P1 ${fmt(B[1])} · P2 ${fmt(B[2])} · P3+ ${fmt(B[3])}`,'#1b73b3')}
     ${card('p0','P0 critical path',B[0],`${pctOf(B[0],tot)}% of planned`,'#b3261e')}${card('p1','P1 high',B[1],`${pctOf(B[1],tot)}% of planned`,PCOL[1])}${card('p2','P2 medium',B[2],`${pctOf(B[2],tot)}% of planned`,PCOL[2])}${card('p3','P3+ low',B[3],`${pctOf(B[3],tot)}% of planned`,PCOL[3])}${card('btl','BTL effort',B.b,'Below the line / backlog',PCOL.b)}</div>
   <div class="pl-rps-grid pl-rps-2"><section class="pl-card"><h3>Priority &amp; effort mix</h3><p class="note">Above-the-line effort by priority (days).</p>
     <div class="pl-pleg"><span style="color:#b3261e">P0 critical: ${fmt(B[0])} d (${pctOf(B[0],tot)}%)</span><span style="color:${PCOL[1]}">P1: ${fmt(B[1])} d</span><span style="color:${PCOL[2]}">P2: ${fmt(B[2])} d</span><span style="color:${PCOL[3]}">P3+: ${fmt(B[3])} d</span></div>
@@ -128,18 +136,6 @@ function drawPlanner(){
   const el=P.el.querySelector('#pl-planner'),pl=P.plan,rel=P.refs.releases;
   const projOpts=sel=>pl.projects.map(p=>opt(p.id,p.name||'(unnamed project)',p.id===sel)).join('');
   const engOpts=sel=>'<option value="">Unassigned</option>'+P.members.filter(m=>H.leaderRank(m.name)<0).map(m=>opt(m.id,m.name,m.id===sel)).join('');
-  const epic=e=>{const inGus=e.gusId?`<a class="pl-gus" href="${H.GUS}ADM_Epic__c/${esc(e.gusId)}/view" target="_blank" rel="noopener">In GUS ↗</a>`:'<em class="pl-draft">Draft</em>';
-    return `<div class="pl-epic ${e.line==='ABL'?'abl':'btl'}" data-e="${esc(e.id)}"><div class="pl-epic-h">
-    <select class="sp-select pl-pri" aria-label="Epic priority" data-f="priority">${priOpts(e.priority)}</select>
-    <input class="hub-inline pl-ename" type="text" placeholder="Epic name" aria-label="Epic name" data-f="name" value="${esc(e.name)}" maxlength="255">
-    <select class="sp-select" aria-label="Planned release" data-f="releaseId"><option value="">Planned release…</option>${rel.map(r=>opt(r.id,r.name,r.id===e.releaseId)).join('')}${e.releaseId&&!rel.some(r=>r.id===e.releaseId)?opt(e.releaseId,e.releaseName||e.releaseId,true):''}</select>
-    <select class="sp-select" aria-label="Project" data-f="projectId">${projOpts(e.projectId)}</select>
-    ${msel('owners',e.owners||[],'Epic owners','Owners')}
-    <span class="pl-line" role="group" aria-label="Line of prioritisation"><button type="button" class="${e.line==='ABL'?'on abl':''}" data-line="ABL" aria-pressed="${e.line==='ABL'}" title="Above the line: saved to GUS">ABL</button><button type="button" class="${e.line==='BTL'?'on btl':''}" data-line="BTL" aria-pressed="${e.line==='BTL'}" title="Below the line: stays in the dashboard">BTL</button></span>
-    <span class="pl-eff" title="Sum of workstream days"><b data-eff>${fmt(epicDays(e))}</b> d</span>${inGus}
-    <button type="button" class="pl-x" data-del-epic aria-label="Delete epic" title="Delete epic">×</button></div>
-    <div class="pl-epic-d"><label>Theme<input class="hub-inline" type="text" data-f="theme" placeholder="${esc(themeOf(prj0(e)))}" value="${esc(e.theme||'')}" maxlength="80"></label><label>HRP V2MOM method<input class="hub-inline" type="text" data-f="hrp" value="${esc(e.hrp||'')}" maxlength="80"></label><label>CFS V2MOM<input class="hub-inline" type="text" data-f="v2mom" value="${esc(e.v2mom||'')}" maxlength="80"></label><label>Epic estimate (d)<input class="hub-inline pl-days" type="number" min="0" max="5000" step="0.5" data-f="estimate" value="${e.estimate?fmt(e.estimate):''}" title="Used when workstreams carry no days"></label><label>Status<select class="sp-select" data-f="status">${statOpts(e.status)}</select></label><label class="pl-doc">Doc link<input class="hub-inline" type="url" data-f="doc" value="${esc(e.doc||'')}" maxlength="300" placeholder="https://…">${docOk(e.doc)?`<a href="${esc(e.doc)}" target="_blank" rel="noopener">Open ↗</a>`:''}</label></div>
-    <div class="pl-ws">${e.workstreams.map(w=>`<div class="pl-ws-r" data-w="${esc(w.id)}"><select class="sp-select pl-pri" aria-label="Workstream priority" data-f="priority">${priOpts(w.priority)}</select><input class="hub-inline" type="text" placeholder="Workstream" aria-label="Workstream" data-f="name" value="${esc(w.name)}" maxlength="120">${msel('engIds',wsEngs(w),'Engineers','Unassigned')}<input class="hub-inline pl-days" type="number" min="0" max="1000" step="0.5" inputmode="decimal" placeholder="Days" aria-label="Effort in days" data-f="days" value="${w.days?fmt(w.days):''}"><input class="hub-inline" type="text" list="pl-sprints" placeholder="Tentative sprint" aria-label="Tentative sprint" data-f="sprint" value="${esc(w.sprint)}" maxlength="60"><select class="sp-select" data-f="status" aria-label="Workstream status">${statOpts(w.status)}</select><button type="button" class="pl-x" data-del-ws aria-label="Delete workstream" title="Delete workstream">×</button></div>`).join('')}<button type="button" class="pl-add" data-add-ws>+ Workstream</button></div></div>`;};
   const V=P.view,prj=new Map(pl.projects.map(p=>[p.id,p])),q=V.q.trim().toLowerCase(),filtering=!!(q||V.release||V.line||V.eng||V.theme);
   const match=e=>{const p=prj.get(e.projectId);
     if(V.release&&e.releaseId!==V.release)return false;if(V.line&&e.line!==V.line)return false;
@@ -149,37 +145,49 @@ function drawPlanner(){
   const cnt=P.el.querySelector('#pl-count');if(cnt)cnt.textContent=filtering?`${shown.length} of ${pl.epics.length} epics`:`${pl.epics.length} epic${pl.epics.length===1?'':'s'}`;
   const gsum=es=>{const d=l=>fmt(es.filter(e=>e.line===l).reduce((a,e)=>a+epicDays(e),0));return `<span class="pl-gsum">${es.length} epic${es.length===1?'':'s'} · ABL ${d('ABL')}d · BTL ${d('BTL')}d</span>`;};
   const groupKey={release:e=>e.releaseName||(P.refs.releases.find(r=>r.id===e.releaseId)||{}).name||'No planned release',line:e=>e.line==='ABL'?'Above the line (ABL)':'Below the line (BTL)',theme:e=>epicTheme(e)}[V.group];
-  const proj=p=>{const es=shown.filter(e=>e.projectId===p.id),theme=themeOf(p);
-    return `<section class="pl-proj" data-p="${esc(p.id)}"><div class="pl-proj-h">
-    <input class="hub-inline pl-pname" type="text" list="pl-projects" placeholder="Project name (type to link an existing GUS project)" aria-label="Project name" data-f="name" value="${esc(p.name)}" maxlength="120">
-    <input class="hub-inline pl-theme" type="text" placeholder="${esc(theme)}" aria-label="Theme or method" title="Theme / method (defaults to the project prefix)" data-f="theme" value="${esc(p.theme)}" maxlength="80">
-    ${p.gusId?`<a class="pl-gus" href="${H.GUS}PPM_Project__c/${esc(p.gusId)}/view" target="_blank" rel="noopener">In GUS ↗</a>`:'<em class="pl-draft">New</em>'}
-    <button type="button" class="button small" data-add-epic>+ Epic</button><button type="button" class="pl-x" data-del-proj aria-label="Delete project" title="Delete project">×</button></div>
-    ${es.length?es.map(epic).join(''):`<p class="note pl-none">${pl.epics.some(e=>e.projectId===p.id)?'No epics match the filters.':'No epics yet. Add one to start planning.'}</p>`}</section>`;};
+  const cols=gridCols();
   const gridHtml=()=>{
     const order=new Map(pl.projects.map((p,i)=>[p.id,i])),key=e=>V.group==='project'?String(1e4+(order.has(e.projectId)?order.get(e.projectId):9999)):groupKey(e);
     const es=[...shown].sort((a,b)=>String(key(a)).localeCompare(String(key(b)),undefined,{numeric:true}));
     const sel=(f,html,lbl)=>`<select class="sp-select pl-g" aria-label="${lbl}" data-f="${f}">${html}</select>`;
     const rows=[];let last=null;
     es.forEach(e=>{
-      if(V.group!=='project'&&key(e)!==last){last=key(e);const g=es.filter(x=>key(x)===last);rows.push(`<tr class="pl-g-grp"><td colspan="20"><b>${esc(last)}</b> ${gsum(g)}</td></tr>`);}
+      if(V.group!=='project'&&key(e)!==last){last=key(e);const g=es.filter(x=>key(x)===last);rows.push(`<tr class="pl-g-grp"><td colspan="${cols.length+1}"><b>${esc(last)}</b> ${gsum(g)}</td></tr>`);}
       const ws=e.workstreams.length?e.workstreams:[null];
       ws.forEach((w,j)=>{
         const first=j===0,tail=j===ws.length-1;
         const txt=(f,v,ph,max,w2)=>`<input class="hub-inline" type="text" aria-label="${ph}" data-f="${f}" value="${esc(v||'')}" maxlength="${max}" placeholder="${ph}" style="width:${w2}px">`;
-        const ep=first?`<td>${sel('projectId',pl.projects.map(p=>`<option value="${esc(p.id)}" data-short="${esc(shortProj(p.name))}"${p.id===e.projectId?' selected':''}>${esc(p.name||'(unnamed project)')}</option>`).join(''),'Project')}</td><td>${txt('hrp',e.hrp,'HRP method',80,90)}</td><td>${txt('v2mom',e.v2mom,'CFS V2MOM',80,80)}</td><td>${txt('theme',e.theme,themeOf(prj0(e)),80,110)}</td><td>${sel('priority',priOpts(e.priority),'Epic priority')}</td><td><input class="hub-inline" type="text" aria-label="Epic name" data-f="name" value="${esc(e.name)}" maxlength="255" placeholder="Epic name"></td><td>${msel('owners',e.owners||[],'Epic owners','Owners')}</td><td>${sel('releaseId',`<option value="">Planned release…</option>${rel.map(r=>opt(r.id,r.name,r.id===e.releaseId)).join('')}${e.releaseId&&!rel.some(r=>r.id===e.releaseId)?opt(e.releaseId,e.releaseName||e.releaseId,true):''}`,'Planned release')}</td><td><span class="pl-line" role="group" aria-label="Line"><button type="button" class="${e.line==='ABL'?'on abl':''}" data-line="ABL" aria-pressed="${e.line==='ABL'}">ABL</button><button type="button" class="${e.line==='BTL'?'on btl':''}" data-line="BTL" aria-pressed="${e.line==='BTL'}">BTL</button></span></td><td><input class="hub-inline pl-days" type="number" min="0" max="5000" step="0.5" aria-label="Epic estimate" data-f="estimate" value="${e.estimate?fmt(e.estimate):''}" placeholder="${fmt(epicDays(e))}" title="Epic estimate (used when workstreams have no days)"></td><td>${sel('status',statOpts(e.status),'Epic status')}</td><td>${txt('doc',e.doc,'Doc link',300,120)}${docOk(e.doc)?` <a href="${esc(e.doc)}" target="_blank" rel="noopener" aria-label="Open doc">↗</a>`:''}</td><td>${e.gusId?`<a class="pl-gus" href="${H.GUS}ADM_Epic__c/${esc(e.gusId)}/view" target="_blank" rel="noopener">GUS ↗</a>`:'<em class="pl-draft">Draft</em>'}</td>`:'<td></td>'.repeat(13);
-        const wc=w?`<td data-w="${esc(w.id)}">${sel('priority',priOpts(w.priority),'Workstream priority')}</td><td data-w="${esc(w.id)}"><input class="hub-inline" type="text" aria-label="Workstream" data-f="name" value="${esc(w.name)}" maxlength="120" placeholder="Workstream"></td><td data-w="${esc(w.id)}">${msel('engIds',wsEngs(w),'Engineers','Unassigned')}</td><td data-w="${esc(w.id)}"><input class="hub-inline pl-days" type="number" min="0" max="1000" step="0.5" aria-label="Effort in days" data-f="days" value="${w.days?fmt(w.days):''}" placeholder="Days"></td><td data-w="${esc(w.id)}"><input class="hub-inline" type="text" list="pl-sprints" aria-label="Tentative sprint" data-f="sprint" value="${esc(w.sprint)}" maxlength="60" placeholder="Sprint"></td><td data-w="${esc(w.id)}">${sel('status',statOpts(w.status),'Workstream status')}</td>`:'<td></td>'.repeat(6);
+        const tdE=(k,h)=>first?`<td class="c-${k}">${h}</td>`:`<td class="c-${k}"></td>`,tdW=(k,h)=>w?`<td class="c-${k}" data-w="${esc(w.id)}">${h}</td>`:`<td class="c-${k}"></td>`;
+        const C={
+          project:()=>tdE('project',sel('projectId',pl.projects.map(p=>`<option value="${esc(p.id)}" data-short="${esc(shortProj(p.name))}"${p.id===e.projectId?' selected':''}>${esc(p.name||'(unnamed project)')}</option>`).join(''),'Project')),
+          name:()=>tdE('name',`<input class="hub-inline" type="text" aria-label="Epic name" data-f="name" value="${esc(e.name)}" maxlength="255" placeholder="Epic name">`),
+          ws:()=>tdW('ws',`<input class="hub-inline" type="text" aria-label="Workstream" data-f="name" value="${esc(w&&w.name)}" maxlength="120" placeholder="Workstream">`),
+          owners:()=>tdE('owners',msel('owners',e.owners||[],'Epic owners','Owners')),
+          priority:()=>tdE('priority',sel('priority',priOpts(e.priority),'Epic priority')),
+          estimate:()=>tdE('estimate',`<input class="hub-inline pl-days" type="number" min="0" max="5000" step="0.5" aria-label="Epic estimate" data-f="estimate" value="${e.estimate?fmt(e.estimate):''}" placeholder="${fmt(epicDays(e))}" title="Epic estimate (used when workstreams have no days)">`),
+          status:()=>tdE('status',sel('status',statOpts(e.status),'Epic status')),
+          engs:()=>tdW('engs',msel('engIds',w?wsEngs(w):[],'Engineers','Unassigned')),
+          days:()=>tdW('days',`<input class="hub-inline pl-days" type="number" min="0" max="1000" step="0.5" aria-label="Effort in days" data-f="days" value="${w&&w.days?fmt(w.days):''}" placeholder="Days">`),
+          sprint:()=>tdW('sprint',`<input class="hub-inline" type="text" list="pl-sprints" aria-label="Tentative sprint" data-f="sprint" value="${esc(w&&w.sprint)}" maxlength="60" placeholder="Sprint">`),
+          release:()=>tdE('release',sel('releaseId',`<option value="">Planned release…</option>${rel.map(r=>opt(r.id,r.name,r.id===e.releaseId)).join('')}${e.releaseId&&!rel.some(r=>r.id===e.releaseId)?opt(e.releaseId,e.releaseName||e.releaseId,true):''}`,'Planned release')),
+          line:()=>tdE('line',`<span class="pl-line" role="group" aria-label="Line"><button type="button" class="${e.line==='ABL'?'on abl':''}" data-line="ABL" aria-pressed="${e.line==='ABL'}">ABL</button><button type="button" class="${e.line==='BTL'?'on btl':''}" data-line="BTL" aria-pressed="${e.line==='BTL'}">BTL</button></span>`),
+          theme:()=>tdE('theme',txt('theme',e.theme,themeOf(prj0(e)),80,110)),
+          wstatus:()=>tdW('wstatus',sel('status',statOpts(w&&w.status),'Workstream status')),
+          doc:()=>tdE('doc',txt('doc',e.doc,'Doc link',300,120)+(docOk(e.doc)?` <a href="${esc(e.doc)}" target="_blank" rel="noopener" aria-label="Open doc">↗</a>`:'')),
+          gus:()=>tdE('gus',e.gusId?`<a class="pl-gus" href="${H.GUS}ADM_Epic__c/${esc(e.gusId)}/view" target="_blank" rel="noopener">GUS ↗</a>`:'<em class="pl-draft">Draft</em>'),
+          hrp:()=>tdE('hrp',txt('hrp',e.hrp,'HRP method',80,90)),
+          v2mom:()=>tdE('v2mom',txt('v2mom',e.v2mom,'CFS V2MOM',80,80))
+        };
+        const ep=cols.map(k=>C[k]()).join(''),wc='';
         const act=`<td class="pl-g-act">${w?`<span data-w="${esc(w.id)}"><button type="button" class="pl-x" data-del-ws aria-label="Delete workstream" title="Delete workstream">×</button></span>`:''}${tail?`<button type="button" class="pl-x pl-g-add" data-add-ws aria-label="Add workstream" title="Add workstream">+</button>`:''}${first?`<button type="button" class="pl-x" data-del-epic aria-label="Delete epic" title="Delete epic">🗑</button>`:''}</td>`;
         rows.push(`<tr data-e="${esc(e.id)}" class="${e.line==='ABL'?'abl':'btl'}${first?' pl-g-first':''}">${ep}${wc}${act}</tr>`);
       });
     });
-    return `<div class="pl-grid-wrap"><table class="pl-grid"><thead><tr><th>Project</th><th>HRP V2MOM method</th><th>CFS V2MOM</th><th>Theme</th><th>Epic P</th><th>Epic Name</th><th>Owner(s)</th><th>Release</th><th>Line</th><th>Epic est.</th><th>Status</th><th>Doc</th><th>GUS</th><th>WS P</th><th>Workstream / Feature</th><th>Engineer(s)</th><th>WS est.</th><th>Sprint target</th><th>WS status</th><th></th></tr></thead><tbody>${rows.join('')||'<tr><td colspan="20" class="note">No epics match the filters.</td></tr>'}</tbody></table></div><button type="button" class="pl-add" data-grid-add-epic>+ Epic</button><p class="note">Project names are edited in Form view.</p>`;};
+    const strip=`<div class="pl-pstrip" aria-label="Projects">${pl.projects.map(p=>`<span class="pl-pchip" data-p="${esc(p.id)}"><input class="hub-inline pl-pname" type="text" list="pl-projects" placeholder="Project name (type to link a GUS project)" aria-label="Project name" data-f="name" value="${esc(p.name)}" maxlength="120">${p.gusId?`<a class="pl-gus" href="${H.GUS}PPM_Project__c/${esc(p.gusId)}/view" target="_blank" rel="noopener">GUS ↗</a>`:'<em class="pl-draft">New</em>'}<button type="button" class="pl-x" data-add-epic aria-label="Add epic to this project" title="Add epic to this project">+</button><button type="button" class="pl-x" data-del-proj aria-label="Delete project" title="Delete project">×</button></span>`).join('')}</div>`;
+    return strip+`<div class="pl-grid-tools"><span class="pl-cols"><button type="button" class="button" data-cols-toggle aria-haspopup="true" aria-expanded="${P.colsOpen?'true':'false'}">Columns ▾</button>${P.colsOpen?`<div class="pl-cols-menu" role="menu">${Object.keys(GCOL).map(k=>`<label><input type="checkbox" data-col="${k}"${cols.includes(k)?' checked':''}> ${esc(GCOL[k])}</label>`).join('')}<button type="button" class="pl-cols-reset" data-cols-reset>Reset to default</button></div>`:''}</span></div><div class="pl-grid-wrap"><table class="pl-grid" style="width:${cols.reduce((n,k)=>n+GW[k],GW.act)}px"><colgroup>${cols.map(k=>`<col style="width:${GW[k]}px">`).join('')}<col style="width:${GW.act}px"></colgroup><thead><tr>${cols.map(k=>`<th class="c-${k}">${esc(GCOL[k])}</th>`).join('')}<th></th></tr></thead><tbody>${rows.join('')||'<tr><td colspan="${cols.length+1}" class="note">No epics match the filters.</td></tr>'}</tbody></table></div><button type="button" class="pl-add" data-grid-add-epic>+ Epic</button>`;};
   el.innerHTML=`<datalist id="pl-projects">${P.refs.projects.map(p=>`<option value="${esc(p.name)}"></option>`).join('')}</datalist><datalist id="pl-sprints">${P.refs.sprints.map(s=>`<option value="${esc(s.name)}"></option>`).join('')}</datalist>`+
     (!pl.projects.length?'<div class="empty-state hub-empty"><h3>No projects yet</h3><p>Add a project, then epics and workstreams with effort in days.</p></div>'
-     :V.mode==='grid'?gridHtml()
-     :V.group==='project'?(()=>{const ps=pl.projects.filter(p=>!filtering||shown.some(e=>e.projectId===p.id)||(q&&(p.name||'').toLowerCase().includes(q)&&!V.release&&!V.line&&!V.eng&&!V.theme));return ps.length?ps.map(proj).join(''):'<p class="note pl-none">No epics match the filters.</p>';})()
-     :(()=>{const g=new Map();shown.forEach(e=>{const k=groupKey(e);if(!g.has(k))g.set(k,[]);g.get(k).push(e);});
-       return g.size?[...g.entries()].sort((x,y)=>x[0].localeCompare(y[0],undefined,{numeric:true})).map(([k,es])=>`<section class="pl-proj pl-group"><div class="pl-group-h"><h4>${esc(k)}</h4>${gsum(es)}</div>${es.map(e=>`<div class="pl-gproj" title="Project">${esc((prj.get(e.projectId)||{}).name||'(no project)')}</div>${epic(e)}`).join('')}</section>`).join('')+'<p class="note">Switch to Group by Project to add epics or projects.</p>':'<p class="note pl-none">No epics match the filters.</p>';})());
+     :gridHtml());
 }
 const wire=()=>P.el.querySelectorAll('#pl-planner select').forEach(s=>H.customSelect(s));
 function drawTools(){
@@ -190,7 +198,7 @@ function drawTools(){
   box.innerHTML=`<label class="pl-tf pl-q"><span>Search</span><input type="search" class="hub-inline" data-v="q" placeholder="Epic, workstream or project…" aria-label="Search epics" value="${esc(V.q)}"></label>`+
     sel('release','Release',rels)+sel('line','Line',[['ABL','ABL'],['BTL','BTL']])+sel('eng','Engineer',engs.map(m=>[m.id,m.name]))+sel('theme','Theme',themes.map(t=>[t,t]))+
     `<label class="pl-tf"><span>Group by</span><select class="sp-select" data-v="group" aria-label="Group by">${[['project','Project'],['release','Planned release'],['line','ABL / BTL'],['theme','Theme']].map(([v,l])=>opt(v,l,V.group===v)).join('')}</select></label>`+
-    `<span class="pl-mode" role="group" aria-label="View"><button type="button" data-mode="form" class="${V.mode==='form'?'on':''}" aria-pressed="${V.mode==='form'}">Form</button><button type="button" data-mode="grid" class="${V.mode==='grid'?'on':''}" aria-pressed="${V.mode==='grid'}">Grid</button></span><button type="button" class="button small" data-clear-view${V.q||V.release||V.line||V.eng||V.theme?'':' disabled'}>Clear filters</button><span class="note pl-count" id="pl-count"></span>`;
+    `<button type="button" class="button small" data-clear-view${V.q||V.release||V.line||V.eng||V.theme?'':' disabled'}>Clear filters</button><span class="note pl-count" id="pl-count"></span>`;
   box.querySelectorAll('select').forEach(x=>H.customSelect(x));
 }
 function draw(){drawSummary();drawTools();drawPlanner();wire();}
@@ -204,6 +212,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMs();});
 const findE=id=>P.plan.epics.find(e=>e.id===id),findP=id=>P.plan.projects.find(p=>p.id===id);
 const ctxOf=t=>{const w=t.closest('[data-w]'),e=t.closest('[data-e]'),p=t.closest('[data-p]');return {w:w&&w.dataset.w,e:e&&e.dataset.e,p:p&&p.dataset.p};};
 function onInput(ev){
+  const ct=ev.target.closest&&ev.target.closest('[data-col]');if(ct){const cur=gridCols(),k=ct.dataset.col,n=ct.checked?[...cur,k]:cur.filter(x=>x!==k);if(n.length)setGridCols(n);drawPlanner();wire();return;}
   const vt=ev.target.closest&&ev.target.closest('[data-v]');if(vt){P.view[vt.dataset.v]=vt.value;if(vt.dataset.v==='group'||vt.tagName==='SELECT')drawTools();drawPlanner();wire();return;}
   const t=ev.target.closest('[data-f]');if(!t||!P.plan)return;
   const f=t.dataset.f,c=ctxOf(t),v=t.value;let structural=false;
@@ -225,8 +234,20 @@ function onInput(ev){
   if(structural&&ev.type==='change')draw();else drawSummary();
   queueSave();
 }
+function toggleFs(force){
+  const box=P.el&&P.el.querySelector('#pl-fs');if(!box)return;const on=force==null?!box.classList.contains('pl-fs-on'):force;
+  box.classList.toggle('pl-fs-on',on);document.body.classList.toggle('pl-fs-lock',on);
+  const b=box.querySelector('#pl-fs-btn');if(b){b.textContent=on?'Exit full screen':'Full screen';b.setAttribute('aria-pressed',String(on));}
+  try{if(on&&!document.fullscreenElement&&box.requestFullscreen)box.requestFullscreen().catch(()=>{});else if(!on&&document.fullscreenElement)document.exitFullscreen().catch(()=>{});}catch(_){}
+}
+document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement)toggleFs(false);});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.querySelector('.pl-fs-on')&&!document.querySelector('.cs.open,.ms.open')){toggleFs(false);e.stopImmediatePropagation();}},true);
 function onClick(ev){
   const t=ev.target,c=ctxOf(t),pl=P.plan;
+  if(t.closest('#pl-fs-btn'))return toggleFs();
+  if(t.closest('[data-cols-toggle]')){P.colsOpen=!P.colsOpen;drawPlanner();wire();return;}
+  if(t.closest('[data-cols-reset]')){setGridCols(null);drawPlanner();wire();return;}
+  if(P.colsOpen&&!t.closest('.pl-cols')){P.colsOpen=false;drawPlanner();wire();}
   if(t.closest('[data-reload]'))return load(P.el);
   if(t.closest('[data-retry]'))return flush();
   if(!pl)return;
@@ -243,7 +264,6 @@ function onClick(ev){
   const tb=t.closest('[data-tab]');if(tb){setTab(tb.dataset.tab);return;}
   const rp=t.closest('[data-rps]');if(rp){openRps(rp.dataset.rps,rp);return;}
   const fd=t.closest('[data-fold]');if(fd){P.open[fd.dataset.fold]=!P.open[fd.dataset.fold];drawSummary();return;}
-  const md=t.closest('[data-mode]');if(md){P.view.mode=md.dataset.mode;drawTools();drawPlanner();wire();return;}
   if(t.closest('[data-grid-add-epic]')){if(!pl.projects.length)pl.projects.push({id:uid('p'),name:'',theme:'',gusId:''});const e=newEpic(pl.projects[0].id);pl.epics.push(e);draw();queueSave();P.el.querySelector(`[data-e="${e.id}"] input`)?.focus();return;}
   if(t.closest('[data-clear-view]')){P.view=Object.assign(P.view,{q:'',release:'',line:'',eng:'',theme:''});drawTools();drawPlanner();wire();return;}
   if(t.closest('#pl-save')){const b=t.closest('#pl-save');b.disabled=true;P.state='dirty';flush().then(()=>{b.disabled=false;if(P.state==='saved')window.toast?.('Plan saved to GUS Apps for the whole team.');else window.toast?.('Could not save the plan.',true);},()=>{b.disabled=false;});return;}
@@ -316,15 +336,15 @@ async function load(el){
     draw();setState('idle');
   }catch(e){if(my===P.seq)el.querySelector('#pl-sum').innerHTML=`<div class="empty-state hub-empty"><h3>Could not load the plan</h3><p>${esc(e.message)}</p></div>`;}
 }
-H.register({id:'plan',label:'Release Planning',icon:'plan',tone:'green',desc:'Plan projects, epics and effort against team capacity',needsTeam:true,
+H.register({id:'plan',label:'Release Planning (Quarterly)',icon:'plan',tone:'green',desc:'Plan projects, epics and effort against team capacity',needsTeam:true,
   stat:()=>({text:'Planned vs available capacity, ABL and BTL'}),
   render(el){
     P.el=el;
-    el.innerHTML=`<div class="executive-heading"><div><h2>${icon('plan','green')} Release Planning</h2><p>Plan projects, epics and workstreams for ${esc(H.team.Name)}. Effort is in days; epics above the line (ABL) are saved to GUS when you confirm.</p></div><div class="heading-actions"><span id="pl-state" class="pl-state" role="status" aria-live="polite"></span><button type="button" class="button" id="pl-save" title="Save your entries to the shared GUS Apps backend (also saved automatically)">Save</button><button type="button" class="button" id="pl-leaves">Leaves, holidays &amp; on-call</button><button type="button" class="button primary" id="pl-commit">Review &amp; save to GUS</button></div></div>
+    el.innerHTML=`<div class="executive-heading"><div><h2>${icon('plan','green')} Release Planning (Quarterly)</h2><p>Plan projects, epics and workstreams for ${esc(H.team.Name)}. Effort is in days; epics above the line (ABL) are saved to GUS when you confirm.</p></div><div class="heading-actions"><span id="pl-state" class="pl-state" role="status" aria-live="polite"></span><button type="button" class="button" id="pl-save" title="Save your entries to the shared GUS Apps backend (also saved automatically)">Save</button><button type="button" class="button" id="pl-leaves">Leaves, holidays &amp; on-call</button><button type="button" class="button primary" id="pl-commit">Review &amp; save to GUS</button></div></div>
     <div class="pl-window"><label>Planning window <input type="date" class="hub-inline" id="pl-start" aria-label="Window start"></label><span aria-hidden="true">→</span><input type="date" class="hub-inline" id="pl-end" aria-label="Window end"><span class="note" id="pl-last"></span></div><div id="pl-warn"></div>
-    <div class="pl-tabs" role="tablist" aria-label="Release planning views"><button type="button" role="tab" data-tab="plan" class="on" aria-selected="true">Release Planned</button><button type="button" role="tab" data-tab="rps" aria-selected="false">Release Review</button></div>
+    <div class="pl-tabs" role="tablist" aria-label="Release planning views"><button type="button" role="tab" data-tab="plan" class="on" aria-selected="true">Release Planner</button><button type="button" role="tab" data-tab="rps" aria-selected="false">Planned Release Summary</button></div>
     <div id="pl-main"><div id="pl-sum"></div>
-    <div class="pl-planner-h"><h3>Projects &amp; epics</h3><button type="button" class="button" id="pl-add-proj">+ Project</button></div><div id="pl-tools" class="pl-tools"></div><div id="pl-planner"></div></div><div id="pl-rps" hidden></div>`;
+    <section id="pl-fs" class="pl-fs"><div class="pl-planner-h"><h3>Projects &amp; epics</h3><span class="pl-planner-btns"><button type="button" class="button" id="pl-fs-btn" aria-pressed="false" title="Show Projects &amp; epics full screen">Full screen</button><button type="button" class="button" id="pl-add-proj">+ Project</button></span></div><div id="pl-tools" class="pl-tools"></div><div id="pl-planner"></div></section></div><div id="pl-rps" hidden></div>`;
     P.tab='plan';
     el.oninput=onInput;
     el.onchange=ev=>{if(ev.target.closest('#pl-start,#pl-end')){const s=el.querySelector('#pl-start').value,e=el.querySelector('#pl-end').value;if(s&&e&&s<=e&&P.plan){P.plan.window={start:s,end:e};drawSummary();queueSave();}else if(s&&e&&s>e)window.toast?.('End date must be on or after the start date.',true);return;}onInput(ev);};

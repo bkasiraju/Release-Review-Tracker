@@ -45,7 +45,7 @@ module.exports = {
  "mayur.dhingra@salesforce.com": "https://avatars.slack-edge.com/2026-09-01/11939094509031_ec1bcccc1494a39fba4c_original.png",
  "nisha.m@salesforce.com": "https://avatars.slack-edge.com/2024-11-04/7981293457508_c18dbda4e2b2b4aca07f_original.jpg",
  "nnancy@salesforce.com": "https://avatars.slack-edge.com/2025-09-12/9519574857441_5f79d0b0ef1038e2caa7_original.png",
- "r.saha@salesforce.com": "https://avatars.slack-edge.com/2022-01-04/2908425067331_76f0ff1b4d6dad56be93_original.jpg",
+ "r.saha@salesforce.com": "https://avatars.slack-edge.com/2023-08-18/5761841458067_caba5aaf2afb3686e5fb_original.jpg",
  "rajat.surana@salesforce.com": "https://avatars.slack-edge.com/2025-08-21/9373842489415_9319458b8ace23e0b156_original.png",
  "hdeka@salesforce.com": "https://avatars.slack-edge.com/2024-05-16/7111363785175_80a8d295121b79a03bb7_original.jpg",
  "mdsarfarazul.haque@salesforce.com": "https://avatars.slack-edge.com/2025-08-04/9296650600917_5291fe17a1786aad212c_original.jpg"

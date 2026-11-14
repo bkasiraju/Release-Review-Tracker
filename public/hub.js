@@ -34,7 +34,7 @@ H.hasTeam=()=>H.team.Id!=='all';
 H.onTeam=fn=>{listeners.add(fn);return()=>listeners.delete(fn);};
 H.setTeam=id=>{
   H.team=H.teams.find(t=>t.Id===id)||ALL;
-  $('hub-team').value=H.team.Id;H.syncSelects();
+  $('hub-team').value=H.team.Id;H.syncSelects();setCrumb();
   window.dispatchEvent(new Event('hub:team'));
   for(const fn of listeners)fn(H.team);
   renderCurrent();
@@ -50,9 +50,11 @@ let picks;H.picklists=()=>picks||(picks=call('hub-picklists',{}).catch(e=>{picks
 
 // ── Registry + router ───────────────────────────────────────────────────────
 H.register=page=>{H.pages.set(page.id,page);};
-const NAV=['home','epics','sprints','tds','tests','rotations','bugs','status','links','plan'];
-function renderNav(){
-  $('hub-nav').innerHTML=NAV.filter(id=>H.pages.has(id)).map(id=>{const p=H.pages.get(id),on=id===H.current;
+const NAV=['home','epics','plan','sprints','tds','tests','rotations','bugs','status'];
+/** Breadcrumb follows the team dropdown and the active page: <Team> / <Page>. */
+function setCrumb(){const c=document.querySelector('.page-heading .breadcrumb'),p=H.pages.get(H.current);if(!c||!p||!H.team)return;c.innerHTML=`${esc(H.team.short||H.team.Name)} <span aria-hidden="true">/</span> <strong>${esc(p.label)}</strong>`;}
+function renderNav(){setCrumb(); // only the active tab shows; the left rail switches pages
+  $('hub-nav').innerHTML=NAV.filter(id=>H.pages.has(id)&&id===H.current) .map(id=>{const p=H.pages.get(id),on=id===H.current;
     return `<button data-page="${id}" class="${on?'selected':''}" aria-pressed="${on}" ${on?'aria-current="page"':''}>${icon(p.icon,p.tone)} ${esc(p.label)}</button>`;}).join('');
   document.querySelectorAll('.rail-button[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===H.current));
 }
@@ -74,12 +76,18 @@ const GUS_LINKS={
   tests:[['New work item',gnew('ADM_Work__c'),1],['Work items',glist('ADM_Work__c')]],
   bugs:[['New bug',gnew('ADM_Work__c'),1],['Work items',glist('ADM_Work__c')]],
   status:[['Epics',glist('ADM_Epic__c')],['New Epic',gnew('ADM_Epic__c')]],
-  rotations:[['Work items',glist('ADM_Work__c')]],
-  links:[['New work item',gnew('ADM_Work__c'),1],['Epics',glist('ADM_Epic__c')],['TDs',glist('ADM_Team_Dependency__c')]]
+  rotations:[['Work items',glist('ADM_Work__c')]]
 };
+/** Keep the "Open in GUS" bar directly below the page heading (pages re-render their own markup). */
+function placeGus(){
+  const el=$('gus-links'),hp=$('hub-panel');if(!el||!hp)return;
+  const vis=x=>!x.closest('.hidden')&&x.getClientRects().length,h=[...document.querySelectorAll('main .executive-heading')].find(vis);
+  if(h){if(h.nextElementSibling!==el)h.after(el);}else if(el.nextElementSibling!==hp)hp.before(el);
+}
+let gusObs;function watchGus(){if(gusObs)return;const m=document.querySelector('main')||document.body;gusObs=new MutationObserver(placeGus);gusObs.observe(m,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});}
 function renderGusLinks(id){
   let el=$('gus-links');
-  if(!el){el=document.createElement('nav');el.id='gus-links';el.className='gus-links';el.setAttribute('aria-label','Open in GUS');$('hub-panel').before(el);}
+  if(!el){el=document.createElement('nav');el.id='gus-links';el.className='gus-links';el.setAttribute('aria-label','Open in GUS');$('hub-panel').before(el);watchGus();}
   const l=GUS_LINKS[id]||GUS_LINKS.home;
   el.innerHTML='<span class="gus-links-label">Open in GUS</span>'+l.map(([t,u,primary])=>`<a class="gus-link${primary?' primary':''}" href="${u}" target="_blank" rel="noopener noreferrer">${t}<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M8 4H4v12h12v-4M11 4h5v5M16 4l-7 7"/></svg></a>`).join('');
 }
@@ -89,7 +97,7 @@ H.go=(id,opts={})=>{
   H.current=id;document.body.dataset.hub=id;
   const own=!p.legacy;$('hub-panel').classList.toggle('hidden',!own);
   if(p.legacy)legacy(p.legacy);
-  renderNav();renderCurrent();renderGusLinks(id);
+  renderNav();renderCurrent();renderGusLinks(id);placeGus();
   if(!opts.silent&&location.hash!=='#/'+id)history.pushState(null,'','#/'+id);
   window.scrollTo(0,0);
 };
@@ -178,8 +186,8 @@ function drawPeople(el){
   const g=groupKey(H.team);if(!g){box.hidden=true;return;}
   const paint=d=>{if(!box.isConnected||groupKey(H.team)!==g)return;
     box.hidden=!d||!d.people.length;if(box.hidden)return;
-    box.innerHTML=`<h3>${esc(d.name)}</h3><ul>${d.people.map(p=>`<li><span class="hub-avatar" data-i="${esc(initials(p.name))}">${p.avatar?`<img src="${esc(p.avatar)}" alt="" decoding="async" ${p.alt&&p.alt!==p.avatar?`data-alt="${esc(p.alt)}"`:''} onerror="var a=this.dataset.alt;if(a){this.removeAttribute('data-alt');this.src=a;}else this.remove()">`:''}</span><b>${esc(p.name)}</b><small>${esc(p.role)}</small></li>`).join('')}</ul>`;};
-  if(!peopleData||peopleData.g!==g){try{const c=JSON.parse(localStorage.getItem('hub-people-'+g)||'null');if(c&&c.d)peopleData={g,d:c.d};}catch(_){}}
+    box.innerHTML=`<h3>${esc(H.team!==ALL&&(H.team.short||H.team.Name)?(H.team.short||H.team.Name)+' Team':d.name)}</h3><ul>${d.people.map(p=>`<li><span class="hub-avatar" data-i="${esc(initials(p.name))}">${p.avatar?`<img src="${esc(p.avatar)}" alt="" decoding="async" ${p.alt&&p.alt!==p.avatar?`data-alt="${esc(p.alt)}"`:''} onerror="var a=this.dataset.alt;if(a){this.removeAttribute('data-alt');this.src=a;}else this.remove()">`:''}</span><b>${esc(p.name)}</b><small>${esc(p.role)}</small></li>`).join('')}</ul>`;};
+  if(!peopleData||peopleData.g!==g){try{const c=JSON.parse(localStorage.getItem('hub-people2-'+g)||'null');if(c&&c.d)peopleData={g,d:c.d};}catch(_){}}
   if(peopleData&&peopleData.g===g)paint(peopleData.d);
   loadPeople(g).then(d=>paint(d),()=>{});
 }
@@ -187,7 +195,7 @@ function drawPeople(el){
 const peopleLoads=new Map();
 function loadPeople(g){
   if(!peopleLoads.has(g))peopleLoads.set(g,call('hub-people',{group:g}).then(d=>{
-    peopleData={g,d};try{localStorage.setItem('hub-people-'+g,JSON.stringify({d}));}catch(_){}
+    peopleData={g,d};try{localStorage.setItem('hub-people2-'+g,JSON.stringify({d}));}catch(_){}
     d.people.forEach(p=>{if(p.avatar){const i=new Image();i.src=p.avatar;}if(p.alt){const j=new Image();j.src=p.alt;}});return d;},e=>{peopleLoads.delete(g);throw e;}));
   return peopleLoads.get(g);
 }
@@ -262,7 +270,7 @@ H.fitTable=fitTable;
   document.querySelectorAll('table').forEach(queue);
 })();
 /** CFS leaders always sit at the end of any people list, in this order (no visual marking). Non-leaders keep their incoming order. */
-const LEADER_NAMES=['Amit Kumar','Azeem Mohammad','Jayant Kumar','Ram Mantripragada','Venkat Venkatnarayan','Pramit Bhuyan','Karthik Sethuraman','Bhanu Kasiraju'];
+const LEADER_NAMES=['Azeem Mohammad','Jayant Kumar','Ram Mantripragada','Venkat Venkatnarayan','Pramit Bhuyan','Karthik Sethuraman','Bhanu Kasiraju','Amit Kumar'];
 H.leaderRank=name=>LEADER_NAMES.indexOf(String(name||'').trim());
 H.sortPeople=(list,nameOf=x=>x.name)=>[...list.filter(x=>H.leaderRank(nameOf(x))<0),...list.filter(x=>H.leaderRank(nameOf(x))>=0).sort((a,b)=>H.leaderRank(nameOf(a))-H.leaderRank(nameOf(b)))];
 /** Custom dropdown that replaces a native <select>'s OS popup so the menu matches the app (chips, radius, brand colours). The select stays in the DOM as the source of truth. */
@@ -323,9 +331,7 @@ function setFocus(on){
 H.focus=()=>document.body.classList.contains('focus-mode');
 H.setFocus=setFocus;
 document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement&&H.focus())setFocus(false);});
-(function(){const b=document.createElement('button');b.id='focus-toggle';b.type='button';b.className='focus-toggle';b.setAttribute('aria-pressed','false');
-  b.innerHTML='<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 7V3h4M13 3h4v4M17 13v4h-4M7 17H3v-4"/></svg><span>Full screen</span>';
-  b.onclick=()=>setFocus(!H.focus());document.body.appendChild(b);})();
+
 /** Escape clears the innermost active filter/selection of the current page, one level per press (Release Review keeps its own Escape handling). */
 const escHandlers=new Map();
 H.onEsc=(id,fn)=>escHandlers.set(id,fn);
@@ -365,12 +371,11 @@ function renderHome(el){
     .catch(e=>{if(H.current==='home')el.insertAdjacentHTML('afterbegin',`<p class="note error">Could not load team summary: ${esc(e.message)}</p>`);});
 }
 H.register({id:'home',label:'Team Hub',icon:'home',tone:'violet',desc:'Team hub',render:renderHome});
-H.register({id:'epics',label:'Release Review',icon:'scope',tone:'green',desc:'Release epics, health and monthly updates',legacy:'overview',stat:()=>({text:'Release review · health and monthly updates'})});
+H.register({id:'epics',label:'Release Review (Monthly)',icon:'scope',tone:'green',desc:'Release epics, health and monthly updates',legacy:'overview',stat:()=>({text:'Release review · health and monthly updates'})});
 H.register({id:'status',label:'V2MOM Updates',icon:'ai',tone:'violet',desc:'V2MOM executive updates',legacy:'executive',stat:()=>({text:'V2MOM executive summary and leadership update'})});
 function soon(id,label,ic,tone,desc){
   H.register({id,label,icon:ic,tone,desc,soon:true,render:el=>{el.innerHTML=`<section class="hub-soon-page">${icon(ic,tone)}<h2>${esc(label)}</h2><span class="hub-soon">Coming soon</span><p>${esc(desc)}. This page is on the roadmap and will plug into the same team filter and GUS-backed data.</p><button class="button primary" data-go="home">Back to overview</button></section>`;}});
 }
-soon('links','Quick Links','link','teal','Curated dashboards, runbooks and release resources');
 
 // ── Boot ────────────────────────────────────────────────────────────────────
 function route(){const id=(location.hash.match(/^#\/([a-z]+)/)||[])[1];H.go(id||'home',{silent:true});}

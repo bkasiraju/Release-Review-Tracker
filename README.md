@@ -179,7 +179,7 @@ Release Intelligence opens on a tile-based hub. A **team filter** in the top bar
 | TDs (incoming/outgoing) | `ADM_Team_Dependency__c` |
 | Rotations (PD, Trust Hero) | rota saved in GUS Apps (ContentStore `settings`); import by pasting the Slack rota message — the backend cannot read Slack history |
 | Epics / Status Report | existing release review and V2MOM views |
-| Test Failures, Quick Links | placeholders ("coming soon") |
+| Test Failures | placeholders ("coming soon") |
 
 Inline edits (work status/priority/assignee/points, TD status/deliver-by, sprint items) are optimistic and sent as **delta** updates through the allow-listed `gus-update` action (`backend/hub.js` `WRITABLE`), one parallel request per flush. Add a page: `Hub.register({id,label,icon,tone,desc,render(el,Hub)})` in a new `public/*.js`, add the id to `NAV` in `public/hub.js`, add backend actions in `backend/hub.js`.
 
