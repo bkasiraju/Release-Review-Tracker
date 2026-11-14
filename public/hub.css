@@ -668,3 +668,6 @@ body[data-hub=home] .hub-tile-chips{margin-top:auto}
 .pl-grid-wrap .pl-grid td.c-name input,.pl-grid-wrap .pl-grid td.c-ws input{width:100%!important;min-width:220px!important}
 .pl-grid-wrap .pl-grid td.c-sprint input{width:104px!important}
 .pl-grid-wrap .pl-grid td.c-estimate input,.pl-grid-wrap .pl-grid td.c-days input,.pl-grid-wrap .pl-grid .pl-days{width:52px!important;min-width:0!important;max-width:52px}
+/* plan47: planning window sits at the right end of the tab bar; epic effort is a read-only roll-up */
+.pl-tabs{align-items:center}.pl-tabs .pl-dates{margin-left:auto;display:flex;align-items:center;gap:8px;padding-bottom:4px}.pl-tabs .pl-dates label{display:flex;align-items:center;gap:8px;font-weight:600;color:#16324a}
+.pl-ro{display:inline-block;min-width:34px;padding:5px 8px;border-radius:6px;background:#eef3f8;color:#16324a;font-weight:700;text-align:right}

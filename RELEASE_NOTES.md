@@ -1,3 +1,11 @@
+## Unreleased on top of 4.0.0-GA (plan47) — ATL-only effort roll-up and planner layout
+
+- New epics default to the latest planned release (highest trailing number in the release name).
+- Epic est. and WS est. columns are now adjacent. Epic est. is read-only: the sum of its workstreams' effort, counted only when the epic is ABL. BTL epics show 0.
+- Available/headroom/engineer-bandwidth and summary totals use workstream effort of ABL epics only; BTL and the old epic-level fallback estimate are ignored.
+- GUS save writes the epic-level sum to Planned Story Points on the Epic; Priority (P0 = 0, P1 = 1 …) was already saved as the numeric Priority field.
+- The Planning window dates moved to the right end of the tab bar.
+
 ## Unreleased on top of 4.0.0-GA (plan46) — planner grid column widths
 
 - Epic Name and Workstream / Feature share all spare width; every other column shrinks to its content with 8px side padding, so gaps between columns are small. The grid fills the page width and no longer uses fixed per-column pixel widths.
