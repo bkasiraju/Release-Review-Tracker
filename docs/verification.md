@@ -890,3 +890,5 @@ Automatic approval review rejected an attempted reuse of a named existing browse
 Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on stub harness: tab renders, live KPI/theme/engineer recompute, 9-tile hub grid. Not verified: live GUS create/update of PPM_Project__c and ADM_Epic__c; first real commit should be previewed and reviewed by the user.
 
 - plan23: grid-only Release Planning, project strip, active-tab-only nav, Planner/Summary tab names, theme card and Saved epics columns — verified on the local harness (screenshots at 1500px) only.
+
+- plan24: Planned Release Summary theme donut, priority/theme cards and executive epic cards; epic/theme dialogs open — local harness only.

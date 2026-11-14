@@ -1,3 +1,8 @@
+## Unreleased on top of 4.0.0-GA (plan24) — Planned Release Summary dashboard panels
+
+- Removed the "By planned release / By status" card. Planned Release Summary now follows the MAPS release-plan dashboard: **Theme Payload Distribution** donut (planned pts, all-themes legend), **Priority & Strategic Investment Breakdown** (P0–P3+/BTL bar and tinted theme cards) and a collapsible **Executive Epics Summary** (above-the-line epic cards with workstreams and owner). Slices, themes, priority labels and epics open a full-screen detail dialog; Planning health and Saved epics remain.
+- Built from the supplied screenshots (the sheet's dashboard tab exposes no readable code). "pts" are the plan's days, which is what is written to Planned Story Points. Verified on the local harness only. Cache-bust `4.0.0-GA-plan24`.
+
 ## Unreleased on top of 4.0.0-GA (plan23) — navigation restructure, grid-only Release Planning
 
 - "Open in GUS" bar sits below each page heading (title left, actions right, one line). Tabs reordered: Team Hub, Release Review (Monthly), Release Planning (Quarterly), Sprints, Team Dependencies, Test Failures, Trust Champion, Bugs, V2MOM Updates. Quick Links removed. The tab bar shows only the active tab; the rail switches pages; the breadcrumb reads `<Team> / <Tab>`; the Team Hub people heading follows the team dropdown.
