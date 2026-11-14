@@ -930,3 +930,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan44: items/SP labels on group chips — local harness screenshot only.
 
 - plan45: Release Planning team dropdown — local harness: switching to MAPS reloaded the page and breadcrumb; unsaved edits were not tested across a switch (plan saves automatically).
+
+- plan46: planner grid column sizing — local harness screenshot at 1900px only; very narrow windows and every optional column (Theme, Doc, V2MOM…) not checked.

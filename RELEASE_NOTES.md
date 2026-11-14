@@ -1,3 +1,7 @@
+## Unreleased on top of 4.0.0-GA (plan46) — planner grid column widths
+
+- Epic Name and Workstream / Feature share all spare width; every other column shrinks to its content with 8px side padding, so gaps between columns are small. The grid fills the page width and no longer uses fixed per-column pixel widths.
+
 ## Unreleased on top of 4.0.0-GA (plan45) — team selector on Release Planning
 
 - A highlighted Team dropdown sits left of the Planning window and shows whose release plan this is. Changing it switches the whole app's team (same as the header picker), so the plan, summary and breadcrumb reload for that team.
