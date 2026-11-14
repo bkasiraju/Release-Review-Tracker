@@ -806,3 +806,9 @@ body[data-ready] #hub-boot{display:flex}
 .pl-back svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:transform .15s}
 .pl-back:hover{transform:translateY(-1px);box-shadow:0 8px 18px rgba(23,107,145,.45)}.pl-back:hover svg{transform:translateX(-3px)}
 .pl-back:focus-visible{outline:2px solid #176b91;outline-offset:2px}
+
+/* plan72: Projects popover stays inside the page (right-aligned to the button, never wider than the viewport) */
+.pl-pwrap .pl-pmenu{left:auto;right:0;width:min(520px,calc(100vw - 32px));max-width:calc(100vw - 32px)}
+.pl-pmenu .pl-pchip{display:flex;align-items:center;gap:6px;min-width:0}
+.pl-pmenu .pl-pname{flex:1 1 140px;min-width:0}.pl-pmenu .pl-pshort{flex:0 1 110px;min-width:0}
+@media (max-width:760px){.pl-pwrap .pl-pmenu{position:fixed;left:16px;right:16px;top:auto;width:auto}}

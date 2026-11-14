@@ -1,3 +1,8 @@
+## Unreleased on top of 4.0.0-GA (plan72) — BTL epics force BTL workstreams; Projects popover stays on the page
+
+- An epic marked BTL now treats every workstream under it as BTL (client display, effort/ABL totals, and backend review/commit). The workstream is the unit; the epic is the group.
+- The Projects popover is right-aligned to its button and capped to the viewport width (full-width sheet on narrow windows), so it no longer runs off the right edge. Name and short-form fields shrink to fit.
+
 ## Unreleased on top of 4.0.0-GA (plan71) — Back button moved to the tab row
 
 - "Back to Release Intelligence" now sits at the far top-right of the page-tab row (same row as the Release Planning tab) instead of inside the header actions.

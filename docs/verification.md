@@ -976,3 +976,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan70: overlay seen in a local headless screenshot (blurred shell, centred spinner); fade-out and end-of-load timing on real data not observed.
 
 - plan71: Back button in tab row, far right (local harness, headless Chrome, normal and focus mode: right edge 1674/1700, same row as tab, click returns to #/home and button removed). Not verified on the live app.
+
+- plan72: BTL epic forces BTL workstreams; Projects popover within viewport (local harness, headless Chrome at 1000 and 1700 px wide: popover 362-882/1000, 1062-1582/1700). Not verified on the live app.

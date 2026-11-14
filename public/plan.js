@@ -232,7 +232,7 @@ function workdays(start,end){
   return n;
 }
 const themeOf=pr=>(pr&&(pr.theme||(/^[^:]{1,30}:/.test(pr.name||'')?pr.name.split(':')[0].trim():'')))||'Unthemed';
-const wl=(e,w)=>(w&&w.line)||e.line;
+const wl=(e,w)=>e.line==='BTL'?'BTL':(w&&w.line)||e.line;
 const deriveLine=e=>{e.line=e.workstreams.some(w=>wl(e,w)==='ABL')?'ABL':'BTL';};
 const epicDays=e=>r2(e.workstreams.filter(w=>wl(e,w)==='ABL').reduce((a,w)=>a+(w.days||0),0));
 const epicTheme=e=>e.theme||themeOf((P.plan.projects.find(p=>p.id===e.projectId))||null);

@@ -5,7 +5,7 @@ const SF_ID = /^[a-zA-Z0-9]{15,18}$/, ISO = /^\d{4}-\d{2}-\d{2}$/, LOCAL = /^[A-
 const MAX = { projects: 80, epics: 300, workstreams: 40, people: 200 };
 const planKey = teamId => { if (!SF_ID.test(String(teamId || ''))) throw new Error('Unknown team'); return 'plan-' + teamId; };
 const text = (v, n) => String(v == null ? '' : v).trim().slice(0, n);
-const wsLine = (e, w) => w.line || e.line;
+const wsLine = (e, w) => (e.line === 'BTL' ? 'BTL' : (w.line || e.line));
 const effortOf = (e, includeBtl) => Math.round(e.workstreams.filter(w => includeBtl || wsLine(e, w) === 'ABL').reduce((a, w) => a + w.days, 0) * 100) / 100;
 const days = v => { const n = Number(v); return Number.isFinite(n) && n > 0 ? Math.min(Math.round(n * 100) / 100, 1000) : 0; };
 const gid = v => SF_ID.test(String(v || '')) ? String(v) : '';
