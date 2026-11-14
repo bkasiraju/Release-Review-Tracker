@@ -1,3 +1,8 @@
+## Unreleased on top of 4.0.0-GA (plan69) — + Epic / + Project popups before Columns
+
+- The project strip above the grid is gone. + Epic, + Project and Projects ▾ now sit just before Columns; nothing opens until clicked.
+- + Epic opens a small popup (Project, Epic name, Planned release, ATL/BTL) and adds the epic at the end of the grid. + Project keeps its Measure name / Short form popup. Projects ▾ opens a small menu to rename, edit the short form of, or delete projects.
+
 ## Unreleased on top of 4.0.0-GA (plan66–plan68) — Loading screen, ATL/BTL per workstream, column picker, new epics at the end
 
 - First load keeps the loading screen up until the page stops changing, so sections no longer appear and jump; the gap between the tab and the content below is removed.

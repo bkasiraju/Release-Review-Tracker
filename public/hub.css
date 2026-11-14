@@ -782,3 +782,11 @@ body[data-settled] main>*:not(#hub-boot){animation:riIn .25s ease-out}
 .pl-cols-menu{max-height:min(70vh,520px);overflow-y:auto}
 .pl-cols-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;position:sticky;bottom:-6px;background:#fff;border-top:1px solid #e1e8ef;margin-top:4px;padding:8px 4px 4px}
 .pl-cols-foot .pl-cols-reset{margin:0;border:0;padding:4px}
+
+/* plan69: + Epic / + Project / Projects sit before Columns; popups only open on click */
+.pl-grid-tools{display:flex;justify-content:flex-end;align-items:center;gap:8px;flex-wrap:wrap}
+.pl-tl{display:inline-flex;gap:8px;align-items:center}.pl-tl .button,.pl-cols .button{height:32px;padding:0 12px}
+.pl-pwrap{position:relative}
+.pl-pmenu{position:absolute;left:0;top:36px;z-index:30;width:max-content;max-width:min(560px,90vw);max-height:min(60vh,420px);overflow:auto;background:#fff;border:1px solid #cfd9e3;border-radius:10px;box-shadow:0 8px 24px rgba(10,30,60,.18);padding:10px;display:flex;flex-direction:column;gap:6px}
+.pl-pmenu>b{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:#176b91}.pl-pmenu .note{margin:2px 0 0;font-size:11px}
+.pl-newproj select.hub-inline{width:100%;height:30px}
