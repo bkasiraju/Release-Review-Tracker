@@ -952,3 +952,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan55: action order and title link — local harness: after switching to MAPS, clicking the title opened Team Hub with MAPS still selected. The page heading and tab already render on the harness; the missing heading in the user's screenshot was not reproduced.
 
 - plan56: planner tabs and grid dropdowns — local harness screenshot only; icon animation checked by CSS, not as motion; open dropdown list not viewed.
+
+- plan57: page tab shown in focus mode and flush with content; verified by headless screenshots of Home and Plan on the local harness only.

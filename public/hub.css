@@ -200,7 +200,7 @@ body[data-hub=home] #overview-panel{display:none!important}
 .focus-toggle{position:fixed;top:10px;right:14px;z-index:70;display:inline-flex;align-items:center;gap:6px;border:1px solid #c9d3df;background:#fff;color:#176b91;border-radius:999px;padding:5px 12px;font-size:12px;font-weight:600;box-shadow:0 2px 8px #0f1b2a22;transition:transform .15s,background .15s}
 .focus-toggle:hover{background:#edf5fa;transform:translateY(-1px)}.focus-toggle svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 body.focus-mode .focus-toggle{background:#176b91;color:#fff;border-color:#0b5a8a}
-body.focus-mode .rail,body.focus-mode .topbar,body.focus-mode .page-heading,body.focus-mode .dashboard-footer,body.focus-mode .bottom-note,body.focus-mode #hub-nav,body.focus-mode .legacy-nav{display:none!important}
+body.focus-mode .rail,body.focus-mode .topbar,body.focus-mode .page-heading,body.focus-mode .dashboard-footer,body.focus-mode .bottom-note,body.focus-mode .legacy-nav{display:none!important}
 body.focus-mode .workspace{margin-left:0}
 body.focus-mode main{padding-top:44px}
 body.focus-mode .dashboard-bar{padding-top:0}
@@ -720,3 +720,11 @@ body[data-hub=home] .hub-tile-chips{margin-top:auto}
 .pl-grid .cs-btn{border-color:transparent!important;background:transparent!important;box-shadow:none!important}
 .pl-grid .cs-btn:hover,.pl-grid .cs.open .cs-btn,.pl-grid .cs-btn:focus-visible{background:#f2f7fb!important;border-color:#c9dcec!important}
 .pl-grid .cs-btn svg{stroke:#7b8ba0;opacity:.9}
+
+/* plan57: the page tab stays visible in focus mode and sits flush on the content it holds */
+body.focus-mode .dashboard-bar{display:flex;padding-top:0;margin:0}
+body.focus-mode #hub-nav{display:flex!important;margin:0}
+body.focus-mode main{padding-top:36px}
+.dashboard-bar{margin-bottom:0!important;padding-bottom:0!important}
+.dashboard-bar .hub-nav{align-self:stretch;width:100%;margin-bottom:0}
+#hub-page>.executive-heading:first-child{margin-top:0;padding-top:10px}

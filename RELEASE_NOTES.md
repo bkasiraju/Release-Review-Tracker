@@ -1,3 +1,8 @@
+## Unreleased on top of 4.0.0-GA (plan57) — Page tab visible on the planner, flush with its content
+
+- The page tab (Release Planning (Quarterly), Team Hub, etc.) is no longer hidden in full-screen/focus mode, so the planner shows its tab like the other pages.
+- The gap between the tab and the content below is removed so the tab sits directly on the content it holds.
+
 ## Unreleased on top of 4.0.0-GA (plan56) — coloured planner tabs and borderless grid dropdowns
 
 - Release Planner / Planned Release Summary tabs are now pill tabs like Standup and Pulse: green and teal tile colours, an icon on each, and the active tab's icon animates (reduced-motion respected).
