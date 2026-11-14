@@ -84,7 +84,7 @@ function drawPlanner(){
   el.innerHTML=`<datalist id="pl-projects">${P.refs.projects.map(p=>`<option value="${esc(p.name)}"></option>`).join('')}</datalist><datalist id="pl-sprints">${P.refs.sprints.map(s=>`<option value="${esc(s.name)}"></option>`).join('')}</datalist>`+
     (pl.projects.length?pl.projects.map(proj).join(''):'<div class="empty-state hub-empty"><h3>No projects yet</h3><p>Add a project, then epics and workstreams with effort in days.</p></div>');
 }
-function draw(){drawSummary();drawPlanner();}
+function draw(){drawSummary();drawPlanner();P.el.querySelectorAll('#pl-planner select').forEach(s=>H.customSelect(s));}
 
 // ── Edits ───────────────────────────────────────────────────────────────────
 const findE=id=>P.plan.epics.find(e=>e.id===id),findP=id=>P.plan.projects.find(p=>p.id===id);

@@ -48,3 +48,5 @@ Every requested change follows this sequence end to end without asking the user 
 `public/plan.js` (client) + `backend/plan.js` (actions `plan-get|plan-save|plan-refs|plan-commit`). Draft stored as settings key `plan-<teamId>`. Only ABL epics are written to GUS (project -> program, epic -> project + planned release, days -> `Planned_Story_Points__c`); everything else is dashboard-only. Leaders are excluded from capacity via `H.leaderRank(name)`.
 
 Release Planning is the last NAV entry; hub.js intercepts its tab/tile/rail click and opens `#/plan?full` in a new tab (`H.standalone` then enables focus mode).
+
+Only user-level local preference: default team (`cfs.hub.defaultTeam`, localStorage). Do not add other browser-stored preferences without being asked.

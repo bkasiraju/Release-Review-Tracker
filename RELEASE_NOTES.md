@@ -1,3 +1,8 @@
+## Unreleased — default team, future releases only, planner dropdowns
+
+- **Default team:** a star next to each team in the team dropdown (or `D` while open) sets or clears the default team, saved in this browser's localStorage (`cfs.hub.defaultTeam`) and applied on load. It is the only user preference stored locally; the old implicit last-selected-team key is removed. Release Planning's new tab receives the current team in its URL.
+- **Release Planning:** the planned-release picker lists only releases that have not ended (`End_Date__c >= TODAY`); the planner's release, project and engineer dropdowns now use the same custom dropdown as the team picker. Cache-bust `4.0.0-GA-plan7`.
+
 ## Unreleased — Release Planning: automatic program tagging, validation at save
 
 The Program field is gone from the planner. On save to GUS, new projects are tagged automatically to the team's `<Team> - 268` program (looked up in GUS; existing GUS projects keep theirs). If a team has no such program (Caching Services today) the review blocks with a clear message. The planner itself is free text with no live validation; every check (epic name, project, planned release, effort > 0, program) runs when Review & save to GUS is clicked and is listed per epic. Cache-bust `4.0.0-GA-plan6`.

@@ -325,3 +325,10 @@ body[data-hub=home] .hub-tile .hub-tile-chips span{font-size:10px;line-height:1.
 .pl-proj .pl-ws-r input.hub-inline,.pl-proj .pl-ws-r select.sp-select{width:100%;max-width:none}
 .pl-proj .pl-pname{flex:2 1 300px;width:auto;max-width:none}.pl-proj .pl-prog{flex:1 1 200px;width:auto;max-width:none}.pl-proj .pl-theme{flex:1 1 150px;width:auto;max-width:none}
 .pl-proj .pl-ename{flex:2 1 260px;width:auto;max-width:none}.pl-proj .pl-pri{width:64px;flex:0 0 64px}
+.cs-menu li .cs-t{flex:1}
+.cs-star{margin-left:14px;font-size:15px;line-height:1;color:#8a96a6;padding:0 2px;border-radius:4px}.cs-star:hover{color:#c28800}.cs-star.on{color:#c28800}
+/* custom selects inside the planner */
+.pl-proj .cs{display:block;min-width:0}.pl-ws-r .cs{width:100%}.pl-ws-r .cs-btn{width:100%}
+.pl-proj .cs-btn{min-height:32px;min-width:0;font-weight:600;font-size:13px}.pl-proj .cs-btn span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pl-epic-h .cs{flex:0 1 190px}.pl-epic-h .cs-btn{width:100%}
+.pl-proj .cs-menu{right:auto;left:0;min-width:100%;max-width:340px}

@@ -6,7 +6,9 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const icon=(n,t)=>window.ReviewIcons?window.ReviewIcons.icon(n,t):'';
 const call=(a,d)=>window.api(a,d);
-const LS='cfs.hub.team';
+// The default team is the only user-level preference kept in this browser (localStorage); nothing else is stored locally.
+const LS='cfs.hub.defaultTeam';
+try{localStorage.removeItem('cfs.hub.team');}catch{/* private mode */} // retired: last-selected team was remembered implicitly
 const ALL={Id:'all',Name:'All CFS teams',short:'All teams'};
 const H={teams:[],team:ALL,pages:new Map(),current:null,esc,icon,call,GUS:'https://gus.lightning.force.com/lightning/r/'};
 const listeners=new Set();
@@ -14,11 +16,12 @@ const listeners=new Set();
 // ── Team context ────────────────────────────────────────────────────────────
 const keyFor=t=>t.short==='MQ'?/message queue|\bmq\b/i:t.short==='MAPS'?/\bmaps\b|managed async/i:new RegExp(String(t.Name).split(/\s+/)[0].replace(/[^a-z0-9]/gi,''),'i');
 H.teamMatches=name=>H.team.Id==='all'||!name||keyFor(H.team).test(String(name));
+H.defaultTeam=()=>{try{return localStorage.getItem(LS);}catch{return null;}};
+H.setDefaultTeam=id=>{try{if(id&&id!==H.defaultTeam())localStorage.setItem(LS,id);else localStorage.removeItem(LS);}catch{window.toast?.('Browser storage is unavailable, so the default team cannot be saved.',true);}};
 H.hasTeam=()=>H.team.Id!=='all';
 H.onTeam=fn=>{listeners.add(fn);return()=>listeners.delete(fn);};
 H.setTeam=id=>{
   H.team=H.teams.find(t=>t.Id===id)||ALL;
-  try{localStorage.setItem(LS,H.team.Id);}catch{/* private mode */}
   $('hub-team').value=H.team.Id;H.syncSelects();
   window.dispatchEvent(new Event('hub:team'));
   for(const fn of listeners)fn(H.team);
@@ -251,6 +254,9 @@ const LEADER_NAMES=['Amit Kumar','Azeem Mohammad','Jayant Kumar','Ram Mantriprag
 H.leaderRank=name=>LEADER_NAMES.indexOf(String(name||'').trim());
 H.sortPeople=(list,nameOf=x=>x.name)=>[...list.filter(x=>H.leaderRank(nameOf(x))<0),...list.filter(x=>H.leaderRank(nameOf(x))>=0).sort((a,b)=>H.leaderRank(nameOf(a))-H.leaderRank(nameOf(b)))];
 /** Custom dropdown that replaces a native <select>'s OS popup so the menu matches the app (chips, radius, brand colours). The select stays in the DOM as the source of truth. */
+// one outside-click listener for every custom select (the planner re-creates its selects on each redraw)
+const csOpen=new Set();
+document.addEventListener('mousedown',e=>{for(const c of csOpen){if(!c.w.isConnected)csOpen.delete(c);else if(!c.w.contains(e.target))c.close();}});
 H.customSelect=sel=>{
   if(sel._cs){sel._cs.sync();return;}
   const w=document.createElement('div'),btn=document.createElement('button'),menu=document.createElement('ul');
@@ -261,25 +267,26 @@ H.customSelect=sel=>{
   const opts=()=>[...sel.options];
   const sync=()=>{
     const o=sel.options[sel.selectedIndex];btn.innerHTML=`<span>${esc(o?o.text:'')}</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 8l5 5 5-5"/></svg>`;
-    menu.innerHTML=opts().map((x,i)=>`<li role="option" data-i="${i}" aria-selected="${i===sel.selectedIndex}" class="${i===sel.selectedIndex?'on':''}"><i aria-hidden="true">${i===sel.selectedIndex?'✓':''}</i>${esc(x.text)}</li>`).join('');
+    menu.innerHTML=opts().map((x,i)=>`<li role="option" data-i="${i}" aria-selected="${i===sel.selectedIndex}" class="${i===sel.selectedIndex?'on':''}"><i aria-hidden="true">${i===sel.selectedIndex?'✓':''}</i><span class="cs-t">${esc(x.text)}</span>${sel.dataset.pref?`<span class="cs-star${x.value===H.defaultTeam()?' on':''}" role="button" data-star="${i}" title="${x.value===H.defaultTeam()?'Default team (click to clear)':'Set as default team'}" aria-label="${x.value===H.defaultTeam()?'Clear default team':'Set '+esc(x.text)+' as default team'}">${x.value===H.defaultTeam()?'★':'☆'}</span>`:''}</li>`).join('');
   };
   const mark=i=>{act=i;[...menu.children].forEach((li,k)=>li.classList.toggle('act',k===i));menu.children[i]?.scrollIntoView({block:'nearest'});};
   const open=()=>{w.classList.add('open');btn.setAttribute('aria-expanded','true');mark(sel.selectedIndex);};
   const close=()=>{w.classList.remove('open');btn.setAttribute('aria-expanded','false');};
   const pick=i=>{if(i<0||!sel.options[i])return;if(sel.selectedIndex!==i){sel.selectedIndex=i;sel.dispatchEvent(new Event('change',{bubbles:true}));}sync();close();btn.focus();};
   btn.onclick=()=>w.classList.contains('open')?close():open();
-  menu.onclick=e=>{const li=e.target.closest('li');if(li)pick(+li.dataset.i);};
+  menu.onclick=e=>{const st=e.target.closest('[data-star]');if(st){e.stopPropagation();const o=sel.options[+st.dataset.star];H.setDefaultTeam(o.value);sync();window.toast?.(H.defaultTeam()===o.value?`${o.text} is now your default team`:'Default team cleared');return;}const li=e.target.closest('li');if(li)pick(+li.dataset.i);};
   menu.onmousemove=e=>{const li=e.target.closest('li');if(li&&+li.dataset.i!==act)mark(+li.dataset.i);};
   btn.onkeydown=e=>{
     const n=opts().length,isOpen=w.classList.contains('open');
     if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();if(!isOpen)return open();mark(Math.min(Math.max((act<0?sel.selectedIndex:act)+(e.key==='ArrowDown'?1:-1),0),n-1));}
     else if(e.key==='Home'&&isOpen){e.preventDefault();mark(0);}else if(e.key==='End'&&isOpen){e.preventDefault();mark(n-1);}
     else if((e.key==='Enter'||e.key===' ')&&isOpen){e.preventDefault();pick(act);}
+    else if((e.key==='d'||e.key==='D')&&isOpen&&sel.dataset.pref&&act>=0){const o=sel.options[act];H.setDefaultTeam(o.value);sync();mark(act);}
     else if(e.key==='Tab')close();
   };
   // A wrapping <label for> would re-click the hidden native select after every pick and pop the OS menu open again
   const lab=sel.closest('label');if(lab)lab.addEventListener('click',e=>{e.preventDefault();if(!w.contains(e.target))btn.focus();});
-  document.addEventListener('mousedown',e=>{if(!w.contains(e.target))close();});
+  csOpen.add({w,close});
   sel._cs={sync,close};sync();
 };
 H.syncSelects=()=>document.querySelectorAll('select.cs-native').forEach(s=>s._cs&&s._cs.sync());
@@ -359,16 +366,16 @@ async function boot(){
   installCache();
   document.addEventListener('click',e=>{const g=e.target.closest('[data-go],[data-page]');if(g){e.preventDefault();const id=g.dataset.go||g.dataset.page;
     // Release Planning is a workspace of its own: open it full screen in a new browser tab (it renders in place once there)
-    if(id==='plan'&&H.current!=='plan'&&!H.standalone){if(!window.open(location.href.split('#')[0]+'#/plan?full','_blank'))H.go(id);return;}
+    if(id==='plan'&&H.current!=='plan'&&!H.standalone){if(!window.open(location.href.split('#')[0]+'#/plan?full&team='+encodeURIComponent(H.team.Id),'_blank'))H.go(id);return;}
     H.go(id);}});
   window.addEventListener('popstate',route);
   $('hub-team').addEventListener('change',e=>H.setTeam(e.target.value));
   try{
     const r=await call('hub-teams',{});H.teams=r.teams;
     $('hub-team').innerHTML=[ALL,...H.teams].map(t=>`<option value="${esc(t.Id)}">${esc(t.short||t.Name)}</option>`).join('');
-    let saved=null;try{saved=localStorage.getItem(LS);}catch{/* ignore */}
-    H.team=H.teams.find(t=>t.Id===saved)||H.teams.find(t=>t.Id===r.primaryTeamId)||H.teams[0]||ALL;
-    $('hub-team').value=H.team.Id;H.customSelect($('hub-team'));
+    let saved=null;try{saved=(location.hash.match(/^#\/plan\?full&team=([A-Za-z0-9]+)/)||[])[1]||H.defaultTeam();}catch{/* ignore */}
+    H.team=saved==='all'?ALL:H.teams.find(t=>t.Id===saved)||H.teams.find(t=>t.Id===r.primaryTeamId)||H.teams[0]||ALL;
+    $('hub-team').value=H.team.Id;$('hub-team').dataset.pref='1';H.customSelect($('hub-team'));
   }catch(e){window.toast?.('Team list unavailable: '+e.message,true);}
   window.dispatchEvent(new Event('hub:team'));
   H.standalone=/^#\/plan\?full/.test(location.hash);
