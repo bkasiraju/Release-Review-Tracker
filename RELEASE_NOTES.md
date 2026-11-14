@@ -1,3 +1,7 @@
+## Unreleased — Release Planning program picker
+
+The Program picker lists only the `<Team> - 268` programs (constant `PROGRAM_RELEASE` in `backend/plan.js`), narrowed to the selected team (MAPS, MQ, VegaCache, VegaCache FACE, VegaStore). Teams with no matching program (Caching Services) see all five. Bump `PROGRAM_RELEASE` for the next release. Cache-bust `4.0.0-GA-plan4`.
+
 ## Unreleased — On-call effort in Release Planning
 
 The leaves popup (now "Leaves, holidays & on-call") has an On-call (days) column per engineer, saved in the plan's `people` entry (`oncall`). Available = working days − leave − holidays − on-call. On-call is dashboard-only, not written to GUS. Cache-bust `4.0.0-GA-plan3`.
