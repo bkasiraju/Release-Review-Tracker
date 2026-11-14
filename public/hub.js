@@ -16,8 +16,20 @@ const listeners=new Set();
 // ── Team context ────────────────────────────────────────────────────────────
 const keyFor=t=>t.short==='MQ'?/message queue|\bmq\b/i:t.short==='MAPS'?/\bmaps\b|managed async/i:new RegExp(String(t.Name).split(/\s+/)[0].replace(/[^a-z0-9]/gi,''),'i');
 H.teamMatches=name=>H.team.Id==='all'||!name||keyFor(H.team).test(String(name));
-H.defaultTeam=()=>{try{return localStorage.getItem(LS);}catch{return null;}};
-H.setDefaultTeam=id=>{try{if(id&&id!==H.defaultTeam())localStorage.setItem(LS,id);else localStorage.removeItem(LS);}catch{window.toast?.('Browser storage is unavailable, so the default team cannot be saved.',true);}};
+// localStorage first; when the browser blocks it (sandboxed frame) the same preference is kept per user in the backend
+let memDefault=null,storageOk=true;
+try{localStorage.setItem('cfs.probe','1');localStorage.removeItem('cfs.probe');}catch{storageOk=false;}
+H.loadDefaultTeam=async()=>{
+  if(storageOk){try{memDefault=localStorage.getItem(LS);}catch{storageOk=false;}}
+  if(!storageOk){try{memDefault=(await call('pref-get',{})).defaultTeam||null;}catch{memDefault=null;}}
+  return memDefault;
+};
+H.defaultTeam=()=>memDefault;
+H.setDefaultTeam=id=>{
+  memDefault=id&&id!==memDefault?id:null;
+  if(storageOk){try{memDefault?localStorage.setItem(LS,memDefault):localStorage.removeItem(LS);}catch{storageOk=false;}}
+  if(!storageOk)call('pref-set',{defaultTeam:memDefault}).catch(e=>window.toast?.('Could not save the default team: '+e.message,true));
+};
 H.hasTeam=()=>H.team.Id!=='all';
 H.onTeam=fn=>{listeners.add(fn);return()=>listeners.delete(fn);};
 H.setTeam=id=>{
@@ -373,7 +385,7 @@ async function boot(){
   try{
     const r=await call('hub-teams',{});H.teams=r.teams;
     $('hub-team').innerHTML=[ALL,...H.teams].map(t=>`<option value="${esc(t.Id)}">${esc(t.short||t.Name)}</option>`).join('');
-    let saved=null;try{saved=(location.hash.match(/^#\/plan\?full&team=([A-Za-z0-9]+)/)||[])[1]||H.defaultTeam();}catch{/* ignore */}
+    let saved=null;try{const dflt=await H.loadDefaultTeam();saved=(location.hash.match(/^#\/plan\?full&team=([A-Za-z0-9]+)/)||[])[1]||dflt;}catch{/* ignore */}
     H.team=saved==='all'?ALL:H.teams.find(t=>t.Id===saved)||H.teams.find(t=>t.Id===r.primaryTeamId)||H.teams[0]||ALL;
     $('hub-team').value=H.team.Id;$('hub-team').dataset.pref='1';H.customSelect($('hub-team'));
   }catch(e){window.toast?.('Team list unavailable: '+e.message,true);}

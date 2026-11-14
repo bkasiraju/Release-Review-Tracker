@@ -1,3 +1,8 @@
+## Unreleased — default team fallback, per-team release lists
+
+- **Default team fallback:** if the browser blocks localStorage ("Unable to save locally"), the default team is saved as a per-user preference in the backend settings journal (`pref-<userId>`, actions `pref-get` / `pref-set`). localStorage is still used whenever it works.
+- **Release Planning releases** are filtered per team by name prefix across scrum teams (MAPS → MAPS 266/268, MQ → MQ 266/268), de-duplicated by name, and still limited to current and future releases. Teams with no name-matched releases fall back to their own Planned Releases list. Cache-bust `4.0.0-GA-plan8`.
+
 ## Unreleased — default team, future releases only, planner dropdowns
 
 - **Default team:** a star next to each team in the team dropdown (or `D` while open) sets or clears the default team, saved in this browser's localStorage (`cfs.hub.defaultTeam`) and applied on load. It is the only user preference stored locally; the old implicit last-selected-team key is removed. Release Planning's new tab receives the current team in its URL.

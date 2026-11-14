@@ -52,7 +52,7 @@ async function getRefs(sf, teamId) {
   planKey(teamId);
   const warnings = [], safe = (label, p) => p.then(r => (r && r.records) || [], e => { warnings.push(label + ': ' + (e && e.message || 'unavailable')); return []; });
   const [releases, programs, used, sprints] = await Promise.all([
-    safe('Planned releases', sf.query(`SELECT Id, Name FROM ADM_Planned_Release__c WHERE Team__c = '${teamId}' AND (End_Date__c >= TODAY OR End_Date__c = null) ORDER BY Start_Date__c, Name LIMIT 100`)),
+    safe('Planned releases', teamReleases(sf, teamId, true).then(r => ({ records: r }))),
     safe('Programs', sf.query(`SELECT Id, Name FROM PPM_Program__c WHERE Name LIKE '% - ${PROGRAM_RELEASE}' ORDER BY Name LIMIT 200`)),
     safe('Projects', sf.query(`SELECT Project__c p, Project__r.Name n, Project__r.Program__c g, Project__r.Program__r.Name gn FROM ADM_Epic__c WHERE Team__c = '${teamId}' AND Project__c != null GROUP BY Project__c, Project__r.Name, Project__r.Program__c, Project__r.Program__r.Name LIMIT 500`)),
     safe('Sprints', sf.query(`SELECT Name, Start_Date__c, End_Date__c FROM ADM_Sprint__c WHERE Scrum_Team__c = '${teamId}' AND End_Date__c >= LAST_N_DAYS:14 ORDER BY Start_Date__c LIMIT 16`))
@@ -67,11 +67,30 @@ async function getRefs(sf, teamId) {
 }
 
 // Validate ABL epics against the saved plan and describe exactly what a commit would do.
+async function teamShort(sf, teamId) {
+  const t = ((await sf.query(`SELECT Name FROM ADM_Scrum_Team__c WHERE Id = '${teamId}' LIMIT 1`)).records || [])[0];
+  if (!t) return null;
+  return /message queue/i.test(t.Name) ? 'MQ' : /maps|managed async/i.test(t.Name) ? 'MAPS' : String(t.Name).replace(/\s*\(.*\)/, '');
+}
+const releasePrefix = n => String(n || '').replace(/\s*-?\s*\d+\s*$/, '').trim().toLowerCase();
+
+// A team's planned releases are named "<Team> 266", "<Team> - 256" ... but GUS files some of them on a sibling scrum team
+// (e.g. MQ 268 sits on the MAPS team), so match by name across teams as well as the team's own list. Teams with no
+// name match (Caching Services) fall back to their own list.
+async function teamReleases(sf, teamId, futureOnly) {
+  const short = await teamShort(sf, teamId).catch(() => null);
+  const when = futureOnly ? ' AND (End_Date__c >= TODAY OR End_Date__c = null)' : '';
+  const own = ((await sf.query(`SELECT Id, Name FROM ADM_Planned_Release__c WHERE Team__c = '${teamId}'${when} ORDER BY Start_Date__c, Name LIMIT 100`)).records || []);
+  if (!short) return own;
+  const byName = ((await sf.query(`SELECT Id, Name FROM ADM_Planned_Release__c WHERE Name LIKE '${soql(short)} %'${when} ORDER BY Start_Date__c, Name LIMIT 100`).catch(() => ({}))).records || []);
+  const seen = new Set(), names = new Set(), mine = [...own, ...byName].filter(r => !seen.has(r.Id) && seen.add(r.Id) && releasePrefix(r.Name) === short.toLowerCase() && !names.has(r.Name) && names.add(r.Name));
+  return mine.length ? mine : own;
+}
+
 async function teamProgram(sf, teamId) {
   try {
-    const t = ((await sf.query(`SELECT Name FROM ADM_Scrum_Team__c WHERE Id = '${teamId}' LIMIT 1`)).records || [])[0];
-    if (!t) return null;
-    const short = /message queue/i.test(t.Name) ? 'MQ' : /maps|managed async/i.test(t.Name) ? 'MAPS' : String(t.Name).replace(/\s*\(.*\)/, '');
+    const short = await teamShort(sf, teamId);
+    if (!short) return null;
     const p = ((await sf.query(`SELECT Id, Name FROM PPM_Program__c WHERE Name = '${soql(short)} - ${PROGRAM_RELEASE}' LIMIT 1`)).records || [])[0];
     return p ? { id: p.Id, name: p.Name } : null;
   } catch (_) { return null; }
@@ -102,7 +121,7 @@ function review(plan, releaseIds, program) {
 async function commitPlan(sf, store, teamId, confirm) {
   planKey(teamId);
   const { plan } = await getPlan(store, teamId);
-  const rel = await sf.query(`SELECT Id FROM ADM_Planned_Release__c WHERE Team__c = '${teamId}' LIMIT 200`).then(r => new Set(((r && r.records) || []).map(x => x.Id)), () => null);
+  const rel = await teamReleases(sf, teamId, false).then(r => new Set(r.map(x => x.Id)), () => null);
   const program = await teamProgram(sf, teamId);
   const preview = review(plan, rel, program);
   if (!confirm) return { preview };

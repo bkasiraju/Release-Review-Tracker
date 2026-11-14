@@ -46,3 +46,13 @@ test('commit refuses blocked plans and a failed epic leaves no id so it can be r
   const r=await plan.commitPlan(sfMock([],{failEpic:true}),store2,T,true);assert.equal(r.failed,1);assert.equal((await plan.getPlan(store2,T)).plan.epics[0].gusId,'');
   assert.equal((await plan.getPlan(store2,T)).plan.projects[0].gusId,'a1PEE00000PRJ0001A'); // created project is remembered so the retry reuses it
 });
+test('default team preference is kept per user in the settings journal',async()=>{
+  const store=mkStore(),{handleRequest}=require('../backend'),sf={userId:'005EE00000USER001A',async query(){return {records:[]};}};
+  const call=b=>handleRequest({request:{body:b},sf,gus:{},store});
+  assert.equal((await call({action:'pref-get'})).payload.defaultTeam,null);
+  assert.equal((await call({action:'pref-set',defaultTeam:T})).ok,true);
+  assert.equal((await call({action:'pref-get'})).payload.defaultTeam,T);
+  assert.equal((await call({action:'pref-set',defaultTeam:null})).ok,true);
+  assert.equal((await call({action:'pref-get'})).payload.defaultTeam,null);
+  assert.equal((await call({action:'pref-set',defaultTeam:"x' OR 1"})).ok,false);
+});

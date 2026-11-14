@@ -49,4 +49,4 @@ Every requested change follows this sequence end to end without asking the user 
 
 Release Planning is the last NAV entry; hub.js intercepts its tab/tile/rail click and opens `#/plan?full` in a new tab (`H.standalone` then enables focus mode).
 
-Only user-level local preference: default team (`cfs.hub.defaultTeam`, localStorage). Do not add other browser-stored preferences without being asked.
+Only user-level preference: default team (`cfs.hub.defaultTeam`, localStorage; falls back to the backend `pref-<userId>` settings key only when browser storage is blocked). Do not add other browser-stored preferences without being asked.
