@@ -705,3 +705,18 @@ body[data-hub=home] .hub-tile-chips{margin-top:auto}
 .heading-actions #pl-team{min-width:150px;height:36px;font-weight:600;border:2px solid #0b6fa8!important;border-radius:8px;background:#f2f9fd!important;color:#032d60!important}
 .ri-home{color:inherit!important;text-decoration:none}.ri-home:hover,.ri-home:focus-visible{text-decoration:underline}
 .executive-heading:has(#pl-state) .heading-actions{margin-left:auto}
+/* plan56: coloured pill tabs with animated icons (same language as Standup/Pulse); borderless dropdowns in the grid */
+.pl-tabs{gap:8px;border-bottom:1px solid #d8e2ec;padding-bottom:8px;align-items:center}
+.pl-tabs button[data-tab]{display:inline-flex;align-items:center;gap:7px;border:1.5px solid transparent!important;border-radius:999px;padding:7px 16px;margin-bottom:0;font-size:13px;font-weight:600;transition:transform .18s ease,box-shadow .18s ease,background .18s ease}
+.pl-tabs button[data-tab] svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.pl-tabs button[data-tab]:hover{transform:translateY(-1px)}
+.pl-tabs button[data-tab=plan]{background:#e6f6ee;border-color:#9ad8b8!important;color:#0f7a4a!important}
+.pl-tabs button[data-tab=rps]{background:#e5f4f7;border-color:#9fd3de!important;color:#0b6f86!important}
+.pl-tabs button[data-tab=plan].on{background:linear-gradient(135deg,#0f8a55,#19b36f);border-color:#0f7a4a!important;color:#fff!important;box-shadow:0 3px 10px #0f8a5555}
+.pl-tabs button[data-tab=rps].on{background:linear-gradient(135deg,#0b7f99,#12a8c4);border-color:#0b6f86!important;color:#fff!important;box-shadow:0 3px 10px #0b7f9955}
+.pl-tabs button[data-tab=plan].on svg{animation:plPulse 1.8s ease-in-out infinite}.pl-tabs button[data-tab=rps].on svg{animation:plBob 2.2s ease-in-out infinite}
+@keyframes plPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}@keyframes plBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+@media(prefers-reduced-motion:reduce){.pl-tabs button[data-tab],.pl-tabs svg{animation:none!important;transition:none!important}}
+.pl-grid .cs-btn{border-color:transparent!important;background:transparent!important;box-shadow:none!important}
+.pl-grid .cs-btn:hover,.pl-grid .cs.open .cs-btn,.pl-grid .cs-btn:focus-visible{background:#f2f7fb!important;border-color:#c9dcec!important}
+.pl-grid .cs-btn svg{stroke:#7b8ba0;opacity:.9}

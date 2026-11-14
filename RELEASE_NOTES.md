@@ -1,3 +1,8 @@
+## Unreleased on top of 4.0.0-GA (plan56) — coloured planner tabs and borderless grid dropdowns
+
+- Release Planner / Planned Release Summary tabs are now pill tabs like Standup and Pulse: green and teal tile colours, an icon on each, and the active tab's icon animates (reduced-motion respected).
+- Dropdowns in the planner grid are borderless with a visible chevron; a light background and border appear on hover, focus and when open.
+
 ## Unreleased on top of 4.0.0-GA (plan55) — planner action order and return to Team Hub
 
 - Release Planning actions now read: Team, Leaves/holidays & on-call, Save, Review & save to GUS.

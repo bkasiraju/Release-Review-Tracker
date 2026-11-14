@@ -950,3 +950,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan54: export template/import — local headless Chrome round trip (export → import shows 0 errors; a deliberately bad row reports 5 errors) and a node test of the zip writer. The exported file was not opened in Excel, Numbers or Google Sheets, so the dropdowns are unconfirmed there; the real file picker and applying an import were not exercised.
 
 - plan55: action order and title link — local harness: after switching to MAPS, clicking the title opened Team Hub with MAPS still selected. The page heading and tab already render on the harness; the missing heading in the user's screenshot was not reproduced.
+
+- plan56: planner tabs and grid dropdowns — local harness screenshot only; icon animation checked by CSS, not as motion; open dropdown list not viewed.
