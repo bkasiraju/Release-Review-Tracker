@@ -85,3 +85,7 @@ body.view-sprint .release-toolbar{display:none}
 .sp-mini li.rem{opacity:.6}.sp-mi-top{display:flex;align-items:center;gap:8px}.sp-mi-top a{font-weight:700;color:#176b91}.sp-pts-tag{font-size:11px;font-weight:700}.sp-mi-sub{font-size:12px;color:#44546a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sp-card .sp-items{margin:4px 0 0;width:100%;max-width:100%}
 @media(max-width:760px){.sp-card.open{grid-column:auto}}
+.su-callout{margin:4px 0 8px;font-size:12px;color:#8a5a00;background:#fdf1dd;border-radius:6px;padding:6px 10px}
+.su-epic.others{background:#f6f7f9;border-style:dashed}.su-epic.lead{border-color:#176b91;box-shadow:0 0 0 1px #176b9133}.su-lead{color:#5b6b7c;font-size:11px}
+.su-epic a,.su-items a,.sp-mini a,.sp-items a{color:#176b91}.su-epic a:hover{text-decoration:underline}
+.su-items li>a,.sprint-panel td>a,.hub-page td>a{color:#176b91;font-weight:600;text-decoration:none}.su-items li>a:hover,.sprint-panel td>a:hover,.hub-page td>a:hover{text-decoration:underline}

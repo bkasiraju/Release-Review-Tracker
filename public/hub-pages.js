@@ -110,14 +110,14 @@ function drawTds(el){
   <td><select class="hub-inline" data-edit="ADM_Team_Dependency__c" data-id="${esc(t.id)}" data-field="Dependency_Status__c" data-prev="${esc(t.status)}" data-label="${esc(t.name)} status" aria-label="Status of ${esc(t.name)}">${H.options(st,t.status)}</select></td>
   <td><input class="hub-inline${late?' late':''}" type="date" data-edit="ADM_Team_Dependency__c" data-type="date" data-id="${esc(t.id)}" data-field="Deliver_By__c" data-prev="${esc(t.deliverBy||'')}" data-label="${esc(t.name)} deliver-by" aria-label="Deliver by for ${esc(t.name)}" value="${esc(t.deliverBy||'')}"></td>
   <td>${esc(t.build)}</td>
-  <td>${esc([t.dependentStory,t.providerStory].filter(Boolean).join(' → '))}</td></tr>`;}).join(''):`<tr><td colspan="7"><div class="empty-state hub-empty"><h3>No open ${T.dir} dependencies</h3><p>Nothing outstanding for ${esc(H.team.short)}.</p></div></td></tr>`;
+  <td>${[[t.dependentStory,t.dependentStoryId],[t.providerStory,t.providerStoryId]].filter(x=>x[0]).map(([n,id])=>id?`<a href="${H.GUS}ADM_Work__c/${esc(id)}/view" target="_blank" rel="noopener noreferrer">${esc(n)}</a>`:esc(n)).join(' → ')}</td></tr>`;}).join(''):`<tr><td colspan="7"><div class="empty-state hub-empty"><h3>No open ${T.dir} dependencies</h3><p>Nothing outstanding for ${esc(H.team.short)}.</p></div></td></tr>`;
 }
 async function loadTds(el){
   const my=++T.seq;el.querySelector('#td-body').innerHTML='<tr><td colspan="7" class="hub-loading">Loading dependencies from GUS…</td></tr>';
   try{const [d,p]=await Promise.all([call('hub-tds',{teamId:H.team.Id}),H.picklists().catch(()=>null)]);if(my!==T.seq)return;T.data=d;T.pick=p;drawTds(el);}
   catch(e){if(my===T.seq)el.querySelector('#td-body').innerHTML=`<tr><td colspan="7"><div class="empty-state hub-empty"><h3>Could not load dependencies</h3><p>${esc(e.message)}</p></div></td></tr>`;}
 }
-H.register({id:'tds',label:"TDs",icon:'td',tone:'amber',desc:'Incoming and outgoing team dependencies',needsTeam:true,
+H.register({id:'tds',label:'Team Dependencies',icon:'td',tone:'amber',desc:'Incoming and outgoing team dependencies',needsTeam:true,
   stat:home=>home?{big:home.tds.incoming+home.tds.outgoing,text:'open team dependencies',chips:`<span class="sp-chip add">In ${home.tds.incoming}</span><span class="sp-chip warn">Out ${home.tds.outgoing}</span>`}:{text:'Incoming and outgoing team dependencies'},
   render(el){
     el.innerHTML=heading('td','amber','Team Dependencies',`Open TDs for ${H.team.Name}. Edit status and deliver-by date inline; changes save to GUS immediately.`,refreshBtn)+

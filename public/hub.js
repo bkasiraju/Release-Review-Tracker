@@ -124,7 +124,7 @@ function renderHome(el){
     el.querySelector('.hub-banner h2').textContent='All CFS teams';
     const sm=el.querySelector('.hub-banner small');if(sm)sm.textContent='';
     el.querySelector('.hub-banner p')?.remove();
-    el.insertAdjacentHTML('beforeend','<p class="note hub-hint">Pick a team in the filter above to see its sprint, bugs, TDs and rotation.</p>');
+    el.insertAdjacentHTML('beforeend','<p class="note hub-hint">Pick a team in the filter above to see its sprint, bugs, team dependencies and rotation.</p>');
     return;
   }
   Promise.all([call('hub-home',{teamId}),call('hub-rotation',{teamId}).then(r=>r.rota,()=>null)]).then(([home,rota])=>{if(H.current==='home'&&H.team.Id===teamId)draw(home,rota);})

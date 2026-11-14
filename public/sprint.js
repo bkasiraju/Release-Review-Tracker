@@ -135,10 +135,14 @@ let rz=null;if(window.ResizeObserver)new ResizeObserver(()=>{clearTimeout(rz);rz
 const spOf=i=>i.storyPoints==null?0:i.storyPoints;
 const initials=n=>String(n).split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();
 const activeItems=m=>m.items.filter(i=>i.itemStatus!=='Removed');
-function epicCards(items,title){
-  const g=new Map();for(const i of items){const k=i.epic||'No epic';const e=g.get(k)||{name:k,id:i.epicId,n:0,done:0,sp:0};e.n++;e.sp+=spOf(i);if(isClosed(i))e.done++;g.set(k,e);}
-  const list=[...g.values()].sort((a,b)=>b.sp-a.sp);
-  return `<div class="su-epics"><h3>${esc(title)} <span class="count-pill">${list.length}</span></h3><div class="su-epic-grid">${list.map(e=>`<article class="su-epic"><strong title="${esc(e.name)}">${e.id?`<a href="https://gus.lightning.force.com/lightning/r/ADM_Epic__c/${esc(e.id)}/view" target="_blank" rel="noopener noreferrer">${esc(e.name)}</a>`:esc(e.name)}</strong><span>${e.done}/${e.n} items · ${fmt(e.sp)} SP</span><span class="sp-bar"><i style="width:${pct(e.done,e.n)}%;background:#2e844a"></i></span></article>`).join('')}</div></div>`;
+const EPIC=id=>`https://gus.lightning.force.com/lightning/r/ADM_Epic__c/${id}/view`;
+/** Epics of the selected member's sprint work items; epics they lead come first; items without an epic are grouped as Others. */
+function epicCards(items,title,uid){
+  const g=new Map();
+  for(const i of items){const k=i.epicId||'__none';const e=g.get(k)||{name:i.epicId?i.epic:'Others — no epic linked',id:i.epicId,n:0,done:0,sp:0,lead:!!(uid&&i.epicLeadId===uid),leadName:i.epicLead};e.n++;e.sp+=spOf(i);if(isClosed(i))e.done++;g.set(k,e);}
+  const list=[...g.values()].sort((a,b)=>(a.id==null)-(b.id==null)||b.lead-a.lead||b.sp-a.sp);
+  const others=g.get('__none');
+  return `<div class="su-epics"><h3>${esc(title)} <span class="count-pill">${list.length-(others?1:0)}</span></h3>${others?`<p class="su-callout">⚠ ${others.n} work item${others.n>1?'s have':' has'} no epic in GUS — grouped under “Others”.</p>`:''}<div class="su-epic-grid">${list.map(e=>`<article class="su-epic${e.id?'':' others'}${e.lead?' lead':''}"><strong title="${esc(e.name)}">${e.id?`<a href="${EPIC(esc(e.id))}" target="_blank" rel="noopener noreferrer">${esc(e.name)}</a>`:esc(e.name)}</strong>${e.lead?'<span class="sp-chip add">Development lead</span>':e.leadName?`<small class="su-lead">Dev lead: ${esc(e.leadName)}</small>`:''}<span>${e.done}/${e.n} items · ${fmt(e.sp)} SP</span><span class="sp-bar"><i style="width:${pct(e.done,e.n)}%;background:${e.id?'#2e844a':'#9aa5b1'}"></i></span></article>`).join('')}</div></div>`;
 }
 function renderStandup(){
   const host=$('sp-standup');if(S.view!=='standup')return;
@@ -148,10 +152,9 @@ function renderStandup(){
   const sp=items.reduce((n,i)=>n+spOf(i),0),doneSp=items.filter(isClosed).reduce((n,i)=>n+spOf(i),0);
   const pills=ms.map((x,k)=>{const a=activeItems(x);return `<button class="su-pill${k===S.standupIdx?' active':''}" data-su="${k}" aria-pressed="${k===S.standupIdx}"><span class="su-av">${esc(initials(x.name))}</span><span>${esc(x.name)}</span><small>${a.length} WI · ${fmt(a.reduce((n,i)=>n+spOf(i),0))} SP</small></button>`;}).join('');
   host.innerHTML=`<section class="table-card su-card"><div class="su-pills" role="group" aria-label="Team members">${pills}</div>
-  ${epicCards(ms.flatMap(activeItems),'Epics in sprint')}
   <div class="su-carousel"><div class="su-nav"><button class="button small" data-su-step="-1" aria-label="Previous member"${S.standupIdx===0?' disabled':''}>‹ Prev</button><div class="su-dots" role="tablist">${ms.map((x,k)=>`<button class="su-dot${k===S.standupIdx?' active':''}" data-su="${k}" role="tab" aria-selected="${k===S.standupIdx}" aria-label="${esc(x.name)}"></button>`).join('')}</div><button class="button small" data-su-step="1" aria-label="Next member"${S.standupIdx===ms.length-1?' disabled':''}>Next ›</button></div>
   <div class="su-member"><div class="su-member-head"><span class="su-av big">${esc(initials(m.name))}</span><div><h3>${esc(m.name)}</h3><p>${S.standupIdx+1} of ${ms.length} · ${items.filter(isClosed).length}/${items.length} items done · ${fmt(doneSp)}/${fmt(sp)} SP</p></div><span class="sp-bar su-bar"><i style="width:${Math.min(100,pct(doneSp,sp))}%;background:#2e844a"></i></span></div>
-  ${epicCards(items,'Epics')}
+  ${epicCards(items,'Epics for '+m.name+'’s sprint work',(items.find(i=>i.assigneeId)||{}).assigneeId)}
   <ol class="su-items">${items.map(i=>`<li class="${isClosed(i)?'done':''}"><span class="su-no"></span><a href="${GUS_WORK}${esc(i.id)}/view" target="_blank" rel="noopener noreferrer">${esc(i.name)}</a><span class="su-subject" title="${esc(i.subject)}">${esc(i.subject)}${i.itemStatus==='Added'?' <span class="sp-chip add">Added</span>':''}${i.epic?` <span class="sp-chip">${esc(i.epic)}</span>`:''}</span>${statusSelect(i)}${ptsInput(i)}</li>`).join('')}</ol></div></div></section>`;
 }
 function bindStandup(){

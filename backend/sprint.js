@@ -91,7 +91,7 @@ async function loadSprintData(sf, teamId, sprintId) {
     queryAll(sf,
       `SELECT Id, Item_Status__c, Committed_Story_Points__c, Work__c, Work__r.Name, Work__r.Subject__c, ` +
       `Work__r.Status__c, Work__r.Story_Points__c, Work__r.Priority__c, Work__r.RecordType.Name, ` +
-      `Work__r.Assignee__c, Work__r.Assignee__r.Name, Work__r.Epic__c, Work__r.Epic__r.Name FROM ADM_Work_Commitment__c ` +
+      `Work__r.Assignee__c, Work__r.Assignee__r.Name, Work__r.Epic__c, Work__r.Epic__r.Name, Work__r.Epic__r.Development_Lead__c, Work__r.Epic__r.Development_Lead__r.Name FROM ADM_Work_Commitment__c ` +
       `WHERE Sprint__c = '${sprintId}' AND Sprint__r.Scrum_Team__c = '${teamId}' LIMIT 2000`)
   ]);
   if (!sprints.length) throw new Error('Sprint not found for this team');
@@ -113,6 +113,8 @@ async function loadSprintData(sf, teamId, sprintId) {
       assigneeId: w.Assignee__c || null,
       epicId: w.Epic__c || null,
       epic: (w.Epic__r && w.Epic__r.Name) || '',
+      epicLeadId: (w.Epic__r && w.Epic__r.Development_Lead__c) || null,
+      epicLead: (w.Epic__r && w.Epic__r.Development_Lead__r && w.Epic__r.Development_Lead__r.Name) || '',
       recordType: (w.RecordType && w.RecordType.Name) || '',
       storyPoints,
       forecastPts,

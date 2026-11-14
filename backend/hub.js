@@ -133,12 +133,12 @@ async function getTds(sf, teamId) {
   requireTeam(teamId);
   const res = await sf.query(
     `SELECT Id, Name, Dependency_Status__c, Deliverable__c, Deliver_By__c, Notes__c, Target_Build__r.Name, Dependency_Size__c, Dependent_Team__c, Dependent_Team__r.Name, ` +
-    `Provider_Team__c, Provider_Team__r.Name, Dependent_User_Story__r.Name, Provider_User_Story__r.Name FROM ADM_Team_Dependency__c ` +
+    `Provider_Team__c, Provider_Team__r.Name, Dependent_User_Story__c, Dependent_User_Story__r.Name, Provider_User_Story__c, Provider_User_Story__r.Name FROM ADM_Team_Dependency__c ` +
     `WHERE (Dependent_Team__c = '${teamId}' OR Provider_Team__c = '${teamId}') AND Dependency_Status__c NOT IN ('Completed','Cancelled','Rejected','Closed','Never') ` +
     `ORDER BY Deliver_By__c ASC NULLS LAST LIMIT 500`);
   const map = t => ({ id: t.Id, name: t.Name, status: t.Dependency_Status__c, deliverable: t.Deliverable__c || '', deliverBy: t.Deliver_By__c, notes: t.Notes__c || '', build: (t.Target_Build__r && t.Target_Build__r.Name) || '', size: t.Dependency_Size__c || '',
     dependentTeam: (t.Dependent_Team__r && t.Dependent_Team__r.Name) || '', providerTeam: (t.Provider_Team__r && t.Provider_Team__r.Name) || '',
-    dependentStory: (t.Dependent_User_Story__r && t.Dependent_User_Story__r.Name) || '', providerStory: (t.Provider_User_Story__r && t.Provider_User_Story__r.Name) || '' });
+    dependentStory: (t.Dependent_User_Story__r && t.Dependent_User_Story__r.Name) || '', providerStory: (t.Provider_User_Story__r && t.Provider_User_Story__r.Name) || '', dependentStoryId: t.Dependent_User_Story__c || null, providerStoryId: t.Provider_User_Story__c || null });
   const rows = res.records || [];
   // Outgoing: we depend on another team. Incoming: another team depends on us.
   return { outgoing: rows.filter(t => t.Dependent_Team__c === teamId).map(map), incoming: rows.filter(t => t.Provider_Team__c === teamId && t.Dependent_Team__c !== teamId).map(map), truncated: (res.records || []).length >= 500 };
