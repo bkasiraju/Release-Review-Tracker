@@ -5,6 +5,8 @@ const SF_ID = /^[a-zA-Z0-9]{15,18}$/, ISO = /^\d{4}-\d{2}-\d{2}$/, LOCAL = /^[A-
 const MAX = { projects: 80, epics: 300, workstreams: 40, people: 200 };
 const planKey = teamId => { if (!SF_ID.test(String(teamId || ''))) throw new Error('Unknown team'); return 'plan-' + teamId; };
 const text = (v, n) => String(v == null ? '' : v).trim().slice(0, n);
+const wsLine = (e, w) => w.line || e.line;
+const effortOf = (e, includeBtl) => Math.round(e.workstreams.filter(w => includeBtl || wsLine(e, w) === 'ABL').reduce((a, w) => a + w.days, 0) * 100) / 100;
 const days = v => { const n = Number(v); return Number.isFinite(n) && n > 0 ? Math.min(Math.round(n * 100) / 100, 1000) : 0; };
 const gid = v => SF_ID.test(String(v || '')) ? String(v) : '';
 const lid = (v, i, p) => LOCAL.test(String(v || '')) ? String(v) : p + i;
@@ -26,7 +28,7 @@ function cleanPlan(input) {
     owners: (Array.isArray(x.owners) ? x.owners : []).map(gid).filter(Boolean).slice(0, 12), ownerNames: (Array.isArray(x.ownerNames) ? x.ownerNames : []).slice(0, 12).map(n => text(n, 80)),
     releaseId: gid(x.releaseId), releaseName: text(x.releaseName, 120), gusId: gid(x.gusId),
     workstreams: (Array.isArray(x.workstreams) ? x.workstreams : []).slice(0, MAX.workstreams).map((s, j) => ({
-      id: lid(s.id, j, 'w'), name: text(s.name, 120), status: STATUS.includes(s.status) ? s.status : '', engIds: (Array.isArray(s.engIds) ? s.engIds : []).map(gid).filter(Boolean).slice(0, 12), engNames: (Array.isArray(s.engNames) ? s.engNames : []).slice(0, 12).map(n => text(n, 80)), priority: Number.isFinite(Number(s.priority)) && s.priority !== '' && s.priority != null ? Math.min(Math.max(Math.round(Number(s.priority)), 0), 9999) : null, engId: gid(s.engId), engName: text(s.engName, 80), days: days(s.days), sprint: text(s.sprint, 60)
+      id: lid(s.id, j, 'w'), name: text(s.name, 120), status: STATUS.includes(s.status) ? s.status : '', engIds: (Array.isArray(s.engIds) ? s.engIds : []).map(gid).filter(Boolean).slice(0, 12), engNames: (Array.isArray(s.engNames) ? s.engNames : []).slice(0, 12).map(n => text(n, 80)), priority: Number.isFinite(Number(s.priority)) && s.priority !== '' && s.priority != null ? Math.min(Math.max(Math.round(Number(s.priority)), 0), 9999) : null, engId: gid(s.engId), engName: text(s.engName, 80), days: days(s.days), line: s.line === 'ABL' || s.line === 'BTL' ? s.line : '', sprint: text(s.sprint, 60)
     }))
   }));
   const people = {};
@@ -104,7 +106,7 @@ function review(plan, releaseIds, program, includeBtl) {
   const byProject = new Map(plan.projects.map(p => [p.id, p]));
   const items = [], blockers = [];
   for (const e of plan.epics.filter(x => includeBtl || x.line === 'ABL')) {
-    const problems = [], project = byProject.get(e.projectId), effort = Math.round(e.workstreams.reduce((a, w) => a + w.days, 0) * 100) / 100;
+    const problems = [], project = byProject.get(e.projectId), effort = effortOf(e, includeBtl);
     if (!e.name) problems.push('Epic name is required');
     if (!project) problems.push('Select a project');
     else {
@@ -146,7 +148,7 @@ async function commitPlan(sf, store, teamId, confirm, includeBtl) {
         }
         done.projects.set(project.id, projectId);
       }
-      const effort = Math.round(e.workstreams.reduce((a, w) => a + w.days, 0) * 100) / 100;
+      const effort = effortOf(e, includeBtl === true);
       const fields = { Project__c: projectId, Planned_Release__c: e.releaseId, Planned_Story_Points__c: effort };
       if (e.priority != null) fields.Priority__c = e.priority;
       let epicId = e.gusId;

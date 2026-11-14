@@ -74,7 +74,7 @@ function exportTemplate(){
     const p=prj.get(e.projectId)||{},names=(e.ownerNames&&e.ownerNames.length?e.ownerNames:(e.owners||[]).map(memName)).filter(Boolean);
     const ws=e.workstreams.length?e.workstreams:[null];
     ws.forEach((w,j)=>{const f=j===0,wn=w?(w.engNames&&w.engNames.length?w.engNames:wsEngs(w).map(memName)).filter(Boolean):[];
-      rows.push([projShort(p),p.name||'',e.name||'',w?w.name:'',f?names.join(', '):'',wn.join(', '),f?(epicDays(e)||''):'',w&&w.days?w.days:'',f?e.line:'',w?w.sprint:'',f?'P'+(e.priority==null?0:e.priority):'',f?e.status:'',f?(e.releaseName||(P.refs.releases.find(r=>r.id===e.releaseId)||{}).name||''):'']);});
+      rows.push([projShort(p),p.name||'',e.name||'',w?w.name:'',f?names.join(', '):'',wn.join(', '),f?(epicDays(e)||''):'',w&&w.days?w.days:'',w?wl(e,w):(f?e.line:''),w?w.sprint:'',f?'P'+(e.priority==null?0:e.priority):'',f?e.status:'',f?(e.releaseName||(P.refs.releases.find(r=>r.id===e.releaseId)||{}).name||''):'']);});
   }
   const lcols=[['Projects',L.projects],['Planned releases',L.releases],['Engineers',L.eng],['ATL/BTL',L.line],['Priority',L.pri],['Status',L.status]];
   const lrows=[lcols.map(c=>c[0])],lh=Math.max(...lcols.map(c=>c[1].length));
@@ -131,7 +131,7 @@ function checkImport(sheet){
     const key=pkey+'|'+norm(en);let g=groups.get(key);
     if(!g){g={pr,name:en,row,line:'',pri:null,status:'',rel:null,eo:null,ws:[]};groups.set(key,g);}
     const take=(f,v)=>{if(v===''||v==null)return;if(g[f]===''||g[f]==null)g[f]=v;else if(String(g[f])!==String(v))add('warn',row,`Epic “${en}”: ${f==='eo'?'Epic Owner':f==='rel'?'Planned Release':f==='pri'?'Priority':f==='line'?'ATL/BTL':'Status'} differs between rows; the first value (${f==='eo'?g.eo.nm.join(', '):f==='rel'?g.rel.name:f==='pri'?'P'+g.pri:g[f]}) is used.`);};
-    const ln=get(r,'line').toUpperCase();if(ln){if(ln==='ABL'||ln==='ATL')take('line','ABL');else if(ln==='BTL')take('line','BTL');else add('error',row,`ATL/BTL: “${get(r,'line')}” is not valid (use ABL or BTL).`);}
+    const ln=get(r,'line').toUpperCase();let rowLine='';if(ln){if(ln==='ABL'||ln==='ATL')rowLine='ABL';else if(ln==='BTL')rowLine='BTL';else add('error',row,`ATL/BTL: “${get(r,'line')}” is not valid (use ABL or BTL).`);if(rowLine&&!g.line)g.line=rowLine;}
     const pv=get(r,'pri');if(pv){const m=/^p?\s*(\d{1,4})$/i.exec(pv);if(m)take('pri',Number(m[1]));else add('error',row,`Priority: “${pv}” is not valid (use P0 to P5).`);}
     const sv=get(r,'status');if(sv){const st=STAT.find(x=>norm(x)===norm(sv));if(st)take('status',st);else add('error',row,`Status: “${sv}” is not one of ${STAT.join(', ')}.`);}
     const rv=get(r,'rel');if(rv){const rr=P.refs.releases.find(x=>norm(x.name)===norm(rv))||P.refs.releases.find(x=>relNum(x)>=0&&String(relNum(x))===rv);if(rr)take('rel',{id:rr.id,name:rr.name});else add('error',row,`Planned Release: “${rv}” is not a release of this team.`);}
@@ -142,7 +142,7 @@ function checkImport(sheet){
       if(!wn)add('warn',row,'Row has effort or owners but no Workstream name; it is imported as an unnamed workstream.');
       if(g.ws.some(x=>wn&&norm(x.name)===norm(wn)))add('warn',row,`Workstream “${wn}” appears twice in epic “${en}”.`);
       const o=names(wo,row,'Workstream Owner(s)');
-      g.ws.push({name:wn,days:d,sprint:sp,ids:o.ids,nm:o.nm});
+      g.ws.push({name:wn,days:d,line:rowLine,sprint:sp,ids:o.ids,nm:o.nm});
     }
   }
   const epics=[...groups.values()];
@@ -160,11 +160,12 @@ function applyImport(res){
   for(const g of res.epics){
     let e=pl.epics.find(x=>x.projectId===g.pr.id&&norm(x.name)===norm(g.name));
     if(!e){e=newEpic(g.pr.id);e.name=g.name;e.workstreams=[];pl.epics.push(e);}
-    if(g.line)e.line=g.line;if(g.pri!=null)e.priority=g.pri;if(g.status)e.status=g.status;
+    if(g.pri!=null)e.priority=g.pri;if(g.status)e.status=g.status;
     if(g.rel){e.releaseId=g.rel.id;e.releaseName=g.rel.name;}
     if(g.eo){e.owners=g.eo.ids;e.ownerNames=g.eo.nm;}
     const old=e.workstreams;
-    e.workstreams=g.ws.map(x=>{const o=old.find(w=>x.name&&norm(w.name)===norm(x.name));return Object.assign({},o||{},{id:o?o.id:uid('w'),name:x.name,priority:o?o.priority:0,days:x.days,sprint:x.sprint,engIds:x.ids,engNames:x.nm,engId:x.ids[0]||'',engName:x.nm[0]||''});});
+    e.workstreams=g.ws.map(x=>{const o=old.find(w=>x.name&&norm(w.name)===norm(x.name));return Object.assign({},o||{},{id:o?o.id:uid('w'),name:x.name,priority:o?o.priority:0,days:x.days,line:x.line||o&&o.line||(g.line||e.line),sprint:x.sprint,engIds:x.ids,engNames:x.nm,engId:x.ids[0]||'',engName:x.nm[0]||''});});
+    deriveLine(e);
   }
   draw();queueSave();
 }
@@ -214,7 +215,9 @@ function workdays(start,end){
   return n;
 }
 const themeOf=pr=>(pr&&(pr.theme||(/^[^:]{1,30}:/.test(pr.name||'')?pr.name.split(':')[0].trim():'')))||'Unthemed';
-const epicDays=e=>e.line==='ABL'?r2(e.workstreams.reduce((a,w)=>a+(w.days||0),0)):0;
+const wl=(e,w)=>(w&&w.line)||e.line;
+const deriveLine=e=>{e.line=e.workstreams.some(w=>wl(e,w)==='ABL')?'ABL':'BTL';};
+const epicDays=e=>r2(e.workstreams.filter(w=>wl(e,w)==='ABL').reduce((a,w)=>a+(w.days||0),0));
 const epicTheme=e=>e.theme||themeOf((P.plan.projects.find(p=>p.id===e.projectId))||null);
 const STAT=['Planned','In Progress','Completed','On Hold'];
 const statOpts=v=>`<option value="">Status</option>`+STAT.map(x=>`<option value="${x}"${x===v?' selected':''}>${x}</option>`).join('');
@@ -226,8 +229,7 @@ function model(){
   for(const m of P.members)if(H.leaderRank(m.name)<0){const x=row(m.id,m.name),pp=pl.people[m.id]||{};x.leave=pp.leave||0;x.holiday=pp.holiday||0;x.oncall=pp.oncall||0;x.avail=Math.max(0,wd-x.leave-x.holiday-x.oncall);}
   const themes=new Map();let ablT=0,btlT=0;
   for(const e of pl.epics){
-    const slices=e.workstreams.filter(w=>(w.days||0)>0).map(w=>({ids:wsEngs(w),d:w.days,nm:w.engName}));
-    if(e.line!=='ABL')continue;
+    const slices=e.workstreams.filter(w=>(w.days||0)>0&&wl(e,w)==='ABL').map(w=>({ids:wsEngs(w),d:w.days,nm:w.engName}));
     for(const {ids,d,nm} of slices){const share=d/(ids.length||1);
       for(const id of ids.length?ids:['']){const x=id?row(id,memName(id)||nm||'Engineer'):row('none','Unassigned');if(!id)x.cap=false;x.abl+=share;}
       const t=epicTheme(e);if(!themes.has(t))themes.set(t,{name:t,abl:0,btl:0});
@@ -325,7 +327,7 @@ function drawPlanner(){
   const engOpts=sel=>'<option value="">Unassigned</option>'+P.members.filter(m=>H.leaderRank(m.name)<0).map(m=>opt(m.id,m.name,m.id===sel)).join('');
   const V=P.view,prj=new Map(pl.projects.map(p=>[p.id,p])),q=V.q.trim().toLowerCase(),filtering=!!(q||V.release||V.line||V.eng||V.theme);
   const match=e=>{const p=prj.get(e.projectId);
-    if(V.release&&e.releaseId!==V.release)return false;if(V.line&&e.line!==V.line)return false;
+    if(V.release&&e.releaseId!==V.release)return false;if(V.line&&!(e.workstreams.length?e.workstreams.some(w=>wl(e,w)===V.line):e.line===V.line))return false;
     if(V.eng&&!e.workstreams.some(w=>wsEngs(w).includes(V.eng)))return false;if(V.theme&&epicTheme(e)!==V.theme)return false;
     if(q&&!((e.name||'')+' '+(p&&p.name||'')+' '+e.workstreams.map(w=>w.name).join(' ')).toLowerCase().includes(q))return false;return true;};
   const shown=pl.epics.filter(match);
@@ -357,7 +359,7 @@ function drawPlanner(){
           days:()=>tdW('days',`<input class="hub-inline pl-days ${w&&w.days?'pl-eff-set':'pl-eff-empty'}" type="number" min="0" max="1000" step="0.5" aria-label="Effort in days" data-f="days" value="${w&&w.days?fmt(w.days):''}" placeholder="Days">`),
           sprint:()=>tdW('sprint',`<input class="hub-inline" type="text" list="pl-sprints" aria-label="Tentative sprint" data-f="sprint" value="${esc(w&&w.sprint)}" maxlength="60" placeholder="Sprint">`),
           release:()=>tdE('release',sel('releaseId',`<option value="">Planned release…</option>${rel.map(r=>opt(r.id,r.name,r.id===e.releaseId)).join('')}${e.releaseId&&!rel.some(r=>r.id===e.releaseId)?opt(e.releaseId,e.releaseName||e.releaseId,true):''}`,'Planned release')),
-          line:()=>tdE('line',`<span class="pl-line" role="group" aria-label="Line"><button type="button" class="${e.line==='ABL'?'on abl':''}" data-line="ABL" aria-pressed="${e.line==='ABL'}">ABL</button><button type="button" class="${e.line==='BTL'?'on btl':''}" data-line="BTL" aria-pressed="${e.line==='BTL'}">BTL</button></span>`),
+          line:()=>{const ln=wl(e,w),btn=v=>`<button type="button" class="${ln===v?'on '+v.toLowerCase():''}" data-line="${v}" aria-pressed="${ln===v}">${v}</button>`,h=`<span class="pl-line" role="group" aria-label="ATL/BTL for this ${w?'workstream':'epic'}">${btn('ABL')}${btn('BTL')}</span>`;return w?tdW('line',h):tdE('line',h);},
           theme:()=>tdE('theme',txt('theme',e.theme,themeOf(prj0(e)),80,110)),
           wstatus:()=>tdW('wstatus',sel('status',statOpts(w&&w.status),'Workstream status')),
           doc:()=>tdE('doc',txt('doc',e.doc,'Doc link',300,120)+(docOk(e.doc)?` <a href="${esc(e.doc)}" target="_blank" rel="noopener" aria-label="Open doc">↗</a>`:'')),
@@ -368,11 +370,11 @@ function drawPlanner(){
         const ep=cols.map(k=>C[k]()).join(''),wc='';
         const ico=d=>`<svg viewBox="0 0 20 20" aria-hidden="true">${d}</svg>`,ib=(cls,attr,lbl,d,on)=>`<button type="button" class="pl-ib ${cls}${on?'':' pl-ib-off'}" ${on?attr:'tabindex="-1" disabled'} aria-label="${lbl}" title="${lbl}">${ico(d)}</button>`;
         const act=`<td class="pl-g-act"><span class="pl-acts"${w?` data-w="${esc(w.id)}"`:''}>${w?`<button type="button" class="pl-ib pl-grip" draggable="true" data-grip aria-label="Move workstream: drag within this epic or into another epic (or press Up/Down)" title="Drag to move this workstream, within this epic or into another">${ico('<g fill="currentColor" stroke="none"><circle cx="7" cy="5" r="1.4"/><circle cx="13" cy="5" r="1.4"/><circle cx="7" cy="10" r="1.4"/><circle cx="13" cy="10" r="1.4"/><circle cx="7" cy="15" r="1.4"/><circle cx="13" cy="15" r="1.4"/></g>')}</button>`:ib('pl-grip','','',' ',false)}${ib('pl-add','data-add-ws','Add workstream','<path d="M10 4v12M4 10h12"/>',tail)}${ib('pl-rm','data-del-ws','Remove workstream','<circle cx="10" cy="10" r="7"/><path d="M6.8 10h6.4"/>',!!w)}${ib('pl-trash','data-del-epic','Delete epic','<path d="M4 6h12M8 6V4h4v2M6 6l.8 10h6.4L14 6M8.5 9v4M11.5 9v4"/>',first)}</span></td>`;
-        rows.push(`<tr data-e="${esc(e.id)}"${w?` data-wr="${esc(w.id)}"`:''} class="${e.line==='ABL'?'abl':'btl'}${first?' pl-g-first':''}">${ep}${wc}${act}</tr>`);
+        rows.push(`<tr data-e="${esc(e.id)}"${w?` data-wr="${esc(w.id)}"`:''} class="${wl(e,w)==='ABL'?'abl':'btl'}${first?' pl-g-first':''}">${ep}${wc}${act}</tr>`);
       });
     });
     const strip=`<div class="pl-pstrip" aria-label="Projects">${pl.projects.map(p=>`<span class="pl-pchip" data-p="${esc(p.id)}"><input class="hub-inline pl-pname" type="text" list="pl-projects" placeholder="Project name (type to link a GUS project)" aria-label="Project name" data-f="name" value="${esc(p.name)}" maxlength="120"><input class="hub-inline pl-pshort" type="text" placeholder="Short form" aria-label="Short form, for example HRP M1.1.3" data-f="short" value="${esc(p.short||'')}" maxlength="30">${p.gusId?`<a class="pl-gus" href="${H.GUS}PPM_Project__c/${esc(p.gusId)}/view" target="_blank" rel="noopener">GUS ↗</a>`:'<em class="pl-draft">New</em>'}<button type="button" class="pl-x" data-add-epic aria-label="Add epic to this project" title="Add epic to this project">+</button><button type="button" class="pl-x" data-del-proj aria-label="Delete project" title="Delete project">×</button></span>`).join('')}</div>`;
-    return strip+`<div class="pl-grid-tools"><span class="pl-cols"><button type="button" class="button" data-cols-toggle aria-haspopup="true" aria-expanded="${P.colsOpen?'true':'false'}">Columns ▾</button>${P.colsOpen?`<div class="pl-cols-menu" role="menu">${[...cols,...Object.keys(GCOL).filter(k=>!cols.includes(k))].map(k=>{const on=cols.includes(k),i=cols.indexOf(k);return `<div class="pl-colrow" data-colrow="${k}"${on?' draggable="true"':''}><span class="pl-colgrip" aria-hidden="true">${on?'⠿':''}</span><label><input type="checkbox" data-col="${k}"${on?' checked':''}> ${esc(GCOL[k])}</label>${on?`<button type="button" class="pl-colmv" data-colmv="${k}" data-d="-1" aria-label="Move ${esc(GCOL[k])} left"${i===0?' disabled':''}>▲</button><button type="button" class="pl-colmv" data-colmv="${k}" data-d="1" aria-label="Move ${esc(GCOL[k])} right"${i===cols.length-1?' disabled':''}>▼</button>`:''}</div>`;}).join('')}<button type="button" class="pl-cols-reset" data-cols-reset>Reset to default</button></div>`:''}</span></div><div class="pl-grid-wrap"><table class="pl-grid"><colgroup>${cols.map(k=>`<col class="${k==='name'||k==='ws'?'w-grow':'w-fit'}">`).join('')}<col class="w-fit"></colgroup><thead><tr>${cols.map(k=>`<th class="c-${k}">${esc(GCOL[k])}</th>`).join('')}<th class="c-actions">Actions</th></tr></thead><tbody>${rows.join('')||'<tr><td colspan="${cols.length+1}" class="note">No epics match the filters.</td></tr>'}</tbody></table></div><button type="button" class="pl-add" data-grid-add-epic>+ Epic</button>`;};
+    return strip+`<div class="pl-grid-tools"><span class="pl-cols"><button type="button" class="button" data-cols-toggle aria-haspopup="true" aria-expanded="${P.colsOpen?'true':'false'}">Columns ▾</button>${P.colsOpen?`<div class="pl-cols-menu" role="menu">${[...cols,...Object.keys(GCOL).filter(k=>!cols.includes(k))].map(k=>{const on=cols.includes(k),i=cols.indexOf(k);return `<div class="pl-colrow" data-colrow="${k}"${on?' draggable="true"':''}><span class="pl-colgrip" aria-hidden="true">${on?'⠿':''}</span><label><input type="checkbox" data-col="${k}"${on?' checked':''}> ${esc(GCOL[k])}</label>${on?`<button type="button" class="pl-colmv" data-colmv="${k}" data-d="-1" aria-label="Move ${esc(GCOL[k])} left"${i===0?' disabled':''}>▲</button><button type="button" class="pl-colmv" data-colmv="${k}" data-d="1" aria-label="Move ${esc(GCOL[k])} right"${i===cols.length-1?' disabled':''}>▼</button>`:''}</div>`;}).join('')}<div class="pl-cols-foot"><button type="button" class="pl-cols-reset" data-cols-reset>Reset to default</button><button type="button" class="button primary" data-cols-done>Done</button></div></div>`:''}</span></div><div class="pl-grid-wrap"><table class="pl-grid"><colgroup>${cols.map(k=>`<col class="${k==='name'||k==='ws'?'w-grow':'w-fit'}">`).join('')}<col class="w-fit"></colgroup><thead><tr>${cols.map(k=>`<th class="c-${k}">${esc(GCOL[k])}</th>`).join('')}<th class="c-actions">Actions</th></tr></thead><tbody>${rows.join('')||'<tr><td colspan="${cols.length+1}" class="note">No epics match the filters.</td></tr>'}</tbody></table></div><button type="button" class="pl-add" data-grid-add-epic>+ Epic</button>`;};
   el.innerHTML=`<datalist id="pl-projects">${P.refs.projects.map(p=>`<option value="${esc(p.name)}"></option>`).join('')}</datalist><datalist id="pl-sprints">${P.refs.sprints.map(s=>`<option value="${esc(s.name)}"></option>`).join('')}</datalist>`+
     (!pl.projects.length?'<div class="empty-state hub-empty"><h3>No projects yet</h3><p>Add a project, then epics and workstreams with effort in days.</p></div>'
      :gridHtml());
@@ -425,7 +427,7 @@ function wireColDrag(el){let from=null;
   el.addEventListener('drop',ev=>{const r=ev.target.closest&&ev.target.closest('[data-colrow][draggable]');if(!from||!r)return;ev.preventDefault();const to=r.dataset.colrow,cur=gridCols();if(to!==from&&cur.includes(from)&&cur.includes(to)){cur.splice(cur.indexOf(from),1);cur.splice(cur.indexOf(to),0,from);setGridCols(cur);}from=null;redrawCols();});
   el.addEventListener('dragend',()=>{from=null;el.querySelectorAll('.pl-coldrop').forEach(x=>x.classList.remove('pl-coldrop'));});}
 function onInput(ev){
-  const ct=ev.target.closest&&ev.target.closest('[data-col]');if(ct){const cur=gridCols(),k=ct.dataset.col,n=ct.checked?[...cur.filter(x=>x!==k),k]:cur.filter(x=>x!==k);if(n.length)setGridCols(n);redrawCols();return;}
+  if(ev.target.closest&&ev.target.closest('[data-col]'))return;
   const vt=ev.target.closest&&ev.target.closest('[data-v]');if(vt){P.view[vt.dataset.v]=vt.value;if(vt.dataset.v==='group'||vt.tagName==='SELECT')drawTools();drawPlanner();wire();return;}
   const t=ev.target.closest('[data-f]');if(!t||!P.plan)return;
   const f=t.dataset.f,c=ctxOf(t),v=t.value;let structural=false;
@@ -457,6 +459,9 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.querySelec
 function onClick(ev){
   const t=ev.target,c=ctxOf(t),pl=P.plan;
   if(t.closest('#pl-fs-btn'))return toggleFs();
+  const ct=t.closest('input[data-col]');if(ct){const cur=gridCols(),k=ct.dataset.col,n=ct.checked?[...cur.filter(x=>x!==k),k]:cur.filter(x=>x!==k);if(n.length)setGridCols(n);redrawCols();return;}
+  if(t.closest('.pl-colrow')&&!t.closest('button'))return;
+  if(t.closest('[data-cols-done]')){P.colsOpen=false;drawPlanner();wire();return;}
   const mv=t.closest('[data-colmv]');if(mv){const cur=gridCols(),i=cur.indexOf(mv.dataset.colmv),j=i+Number(mv.dataset.d);if(i>=0&&j>=0&&j<cur.length){[cur[i],cur[j]]=[cur[j],cur[i]];setGridCols(cur);}redrawCols();P.el.querySelector(`[data-colmv="${mv.dataset.colmv}"][data-d="${mv.dataset.d}"]:not([disabled])`)?.focus();return;}
   if(t.closest('[data-cols-toggle]')){P.colsOpen=!P.colsOpen;drawPlanner();wire();return;}
   if(t.closest('[data-cols-reset]')){setGridCols(null);redrawCols();return;}
@@ -471,14 +476,14 @@ function onClick(ev){
   const tb=t.closest('[data-tab]');if(tb){setTab(tb.dataset.tab);return;}
   const rp=t.closest('[data-rps]');if(rp){openRps(rp.dataset.rps,rp);return;}
   const fd=t.closest('[data-fold]');if(fd){P.open[fd.dataset.fold]=!P.open[fd.dataset.fold];drawSummary();return;}
-  if(t.closest('[data-grid-add-epic]')){if(!pl.projects.length)pl.projects.push({id:uid('p'),name:'',theme:'',gusId:''});const e=newEpic(pl.projects[0].id);pl.epics.push(e);draw();queueSave();P.el.querySelector(`[data-e="${e.id}"] input`)?.focus();return;}
+  if(t.closest('[data-grid-add-epic]')){if(!pl.projects.length)pl.projects.push({id:uid('p'),name:'',theme:'',gusId:''});const e=newEpic(pl.projects[pl.projects.length-1].id);pl.epics.push(e);draw();queueSave();const ne=P.el.querySelector(`[data-e="${e.id}"]`);ne?.scrollIntoView({block:'nearest'});ne?.querySelector('input')?.focus();return;}
   if(t.closest('[data-clear-view]')){P.view=Object.assign(P.view,{q:'',release:'',line:'',eng:'',theme:''});drawTools();drawPlanner();wire();return;}
   if(t.closest('#pl-save')){const b=t.closest('#pl-save');b.disabled=true;P.state='dirty';flush().then(()=>{b.disabled=false;if(P.state==='saved')window.toast?.('Plan saved to GUS Apps for the whole team.');else window.toast?.('Could not save the plan.',true);},()=>{b.disabled=false;});return;}
   if(t.closest('#pl-leaves'))return openLeaves();
   if(t.closest('#pl-commit'))return openCommit(false);
   if(t.closest('[data-add-epic]')){const e=newEpic(c.p);pl.epics.push(e);draw();queueSave();P.el.querySelector(`[data-e="${e.id}"] .pl-ename`)?.focus();return;}
   if(t.closest('[data-add-ws]')){const e=findE(c.e);if(!e)return;const w={id:uid('w'),name:'',priority:0,engId:'',engName:'',engIds:[],engNames:[],days:0,sprint:''};e.workstreams.push(w);draw();queueSave();P.el.querySelector(`[data-w="${w.id}"] input`)?.focus();return;}
-  const line=t.closest('[data-line]');if(line){const e=findE(c.e);if(e){e.line=line.dataset.line;draw();queueSave();}return;}
+  const line=t.closest('[data-line]');if(line){const e=findE(c.e);if(e){const v=line.dataset.line,w=c.w&&e.workstreams.find(x=>x.id===c.w);if(w){e.workstreams.forEach(x=>{x.line=x.line||e.line;});w.line=v;deriveLine(e);}else{e.line=v;e.workstreams.forEach(x=>{x.line=v;});}draw();queueSave();}return;}
   if(t.closest('[data-del-ws]')){const e=findE(c.e);if(e){e.workstreams=e.workstreams.filter(w=>w.id!==c.w);draw();queueSave();}return;}
   if(t.closest('[data-del-epic]')){const e=findE(c.e);if(!e)return;const go=()=>{pl.epics=pl.epics.filter(x=>x.id!==c.e);draw();queueSave();};if(!e.gusId&&!e.name&&!epicDays(e))go();else confirmAt(t.closest('[data-del-epic]'),e.gusId?'This epic is already in GUS. Delete only the draft here? The GUS epic stays.':'Delete this epic and its workstreams?',go);return;}
   if(t.closest('[data-del-proj]')){const n=pl.epics.filter(e=>e.projectId===c.p).length,go=()=>{pl.projects=pl.projects.filter(p=>p.id!==c.p);pl.epics=pl.epics.filter(e=>e.projectId!==c.p);draw();queueSave();};if(!n)go();else confirmAt(t.closest('[data-del-proj]'),`Delete this project and its ${n} epic draft(s)? Anything already in GUS stays there.`,go);}

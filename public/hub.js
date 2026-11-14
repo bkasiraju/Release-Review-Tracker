@@ -381,6 +381,13 @@ function soon(id,label,ic,tone,desc){
 
 // ── Boot ────────────────────────────────────────────────────────────────────
 function route(){const id=(location.hash.match(/^#\/([a-z]+)/)||[])[1];H.go(id||'home',{silent:true});}
+/** Keep the loading screen up until the first page has stopped changing, so sections do not appear and then jump. */
+function settle(){
+  const b=document.body,done=()=>{obs.disconnect();clearTimeout(quiet);clearTimeout(cap);b.dataset.settled='1';};
+  let quiet;const arm=()=>{clearTimeout(quiet);quiet=setTimeout(()=>{if(document.querySelector('#hub-page .hub-loading,#hub-page .executive-spinner,#hub-page [aria-busy=true]'))arm();else done();},350);};
+  const obs=new MutationObserver(arm),cap=setTimeout(done,8000);
+  obs.observe($('hub-page'),{childList:true,subtree:true,characterData:true});arm();
+}
 async function boot(){
   installCache();
   document.addEventListener('click',e=>{const g=e.target.closest('[data-go],[data-page]');if(g){e.preventDefault();const id=g.dataset.go||g.dataset.page;
@@ -399,6 +406,7 @@ async function boot(){
   window.dispatchEvent(new Event('hub:team'));
   H.standalone=/^#\/plan\?full/.test(location.hash);
   try{route();}finally{document.body.dataset.ready='1';}
+  settle();
   if(H.standalone)setFocus(true);
   H.prefetch(H.team.Id);H.preloadPeople();
 }

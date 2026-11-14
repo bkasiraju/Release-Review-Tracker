@@ -1,3 +1,10 @@
+## Unreleased on top of 4.0.0-GA (plan66–plan68) — Loading screen, ATL/BTL per workstream, column picker, new epics at the end
+
+- First load keeps the loading screen up until the page stops changing, so sections no longer appear and jump; the gap between the tab and the content below is removed.
+- ATL/BTL is now set per workstream (one toggle on every workstream row). An epic counts as ABL when any workstream is ABL; Epic Est, capacity, bandwidth, summary and the GUS Planned Story Points use only the ABL workstreams' days. Import/export carry the ATL/BTL value per workstream row; the line filter matches any workstream.
+- Column picker: ticking a column is handled on click (more robust), the menu fits the viewport and has a Done button.
+- + Epic adds the new epic at the end of the grid (under the last project) and scrolls to it.
+
 ## Unreleased on top of 4.0.0-GA (plan65) — Owners multi-select popover
 
 - Epic Owner and Workstream Owner(s) now open a small popover just above the button (below if there is no room) with checkboxes, Cancel and Save, replacing the full-width dropdown list. Nothing changes until Save in the popover; Esc or clicking outside cancels. The plan itself is still saved with the Save button.

@@ -968,3 +968,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan63/64: tile styling checked by headless screenshots; column toggle and reorder checked by script on the local harness.
 
 - plan65: owners popover; scripted check on local harness: opens above the button, Save applies, button label updates, plan marked unsaved.
+
+- plan66-68: scripted harness checks: loader settles with 0 gap, per-workstream toggle changes rows, column ticks incl. Priority and Done, + Epic focuses last row.
