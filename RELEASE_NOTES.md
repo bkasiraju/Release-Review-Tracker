@@ -1,3 +1,8 @@
+## Unreleased on top of 4.0.0-GA (plan80) — Richer 3D icons in the planner
+
+- Reverts the flat icon tiles from plan75. KPI tiles now have larger (52 px) 3D icons: glossy gradient body, top highlight, bevel, coloured underside and glow, and a glyph that floats with a drop shadow. Section-card and Projects & epics heading icons get the same treatment at their own size.
+- Hover lifts the KPI icon.
+
 ## Unreleased on top of 4.0.0-GA (plan79) — Engineer bandwidth: theme column removed
 
 - The "By theme (effort)" column added in plan77 is removed. Engineer bandwidth shows Engineer, Available, Planned Effort (ABL), Un-planned Effort (BTL) and Load, centred. The per-engineer BTL counting fix stays.

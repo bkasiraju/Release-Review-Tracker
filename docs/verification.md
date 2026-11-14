@@ -992,3 +992,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan78: engineer bandwidth centred (local harness: header and value centres match, offset 0 px; not verified on the live app).
 
 - plan79: theme column removed from engineer bandwidth (local harness: 5 columns, Load bar inside card; not verified on the live app).
+
+- plan80: richer CSS 3D icons in planner tiles and headings (local harness screenshot; not verified on the live app; Planned Release Summary tab not re-screenshotted).

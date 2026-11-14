@@ -822,11 +822,6 @@ body[data-ready] #hub-boot{display:flex}
 .pl-back{height:auto;gap:6px;padding:7px 12px;border-radius:4px;background:#216e91!important;border:1px solid #216e91;box-shadow:none;font-size:12px;font-weight:600;top:4px}
 .pl-back *{color:#fff!important}.pl-back svg{width:14px;height:14px;stroke:#fff}
 .pl-back:hover{background:#225477!important;transform:none;box-shadow:none}.pl-back:hover svg{transform:translateX(-2px)}
-.pl-kpi .cfs-icon,.pl-card .cfs-icon,.pl-sum-grid .cfs-icon{background:var(--k2,#eaf3ff)!important;border:1px solid color-mix(in srgb,var(--k,#3574c2) 30%,#fff)!important;box-shadow:none!important;transform:none!important;animation:none!important}
-.pl-kpi .cfs-icon{border-radius:10px}
-.pl-kpi .cfs-icon svg,.pl-card .cfs-icon svg,.pl-sum-grid .cfs-icon svg{stroke:var(--k,#3574c2)!important}
-.pl-kpi .cfs-icon::before,.pl-kpi .cfs-icon::after,.pl-card .cfs-icon::before,.pl-card .cfs-icon::after{display:none!important}
-.pl-planner-h .cfs-icon{background:#e6f5ee!important;border:1px solid #bfe3d0!important;box-shadow:none!important;transform:none!important}.pl-planner-h .cfs-icon svg{stroke:#248568!important}
 .pl-card>h3>small{cursor:pointer;padding:3px 8px;border-radius:4px}.pl-card>h3>small:hover{background:#e8f1f8;text-decoration:underline}
 .pl-card>h3{cursor:pointer}
 
@@ -845,3 +840,12 @@ body[data-ready] #hub-boot{display:flex}
 
 /* plan79: By theme column removed from Engineer bandwidth */
 .pl-eng-h,.pl-eng-r{grid-template-columns:minmax(130px,1.4fr) 70px 100px 110px minmax(100px,1.2fr);gap:10px}
+
+/* plan80: rich 3D icon tiles (glossy gradient, bevel, inner glow, floating glyph with shadow) */
+.pl-kpi .cfs-icon,.pl-card h3 .cfs-icon,.pl-planner-h h3 .cfs-icon{position:relative;overflow:visible;border:0;
+ background:radial-gradient(120% 90% at 30% 8%,color-mix(in srgb,var(--icon-top) 60%,#fff) 0,var(--icon-top) 38%,var(--icon-bottom) 100%);
+ box-shadow:0 1px 0 #fff9 inset,0 -3px 5px color-mix(in srgb,var(--icon-edge) 70%,transparent) inset,0 2px 0 var(--icon-edge),0 9px 14px -3px color-mix(in srgb,var(--icon-bottom) 65%,transparent)}
+.pl-kpi .cfs-icon{width:52px;height:52px;border-radius:16px}
+.pl-kpi .cfs-icon::before,.pl-card h3 .cfs-icon::before,.pl-planner-h h3 .cfs-icon::before{content:"";position:absolute;left:8%;right:8%;top:5%;height:42%;border-radius:14px 14px 40% 40%/14px 14px 100% 100%;background:linear-gradient(#fffc,#fff0);pointer-events:none}
+.pl-kpi .cfs-icon svg,.pl-card h3 .cfs-icon svg,.pl-planner-h h3 .cfs-icon svg{position:relative;width:60%;height:60%;stroke-width:2;filter:drop-shadow(0 2px 1.5px color-mix(in srgb,var(--icon-edge) 80%,transparent))}
+.pl-kpi:hover .cfs-icon{transform:translateY(-2px) scale(1.04)}
