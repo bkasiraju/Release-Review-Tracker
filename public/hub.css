@@ -92,3 +92,15 @@ td .hub-inline[type=text]{width:120px}
 .dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:#2e844a;margin:0 4px 0 10px;vertical-align:middle}td .dot{margin:0}
 .dot.breached{background:#ba0517}.dot.risk{background:#e07b00}.dot.warn{background:#e6c200}.dot.ok{background:#2e844a}
 .sla-legend{font-size:12px;color:#5b6b7c}td.late{color:#ba0517;font-weight:700}.bug-link{color:#ba0517;font-weight:600}
+/* Hub tabs: bordered, spaced */
+.dashboard-bar .hub-nav{gap:8px;align-items:flex-end;border-bottom:1px solid #d8dde6;padding:0 2px;align-self:flex-end}
+.dashboard-bar .hub-nav button{display:inline-flex;align-items:center;gap:6px;font-size:13px;padding:8px 14px;margin-bottom:-1px;border:1px solid #d8dde6;border-bottom-color:transparent;border-radius:9px 9px 0 0;background:#f4f7fa;color:#44546a}
+.dashboard-bar .hub-nav button:hover{background:#eaf3f8;color:#176b91}
+.dashboard-bar .hub-nav button.selected{background:#fff;color:#16325c;font-weight:700;border-color:#176b91 #d8dde6 #fff;border-top:3px solid #176b91;border-bottom:1px solid #fff}
+.dashboard-bar .hub-nav button:focus-visible{outline:2px solid #176b91;outline-offset:-2px}
+/* Bugs header: one baseline */
+.bug-head{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;padding:12px 16px}
+.bug-head .hub-field{display:grid;gap:4px;align-content:end}
+.bug-head select,.bug-head .champ{height:36px;min-width:170px;box-sizing:border-box;display:inline-flex;align-items:center;border-radius:8px}
+.bug-head .champ{padding:0 14px;min-width:200px}
+.bug-head .champ{text-transform:none;letter-spacing:0;font-weight:600;color:#5b6b7c}.bug-head .champ.on{color:#0b5a8a}
