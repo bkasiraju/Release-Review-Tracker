@@ -1,3 +1,7 @@
+## Unreleased — metric definitions on hover
+
+Closed / Spillover / Added / Removed / pts chg chips (Pulse cards, standup header, popup header and per-work-item tags) now show a hover definition with the numbers: spillover = committed at sprint start, not closed, carries from the selected sprint to the next sprint (or backlog); added = not in the start forecast, +N SP; removed = committed at N SP and taken out; pts chg = estimate from X to Y. Epic cells in work-item tables use the compact 12px font. Cache-bust `4.0.0-GA-plan15`.
+
 ## Unreleased — work-item type chips in Standup
 
 A "Work items" header with the item count and small Type chips (All plus one per Type with counts, e.g. User Story 12, Bug 1) now sits above the work-item list on the Standup page and in the full-screen popup. Chips multi-select, the selection carries across engineers, a selected type with no items for an engineer shows count 0, and "All" clears it. It combines with the epic filter. Cache-bust `4.0.0-GA-plan14`.

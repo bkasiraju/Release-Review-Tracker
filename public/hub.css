@@ -406,3 +406,5 @@ body[data-hub=home] .hub-tile .hub-tile-chips span{font-size:10px;line-height:1.
 .sp-tchip b{margin-left:4px;padding:0 6px;border-radius:999px;background:#eaf0f6;font-size:10.5px;color:#33445a}
 .sp-tchip:hover{border-color:#2a8fd8}.sp-tchip.on{background:#2a8fd8;border-color:#2a8fd8;color:#fff}.sp-tchip.on b{background:#ffffff33;color:#fff}
 .sp-tchip:focus-visible{outline:2px solid #0b5a8a;outline-offset:2px}
+.sp-chip[title]{cursor:help}
+.sp-items td.sp-epic-cell,.sp-items td.sp-epic-cell a{font-size:12px!important}
