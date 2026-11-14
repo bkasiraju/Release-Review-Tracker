@@ -45,6 +45,8 @@ Every requested change follows this sequence end to end without asking the user 
 
 ## Release Planning tab
 
+Priority is shown as P<n> (select; stored numeric). Workstreams carry a plan-only `priority`. `P.view.mode` toggles Form/Grid (grid rows are `tr[data-e]` with `td[data-w]` cells so the shared `onInput` ctx logic applies). Summary cards fold via `P.open`. The Release Planning Summary subtab (`P.tab`, `drawRps`) is read-only and derived from the plan.
+
 Planner view state `P.view` (search, release, line, engineer, theme, group) is session-only, rendered by `drawTools()` into `#pl-tools` and applied in `drawPlanner()`; it must never be written to the plan. Grouped (non-Project) views are read-only for add/remove.
 
 `public/plan.js` (client) + `backend/plan.js` (actions `plan-get|plan-save|plan-refs|plan-commit`). Draft stored as settings key `plan-<teamId>`. Only ABL epics are written to GUS (project -> program, epic -> project + planned release, days -> `Planned_Story_Points__c`); everything else is dashboard-only. Leaders are excluded from capacity via `H.leaderRank(name)`.

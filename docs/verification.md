@@ -879,6 +879,8 @@ Automatic approval review rejected an attempted reuse of a named existing browse
 
 ## Release Planning (post-4.0.0-GA)
 
+- plan18/19: P-priority selects, Grid edit (workstream priority edit round-trips to Form), collapsed summary cards and the Summary subtab (5 KPI cards, theme drill-down modal) verified on the local harness only; not against live GUS data.
+
 - plan17: filter/group toolbar verified on the local harness (group by ABL/BTL gives 2 groups; search narrows to 1 of 2 epics). Not verified against live GUS data.
 
 Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on stub harness: tab renders, live KPI/theme/engineer recompute, 9-tile hub grid. Not verified: live GUS create/update of PPM_Project__c and ADM_Epic__c; first real commit should be previewed and reviewed by the user.

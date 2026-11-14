@@ -5,7 +5,9 @@
 'use strict';
 const H=window.Hub,{esc,icon,call}=H;
 const P={plan:null,rev:null,refs:{releases:[],programs:[],projects:[],sprints:[]},members:[],seq:0,timer:0,state:'idle',stateAt:'',inflight:null,el:null};
-P.view={q:'',release:'',line:'',eng:'',theme:'',group:'project'};
+P.open={theme:false,eng:false};
+P.view={q:'',release:'',line:'',eng:'',theme:'',group:'project',mode:'form'};
+const priOpts=v=>{const n=v==null||v===''?null:Number(v),L=[1,2,3,4,5];if(n!=null&&!L.includes(n))L.push(n);return `<option value="">Priority</option>`+L.sort((a,b)=>a-b).map(x=>`<option value="${x}"${x===n?' selected':''}>P${x}</option>`).join('');};
 const uid=p=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 const r2=n=>Math.round(n*100)/100,fmt=n=>String(r2(Number(n)||0));
 const iso=d=>d.toISOString().slice(0,10);
@@ -36,6 +38,46 @@ function model(){
   const rows=[...eng.values()],avail=rows.reduce((a,x)=>a+x.avail,0);
   return {wd,rows,avail,abl:r2(ablT),btl:r2(btlT),total:r2(ablT+btlT),themes:[...themes.values()].sort((a,b)=>(b.abl+b.btl)-(a.abl+a.btl))};
 }
+// ── Release Planning Summary (read-only roll-up of the plan) ───────────────
+const TCOL=['#f59e0b','#2f6fdd','#12b981','#9333ea','#06b6d4','#e11d74','#6366f1','#84cc16','#64748b'];
+const PCOL={1:'#d6336c',2:'#e8890c',3:'#1b73b3',0:'#8aa0b4',b:'#b8c4d2'};
+const bucketOf=e=>e.line!=='ABL'?'b':(e.priority>=1&&e.priority<=3?e.priority:0);
+function rpsModel(){
+  const pl=P.plan,prj=new Map(pl.projects.map(p=>[p.id,p])),B={1:0,2:0,3:0,0:0,b:0},T=new Map();let abl=0;
+  for(const e of pl.epics){const d=epicDays(e),b=bucketOf(e);B[b]+=d;
+    if(e.line==='ABL'){abl+=d;const t=themeOf(prj.get(e.projectId));if(!T.has(t))T.set(t,{name:t,days:0,epics:0});const x=T.get(t);x.days+=d;x.epics++;}}
+  return {B,abl:r2(abl),themes:[...T.values()].sort((a,b)=>b.days-a.days)};
+}
+const pctOf=(n,d)=>d?Math.round(n/d*100):0;
+function drawRps(){
+  const el=P.el&&P.el.querySelector('#pl-rps');if(!el||!P.plan)return;
+  const m=rpsModel(),{B}=m,tot=m.abl,col=i=>TCOL[i%TCOL.length];
+  const card=(k,label,val,sub,colr)=>`<button type="button" class="pl-rk" data-rps="${k}" style="--c:${colr}"><span>${label}</span><b>${fmt(val)}<small> d</small></b><em>${sub}</em><i>Full screen →</i></button>`;
+  const R=46,C=2*Math.PI*R;let off=0;
+  const arcs=m.themes.filter(t=>t.days>0).map((t,i)=>{const len=t.days/tot*C,a=`<circle cx="60" cy="60" r="${R}" fill="none" stroke="${col(i)}" stroke-width="18" stroke-dasharray="${len} ${C-len}" stroke-dashoffset="${-off}" transform="rotate(-90 60 60)"></circle>`;off+=len;return a;}).join('');
+  const seg=(b,l)=>B[b]>0?`<i style="width:${B[b]/(tot||1)*100}%;background:${PCOL[b]}" title="${l}: ${fmt(B[b])} d"></i>`:'';
+  el.innerHTML=`<div class="pl-rks">${card('abl','Total payload (ABL)',tot,`P1 ${fmt(B[1])} · P2 ${fmt(B[2])} · P3 ${fmt(B[3])}${B[0]?` · other ${fmt(B[0])}`:''}`,'#1b73b3')}
+    ${card('p1','P1 critical',B[1],`${pctOf(B[1],tot)}% of planned`,PCOL[1])}${card('p2','P2 high',B[2],`${pctOf(B[2],tot)}% of planned`,PCOL[2])}${card('p3','P3 medium',B[3],`${pctOf(B[3],tot)}% of planned`,PCOL[3])}${card('btl','BTL effort',B.b,'Below the line / backlog',PCOL.b)}</div>
+  <div class="pl-rps-grid"><section class="pl-card"><h3>Theme payload distribution</h3><p class="note">Above-the-line effort by theme. Click a theme to open its epics.</p>
+    ${tot?`<div class="pl-donut"><svg viewBox="0 0 120 120" role="img" aria-label="Theme payload distribution">${arcs}</svg><div><b>${fmt(tot)}</b><span>planned days</span></div></div>`:'<p class="note">Add ABL effort to see the distribution.</p>'}
+    <div class="pl-tleg">${m.themes.map((t,i)=>`<button type="button" data-rps="t:${esc(t.name)}"><i style="background:${col(i)}"></i><span>${esc(t.name)}</span><b>${fmt(t.days)}d</b></button>`).join('')}</div></section>
+  <section class="pl-card"><h3>Priority &amp; strategic investment breakdown</h3><p class="note">High-level effort commitment across release goals (days).</p>
+    <div class="pl-pleg"><span style="color:${PCOL[1]}">P1: ${fmt(B[1])} d (${pctOf(B[1],tot)}%)</span><span style="color:${PCOL[2]}">P2: ${fmt(B[2])} d</span><span style="color:${PCOL[3]}">P3: ${fmt(B[3])} d</span>${B[0]?`<span>No priority / P4+: ${fmt(B[0])} d</span>`:''}<span>BTL: ${fmt(B.b)} d</span></div>
+    <div class="pl-pbar">${seg(1,'P1')}${seg(2,'P2')}${seg(3,'P3')}${seg(0,'Other')}</div>
+    <h4 class="pl-sub">Strategic themes portfolio (${m.themes.length} theme${m.themes.length===1?'':'s'})</h4>
+    <div class="pl-tcards">${m.themes.length?m.themes.map((t,i)=>`<button type="button" class="pl-tc" data-rps="t:${esc(t.name)}" style="--c:${col(i)}"><b>${esc(t.name)}</b><span>${fmt(t.days)} d (${pctOf(t.days,tot)}%)</span><u><i style="width:${pctOf(t.days,tot)}%"></i></u><small>${t.epics} epic${t.epics===1?'':'s'}</small><em>Open full screen</em></button>`).join(''):'<p class="note">No above-the-line epics yet.</p>'}</div></section></div>`;
+}
+function openRps(k,opener){
+  const pl=P.plan,prj=new Map(pl.projects.map(p=>[p.id,p]));let title,list;
+  if(k==='abl'){title='Total payload (ABL)';list=pl.epics.filter(e=>e.line==='ABL');}
+  else if(k==='btl'){title='BTL effort';list=pl.epics.filter(e=>e.line!=='ABL');}
+  else if(k[0]==='p'){title='P'+k[1]+' epics';list=pl.epics.filter(e=>bucketOf(e)===Number(k[1]));}
+  else{const t=k.slice(2);title='Theme: '+t;list=pl.epics.filter(e=>e.line==='ABL'&&themeOf(prj.get(e.projectId))===t);}
+  list=[...list].sort((a,b)=>(a.priority==null?99:a.priority)-(b.priority==null?99:b.priority));
+  const eng=e=>[...new Set(e.workstreams.map(w=>w.engName).filter(Boolean))].join(', ')||'—';
+  openModal(title,list.length?`<table class="pl-rps-t"><thead><tr><th>P</th><th>Epic</th><th>Project</th><th>Release</th><th>Line</th><th>Engineers</th><th>Days</th></tr></thead><tbody>${list.map(e=>`<tr><td>${e.priority==null?'—':'P'+esc(e.priority)}</td><td>${esc(e.name||'(unnamed)')}</td><td>${esc((prj.get(e.projectId)||{}).name||'—')}</td><td>${esc(e.releaseName||'—')}</td><td>${esc(e.line)}</td><td>${esc(eng(e))}</td><td>${fmt(epicDays(e))}</td></tr>`).join('')}</tbody></table>`:'<p class="note">No epics.</p>',opener);
+}
+function setTab(t){P.tab=t;const q=s=>P.el.querySelector(s);q('#pl-main').hidden=t!=='plan';q('#pl-rps').hidden=t!=='rps';P.el.querySelectorAll('[data-tab]').forEach(b=>{const on=b.dataset.tab===t;b.classList.toggle('on',on);b.setAttribute('aria-selected',on);});if(t==='rps')drawRps();}
 const tone=pct=>pct>100?'over':pct>85?'warn':'ok';
 
 // ── Persistence ─────────────────────────────────────────────────────────────
@@ -53,12 +95,13 @@ async function flush(){
 const opt=(v,l,sel)=>`<option value="${esc(v)}"${sel?' selected':''}>${esc(l)}</option>`;
 const kpi=(label,val,sub,cls='')=>`<div class="pl-kpi ${cls}"><span>${esc(label)}</span><b>${val}</b><small>${sub}</small></div>`;
 function drawSummary(){
+  if(P.tab==='rps')drawRps();
   const el=P.el&&P.el.querySelector('#pl-sum');if(!el)return;
   const m=model(),pctA=m.avail?Math.round(m.abl/m.avail*100):0,pctT=m.avail?Math.round(m.total/m.avail*100):0,head=r2(m.avail-m.abl);
   const maxT=Math.max(1,...m.themes.map(t=>t.abl+t.btl));
   el.innerHTML=`<div class="pl-kpis">${kpi('Available',fmt(m.avail)+'<i>d</i>',`${m.wd} working days × ${m.rows.filter(x=>x.cap).length} engineers, less leaves, holidays and on-call`)}${kpi('Planned ABL',fmt(m.abl)+'<i>d</i>',`${pctA}% of available`,tone(pctA))}${kpi('Planned BTL',fmt(m.btl)+'<i>d</i>','stretch work below the line')}${kpi('Total planned',fmt(m.total)+'<i>d</i>',`${pctT}% of available`,tone(pctT))}${kpi(head<0?'Over capacity':'Headroom (ABL)',fmt(Math.abs(head))+'<i>d</i>',head<0?'ABL exceeds what the team can deliver':'available after ABL',head<0?'over':'ok')}</div>
-  <div class="pl-sum-grid"><section class="pl-card"><h3>By theme / method</h3>${m.themes.length?m.themes.map(t=>`<div class="pl-bar-row"><span class="pl-bar-l" title="${esc(t.name)}">${esc(t.name)}</span><div class="pl-bar"><i class="abl" style="width:${t.abl/maxT*100}%"></i><i class="btl" style="width:${t.btl/maxT*100}%"></i></div><span class="pl-bar-v">${fmt(t.abl)}<small> ABL</small> · ${fmt(t.btl)}<small> BTL</small></span></div>`).join(''):'<p class="note">Add effort to workstreams to see the split.</p>'}<p class="pl-legend"><i class="abl"></i>ABL <i class="btl"></i>BTL</p></section>
-  <section class="pl-card"><h3>Engineer bandwidth</h3><div class="pl-eng" role="table" aria-label="Engineer bandwidth"><div class="pl-eng-h" role="row"><span>Engineer</span><span>Available</span><span>ABL</span><span>BTL</span><span>Load</span></div>${m.rows.length?m.rows.map(x=>{const pct=x.avail?Math.round((x.abl+x.btl)/x.avail*100):((x.abl+x.btl)?999:0),pa=x.avail?Math.round(x.abl/x.avail*100):0;
+  <div class="pl-sum-grid"><section class="pl-card${P.open.theme?'':' collapsed'}"><h3><button type="button" class="pl-fold" data-fold="theme" aria-expanded="${P.open.theme}"><span aria-hidden="true">${P.open.theme?'▾':'▸'}</span> By theme / method</button><small>${P.open.theme?'Collapse':'Expand'}</small></h3>${m.themes.length?m.themes.map(t=>`<div class="pl-bar-row"><span class="pl-bar-l" title="${esc(t.name)}">${esc(t.name)}</span><div class="pl-bar"><i class="abl" style="width:${t.abl/maxT*100}%"></i><i class="btl" style="width:${t.btl/maxT*100}%"></i></div><span class="pl-bar-v">${fmt(t.abl)}<small> ABL</small> · ${fmt(t.btl)}<small> BTL</small></span></div>`).join(''):'<p class="note">Add effort to workstreams to see the split.</p>'}<p class="pl-legend"><i class="abl"></i>ABL <i class="btl"></i>BTL</p></section>
+  <section class="pl-card${P.open.eng?'':' collapsed'}"><h3><button type="button" class="pl-fold" data-fold="eng" aria-expanded="${P.open.eng}"><span aria-hidden="true">${P.open.eng?'▾':'▸'}</span> Engineer bandwidth</button><small>${P.open.eng?'Collapse':'Expand'}</small></h3><div class="pl-eng" role="table" aria-label="Engineer bandwidth"><div class="pl-eng-h" role="row"><span>Engineer</span><span>Available</span><span>ABL</span><span>BTL</span><span>Load</span></div>${m.rows.length?m.rows.map(x=>{const pct=x.avail?Math.round((x.abl+x.btl)/x.avail*100):((x.abl+x.btl)?999:0),pa=x.avail?Math.round(x.abl/x.avail*100):0;
     return `<div class="pl-eng-r" role="row"><span class="pl-eng-n" title="${esc(x.name)}">${esc(x.name)}${x.cap&&(x.leave||x.holiday||x.oncall)?`<small>${[x.leave&&fmt(x.leave)+'d leave',x.holiday&&fmt(x.holiday)+'d holiday',x.oncall&&fmt(x.oncall)+'d on-call'].filter(Boolean).join(' · ')}</small>`:''}</span><span>${x.cap?fmt(x.avail):'—'}</span><span>${fmt(x.abl)}</span><span>${fmt(x.btl)}</span><span class="pl-load ${x.cap?tone(pct):'over'}"><i style="width:${Math.min(pct,100)}%"></i><em style="width:${Math.min(pa,100)}%"></em><b>${x.cap?(pct>=999?'—':pct+'%'):'unassigned'}</b></span></div>`;}).join(''):'<p class="note">No team members loaded.</p>'}</div></section></div>`;
 }
 function drawPlanner(){
@@ -67,14 +110,14 @@ function drawPlanner(){
   const engOpts=sel=>'<option value="">Unassigned</option>'+P.members.filter(m=>H.leaderRank(m.name)<0).map(m=>opt(m.id,m.name,m.id===sel)).join('');
   const epic=e=>{const inGus=e.gusId?`<a class="pl-gus" href="${H.GUS}ADM_Epic__c/${esc(e.gusId)}/view" target="_blank" rel="noopener">In GUS ↗</a>`:'<em class="pl-draft">Draft</em>';
     return `<div class="pl-epic ${e.line==='ABL'?'abl':'btl'}" data-e="${esc(e.id)}"><div class="pl-epic-h">
-    <input class="hub-inline pl-pri" type="number" min="0" max="9999" inputmode="numeric" placeholder="Pri" aria-label="Priority" data-f="priority" value="${e.priority==null?'':esc(e.priority)}">
+    <select class="sp-select pl-pri" aria-label="Epic priority" data-f="priority">${priOpts(e.priority)}</select>
     <input class="hub-inline pl-ename" type="text" placeholder="Epic name" aria-label="Epic name" data-f="name" value="${esc(e.name)}" maxlength="255">
     <select class="sp-select" aria-label="Planned release" data-f="releaseId"><option value="">Planned release…</option>${rel.map(r=>opt(r.id,r.name,r.id===e.releaseId)).join('')}${e.releaseId&&!rel.some(r=>r.id===e.releaseId)?opt(e.releaseId,e.releaseName||e.releaseId,true):''}</select>
     <select class="sp-select" aria-label="Project" data-f="projectId">${projOpts(e.projectId)}</select>
     <span class="pl-line" role="group" aria-label="Line of prioritisation"><button type="button" class="${e.line==='ABL'?'on abl':''}" data-line="ABL" aria-pressed="${e.line==='ABL'}" title="Above the line: saved to GUS">ABL</button><button type="button" class="${e.line==='BTL'?'on btl':''}" data-line="BTL" aria-pressed="${e.line==='BTL'}" title="Below the line: stays in the dashboard">BTL</button></span>
     <span class="pl-eff" title="Sum of workstream days"><b data-eff>${fmt(epicDays(e))}</b> d</span>${inGus}
     <button type="button" class="pl-x" data-del-epic aria-label="Delete epic" title="Delete epic">×</button></div>
-    <div class="pl-ws">${e.workstreams.map(w=>`<div class="pl-ws-r" data-w="${esc(w.id)}"><input class="hub-inline" type="text" placeholder="Workstream" aria-label="Workstream" data-f="name" value="${esc(w.name)}" maxlength="120"><select class="sp-select" aria-label="Engineer" data-f="engId">${engOpts(w.engId)}</select><input class="hub-inline pl-days" type="number" min="0" max="1000" step="0.5" inputmode="decimal" placeholder="Days" aria-label="Effort in days" data-f="days" value="${w.days?fmt(w.days):''}"><input class="hub-inline" type="text" list="pl-sprints" placeholder="Tentative sprint" aria-label="Tentative sprint" data-f="sprint" value="${esc(w.sprint)}" maxlength="60"><button type="button" class="pl-x" data-del-ws aria-label="Delete workstream" title="Delete workstream">×</button></div>`).join('')}<button type="button" class="pl-add" data-add-ws>+ Workstream</button></div></div>`;};
+    <div class="pl-ws">${e.workstreams.map(w=>`<div class="pl-ws-r" data-w="${esc(w.id)}"><select class="sp-select pl-pri" aria-label="Workstream priority" data-f="priority">${priOpts(w.priority)}</select><input class="hub-inline" type="text" placeholder="Workstream" aria-label="Workstream" data-f="name" value="${esc(w.name)}" maxlength="120"><select class="sp-select" aria-label="Engineer" data-f="engId">${engOpts(w.engId)}</select><input class="hub-inline pl-days" type="number" min="0" max="1000" step="0.5" inputmode="decimal" placeholder="Days" aria-label="Effort in days" data-f="days" value="${w.days?fmt(w.days):''}"><input class="hub-inline" type="text" list="pl-sprints" placeholder="Tentative sprint" aria-label="Tentative sprint" data-f="sprint" value="${esc(w.sprint)}" maxlength="60"><button type="button" class="pl-x" data-del-ws aria-label="Delete workstream" title="Delete workstream">×</button></div>`).join('')}<button type="button" class="pl-add" data-add-ws>+ Workstream</button></div></div>`;};
   const V=P.view,prj=new Map(pl.projects.map(p=>[p.id,p])),q=V.q.trim().toLowerCase(),filtering=!!(q||V.release||V.line||V.eng||V.theme);
   const match=e=>{const p=prj.get(e.projectId);
     if(V.release&&e.releaseId!==V.release)return false;if(V.line&&e.line!==V.line)return false;
@@ -91,13 +134,31 @@ function drawPlanner(){
     ${p.gusId?`<a class="pl-gus" href="${H.GUS}PPM_Project__c/${esc(p.gusId)}/view" target="_blank" rel="noopener">In GUS ↗</a>`:'<em class="pl-draft">New</em>'}
     <button type="button" class="button small" data-add-epic>+ Epic</button><button type="button" class="pl-x" data-del-proj aria-label="Delete project" title="Delete project">×</button></div>
     ${es.length?es.map(epic).join(''):`<p class="note pl-none">${pl.epics.some(e=>e.projectId===p.id)?'No epics match the filters.':'No epics yet. Add one to start planning.'}</p>`}</section>`;};
+  const gridHtml=()=>{
+    const order=new Map(pl.projects.map((p,i)=>[p.id,i])),key=e=>V.group==='project'?String(1e4+(order.has(e.projectId)?order.get(e.projectId):9999)):groupKey(e);
+    const es=[...shown].sort((a,b)=>String(key(a)).localeCompare(String(key(b)),undefined,{numeric:true}));
+    const sel=(f,html,lbl)=>`<select class="sp-select pl-g" aria-label="${lbl}" data-f="${f}">${html}</select>`;
+    const rows=[];let last=null;
+    es.forEach(e=>{
+      if(V.group!=='project'&&key(e)!==last){last=key(e);const g=es.filter(x=>key(x)===last);rows.push(`<tr class="pl-g-grp"><td colspan="11"><b>${esc(last)}</b> ${gsum(g)}</td></tr>`);}
+      const ws=e.workstreams.length?e.workstreams:[null];
+      ws.forEach((w,j)=>{
+        const first=j===0,tail=j===ws.length-1;
+        const ep=first?`<td>${sel('projectId',projOpts(e.projectId),'Project')}</td><td>${sel('priority',priOpts(e.priority),'Epic priority')}</td><td><input class="hub-inline" type="text" aria-label="Epic name" data-f="name" value="${esc(e.name)}" maxlength="255" placeholder="Epic name"></td><td>${sel('releaseId',`<option value="">Planned release…</option>${rel.map(r=>opt(r.id,r.name,r.id===e.releaseId)).join('')}${e.releaseId&&!rel.some(r=>r.id===e.releaseId)?opt(e.releaseId,e.releaseName||e.releaseId,true):''}`,'Planned release')}</td><td><span class="pl-line" role="group" aria-label="Line"><button type="button" class="${e.line==='ABL'?'on abl':''}" data-line="ABL" aria-pressed="${e.line==='ABL'}">ABL</button><button type="button" class="${e.line==='BTL'?'on btl':''}" data-line="BTL" aria-pressed="${e.line==='BTL'}">BTL</button></span></td>`:'<td></td><td></td><td></td><td></td><td></td>';
+        const wc=w?`<td data-w="${esc(w.id)}">${sel('priority',priOpts(w.priority),'Workstream priority')}</td><td data-w="${esc(w.id)}"><input class="hub-inline" type="text" aria-label="Workstream" data-f="name" value="${esc(w.name)}" maxlength="120" placeholder="Workstream"></td><td data-w="${esc(w.id)}">${sel('engId',engOpts(w.engId),'Engineer')}</td><td data-w="${esc(w.id)}"><input class="hub-inline pl-days" type="number" min="0" max="1000" step="0.5" aria-label="Effort in days" data-f="days" value="${w.days?fmt(w.days):''}" placeholder="Days"></td><td data-w="${esc(w.id)}"><input class="hub-inline" type="text" list="pl-sprints" aria-label="Tentative sprint" data-f="sprint" value="${esc(w.sprint)}" maxlength="60" placeholder="Sprint"></td>`:'<td></td><td></td><td></td><td></td><td></td>';
+        const act=`<td class="pl-g-act">${w?`<span data-w="${esc(w.id)}"><button type="button" class="pl-x" data-del-ws aria-label="Delete workstream" title="Delete workstream">×</button></span>`:''}${tail?`<button type="button" class="pl-x pl-g-add" data-add-ws aria-label="Add workstream" title="Add workstream">+</button>`:''}${first?`<button type="button" class="pl-x" data-del-epic aria-label="Delete epic" title="Delete epic">🗑</button>`:''}</td>`;
+        rows.push(`<tr data-e="${esc(e.id)}" class="${e.line==='ABL'?'abl':'btl'}${first?' pl-g-first':''}">${ep}${wc}${act}</tr>`);
+      });
+    });
+    return `<div class="pl-grid-wrap"><table class="pl-grid"><thead><tr><th>Project</th><th>Epic P</th><th>Epic</th><th>Release</th><th>Line</th><th>WS P</th><th>Workstream</th><th>Engineer</th><th>Days</th><th>Sprint</th><th></th></tr></thead><tbody>${rows.join('')||'<tr><td colspan="11" class="note">No epics match the filters.</td></tr>'}</tbody></table></div><button type="button" class="pl-add" data-grid-add-epic>+ Epic</button><p class="note">Project names are edited in Form view.</p>`;};
   el.innerHTML=`<datalist id="pl-projects">${P.refs.projects.map(p=>`<option value="${esc(p.name)}"></option>`).join('')}</datalist><datalist id="pl-sprints">${P.refs.sprints.map(s=>`<option value="${esc(s.name)}"></option>`).join('')}</datalist>`+
     (!pl.projects.length?'<div class="empty-state hub-empty"><h3>No projects yet</h3><p>Add a project, then epics and workstreams with effort in days.</p></div>'
+     :V.mode==='grid'?gridHtml()
      :V.group==='project'?(()=>{const ps=pl.projects.filter(p=>!filtering||shown.some(e=>e.projectId===p.id)||(q&&(p.name||'').toLowerCase().includes(q)&&!V.release&&!V.line&&!V.eng&&!V.theme));return ps.length?ps.map(proj).join(''):'<p class="note pl-none">No epics match the filters.</p>';})()
      :(()=>{const g=new Map();shown.forEach(e=>{const k=groupKey(e);if(!g.has(k))g.set(k,[]);g.get(k).push(e);});
        return g.size?[...g.entries()].sort((x,y)=>x[0].localeCompare(y[0],undefined,{numeric:true})).map(([k,es])=>`<section class="pl-proj pl-group"><div class="pl-group-h"><h4>${esc(k)}</h4>${gsum(es)}</div>${es.map(e=>`<div class="pl-gproj" title="Project">${esc((prj.get(e.projectId)||{}).name||'(no project)')}</div>${epic(e)}`).join('')}</section>`).join('')+'<p class="note">Switch to Group by Project to add epics or projects.</p>':'<p class="note pl-none">No epics match the filters.</p>';})());
 }
-const wire=()=>P.el.querySelectorAll('#pl-planner select').forEach(s=>H.customSelect(s));
+const wire=()=>P.el.querySelectorAll('#pl-planner select:not(.pl-g)').forEach(s=>H.customSelect(s));
 function drawTools(){
   const box=P.el.querySelector('#pl-tools'),pl=P.plan;if(!box||!pl)return;const V=P.view;
   const themes=[...new Set(pl.projects.map(themeOf))].sort(),engs=P.members.filter(m=>H.leaderRank(m.name)<0);
@@ -106,7 +167,7 @@ function drawTools(){
   box.innerHTML=`<label class="pl-tf pl-q"><span>Search</span><input type="search" class="hub-inline" data-v="q" placeholder="Epic, workstream or project…" aria-label="Search epics" value="${esc(V.q)}"></label>`+
     sel('release','Release',rels)+sel('line','Line',[['ABL','ABL'],['BTL','BTL']])+sel('eng','Engineer',engs.map(m=>[m.id,m.name]))+sel('theme','Theme',themes.map(t=>[t,t]))+
     `<label class="pl-tf"><span>Group by</span><select class="sp-select" data-v="group" aria-label="Group by">${[['project','Project'],['release','Planned release'],['line','ABL / BTL'],['theme','Theme']].map(([v,l])=>opt(v,l,V.group===v)).join('')}</select></label>`+
-    `<button type="button" class="button small" data-clear-view${V.q||V.release||V.line||V.eng||V.theme?'':' disabled'}>Clear filters</button><span class="note pl-count" id="pl-count"></span>`;
+    `<span class="pl-mode" role="group" aria-label="View"><button type="button" data-mode="form" class="${V.mode==='form'?'on':''}" aria-pressed="${V.mode==='form'}">Form</button><button type="button" data-mode="grid" class="${V.mode==='grid'?'on':''}" aria-pressed="${V.mode==='grid'}">Grid</button></span><button type="button" class="button small" data-clear-view${V.q||V.release||V.line||V.eng||V.theme?'':' disabled'}>Clear filters</button><span class="note pl-count" id="pl-count"></span>`;
   box.querySelectorAll('select').forEach(x=>H.customSelect(x));
 }
 function draw(){drawSummary();drawTools();drawPlanner();wire();}
@@ -119,7 +180,8 @@ function onInput(ev){
   const t=ev.target.closest('[data-f]');if(!t||!P.plan)return;
   const f=t.dataset.f,c=ctxOf(t),v=t.value;let structural=false;
   if(c.w){const e=findE(c.e),w=e&&e.workstreams.find(x=>x.id===c.w);if(!w)return;
-    if(f==='days'){w.days=Math.max(0,Number(v)||0);const b=t.closest('.pl-epic').querySelector('[data-eff]');if(b)b.textContent=fmt(epicDays(e));}
+    if(f==='days'){w.days=Math.max(0,Number(v)||0);const b=(t.closest('.pl-epic')||P.el).querySelector(`[data-e="${e.id}"] [data-eff]`)||t.closest('.pl-epic')?.querySelector('[data-eff]');if(b)b.textContent=fmt(epicDays(e));}
+    else if(f==='priority')w.priority=v===''?null:Math.max(0,Math.round(Number(v)));
     else if(f==='engId'){w.engId=v;w.engName=(P.members.find(m=>m.id===v)||{}).name||'';}
     else w[f]=v;}
   else if(c.e){const e=findE(c.e);if(!e)return;
@@ -139,11 +201,16 @@ function onClick(ev){
   if(t.closest('[data-retry]'))return flush();
   if(!pl)return;
   if(t.closest('#pl-add-proj')){pl.projects.push({id:uid('p'),name:'',theme:'',gusId:''});draw();queueSave();const n=P.el.querySelectorAll('.pl-pname');n[n.length-1]?.focus();return;}
+  const tb=t.closest('[data-tab]');if(tb){setTab(tb.dataset.tab);return;}
+  const rp=t.closest('[data-rps]');if(rp){openRps(rp.dataset.rps,rp);return;}
+  const fd=t.closest('[data-fold]');if(fd){P.open[fd.dataset.fold]=!P.open[fd.dataset.fold];drawSummary();return;}
+  const md=t.closest('[data-mode]');if(md){P.view.mode=md.dataset.mode;drawTools();drawPlanner();wire();return;}
+  if(t.closest('[data-grid-add-epic]')){if(!pl.projects.length)pl.projects.push({id:uid('p'),name:'',theme:'',gusId:''});const e={id:uid('e'),projectId:pl.projects[0].id,name:'',line:'BTL',priority:null,releaseId:'',releaseName:'',gusId:'',workstreams:[{id:uid('w'),name:'',priority:null,engId:'',engName:'',days:0,sprint:''}]};pl.epics.push(e);draw();queueSave();P.el.querySelector(`[data-e="${e.id}"] input`)?.focus();return;}
   if(t.closest('[data-clear-view]')){P.view=Object.assign(P.view,{q:'',release:'',line:'',eng:'',theme:''});drawTools();drawPlanner();wire();return;}
   if(t.closest('#pl-leaves'))return openLeaves();
   if(t.closest('#pl-commit'))return openCommit();
-  if(t.closest('[data-add-epic]')){const e={id:uid('e'),projectId:c.p,name:'',line:'BTL',priority:null,releaseId:'',releaseName:'',gusId:'',workstreams:[{id:uid('w'),name:'',engId:'',engName:'',days:0,sprint:''}]};pl.epics.push(e);draw();queueSave();P.el.querySelector(`[data-e="${e.id}"] .pl-ename`)?.focus();return;}
-  if(t.closest('[data-add-ws]')){const e=findE(c.e);if(!e)return;const w={id:uid('w'),name:'',engId:'',engName:'',days:0,sprint:''};e.workstreams.push(w);draw();queueSave();P.el.querySelector(`[data-w="${w.id}"] input`)?.focus();return;}
+  if(t.closest('[data-add-epic]')){const e={id:uid('e'),projectId:c.p,name:'',line:'BTL',priority:null,releaseId:'',releaseName:'',gusId:'',workstreams:[{id:uid('w'),name:'',priority:null,engId:'',engName:'',days:0,sprint:''}]};pl.epics.push(e);draw();queueSave();P.el.querySelector(`[data-e="${e.id}"] .pl-ename`)?.focus();return;}
+  if(t.closest('[data-add-ws]')){const e=findE(c.e);if(!e)return;const w={id:uid('w'),name:'',priority:null,engId:'',engName:'',days:0,sprint:''};e.workstreams.push(w);draw();queueSave();P.el.querySelector(`[data-w="${w.id}"] input`)?.focus();return;}
   const line=t.closest('[data-line]');if(line){const e=findE(c.e);if(e){e.line=line.dataset.line;draw();queueSave();}return;}
   if(t.closest('[data-del-ws]')){const e=findE(c.e);if(e){e.workstreams=e.workstreams.filter(w=>w.id!==c.w);draw();queueSave();}return;}
   if(t.closest('[data-del-epic]')){const e=findE(c.e);if(e&&((!e.gusId&&!e.name&&!epicDays(e))||confirm(e.gusId?'This epic is already in GUS. Delete only the draft here? The GUS epic stays.':'Delete this epic and its workstreams?'))){pl.epics=pl.epics.filter(x=>x.id!==c.e);draw();queueSave();}return;}
@@ -214,8 +281,10 @@ H.register({id:'plan',label:'Release Planning',icon:'plan',tone:'green',desc:'Pl
     P.el=el;
     el.innerHTML=`<div class="executive-heading"><div><h2>${icon('plan','green')} Release Planning</h2><p>Plan projects, epics and workstreams for ${esc(H.team.Name)}. Effort is in days; epics above the line (ABL) are saved to GUS when you confirm.</p></div><div class="heading-actions"><span id="pl-state" class="pl-state" role="status" aria-live="polite"></span><button type="button" class="button" id="pl-leaves">Leaves, holidays &amp; on-call</button><button type="button" class="button primary" id="pl-commit">Review &amp; save to GUS</button></div></div>
     <div class="pl-window"><label>Planning window <input type="date" class="hub-inline" id="pl-start" aria-label="Window start"></label><span aria-hidden="true">→</span><input type="date" class="hub-inline" id="pl-end" aria-label="Window end"><span class="note" id="pl-last"></span></div><div id="pl-warn"></div>
-    <div id="pl-sum"></div>
-    <div class="pl-planner-h"><h3>Projects &amp; epics</h3><button type="button" class="button" id="pl-add-proj">+ Project</button></div><div id="pl-tools" class="pl-tools"></div><div id="pl-planner"></div>`;
+    <div class="pl-tabs" role="tablist" aria-label="Release planning views"><button type="button" role="tab" data-tab="plan" class="on" aria-selected="true">Planner</button><button type="button" role="tab" data-tab="rps" aria-selected="false">Release Planning Summary</button></div>
+    <div id="pl-main"><div id="pl-sum"></div>
+    <div class="pl-planner-h"><h3>Projects &amp; epics</h3><button type="button" class="button" id="pl-add-proj">+ Project</button></div><div id="pl-tools" class="pl-tools"></div><div id="pl-planner"></div></div><div id="pl-rps" hidden></div>`;
+    P.tab='plan';
     el.oninput=onInput;
     el.onchange=ev=>{if(ev.target.closest('#pl-start,#pl-end')){const s=el.querySelector('#pl-start').value,e=el.querySelector('#pl-end').value;if(s&&e&&s<=e&&P.plan){P.plan.window={start:s,end:e};drawSummary();queueSave();}else if(s&&e&&s>e)window.toast?.('End date must be on or after the start date.',true);return;}onInput(ev);};
     el.onclick=onClick;load(el);

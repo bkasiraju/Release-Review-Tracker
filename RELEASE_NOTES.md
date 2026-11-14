@@ -1,3 +1,12 @@
+## Unreleased — planner priorities, Grid view, collapsed summary cards, Release Planning Summary
+
+- **Priority as P1, P2, P3…** Epic and workstream priority are now P-pickers (P1–P5; a legacy value outside that range stays selectable). Epic priority keeps its numeric value (still written to GUS `Priority__c` on commit); workstream priority is a new plan-only field (`priority`, cleaned in backend `cleanPlan`, not written to GUS).
+- **Form / Grid toggle** in the Projects & epics toolbar: Grid is a flat table, one row per workstream with epic fields on the first row, all editable inline (project, priority, name, release, ABL/BTL, workstream, engineer, days, sprint), + workstream per epic, delete, + Epic. It honours search, filters and Group by. Project names are still edited in Form view. View state is not saved.
+- **By theme / method and Engineer bandwidth start collapsed** with Expand/Collapse.
+- **Release Planning Summary subtab** (Planner | Release Planning Summary): read-only roll-up in days — Total ABL payload, P1/P2/P3 cards, BTL effort, theme donut, priority bar and theme cards; each card/theme opens a full-screen list of its epics. ABL epics without P1–P3 count in the total as "other"; BTL is shown separately.
+
+Cache-bust `4.0.0-GA-plan19`.
+
 ## Unreleased — Release Planning: filter and group epics
 
 "Projects & epics" now has a toolbar: search (epic, workstream or project name), filters for Planned release, Line (ABL/BTL), Engineer and Theme, a Clear filters button, an "x of N epics" count, and **Group by** Project (default, editable), Planned release, ABL/BTL or Theme. Grouped views show per-group epic count and ABL/BTL days, list each epic under its project name, and are for review (add epics/projects from the Project grouping). Filters are view-only session state: they never change or save the plan. Cache-bust `4.0.0-GA-plan17`.

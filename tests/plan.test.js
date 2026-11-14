@@ -56,3 +56,10 @@ test('default team preference is kept per user in the settings journal',async()=
   assert.equal((await call({action:'pref-get'})).payload.defaultTeam,null);
   assert.equal((await call({action:'pref-set',defaultTeam:"x' OR 1"})).ok,false);
 });
+
+test('cleanPlan keeps workstream priority', () => {
+  const c = require('../backend/plan.js').cleanPlan;
+  const out = c({ epics: [{ id: 'e1', projectId: 'p1', workstreams: [{ id: 'w1', priority: 2 }, { id: 'w2', priority: '' }] }] });
+  assert.equal(out.epics[0].workstreams[0].priority, 2);
+  assert.equal(out.epics[0].workstreams[1].priority, null);
+});

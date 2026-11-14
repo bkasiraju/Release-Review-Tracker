@@ -23,7 +23,7 @@ function cleanPlan(input) {
     priority: Number.isFinite(Number(x.priority)) && x.priority !== '' && x.priority != null ? Math.min(Math.max(Math.round(Number(x.priority)), 0), 9999) : null,
     releaseId: gid(x.releaseId), releaseName: text(x.releaseName, 120), gusId: gid(x.gusId),
     workstreams: (Array.isArray(x.workstreams) ? x.workstreams : []).slice(0, MAX.workstreams).map((s, j) => ({
-      id: lid(s.id, j, 'w'), name: text(s.name, 120), engId: gid(s.engId), engName: text(s.engName, 80), days: days(s.days), sprint: text(s.sprint, 60)
+      id: lid(s.id, j, 'w'), name: text(s.name, 120), priority: Number.isFinite(Number(s.priority)) && s.priority !== '' && s.priority != null ? Math.min(Math.max(Math.round(Number(s.priority)), 0), 9999) : null, engId: gid(s.engId), engName: text(s.engName, 80), days: days(s.days), sprint: text(s.sprint, 60)
     }))
   }));
   const people = {};
