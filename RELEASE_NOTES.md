@@ -1,3 +1,7 @@
+## Unreleased on top of 4.0.0-GA (plan62) — Back to Release Intelligence on the planner
+
+- The planner header has a "← Back to Release Intelligence" button that returns to Team Hub for the same team. It stays visible in full-screen mode (where the top bar is hidden) and warns before leaving with unsaved changes.
+
 ## Unreleased on top of 4.0.0-GA (plan61) — Effort entered vs missing; saves serialized
 
 - WS Est cells have a green border when effort is entered and a red border when it is empty/0; updates as you type.

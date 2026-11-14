@@ -962,3 +962,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan60: Actions header; code change only, tests run, local harness.
 
 - plan61: effort colouring and serialized saves; double-click Save on local harness ended 'Saved', no conflict.
+
+- plan62: back button; harness check in focus mode: visible and routes to #/home.
