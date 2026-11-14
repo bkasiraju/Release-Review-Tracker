@@ -156,6 +156,9 @@ function loadPeople(g){
     d.people.forEach(p=>{if(p.avatar){const i=new Image();i.src=p.avatar;}if(p.alt){const j=new Image();j.src=p.alt;}});return d;},e=>{peopleLoads.delete(g);throw e;}));
   return peopleLoads.get(g);
 }
+/** Avatar lookup for other pages (matched by GUS user id, then name); resolves once the team's people are loaded. */
+H.personAvatar=(id,name)=>{const g=groupKey(H.team);if(!g||!peopleData||peopleData.g!==g)return null;const n=String(name||'').toLowerCase();return peopleData.d.people.find(p=>(id&&p.id===id)||(n&&p.name.toLowerCase()===n))||null;};
+H.peopleReady=()=>{const g=groupKey(H.team);return g?loadPeople(g).catch(()=>null):Promise.resolve(null);};
 H.preloadPeople=()=>{const g=groupKey(H.team);if(g)loadPeople(g).catch(()=>{});};
 /** The Release Health tiles live in #overview-panel (owned by app.js); on Team Hub they sit in the top row, elsewhere they go back. */
 function parkOverview(){const ov=$('overview-panel'),hp=$('hub-panel');if(ov&&hp&&ov.parentElement!==hp.parentElement)hp.parentElement.insertBefore(ov,hp);}

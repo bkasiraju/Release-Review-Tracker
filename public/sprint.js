@@ -6,7 +6,7 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const CLOSED=new Set(['Closed','Fixed','Completed','Duplicate','Will Not Fix','Never','Inactive','Rejected']);
 const CLOSED_BUG=new Set([...CLOSED,'Not a bug','Not Reproducible']);
 const GUS_WORK='https://gus.lightning.force.com/lightning/r/ADM_Work__c/';
-const S={pick:null,view:'pulse',standupIdx:0,ready:false,loading:false,teamId:'',sprintId:'',members:[],sprint:null,history:null,tab:'saydo',open:new Set(),search:'',seq:0};
+const S={pick:null,view:'pulse',standupIdx:0,ready:false,loading:false,teamId:'',sprintId:'',members:[],sprint:null,history:null,tab:'saydo',open:new Set(),sort:{key:'',dir:'asc'},order:null,modal:null,search:'',seq:0};
 const icon=(n,t)=>window.ReviewIcons?window.ReviewIcons.icon(n,t):'';
 const isClosed=i=>(i.status&&i.status.startsWith('Closed'))||(i.recordType==='Bug'?CLOSED_BUG:CLOSED).has(i.status);
 const pts=i=>i.forecastPts!=null?i.forecastPts:(i.storyPoints||0);
@@ -46,9 +46,15 @@ const ptsInput=i=>`<input class="hub-inline num" type="number" min="0" step="0.5
 function itemRow(i){
   const flag=i.itemStatus==='Added'?'<span class="sp-chip add">Added</span>':i.itemStatus==='Removed'?'<span class="sp-chip rem">Removed</span>':'';
   const changed=i.ptsChanged?`<span class="sp-chip chg" title="Forecast ${esc(i.forecastPts)} pts, now ${esc(i.storyPoints)} pts">pts changed</span>`:'';
-  return `<tr class="${i.itemStatus==='Removed'?'sp-removed':''}"><td><a href="${GUS_WORK}${esc(i.id)}/view" target="_blank" rel="noopener noreferrer">${esc(i.name)}</a></td><td class="sp-subject">${esc(i.subject)} ${flag}${changed}</td><td>${esc(i.recordType)}</td><td>${statusSelect(i)}</td><td class="num">${ptsInput(i)}</td><td class="num">${i.forecastPts==null?'—':esc(i.forecastPts)}</td></tr>`;
+  return `<tr class="${i.itemStatus==='Removed'?'sp-removed':''}"><td><a href="${GUS_WORK}${esc(i.id)}/view" target="_blank" rel="noopener noreferrer">${esc(i.name)}</a></td><td class="sp-subject" title="${esc(i.subject)}${i.epic?esc('\n\nEpic: '+i.epic):''}"><span class="sp-clip">${esc(i.subject)}</span>${flag}${changed}</td><td class="sp-epic-cell" title="${esc(i.epic)}">${i.epicId?`<a href="${EPIC(esc(i.epicId))}" target="_blank" rel="noopener noreferrer">${esc(i.epic)}</a>`:'<span class="muted">—</span>'}</td><td class="sp-type">${esc(i.recordType)}</td><td>${statusSelect(i)}</td><td class="num">${ptsInput(i)}</td><td class="num">${i.forecastPts==null?'—':esc(i.forecastPts)}</td></tr>`;
 }
-const itemsTable=rows=>`<div class="table-scroll sp-items"><table><thead><tr><th>Work</th><th>Subject</th><th>Type</th><th>Status</th><th class="num">Pts</th><th class="num">Forecast</th></tr></thead><tbody>${rows.map(itemRow).join('')}</tbody></table></div>`;
+const SORTS={name:i=>i.name,subject:i=>i.subject,epic:i=>i.epic,recordType:i=>i.recordType,status:i=>i.status,pts:i=>i.storyPoints,forecast:i=>i.forecastPts};
+function sortRows(rows){
+  const k=S.sort.key;if(!k)return rows;const f=SORTS[k],d=S.sort.dir==='desc'?-1:1,none=v=>v==null||v==='';
+  return [...rows].sort((a,b)=>{const x=f(a),y=f(b);if(none(x))return none(y)?0:1;if(none(y))return -1;return (typeof x==='number'?x-y:String(x).localeCompare(String(y),undefined,{numeric:true,sensitivity:'base'}))*d;});
+}
+const sortTh=(k,label,cls)=>{const on=S.sort.key===k;return `<th class="${cls||''}" aria-sort="${on?(S.sort.dir==='asc'?'ascending':'descending'):'none'}"><button type="button" class="sp-sort${on?' on':''}" data-sort="${k}" title="Sort by ${esc(label)}">${label}<i aria-hidden="true">${on?(S.sort.dir==='asc'?'▲':'▼'):'↕'}</i></button></th>`;};
+const itemsTable=rows=>`<div class="table-scroll sp-items"><table><thead><tr>${sortTh('name','Work')}${sortTh('subject','Subject')}${sortTh('epic','Epic')}${sortTh('recordType','Type')}${sortTh('status','Status')}${sortTh('pts','Pts','num')}${sortTh('forecast','Forecast','num')}</tr></thead><tbody>${sortRows(rows).map(itemRow).join('')}</tbody></table></div>`;
 // Summary text is derived from GUS commitment data only (no generated claims).
 const names=(a,n=3)=>a.slice(0,n).map(i=>i.name).join(', ')+(a.length>n?` +${a.length-n} more`:'');
 function memberSummary(m){
@@ -78,8 +84,8 @@ function memberHtml(m){
   const done=sm.fc.filter(isClosed).reduce((n,i)=>n+pts(i),0),p=pct(done,m.initialPts),open=S.open.has(m.name);
   const col=!m.initialPts?(sm.removed.length?'#ba0517':'#9aa5b1'):p>=80?'#2e844a':p>=50?'#b57b22':'#ba0517';
   const chips=`${m.closedCount?`<span class="sp-chip ok">✓ ${m.closedCount} closed</span>`:''}${m.spilloverCount?`<span class="sp-chip bad">⚠ ${m.spilloverCount} spillover</span>`:''}${m.addedCount?`<span class="sp-chip add">+${m.addedCount} added</span>`:''}${m.removedCount?`<span class="sp-chip chg">−${m.removedCount} removed</span>`:''}${m.ptsChangedCount?`<span class="sp-chip chg">Δ${m.ptsChangedCount} pts chg</span>`:''}`;
-  return `<article class="sp-card${open?' open':''}" style="--card:${col}" data-member="${esc(m.name)}"><button class="sp-card-head" data-toggle="${esc(m.name)}" aria-expanded="${open}"><span class="su-av">${esc(initials(m.name))}</span><strong>${esc(m.name)}</strong><span class="sp-card-pts" title="Points done / committed">${fmt(done)}/${fmt(m.initialPts)}p <i>${open?'▾':'▸'}</i></span></button>
-  <div class="sp-card-sum"><b>★ ${esc(sm.head)}</b><p>${esc(sm.text)}</p></div><div class="sp-chips">${chips}</div>
+  return `<article class="sp-card${open?' open':''}" style="--card:${col}" data-member="${esc(m.name)}"><button class="sp-card-head" data-toggle="${esc(m.name)}" aria-expanded="${open}">${avImg(m)}<strong>${esc(m.name)}</strong><span class="sp-card-pts" title="Points done / committed">${fmt(done)}/${fmt(m.initialPts)}p <i>${open?'▾':'▸'}</i></span></button>
+  <div class="sp-card-sum"><b>★ ${esc(sm.head)}</b><p>${esc(sm.text)}</p></div><div class="sp-chips">${chips}<button type="button" class="button small sp-open" data-open-member="${esc(m.name)}" title="Open full details with previous / next engineer">Open details ⤢</button></div>
   ${open?`<div class="sp-card-body"><div class="sp-prog" title="${p}% of committed points done"><span>${fmt(done)} of ${fmt(m.initialPts)} committed pts done</span><span>${p}%</span></div><span class="sp-bar"><i style="width:${Math.min(p,100)}%;background:${col}"></i></span>${memberBody(m)}</div>`:''}</article>`;
 }
 function renderMembers(){
@@ -133,6 +139,8 @@ let rz=null;if(window.ResizeObserver)new ResizeObserver(()=>{clearTimeout(rz);rz
 
 // ── Standup (member carousel + epics in sprint + numbered items) ───────────
 const spOf=i=>i.storyPoints==null?0:i.storyPoints;
+const avImg=(m,big)=>{const id=(m.items.find(i=>i.assigneeId)||{}).assigneeId,pr=window.Hub.personAvatar&&window.Hub.personAvatar(id,m.name);
+  return `<span class="su-av${big?' big':''}" data-i="${esc(initials(m.name))}">${pr&&pr.avatar?`<img src="${esc(pr.avatar)}" alt="" decoding="async" ${pr.alt&&pr.alt!==pr.avatar?`data-alt="${esc(pr.alt)}"`:''} onerror="var a=this.dataset.alt;if(a){this.removeAttribute('data-alt');this.src=a;}else this.remove()">`:''}</span>`;};
 const initials=n=>String(n).split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();
 const activeItems=m=>m.items.filter(i=>i.itemStatus!=='Removed');
 const EPIC=id=>`https://gus.lightning.force.com/lightning/r/ADM_Epic__c/${id}/view`;
@@ -144,22 +152,63 @@ function epicCards(items,title,uid){
   const others=g.get('__none');
   return `<div class="su-epics"><h3>${esc(title)} <span class="count-pill">${list.length-(others?1:0)}</span></h3>${others?`<p class="su-callout">⚠ ${others.n} work item${others.n>1?'s have':' has'} no epic in GUS — grouped under “Others”.</p>`:''}<div class="su-epic-grid">${list.map(e=>`<article class="su-epic${e.id?'':' others'}${e.lead?' lead':''}"><strong title="${esc(e.name)}">${e.id?`<a href="${EPIC(esc(e.id))}" target="_blank" rel="noopener noreferrer">${esc(e.name)}</a>`:esc(e.name)}</strong>${e.lead?'<span class="sp-chip add">Development lead</span>':e.leadName?`<small class="su-lead">Dev lead: ${esc(e.leadName)}</small>`:''}<span>${e.done}/${e.n} items · ${fmt(e.sp)} SP</span><span class="sp-bar"><i style="width:${pct(e.done,e.n)}%;background:${e.id?'#2e844a':'#9aa5b1'}"></i></span></article>`).join('')}</div></div>`;
 }
+function orderedMembers(){
+  const ms=S.members.filter(m=>activeItems(m).length).sort((a,b)=>a.name.localeCompare(b.name));
+  if(!S.order)return ms;const ix=n=>{const k=S.order.indexOf(n);return k<0?1e9:k;};
+  return ms.sort((a,b)=>ix(a.name)-ix(b.name)||a.name.localeCompare(b.name));
+}
+function shuffle(){
+  const names=orderedMembers().map(m=>m.name);if(names.length<2)return;
+  for(let i=names.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[names[i],names[j]]=[names[j],names[i]];}
+  S.order=names;S.standupIdx=0;if(S.modal)S.modal=names[0];renderStandup();renderModal();window.toast?.('Standup order shuffled.');
+}
+function renderModal(){
+  const old=$('sp-modal'),keep=old&&old.querySelector('.sp-modal-body'),top=keep?keep.scrollTop:0;
+  if(old)old.remove();if(!S.modal)return;
+  const ms=orderedMembers(),k=ms.findIndex(x=>x.name===S.modal);if(k<0){S.modal=null;return;}
+  const m=ms[k],items=activeItems(m).sort((a,b)=>isClosed(a)-isClosed(b)||String(a.name).localeCompare(String(b.name)));
+  const sp=items.reduce((n,i)=>n+spOf(i),0),doneSp=items.filter(isClosed).reduce((n,i)=>n+spOf(i),0),pv=ms[k-1],nx=ms[k+1];
+  const nav=(o,step,label,arrow)=>`<button type="button" class="sp-mnav" data-modal-step="${step}"${o?'':' disabled'} aria-label="${label}${o?': '+esc(o.name):''}">${step<0?`<b>${arrow}</b>`:''}<span><small>${label}</small>${o?esc(o.name):'—'}</span>${step>0?`<b>${arrow}</b>`:''}</button>`;
+  const el=document.createElement('div');el.id='sp-modal';el.className='sp-modal';
+  el.innerHTML=`<div class="sp-modal-card" role="dialog" aria-modal="true" aria-label="Standup review: ${esc(m.name)}">
+  <div class="sp-modal-top">${nav(pv,-1,'Previous engineer','‹')}<div class="sp-mtitle">${avImg(m,1)}<div><h3>${esc(m.name)}</h3><p>${k+1} of ${ms.length} · ${items.filter(isClosed).length}/${items.length} items done · ${fmt(doneSp)}/${fmt(sp)} SP</p></div></div>${nav(nx,1,'Next engineer','›')}</div>
+  <div class="sp-modal-tools"><span class="sp-bar"><i style="width:${Math.min(100,pct(doneSp,sp))}%;background:#2e844a"></i></span><button type="button" class="button small" data-shuffle title="Randomise the order of engineers for standup">🔀 Shuffle order</button><button type="button" class="button small" data-modal-close>Close ✕</button></div>
+  <div class="sp-modal-body">${epicCards(items,'Epics',(items.find(i=>i.assigneeId)||{}).assigneeId)}<h4 class="sp-sec">Work items</h4>${itemsTable(items)}</div></div>`;
+  $('sp-panel-body').appendChild(el);const b=el.querySelector('.sp-modal-body');b.scrollTop=top;if(!keep)el.querySelector('.sp-mnav:not([disabled]),[data-modal-close]').focus();
+}
+function bindModal(){
+  $('sp-panel-body').addEventListener('click',e=>{
+    const t=e.target;
+    const so=t.closest('[data-sort]');if(so){const k=so.dataset.sort;S.sort=S.sort.key===k?{key:k,dir:S.sort.dir==='asc'?'desc':'asc'}:{key:k,dir:'asc'};renderMembers();renderModal();return;}
+    const op=t.closest('[data-open-member]');if(op){S.modal=op.dataset.openMember;renderModal();return;}
+    const st=t.closest('[data-modal-step]');if(st){const ms=orderedMembers(),k=ms.findIndex(x=>x.name===S.modal)+Number(st.dataset.modalStep);if(ms[k]){S.modal=ms[k].name;S.standupIdx=k;renderModal();renderStandup();}return;}
+    if(t.closest('[data-shuffle]')){shuffle();return;}
+    if(t.closest('[data-modal-close]')||t.id==='sp-modal'){S.modal=null;renderModal();}
+  });
+  document.addEventListener('keydown',e=>{
+    if(!S.modal)return;
+    if(e.key==='Escape'){S.modal=null;renderModal();return;}
+    if(/INPUT|SELECT|TEXTAREA/.test(document.activeElement?.tagName))return;
+    const d=e.key==='ArrowRight'?1:e.key==='ArrowLeft'?-1:0;if(!d)return;
+    const ms=orderedMembers(),k=ms.findIndex(x=>x.name===S.modal)+d;if(ms[k]){S.modal=ms[k].name;S.standupIdx=k;renderModal();renderStandup();}
+  });
+}
 function renderStandup(){
   const host=$('sp-standup');if(S.view!=='standup')return;
-  const ms=S.members.filter(m=>activeItems(m).length).sort((a,b)=>a.name.localeCompare(b.name));
+  const ms=orderedMembers();
   if(!ms.length){host.innerHTML='<div class="empty-state sp-empty"><h3>No work in this sprint</h3><p>There are no committed items for the selected sprint.</p></div>';return;}
   S.standupIdx=Math.min(Math.max(S.standupIdx,0),ms.length-1);const m=ms[S.standupIdx],items=activeItems(m).sort((a,b)=>isClosed(a)-isClosed(b)||String(a.name).localeCompare(String(b.name)));
   const sp=items.reduce((n,i)=>n+spOf(i),0),doneSp=items.filter(isClosed).reduce((n,i)=>n+spOf(i),0);
-  const pills=ms.map((x,k)=>{const a=activeItems(x);return `<button class="su-pill${k===S.standupIdx?' active':''}" data-su="${k}" aria-pressed="${k===S.standupIdx}"><span class="su-av">${esc(initials(x.name))}</span><span>${esc(x.name)}</span><small>${a.length} WI · ${fmt(a.reduce((n,i)=>n+spOf(i),0))} SP</small></button>`;}).join('');
+  const pills=ms.map((x,k)=>{const a=activeItems(x);return `<button class="su-pill${k===S.standupIdx?' active':''}" data-su="${k}" aria-pressed="${k===S.standupIdx}">${avImg(x)}<span>${esc(x.name)}</span><small>${a.length} WI · ${fmt(a.reduce((n,i)=>n+spOf(i),0))} SP</small></button>`;}).join('');
   host.innerHTML=`<section class="table-card su-card"><div class="su-pills" role="group" aria-label="Team members">${pills}</div>
-  <div class="su-carousel"><div class="su-nav"><button class="button small" data-su-step="-1" aria-label="Previous member"${S.standupIdx===0?' disabled':''}>‹ Prev</button><div class="su-dots" role="tablist">${ms.map((x,k)=>`<button class="su-dot${k===S.standupIdx?' active':''}" data-su="${k}" role="tab" aria-selected="${k===S.standupIdx}" aria-label="${esc(x.name)}"></button>`).join('')}</div><button class="button small" data-su-step="1" aria-label="Next member"${S.standupIdx===ms.length-1?' disabled':''}>Next ›</button></div>
-  <div class="su-member"><div class="su-member-head"><span class="su-av big">${esc(initials(m.name))}</span><div><h3>${esc(m.name)}</h3><p>${S.standupIdx+1} of ${ms.length} · ${items.filter(isClosed).length}/${items.length} items done · ${fmt(doneSp)}/${fmt(sp)} SP</p></div><span class="sp-bar su-bar"><i style="width:${Math.min(100,pct(doneSp,sp))}%;background:#2e844a"></i></span></div>
+  <div class="su-carousel"><div class="su-nav"><button class="button small" data-su-step="-1" aria-label="Previous member"${S.standupIdx===0?' disabled':''}>‹ Prev</button><div class="su-dots" role="tablist">${ms.map((x,k)=>`<button class="su-dot${k===S.standupIdx?' active':''}" data-su="${k}" role="tab" aria-selected="${k===S.standupIdx}" aria-label="${esc(x.name)}"></button>`).join('')}</div><button class="button small" data-su-step="1" aria-label="Next member"${S.standupIdx===ms.length-1?' disabled':''}>Next ›</button><button class="button small" data-shuffle title="Randomise the order of engineers for standup">🔀 Shuffle</button><button class="button small" data-open-member="${esc(m.name)}" title="Open in popup">Open ⤢</button></div>
+  <div class="su-member"><div class="su-member-head">${avImg(m,1)}<div><h3>${esc(m.name)}</h3><p>${S.standupIdx+1} of ${ms.length} · ${items.filter(isClosed).length}/${items.length} items done · ${fmt(doneSp)}/${fmt(sp)} SP</p></div><span class="sp-bar su-bar"><i style="width:${Math.min(100,pct(doneSp,sp))}%;background:#2e844a"></i></span></div>
   ${epicCards(items,'Epics for '+m.name+'’s sprint work',(items.find(i=>i.assigneeId)||{}).assigneeId)}
   <ol class="su-items">${items.map(i=>`<li class="${isClosed(i)?'done':''}"><span class="su-no"></span><a href="${GUS_WORK}${esc(i.id)}/view" target="_blank" rel="noopener noreferrer">${esc(i.name)}</a><span class="su-subject" title="${esc(i.subject)}">${esc(i.subject)}${i.itemStatus==='Added'?' <span class="sp-chip add">Added</span>':''}${i.epic?` <span class="sp-chip">${esc(i.epic)}</span>`:''}</span>${statusSelect(i)}${ptsInput(i)}</li>`).join('')}</ol></div></div></section>`;
 }
 function bindStandup(){
   $('sp-standup').addEventListener('click',e=>{const t=e.target.closest('[data-su],[data-su-step]');if(!t)return;S.standupIdx=t.dataset.su!=null?Number(t.dataset.su):S.standupIdx+Number(t.dataset.suStep);renderStandup();});
-  document.addEventListener('keydown',e=>{if(S.view!=='standup'||document.body.dataset.hub!=='sprints'||/INPUT|SELECT|TEXTAREA/.test(document.activeElement?.tagName))return;if(e.key==='ArrowRight'){S.standupIdx++;renderStandup();}else if(e.key==='ArrowLeft'){S.standupIdx--;renderStandup();}});
+  document.addEventListener('keydown',e=>{if(S.modal||S.view!=='standup'||document.body.dataset.hub!=='sprints'||/INPUT|SELECT|TEXTAREA/.test(document.activeElement?.tagName))return;if(e.key==='ArrowRight'){S.standupIdx++;renderStandup();}else if(e.key==='ArrowLeft'){S.standupIdx--;renderStandup();}});
 }
 
 // ── Loading ─────────────────────────────────────────────────────────────────
@@ -170,9 +219,9 @@ async function loadHistory(){
   try{const r=await call('sprint-history',{teamId:S.teamId});if(my===S.seq){S.history=r;renderChart();}}
   catch(e){if(my===S.seq)$('sp-chart').innerHTML=`<div class="empty-state sp-empty"><h3>Trend unavailable</h3><p>${esc(e.message)}</p></div>`;}
 }
-function applyData(d){S.sprint=d.sprint;S.members=d.members||[];S.sprintId=d.sprint?.Id||S.sprintId;renderGoal();renderMetrics();renderMembers();renderStandup();}
+function applyData(d){S.sprint=d.sprint;S.members=d.members||[];S.sprintId=d.sprint?.Id||S.sprintId;renderGoal();renderMetrics();renderMembers();renderModal();renderStandup();}
 async function loadTeam(teamId){
-  const my=++S.seq;S.teamId=teamId;S.history=null;S.members=[];S.open.clear();busy(true,'Loading sprint data from GUS…');
+  const my=++S.seq;S.teamId=teamId;S.history=null;S.members=[];S.open.clear();S.order=null;S.modal=null;renderModal();busy(true,'Loading sprint data from GUS…');
   $('sp-chart').innerHTML='<div class="sp-loading">Loading trend…</div>';
   try{
     const d=await call('sprint-initial',{teamId});if(my!==S.seq)return;
@@ -182,12 +231,12 @@ async function loadTeam(teamId){
   }catch(e){if(my!==S.seq)return;busy(false,'');window.toast?.('Sprint Insights: '+e.message,true);$('sp-members').innerHTML=`<div class="empty-state sp-empty"><h3>Could not load sprint data</h3><p>${esc(e.message)}</p></div>`;}
 }
 async function loadSprint(sprintId){
-  const my=++S.seq;S.sprintId=sprintId;S.open.clear();busy(true,'Loading sprint…');
+  const my=++S.seq;S.sprintId=sprintId;S.open.clear();S.modal=null;renderModal();busy(true,'Loading sprint…');
   try{const d=await call('sprint-data',{teamId:S.teamId,sprintId});if(my!==S.seq)return;applyData(d);busy(false);if(!S.history)void loadHistory();else renderChart();}
   catch(e){if(my!==S.seq)return;busy(false,'');window.toast?.('Sprint Insights: '+e.message,true);}
 }
 async function show(){
-  const H=window.Hub;
+  const H=window.Hub;H.peopleReady().then(()=>{if(S.members.length){renderMembers();renderModal();renderStandup();}});
   if(!S.pick)H.picklists().then(p=>{S.pick=p;if(S.members.length){renderMembers();renderStandup();}},()=>{});
   if(!H.hasTeam()){S.seq++;S.teamId='';S.members=[];$('sp-metrics').innerHTML='';$('sp-chart').innerHTML='';$('sp-trend-stats').innerHTML='';$('sp-standup').innerHTML='';
     $('sp-members').innerHTML='<div class="empty-state sp-empty"><h3>Select a team</h3><p>Pick a team in the filter at the top.</p></div>';$('sp-member-count').textContent='0';$('sp-row-count').textContent='';return;}
@@ -203,7 +252,7 @@ function bind(){
   window.Hub.onTeam(()=>{if(document.body.dataset.hub==='sprints')show();});
   window.Hub.bindEdit($('sp-panel-body'),(id,field,val)=>{
     for(const m of S.members)for(const i of m.items)if(i.id===id){if(field==='Status__c')i.status=val;else if(field==='Story_Points__c'){i.storyPoints=val;i.ptsChanged=i.itemStatus!=='Removed'&&i.forecastPts!=null&&val!=null&&i.forecastPts!==val;}}
-    renderMetrics();renderMembers();if(S.view==='standup')renderStandup();});
+    renderMetrics();renderMembers();renderModal();if(S.view==='standup')renderStandup();});
   $('sp-sprint').onchange=e=>loadSprint(e.target.value);
   $('sp-refresh').onclick=()=>loadTeam(S.teamId);
   $('sp-expand').onclick=()=>{S.members.forEach(m=>S.open.add(m.name));renderMembers();};
@@ -213,7 +262,7 @@ function bind(){
   document.querySelectorAll('[data-sp-tab]').forEach(b=>b.onclick=()=>{S.tab=b.dataset.spTab;document.querySelectorAll('[data-sp-tab]').forEach(x=>{const on=x===b;x.classList.toggle('selected',on);x.setAttribute('aria-pressed',String(on));});renderChart();});
 }
 window.SprintInsights={show};
-bind();bindStandup();
+bind();bindStandup();bindModal();
 // Page registry entry: the Sprint panel is an existing view, so the hub just switches to it.
 window.Hub.register({id:'sprints',label:'Sprints',icon:'sprint',tone:'blue',desc:'Sprint pulse, say-do and daily standup',legacy:'sprint',needsTeam:false,
   stat:h=>{const s=h&&h.sprint;return s?{big:s.sayDo!=null?Math.round(s.sayDo)+'%':'—',text:`say-do · ${s.name}`}:{text:'Sprint pulse, say-do and daily standup'};}});
