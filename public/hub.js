@@ -98,6 +98,7 @@ H.go=(id,opts={})=>{
   H.current=id;document.body.dataset.hub=id;
   const own=!p.legacy;$('hub-panel').classList.toggle('hidden',!own);
   if(p.legacy)legacy(p.legacy);
+  if(id!=='plan')document.querySelectorAll('#pl-back').forEach(x=>x.remove());
   renderNav();renderCurrent();renderGusLinks(id);placeGus();
   if(!opts.silent&&location.hash!=='#/'+id)history.pushState(null,'','#/'+id);
   window.scrollTo(0,0);

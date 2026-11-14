@@ -974,3 +974,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan69: scripted harness check: no popups on load; + Epic popup adds at end; Projects menu and + Project popup open on click.
 
 - plan70: overlay seen in a local headless screenshot (blurred shell, centred spinner); fade-out and end-of-load timing on real data not observed.
+
+- plan71: Back button in tab row, far right (local harness, headless Chrome, normal and focus mode: right edge 1674/1700, same row as tab, click returns to #/home and button removed). Not verified on the live app.

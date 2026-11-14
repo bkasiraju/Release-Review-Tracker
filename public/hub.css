@@ -799,3 +799,10 @@ body[data-ready] #hub-boot{display:flex}
 .ri-ring{width:52px;height:52px;border-radius:50%;border:5px solid #d6e6f2;border-top-color:#176b91;border-right-color:#1e8e6a;animation:riSpin .9s linear infinite}
 @keyframes riSpin{to{transform:rotate(360deg)}}
 @media(prefers-reduced-motion:reduce){.ri-ring{animation-duration:2.4s}}
+
+/* plan71: Back to Release Intelligence sits at the far right of the tab row */
+.dashboard-bar{position:relative}
+.pl-back{position:absolute;right:2px;top:2px;display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 16px 0 12px;border-radius:999px;background:linear-gradient(135deg,#1e8e6a,#176b91 60%,#2f6fd0);color:#fff!important;font-size:13px;font-weight:700;text-decoration:none!important;box-shadow:0 4px 12px rgba(23,107,145,.35);transition:transform .15s,box-shadow .15s}
+.pl-back svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:transform .15s}
+.pl-back:hover{transform:translateY(-1px);box-shadow:0 8px 18px rgba(23,107,145,.45)}.pl-back:hover svg{transform:translateX(-3px)}
+.pl-back:focus-visible{outline:2px solid #176b91;outline-offset:2px}

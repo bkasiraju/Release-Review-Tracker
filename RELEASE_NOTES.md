@@ -1,3 +1,9 @@
+## Unreleased on top of 4.0.0-GA (plan71) — Back button moved to the tab row
+
+- "Back to Release Intelligence" now sits at the far top-right of the page-tab row (same row as the Release Planning tab) instead of inside the header actions.
+- Restyled as a teal-to-blue gradient pill with an arrow icon, hover lift and focus ring. Still shown in focus mode, and still asks before leaving with unsaved changes.
+- The button is removed when leaving the planner.
+
 ## Unreleased on top of 4.0.0-GA (plan70) — Full-page blurred loading overlay
 
 - On page load or refresh the whole page is blurred behind a centred loading animation; it fades out once the first page has finished loading, replacing the intermediate "Loading your team hub…" strip.
