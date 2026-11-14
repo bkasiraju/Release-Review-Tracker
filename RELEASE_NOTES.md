@@ -1,3 +1,11 @@
+## Unreleased — planner: inline dropdowns, owners, defaults, sheet-parity fields
+
+- **Inline dropdowns everywhere** in the planner, including the Grid (the app's custom dropdown, not the native one), sized to their values. In Grid the Project column shows the short code (text before ":", e.g. M1) with the full name on hover; the full project name is what is stored and saved to GUS.
+- **Multi-select owners:** workstreams take several engineers (days are split evenly across them in Engineer bandwidth) and epics take several Owners (plan-only, not written to GUS).
+- **Defaults:** new epics and workstreams start at **P0** (P0–P5; an unset priority reads as P0) and new epics default the planned release to the team's 268 release when it exists. The Summary subtab now buckets P0 / P1 / P2 / P3+ / BTL.
+- **Parity with the team's sheet planning:** Theme (per epic, defaults to the project theme and is now a visible column and filter), HRP V2MOM method, CFS V2MOM, Owner(s), Epic estimate (used when workstreams have no days), Status (epic and workstream: Planned / In Progress / Completed / On Hold), Sprint target, GUS epic link and Doc link. Available in Form (a details row) and as Grid columns (the grid scrolls sideways).
+- Search box is wider. Cache-bust `4.0.0-GA-plan20`. New plan fields are plan-only; only the existing epic fields are written to GUS on commit.
+
 ## Unreleased — planner priorities, Grid view, collapsed summary cards, Release Planning Summary
 
 - **Priority as P1, P2, P3…** Epic and workstream priority are now P-pickers (P1–P5; a legacy value outside that range stays selectable). Epic priority keeps its numeric value (still written to GUS `Priority__c` on commit); workstream priority is a new plan-only field (`priority`, cleaned in backend `cleanPlan`, not written to GUS).

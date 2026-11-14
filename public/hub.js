@@ -278,7 +278,7 @@ H.customSelect=sel=>{
   let act=-1;
   const opts=()=>[...sel.options];
   const sync=()=>{
-    const o=sel.options[sel.selectedIndex];btn.innerHTML=`<span>${esc(o?o.text:'')}</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 8l5 5 5-5"/></svg>`;
+    const o=sel.options[sel.selectedIndex];btn.title=o&&o.dataset.short?o.text:'';btn.innerHTML=`<span>${esc(o?(o.dataset.short||o.text):'')}</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 8l5 5 5-5"/></svg>`;
     menu.innerHTML=opts().map((x,i)=>`<li role="option" data-i="${i}" aria-selected="${i===sel.selectedIndex}" class="${i===sel.selectedIndex?'on':''}"><i aria-hidden="true">${i===sel.selectedIndex?'✓':''}</i><span class="cs-t">${esc(x.text)}</span>${sel.dataset.pref?`<span class="cs-star${x.value===H.defaultTeam()?' on':''}" role="button" data-star="${i}" title="${x.value===H.defaultTeam()?'Default team (click to clear)':'Set as default team'}" aria-label="${x.value===H.defaultTeam()?'Clear default team':'Set '+esc(x.text)+' as default team'}">${x.value===H.defaultTeam()?'★':'☆'}</span>`:''}</li>`).join('');
   };
   const mark=i=>{act=i;[...menu.children].forEach((li,k)=>li.classList.toggle('act',k===i));menu.children[i]?.scrollIntoView({block:'nearest'});};

@@ -879,6 +879,8 @@ Automatic approval review rejected an attempted reuse of a named existing browse
 
 ## Release Planning (post-4.0.0-GA)
 
+- plan20: inline multi-select owners/engineers (day split), P0/268 defaults, sheet-parity fields and 20-column Grid verified on the local harness only (no 268 release exists there, so the release default was not exercised live).
+
 - plan18/19: P-priority selects, Grid edit (workstream priority edit round-trips to Form), collapsed summary cards and the Summary subtab (5 KPI cards, theme drill-down modal) verified on the local harness only; not against live GUS data.
 
 - plan17: filter/group toolbar verified on the local harness (group by ABL/BTL gives 2 groups; search narrows to 1 of 2 epics). Not verified against live GUS data.

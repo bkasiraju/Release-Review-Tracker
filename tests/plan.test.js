@@ -63,3 +63,10 @@ test('cleanPlan keeps workstream priority', () => {
   assert.equal(out.epics[0].workstreams[0].priority, 2);
   assert.equal(out.epics[0].workstreams[1].priority, null);
 });
+
+test('cleanPlan keeps sheet-parity fields and rejects non-http docs', () => {
+  const c = require('../backend/plan.js').cleanPlan;
+  const o = c({ epics: [{ id: 'e1', projectId: 'p1', theme: 'Feature GA', hrp: '5.5', v2mom: '5.5.2', estimate: 35, status: 'In Progress', doc: 'javascript:alert(1)', owners: [], workstreams: [{ id: 'w1', status: 'Bogus', engIds: [] }] }] }).epics[0];
+  assert.equal(o.theme, 'Feature GA'); assert.equal(o.v2mom, '5.5.2'); assert.equal(o.estimate, 35);
+  assert.equal(o.status, 'In Progress'); assert.equal(o.doc, ''); assert.equal(o.workstreams[0].status, '');
+});
