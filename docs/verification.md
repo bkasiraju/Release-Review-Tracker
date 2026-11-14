@@ -906,3 +906,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan30: status colour palette — computed colours checked for 4 of 6 states on the local harness.
 
 - plan31: standup Prev/Next/Shuffle/Open in the sprint bar; Next click advances member — local harness only (Shuffle/Open/Prev not clicked).
+
+- plan32: compact standup dialog header and dim-until-hover avatars — local harness screenshot only.

@@ -566,3 +566,10 @@ body select.hub-inline.st-new{background:#eceff3!important;color:#475467!importa
 body select.hub-inline.st-block{background:#fdf1dd!important;color:#8a5a00!important;border-color:#e8cf9b!important}
 .sp-bar-actions{margin-left:auto;display:inline-flex;gap:8px;align-items:center}.sp-bar-actions .su-nav-l{display:inline-flex;gap:8px}
 .su-nav{grid-template-columns:1fr!important;justify-items:center}
+/* Compact standup dialog header */
+.sp-modal-top{padding:8px 16px!important}.sp-mtitle{gap:10px!important}.sp-mtitle .su-av.big{width:36px;height:36px;font-size:13px}.sp-mtitle img{width:36px;height:36px}
+.sp-mtitle>div{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px}.sp-mtitle h3{margin:0;font-size:17px}.sp-mtitle .mchips{margin:0}
+.sp-bar.sp-bar-thin{display:block;width:100%;height:4px;border-radius:0;margin:0}
+.sp-modal-tools{display:flex!important;align-items:center;gap:12px;padding:6px 16px!important}
+.sp-modal-tools .sp-mstrip{flex:1;justify-content:center;border:0;padding:0}.sp-mbtns{display:inline-flex;gap:8px;flex:none}
+.sp-mav{opacity:.5;transition:opacity .15s}.sp-mav:hover,.sp-mav:focus-visible,.sp-mav.on{opacity:1}

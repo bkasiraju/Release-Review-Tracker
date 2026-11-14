@@ -1,3 +1,7 @@
+## Unreleased on top of 4.0.0-GA (plan32) — compact standup dialog header
+
+- The engineer dialog header is about half its former height: name and chips on one line between Previous/Next, a thin progress line, and one row with the avatar strip centred and Shuffle/Close at the right. Avatars are 50% opaque, full on hover, focus or when selected; clicking one switches to that engineer (Previous/Next follow in the same order). Cache-bust `4.0.0-GA-plan32`.
+
 ## Unreleased on top of 4.0.0-GA (plan31) — standup controls in the Current sprint bar
 
 - Prev / Next and Shuffle / Open moved from the standup card into the "Current sprint" bar, at the far right (Standup view only). Prev/Next, Shuffle and Open were clicked-tested for Next on the local harness; the card keeps the member pills, count and dots. Cache-bust `4.0.0-GA-plan31`.
