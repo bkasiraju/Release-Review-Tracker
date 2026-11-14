@@ -249,3 +249,9 @@ button.tf-filter.on{box-shadow:0 0 0 2px #176b91;border-color:#fff}
 .tf-pager{display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:8px 14px;border-top:1px solid #e3e9f0;font-size:12px;color:#44546a}
 .tf-pager span{margin-right:auto}
 .dp-hide{display:none!important}
+
+/* Brand mark: Release Intelligence logo, links to Team Hub */
+.rail .brand{width:44px;height:44px;border-radius:12px;background:transparent;margin:12px 0 18px;padding:0;transition:transform .15s,background .15s}
+.rail .brand img{width:40px;height:40px;object-fit:contain;display:block}
+.rail .brand:hover{background:#f3ecfb;transform:scale(1.06)}
+.rail .brand:focus-visible{outline:2px solid #0b5cab;outline-offset:2px}
