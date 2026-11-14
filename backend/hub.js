@@ -220,12 +220,13 @@ async function updateOne(sf, u) {
 }
 // ── Team people (leadership section on the hub home) ─────────────────────────
 const KARTHIK = '005EE00000kbcyIYAQ';
-const PEOPLE = { // display order: leadership first, then the rest of the roster A–Z
-  'Managed Async Processing Team': ['005B0000005Lg7WIAS', '005EE00000StHjGYAV', '005B0000001tCGAIA2', '005EE00000YvpWrYAJ'],
-  'Message Queue Team': ['005EE00000StHjGYAV', '005B0000001tCGAIA2', '005EE00000YvpWrYAJ'],
-  'VegaStore Team': [],
-  'Caching Services Team': [],
-  'VegaCache Team': ['005B0000006q4KcIAI', '005EE00000kbcyIYAQ', '005B0000003OANyIAO', '005EE00000YvpWrYAJ']
+const AMIT = '005B0000005Lg7WIAS', JAYANT = '005B0000001zx4jIAA', RAM = '005B0000001tCGAIA2', AZEEM = '005B0000003OANyIAO', VENKAT = '005B0000006q4KcIAI', PRAMIT = '005EE00000StHjGYAV', BHANU = '005EE00000YvpWrYAJ';
+const PEOPLE = { // leadership, shown after the rest of the roster (A–Z), in this order: Amit, Jayant, Ram, Azeem, Venkat, Pramit, Karthik, Bhanu
+  'Managed Async Processing Team': [AMIT, JAYANT, RAM, PRAMIT, BHANU],
+  'Message Queue Team': [JAYANT, RAM, PRAMIT, BHANU],
+  'VegaStore Team': [JAYANT],
+  'Caching Services Team': [JAYANT],
+  'VegaCache Team': [AZEEM, VENKAT, KARTHIK, BHANU]
 };
 const groupOf = g => g === 'maps' ? 'Managed Async Processing Team' : g === 'mq' ? 'Message Queue Team' : g === 'vegacache' ? 'VegaCache Team' : g === 'vegastore' ? 'VegaStore Team' : g === 'caching' ? 'Caching Services Team' : null;
 const TEAM_LIKE = { 'Managed Async Processing Team': "Name LIKE 'Managed Async Processing%'", 'Message Queue Team': "Name = 'Message Queue'", 'VegaCache Team': "Name LIKE 'VegaCache%'", 'VegaStore Team': "Name = 'VegaStore'", 'Caching Services Team': "Name = 'Caching Services'" };
@@ -267,7 +268,7 @@ async function getPeople(sf, slack, group) {
   const byId = new Map(rows.map(r => [r.Id, r]));
   const ordered = ids.filter(i => byId.has(i)).map(i => byId.get(i));
   const rest = ordered.filter(u => !lead.includes(u.Id)).sort((a, b) => a.Name.localeCompare(b.Name));
-  const list = [...ordered.filter(u => lead.includes(u.Id)), ...rest];
+  const list = [...rest, ...lead.map(i => byId.get(i)).filter(Boolean)];
   const people = [];
   for (let k = 0; k < list.length; k += 10)
     people.push(...await Promise.all(list.slice(k, k + 10).map(async u => ({ id: u.Id, name: u.Name, role: u.Title || '', avatar: (await slackAvatar(slack, u.Email)) || u.SmallPhotoUrl || null, alt: u.SmallPhotoUrl || null }))));
