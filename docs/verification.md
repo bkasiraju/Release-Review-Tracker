@@ -954,3 +954,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan56: planner tabs and grid dropdowns — local harness screenshot only; icon animation checked by CSS, not as motion; open dropdown list not viewed.
 
 - plan57: page tab shown in focus mode and flush with content; verified by headless screenshots of Home and Plan on the local harness only.
+
+- plan58: grid column widths; verified by headless screenshot on the local harness only.

@@ -728,3 +728,8 @@ body.focus-mode main{padding-top:36px}
 .dashboard-bar{margin-bottom:0!important;padding-bottom:0!important}
 .dashboard-bar .hub-nav{align-self:stretch;width:100%;margin-bottom:0}
 #hub-page>.executive-heading:first-child{margin-top:0;padding-top:10px}
+
+/* plan58: Epic Name / Workstream take the spare width; other columns shrink to content */
+.pl-grid-wrap .pl-grid th.c-name,.pl-grid-wrap .pl-grid td.c-name,.pl-grid-wrap .pl-grid th.c-ws,.pl-grid-wrap .pl-grid td.c-ws{width:34%!important}
+.pl-grid-wrap .pl-grid th:not(.c-name):not(.c-ws),.pl-grid-wrap .pl-grid td:not(.c-name):not(.c-ws){width:1px!important;padding-left:6px!important;padding-right:6px!important}
+.pl-grid-wrap .pl-grid td.c-owners .cs,.pl-grid-wrap .pl-grid td.c-engs .cs{width:auto;max-width:none}

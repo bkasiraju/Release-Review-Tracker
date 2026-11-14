@@ -1,3 +1,7 @@
+## Unreleased on top of 4.0.0-GA (plan58) — Grid column widths
+
+- Epic Name and Workstream get the spare width; Project, owners, estimates, ATL/BTL and Sprint shrink to content with minimal padding.
+
 ## Unreleased on top of 4.0.0-GA (plan57) — Page tab visible on the planner, flush with its content
 
 - The page tab (Release Planning (Quarterly), Team Hub, etc.) is no longer hidden in full-screen/focus mode, so the planner shows its tab like the other pages.
