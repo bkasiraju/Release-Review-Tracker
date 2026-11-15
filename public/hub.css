@@ -1298,3 +1298,16 @@ body[data-hub=hourglass] #gus-links{display:none!important}
 .hg-exgrid>div{border:1px solid var(--border);border-top:4px solid #249474;border-radius:10px;padding:10px 14px;background:#fff}.hg-exgrid .hg-ex-gr{border-top-color:#d98a1b}
 .hg-exgrid h4{margin:0 0 6px;font-size:12.5px;text-transform:uppercase;letter-spacing:.04em;color:#249474}.hg-exgrid .hg-ex-gr h4{color:#b57b22}
 .hg-exgrid ul{margin:0;padding-left:18px;font-size:13px;line-height:1.55}.hg-exgrid li{margin:2px 0}.hg-none{color:var(--muted);list-style:none;margin-left:-18px}
+/* plan138: Hourglass charts in one balanced two-pane section; clickable tiles, donuts and bars filter the sections below */
+.hg-split{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:14px;align-items:stretch;margin-top:10px}@media(max-width:1100px){.hg-split{grid-template-columns:1fr}}
+.hg-pane{border:1px solid var(--border);border-radius:12px;padding:12px 14px;background:#fff;min-width:0;display:flex;flex-direction:column}.hg-pane .hg-dist{flex:1;min-height:150px}
+.hg-pane .hg-donuts{margin:4px 0 14px;gap:14px;justify-content:space-around}.hg-pane .hg-donut{width:auto;flex:1;min-width:96px;padding:6px 4px;border-radius:10px}
+.hg-trendhost{min-width:0;overflow:hidden}.hg-trendhost .bt-tiles{margin:2px 0 8px}
+.hg-trendhost svg text{font:400 11px/1 inherit;font-family:inherit;font-weight:400;fill:#64748b;stroke:none;paint-order:normal}.hg-trendhost .bt-ax{font-size:11px;font-weight:400;fill:#64748b}
+.hg-trendhost .hg-pt{cursor:pointer;outline:none}.hg-trendhost .hg-pt:hover text,.hg-trendhost .hg-pt.hg-cur text{fill:#0b5cab;font-weight:700}.hg-trendhost .hg-pt:focus-visible rect{stroke:#0b5cab;fill:#0b5cab14}
+.hg-trendhost .hg-cur{fill:#0b5cab}.hg-trendhost .hg-d2.hg-cur{fill:#d15b68}.hg-tg{stroke-width:1}
+.hg-click{cursor:pointer;transition:box-shadow .15s,transform .15s,background .15s}.hg-click:hover{box-shadow:0 4px 12px rgba(10,50,90,.15);transform:translateY(-1px)}.hg-click:focus-visible{outline:2px solid #0b5cab;outline-offset:2px}
+.hg-click.sel{box-shadow:0 0 0 2px #0b5cab;background:#f3f9fd}.hg-dist .hg-col.hg-click:hover{transform:none;background:#f3f9fd;border-radius:8px}.hg-dist .hg-col.sel{box-shadow:none;background:#e7f1fb;border-radius:8px}
+.hg-flt{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:10px 0 0;padding:8px 12px;border-radius:8px;background:#e7f1fb;color:#10243a;font-size:13px}.hg-flt .button{margin-left:auto}
+.hg-hint{margin:10px 0 0!important}.hg-more{margin:10px 0 0}
+.hg-trendhost .hg-pt rect{fill:transparent;stroke:none}.hg-trendhost .hg-pt:focus-visible rect{stroke:#0b5cab;fill:#0b5cab14}

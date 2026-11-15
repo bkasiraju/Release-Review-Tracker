@@ -12,3 +12,5 @@ Method: GUS sprint work items -> git.soma PR search by `@W-N` in title; bots, fo
 Scope: MAPS, MQ and VegaCache only. VegaCache is not an HRP team, so use a teams file {"VegaCache":"VegaCache FACE"} with its GUS id in gus_teams.json.
 
 **plan133:** the page has no team selector of its own; it follows the top-level team (MAPS, MQ, VegaCache). Team view sections follow the original report; Core PRs are shown as n/a.
+
+**plan138:** each generated sprint now stores every merged PR in `prs` (collect.py), which drives the click filters; published-only sprints have none.

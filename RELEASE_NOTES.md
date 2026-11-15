@@ -1,3 +1,10 @@
+## Unreleased on top of 4.0.0-GA (plan138) — Hourglass charts rebuilt and clickable
+
+- Trend redrawn at its real pixel width (no more scaled, oversized bold axis text); fonts now match the rest of the app. Target labels no longer collide. Clicking a sprint on the trend opens that sprint.
+- Summary Metrics now has one balanced two-pane row: merge-time donuts and the cycle-time distribution on the left, the trend (with its tiles) on the right.
+- Tiles, donuts and distribution bars are clickable filters (median / P80 slower than target, merged within or over 24h, above-average comments, each cycle-time bucket). The filter updates Cycle Time by Repository, Slowest PRs (count and "show all"), Root Cause Analysis and Recommendations, with a Filtered bar showing the slice's count, median and P80 and a Clear button. The filter resets when the team or sprint changes.
+- The data file now carries every merged PR per generated sprint (for the filters), rebuilt from the cached GUS and git.soma data; headline numbers are unchanged. Sprints shown only from the published reports (07a to 09a for MAPS and MQ) have no PR list and so no filters.
+
 ## Unreleased on top of 4.0.0-GA (plan137) — loader avatars paint immediately
 
 - The loading screen's avatar strip is now drawn by a small inline script right after the loader markup, so the circles and their photos start fetching during HTML parse instead of after the app scripts and the roster call finish. It uses the last roster the app saw (`hub-boot-strip`, refreshed on every load), or a built-in list of team members on a first visit. Leaders are excluded as before. Added a preconnect to the Slack avatar host.

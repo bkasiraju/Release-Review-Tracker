@@ -1095,3 +1095,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan136: Hourglass executive summary as Accomplished / Growth bullets. Verified by unit tests and a local headless render only; not live-verified.
 
 - plan137: loader avatars pre-painted by an inline script. Verified by unit tests and a local headless render only; the real cold-load timing against Slack's image host was not measured.
+
+- plan138: Hourglass chart layout, trend sizing and click filters. Verified by unit tests and local headless renders (median-tile and distribution-bar filters) only; not live-verified.
