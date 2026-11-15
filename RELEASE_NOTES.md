@@ -1,3 +1,9 @@
+## Unreleased on top of 4.0.0-GA (plan133) — Hourglass follows the top-level team and the original report layout
+
+- Removed the page-level Team selector: Hourglass now uses the top-level team (MAPS, MQ, VegaCache). "All" shows the 3-team comparison; other teams get a note that Hourglass covers those three.
+- Trend redrawn in the Bugs-trend style (fixed 760x220 chart, 10.5px axes, light grid, tiles above, legend, dashed 8h/16h targets).
+- Team view restructured into the original sections: Executive Summary, Summary Metrics (six tiles and three donuts; % Core PRs shows n/a because Core-on-Git PRs are not collected), Cycle Time by Repository (bars and notes), Slowest PRs (with root-cause sentence), Root Cause Analysis (expandable, badges), Recommendations (priority, owner, expected impact) and Visibility Gaps.
+
 ## Unreleased on top of 4.0.0-GA (plan132) — Wider Projects popovers
 
 - The Projects popover and the New project popup are wider so full project / measure names are visible.

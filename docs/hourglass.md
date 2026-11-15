@@ -10,3 +10,5 @@ Static data `public/hourglass-data.json`, built offline (no AI, no cost):
 Method: GUS sprint work items -> git.soma PR search by `@W-N` in title; bots, forks, closed-unmerged excluded; PRs merged in the sprint window; cycle = created to merged. Core-on-Git change lists are not included, so counts are a lower bound.
 
 Scope: MAPS, MQ and VegaCache only. VegaCache is not an HRP team, so use a teams file {"VegaCache":"VegaCache FACE"} with its GUS id in gus_teams.json.
+
+**plan133:** the page has no team selector of its own; it follows the top-level team (MAPS, MQ, VegaCache). Team view sections follow the original report; Core PRs are shown as n/a.
