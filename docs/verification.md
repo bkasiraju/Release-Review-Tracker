@@ -1004,3 +1004,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan85: import of a 10-row sheet (3 projects, 6 epics, 10 workstreams) on the local harness: grouping, ABL, effort totals (10/6/2/3/4/23) correct, no data-quality warnings other than new-project notes; ABL/BTL toggle works after import (WS1 to BTL dropped Epic Est 10 to 5). Engineer-name matching not exercised with real names (harness team differs); not verified on the live app or in Excel/Sheets.
 
 - plan86: orbit loader screenshotted on the local harness with cached avatars; type-chip reset on member change not exercised in a browser; not verified on live.
+
+- plan87: header rename + widths; not screenshotted; not verified on live.

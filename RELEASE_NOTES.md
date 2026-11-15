@@ -1,3 +1,7 @@
+## Unreleased on top of 4.0.0-GA (plan87) — One-line bandwidth headers
+
+- Engineer bandwidth headers are single-line: Engineer, Available, Planned (ABL), Un-planned (BTL), Allocation % (was Load).
+
 ## Unreleased on top of 4.0.0-GA (plan86) — Orbiting-avatar loader, product name, per-member type chips
 
 - The loading screen shows every team member from MAPS, MQ, VegaCache, VegaStore and Caching Services orbiting the Release Intelligence mark (cached rosters paint at once, the rest fill in as they load). The title reads "Loading Release Intelligence…".

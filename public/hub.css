@@ -869,3 +869,7 @@ body[data-ready] #hub-boot{display:flex}
 @keyframes riSpinRev{to{transform:rotate(-360deg)}}
 @keyframes riPulse{50%{transform:scale(1.07)}}
 @media(prefers-reduced-motion:reduce){.ri-orbit-spin,.ri-av b{animation-duration:60s}.ri-core{animation:none}}
+
+/* plan87: one-line engineer bandwidth headers */
+.pl-eng-h,.pl-eng-r{grid-template-columns:minmax(130px,1.4fr) 76px 110px 130px minmax(110px,1.2fr);gap:10px}
+.pl-eng-h>span{white-space:nowrap}
