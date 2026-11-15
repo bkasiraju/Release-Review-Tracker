@@ -1371,3 +1371,10 @@ main>.dashboard-footer>*:not(:first-child)::before{content:'·';position:absolut
 .ri-dims span.on{background:#176b91}.ri-dims span[data-d="0"].on{background:#176b91}.ri-dims span[data-d="1"].on{background:#7c3aed}.ri-dims span[data-d="2"].on{background:#d97706}.ri-dims span[data-d="3"].on{background:#16a34a}
 
 .heading-actions .sp-dates{margin-left:auto;order:99}
+
+/* plan141: Epics header, title left and sprint dates right on one line */
+.su-epics>h3{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.su-epics>h3 .su-hint{margin-left:6px}
+.su-epics>h3 .sp-dates-epics{margin-left:auto;padding:4px 10px;gap:12px}
+.su-epics>h3 .sp-dates-epics .sp-cal{width:34px;height:34px}
+.su-epics>h3 .su-clear{margin-left:6px}
