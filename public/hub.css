@@ -1465,3 +1465,10 @@ body[data-hub=home] .hub-tile .hub-tile-stat.nobig small{font-size:10.5px}
 body[data-hub=home] .hub-tile-chips{flex-wrap:nowrap;overflow:hidden;margin-top:0;gap:4px}
 /* plan158: supplied sprint artwork is wider than the old tile icon */
 .sp-bar-ico{width:40px;height:40px;filter:none}
+/* plan159: bug trend — real-size chart, compact tiles, slim marks (global svg rules had added heavy strokes) */
+.bt-svg{width:100%;height:auto;max-height:200px}
+.bt-svg rect,.bt-svg text,.bt-svg circle{stroke:none}.bt-svg .bt-d{stroke:#0b5cab;stroke-width:1.6}
+.bt-svg text{font-family:inherit;font-weight:400;font-size:10.5px;fill:#64748b}.bt-svg .bt-axb{fill:#0b5cab}
+.bt-svg .bt-l{stroke-width:1.8}.bt-svg .bt-g{stroke:#e6ecf1;stroke-width:1}
+.bt-tile{padding:8px 12px}.bt-tile b{font-size:20px}.bt-tiles{margin:6px 0 4px}
+.bt-card .filterbar{padding-top:8px;padding-bottom:8px}

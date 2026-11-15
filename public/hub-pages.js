@@ -71,7 +71,7 @@ function drawTrend(el,t){
   const host=el.querySelector('#bug-trend');if(!host)return;
   if(!t||!t.weeks||!t.weeks.length){host.innerHTML='<div class="empty-state hub-empty"><p>Trend unavailable.</p></div>';return;}
   const w=t.weeks,sum=k=>w.reduce((a,x)=>a+x[k],0),op=sum('opened'),cl=sum('closed'),net=op-cl,last=w[w.length-1].backlog,first=w[0].backlog;
-  const W=760,Ht=220,L=34,R=38,T=14,Bt=28,iw=W-L-R,ih=Ht-T-Bt,n=w.length,slot=iw/n,bw=Math.min(16,slot/2-3);
+  const W=Math.max(560,Math.round(host.clientWidth||760)),Ht=190,L=34,R=38,T=14,Bt=28,iw=W-L-R,ih=Ht-T-Bt,n=w.length,slot=iw/n,bw=Math.min(16,slot/2-3);
   const mx=Math.max(4,...w.map(x=>Math.max(x.opened,x.closed))),mb=Math.max(1,...w.map(x=>x.backlog)),y=v=>T+ih-v/mx*ih,yb=v=>T+ih-v/mb*ih,cx=i=>L+slot*i+slot/2;
   const grid=[0,.5,1].map(f=>`<line x1="${L}" x2="${W-R}" y1="${T+ih-f*ih}" y2="${T+ih-f*ih}" class="bt-g"/><text x="${L-6}" y="${T+ih-f*ih+4}" text-anchor="end" class="bt-ax">${Math.round(mx*f)}</text><text x="${W-R+6}" y="${T+ih-f*ih+4}" class="bt-ax bt-axb">${Math.round(mb*f)}</text>`).join('');
   const bars=w.map((x,i)=>`<g><title>Week of ${x.start}: ${x.opened} opened, ${x.closed} closed, backlog ${x.backlog}</title><rect x="${cx(i)-bw-1}" y="${y(x.opened)}" width="${bw}" height="${T+ih-y(x.opened)}" rx="3" class="bt-o"/><rect x="${cx(i)+1}" y="${y(x.closed)}" width="${bw}" height="${T+ih-y(x.closed)}" rx="3" class="bt-c"/><text x="${cx(i)}" y="${Ht-10}" text-anchor="middle" class="bt-ax">${esc(x.start.slice(5).replace('-','/'))}</text></g>`).join('');
@@ -81,6 +81,7 @@ function drawTrend(el,t){
   host.innerHTML=`<div class="bt-tiles">${tile('Opened',op,'o','12 weeks')}${tile('Closed',cl,'c','12 weeks')}${tile('Net',(net>0?'+':'')+net,net>0?'bad':'good',net>0?'backlog growing':net<0?'backlog shrinking':'flat')}${tile('Open backlog now',t.openNow,'',`${last-first>=0?'+':''}${last-first} vs 12 weeks ago`)}${tile('Open by priority',['P0','P1','P2','P3','P4'].map(p=>`<i class="bt-p ${PCLS(p)}">${p} ${ob[p]||0}</i>`).join(''),'wide','')}</div>
   <svg class="bt-svg" viewBox="0 0 ${W} ${Ht}" role="img" aria-label="Bugs opened and closed per week with open backlog">${grid}${bars}<path d="${line}" class="bt-l"/>${dots}</svg>
   <div class="bt-legend"><span><i class="bt-o"></i>Opened</span><span><i class="bt-c"></i>Closed</span><span><i class="bt-lg"></i>Open backlog (right axis)</span>${t.truncated?'<span class="note">Counts capped at 2,000 per series.</span>':''}</div>`;
+  host._bt=t;if(!host._btRs){host._btRs=1;let tm;window.addEventListener('resize',()=>{clearTimeout(tm);tm=setTimeout(()=>{if(host.isConnected&&host._bt&&Math.abs(host.clientWidth-host._btW)>40)drawTrend(el,host._bt);},200);});}host._btW=host.clientWidth;
 }
 function drawBugs(el){drawTiles(el);drawQueue(el);}
 async function loadBugs(el){
