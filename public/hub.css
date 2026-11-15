@@ -1415,3 +1415,9 @@ main .executive-heading:has(#sp-end)>div:first-child{align-self:start!important}
 main .executive-heading:has(#sp-end)>div:first-child p{line-height:36px!important;margin:0!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 main .executive-heading:has(#sp-end)>div:first-child h2{display:none}
 main .executive-heading:has(#sp-end) .heading-actions .button,main .executive-heading:has(#sp-end) .heading-actions .sp-tabs button{height:36px;box-sizing:border-box}
+/* plan148: Standup — no Open-in-GUS bar; "Standup Summary for - <sprint>" and the sprint dates share one centred second line */
+body[data-hub=sprints][data-sp-view=standup] #gus-links{display:none!important}
+body[data-sp-view=standup] #sp-sprintbar .sp-bar-l{display:none}
+body[data-sp-view=standup] #sp-sprintbar{justify-content:center;flex-wrap:wrap;gap:16px}
+#sp-bar-dates:empty{display:none}
+body[data-sp-view=standup] #sp-bar-dates .sp-dates{margin:0}
