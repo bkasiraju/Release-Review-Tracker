@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.0.0-GA · GOLDEN BUILD (15 November 2026)
+
+Designated GOLDEN BUILD by the user. Contains everything through 5.8.0-GA (selected-teams label, animated and smoother sidebar). Immutable rollback baseline; 5.1.1-GA remains PLATINUM.
+
 ## 5.8.0-GA (15 November 2026)
 
 Sidebar open/close is slower and smoother (~0.5s ease, staggered label fade, 450ms close delay).

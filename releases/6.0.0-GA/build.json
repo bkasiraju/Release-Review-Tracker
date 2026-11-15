@@ -1,0 +1,22 @@
+{
+  "version": "6.0.0-GA",
+  "label": "GOLDEN BUILD",
+  "product": "Release Intelligence",
+  "artifact": "cfs-release-review-tracker.zip",
+  "sha256": "8b0c5a33a1043b71de8fcb6f14000b203b5a5d94501fcd937081f71e9920142f",
+  "gitTags": ["v6.0.0-GA", "GOLDEN-BUILD-6.0.0-GA"],
+  "productionUrl": "https://gus-apps.internal.salesforce.com/applets/cfs-release-review-tracker/",
+  "preferredRollbackTag": "GOLDEN-BUILD-6.0.0-GA",
+  "previousBaselineTag": "GOLDEN-BUILD-5.0.0-GA",
+  "revision": "20261115-6.0.0",
+  "verification": {
+    "validationScope": "Plan unit tests 10/10 pass; full suite not re-run (225 pass / 38 fail baseline); UI changes since 5.1.1-GA not render-verified in a signed-in browser; live backend/footer version needs a signed-in GUS Apps check; not independently re-reviewed",
+    "fullSuiteRun": false,
+    "productionModelOutputVerified": false,
+    "goldenDatasetCaptured": false
+  },
+  "rollbackBuilds": {
+    "golden": "GOLDEN-BUILD-6.0.0-GA",
+    "platinum": "PLATINUM-BUILD-5.1.1-GA"
+  }
+}

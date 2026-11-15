@@ -1,4 +1,8 @@
-# 5.0.0-GA · GOLDEN BUILD (second rollback baseline; PLATINUM is 5.1.1-GA)
+# 6.0.0-GA · GOLDEN BUILD
+
+Designated 15 November 2026. Tags `v6.0.0-GA`, `GOLDEN-BUILD-6.0.0-GA`; ZIP and SHA-256 in `releases/6.0.0-GA/`. To revert: deploy that exact ZIP (verify the checksum against `build.json`), then confirm footer `v6.0.0-GA`. Application rollback must preserve live GUS data. Includes everything through 5.8.0-GA. PLATINUM stays 5.1.1-GA (`docs/PLATINUM_BUILD.md`); 5.0.0-GA (`GOLDEN-BUILD-5.0.0-GA`) is the previous baseline and remains immutable.
+
+# 5.0.0-GA · PREVIOUS GOLDEN BUILD (superseded by 6.0.0-GA; remains immutable)
 
 Frozen at revision 20261115-65. See `docs/PLATINUM_BUILD.md` for the master build.
 
