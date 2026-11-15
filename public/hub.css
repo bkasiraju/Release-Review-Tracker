@@ -1001,3 +1001,16 @@ body[data-ready]:not([data-settled]) main{pointer-events:none;user-select:none}
 .pl-tt-thh{display:flex;align-items:center;gap:7px}.pl-tt-thh i{width:10px;height:10px;border-radius:3px;flex:none}.pl-tt-thh b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pl-tt-thh span{color:#5a6f82;font-size:11.5px;white-space:nowrap}
 .pl-tt ul{list-style:none;margin:5px 0 4px 17px;padding:0}.pl-tt li{display:flex;align-items:center;gap:5px;padding:2px 0}.pl-tt li>span:first-child{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pl-tt li .pl-tc{font-size:10.5px;padding:1px 7px}.pl-tt .more{color:#5a6f82;font-style:italic;margin:2px 0}
+
+/* plan104: smooth loader. Avatars fill fixed slots and fade in; only compositor-friendly animation on the strip */
+.ri-track{will-change:transform;animation:riSlide 40s linear infinite;gap:10px}
+@keyframes riSlide{from{transform:translate3d(0,0,0)}to{transform:translate3d(-50%,0,0)}}
+.ri-strip{contain:layout paint}
+.ri-av:nth-child(n) b{animation:none}
+.ri-av.ri-ph b{animation:riShim 1.4s linear infinite}
+.ri-av b i{transition:opacity .35s}
+.ri-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .45s ease}.ri-img.in{opacity:1}
+.ri-line path{filter:none!important}
+#hub-boot{-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+#hub-boot .ri-load{transform:translateZ(0)}
+@media(prefers-reduced-motion:reduce){.ri-track{animation-duration:120s}.ri-img{transition:none}}

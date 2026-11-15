@@ -1,3 +1,8 @@
+## Unreleased on top of 4.0.0-GA (plan104) — Smoother loader
+
+- Avatars now fill fixed slots in place and fade in, instead of the whole strip being rebuilt each time a team's roster arrives (which restarted the marquee and looked choppy). Cached rosters fill the strip immediately; on a first visit the remaining slots are filled once the rosters arrive.
+- Removed the per-avatar bobbing and the line's drop-shadow filter, slowed the marquee, and trimmed the blur radius, so the loader animates on the compositor with less repainting.
+
 ## Unreleased on top of 4.0.0-GA (plan103) — Informative engineer allocation tooltip
 
 - Hovering (or focusing) an engineer's Allocation % cell opens a hover card: coloured chips for Prioritised (ABL), Planned, Not Priority (BTL), Unplanned and Total; then each theme (with its colour and days) and the engineer's epics under it with ABL/BTL day chips. Long lists are trimmed to 6 themes and 5 epics per theme with a "+N more" note. Escape or scrolling closes it.

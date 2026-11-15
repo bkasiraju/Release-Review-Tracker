@@ -391,14 +391,19 @@ function settle(){
 }
 /** Loading screen: a dashboard assembling above a marquee of every team member from all teams. Cached rosters paint at once; the rest fill in as they load. */
 function loadOrbit(){
-  const host=document.querySelector('#hub-boot .ri-track');if(!host)return;const seen=new Map();
-  const av=p=>`<span class="ri-av"><b><i>${esc(initials(p.name))}</i>${p.avatar?`<img src="${esc(p.avatar)}" alt="" decoding="async" onerror="this.remove()">`:''}</b></span>`;
-  const ph='<span class="ri-av ri-ph"><b></b></span>';
-  const draw=()=>{if(!seen.size){host.innerHTML=ph.repeat(24);return;}const html=[...seen.values()].map(av).join('');const n=seen.size;host.innerHTML=html.repeat(2*Math.ceil(10/n));};
-  const add=d=>{if(!d||!d.people)return;d.people.forEach(p=>{if(p.name&&!seen.has(p.name))seen.set(p.name,p);});draw();};
+  const host=document.querySelector('#hub-boot .ri-track');if(!host)return;const seen=new Map(),N=28;
+  // Fixed slots in two identical halves (seamless marquee). People fill placeholder slots in place, so the strip never re-renders or restarts.
+  const slot='<span class="ri-av ri-ph"><b></b></span>';host.innerHTML=slot.repeat(N*2);
+  const fill=(i,p)=>{[host.children[i],host.children[i+N]].forEach(el=>{if(!el)return;
+    el.className='ri-av';el.innerHTML=`<b><i>${esc(initials(p.name))}</i></b>`;
+    if(p.avatar){const im=new Image();im.decoding='async';im.alt='';im.onload=()=>{const b=el.firstChild;if(b){im.className='ri-img';b.appendChild(im);requestAnimationFrame(()=>im.classList.add('in'));}};im.src=p.avatar;}});};
+  let used=0;
+  const add=d=>{if(!d||!d.people)return;d.people.forEach(p=>{if(p.name&&!seen.has(p.name)){seen.set(p.name,p);if(used<N)fill(used++,p);}});};
   const groups=['maps','mq','vegacache','vegastore','caching'];
-  groups.forEach(g=>{try{const c=JSON.parse(localStorage.getItem('hub-people2-'+g)||'null');if(c&&c.d)c.d.people.forEach(p=>{if(p.name&&!seen.has(p.name))seen.set(p.name,p);});}catch(_){}});
-  draw();groups.forEach(g=>loadPeople(g).then(add,()=>{}));
+  groups.forEach(g=>{try{const c=JSON.parse(localStorage.getItem('hub-people2-'+g)||'null');if(c&&c.d)add(c.d);}catch(_){}});
+  // Few people known yet (first visit): repeat them over the remaining slots so the strip is never mostly empty.
+  const cycle=()=>{const l=[...seen.values()];if(!l.length)return;for(let i=used;i<N;i++)fill(i,l[i%l.length]);};
+  Promise.allSettled(groups.map(g=>loadPeople(g).then(add,()=>{}))).then(()=>{if(used<N)cycle();});
   const msgs=['Connecting to GUS…','Reading projects and epics…','Mapping planned releases…','Checking builds and release health…','Lining up every team…'],dims=document.querySelectorAll('#hub-boot .ri-dims span');let k=0;
   const show=()=>{const m=document.getElementById('ri-msg');if(m)m.textContent=msgs[k%msgs.length];dims.forEach(d=>d.classList.toggle('on',+d.dataset.d===(k%msgs.length)-1));};show();
   const t=setInterval(()=>{if(!document.getElementById('ri-msg')||document.body.dataset.settled){clearInterval(t);return;}k++;show();},1300);
