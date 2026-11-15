@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 5.4.0-GA (15 November 2026)
+
+Added spacing between the tab bar and the applied filter chips (selected release).
+
 ## 5.3.0-GA (15 November 2026)
 
 Removed the "Open in GUS" chips (New Epic, All epics, New work item) from the Release Review page; the tab's open-link icon remains.
