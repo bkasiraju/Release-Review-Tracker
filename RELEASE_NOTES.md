@@ -1,3 +1,7 @@
+## Unreleased on top of 4.0.0-GA (plan126) — Action Log buttons no longer clip
+
+- The Actions column in the full-screen Action Log is pinned to the right edge with a fixed width, so resolve, follow-up and delete are always visible; subject and details columns are narrower.
+
 ## Unreleased on top of 4.0.0-GA (plan125) — Nudge redesign; delete action items
 
 - Nudge modal redesigned: gradient header with the W-ID and subject, a segmented Slack / GUS Chatter switch, a single recipient field with avatar chip and search-as-you-type results with avatars and titles, quick message styles (Status update / ETA check / Blocked?), a character counter, a clear info or warning callout, and a footer with Cancel and the primary action.

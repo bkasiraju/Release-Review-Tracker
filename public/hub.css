@@ -1218,3 +1218,8 @@ body[data-hub=plan] .page-heading{display:none!important}
 .nd2 .nd-go{display:inline-flex;align-items:center;gap:7px}.nd2 .nd-go:not(:disabled){box-shadow:0 3px 10px #0b5cab44}
 @media(prefers-reduced-motion:reduce){.nd-modal.nd2{animation:none}}
 .sal-ic.del svg{stroke:#8a98a8}.sal-ic.del:hover svg{stroke:#ba0517}.sal-ic.del.arm{display:inline-flex;align-items:center;background:#ba0517;border-color:#ba0517;width:auto;padding:0 10px;gap:6px;animation:salArm .2s}.sal-ic.del.arm svg{stroke:#fff}.sal-ic.del.arm::after{content:'Delete?';color:#fff;font-size:12px;font-weight:700}@keyframes salArm{from{transform:scale(.9)}}
+/* plan126: action log never clips its buttons */
+.sal-table{table-layout:auto}.sal-table .sal-acts,.sal-table th:last-child{position:sticky;right:0;z-index:2;background:#fff;min-width:132px;width:132px;box-shadow:-8px 0 8px -8px rgba(8,26,46,.18)}
+.sal-table th:last-child{background:#fafbfd}.sal-done .sal-acts{opacity:1}.sal-table .sal-ic:last-child{margin-right:0}
+.sal-subj{max-width:200px!important}.sal-det{min-width:200px!important}
+.sal-ic.del.arm{position:relative}
