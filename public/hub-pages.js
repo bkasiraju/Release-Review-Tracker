@@ -15,11 +15,11 @@ const withIcons=el=>el.querySelectorAll('[data-icon3d]').forEach(n=>{n.outerHTML
 
 // ── Bugs (Trust Champion–style SLA board) ───────────────────────────────────
 let bugTeam='';
-const B={pri:new Set(['P0','P1','P2']),closed:false,status:'',who:'',q:'',bugs:[],sla:[],champ:null,members:[],pick:null,sel:'all',pg:1,size:25,seq:0};
+const B={pri:new Set(['P0','P1','P2']),closed:false,status:'',who:'',q:'',bugs:[],sla:[],champ:null,members:[],pick:null,sel:'all',pg:1,size:25,seq:0,wk:null,wkSeq:0,trendData:null};
 const PCLS=p=>p==='P0'?'rem':p==='P1'?'warn':'add';
 const STATES={breached:'Breached',risk:'At risk',warn:'Warning',ok:'Within SLA'};
 const inMember=b=>!B.who||(B.who==='none'?!b.assigneeId:b.assigneeId===B.who);
-const bugRows=()=>{const q=B.q.toLowerCase();return B.bugs.filter(b=>inMember(b)&&(!B.status||b.status===B.status)&&(!q||(b.name+' '+b.subject).toLowerCase().includes(q)));};
+const bugRows=()=>{const q=B.q.toLowerCase();return (B.wk&&B.wk.bugs||B.bugs).filter(b=>inMember(b)&&(!B.status||b.status===B.status)&&(!q||(b.name+' '+b.subject).toLowerCase().includes(q)));};
 const remaining=i=>i.remaining==null?'—':i.remaining<0?`${i.remaining.toFixed(1)}d (overdue)`:`${i.remaining.toFixed(1)}d`;
 const statusSel=(b,pick)=>`<select class="hub-inline" data-edit="ADM_Work__c" data-id="${esc(b.id)}" data-field="Status__c" data-prev="${esc(b.status)}" data-label="${esc(b.name)} status" aria-label="Status of ${esc(b.name)}">${H.options(pick?pick.workStatus:[],b.status)}</select>`;
 const whoSel=b=>`<select class="hub-inline" data-edit="ADM_Work__c" data-type="ref" data-id="${esc(b.id)}" data-field="Assignee__c" data-prev="${esc(b.assigneeId||'')}" data-label="${esc(b.name)} assignee" aria-label="Assignee of ${esc(b.name)}"><option value="">Unassigned</option>${B.members.map(m=>`<option value="${esc(m.id)}"${m.id===b.assigneeId?' selected':''}>${esc(m.name)}</option>`).join('')}${b.assigneeId&&!B.members.some(m=>m.id===b.assigneeId)?`<option value="${esc(b.assigneeId)}" selected>${esc(b.assignee)}</option>`:''}</select>`;
@@ -54,10 +54,11 @@ function drawQueue(el){
     return;
   }
   const rows=bugRows();
-  host.innerHTML=`<div class="table-scroll"><table><thead><tr><th>Bug</th><th>Subject</th><th>Priority</th><th>Status</th><th>Assignee</th><th class="num">Pts</th><th>Found in</th><th class="num">Age</th></tr></thead><tbody>${rows.length?bugPage(rows).map(b=>`<tr><td>${link(b)}</td><td class="sp-subject">${esc(b.subject)}</td>
+  const wkBar=B.wk?`<div class="bt-filter" role="status"><span>Bugs <b>${B.wk.kind}</b> in the week of <b>${esc(B.wk.start)}</b> · all priorities and statuses${B.wk.truncated?' · first 500':''}</span><button type="button" class="button small" data-wk-clear>Clear filter</button></div>`:'';
+  host.innerHTML=wkBar+`<div class="table-scroll"><table><thead><tr><th>Bug</th><th>Subject</th><th>Priority</th><th>Status</th><th>Assignee</th><th class="num">Pts</th><th>Found in</th><th class="num">Age</th></tr></thead><tbody>${rows.length?bugPage(rows).map(b=>`<tr><td>${link(b)}</td><td class="sp-subject">${esc(b.subject)}</td>
   <td><select class="hub-inline" data-edit="ADM_Work__c" data-id="${esc(b.id)}" data-field="Priority__c" data-prev="${esc(b.priority)}" data-label="${esc(b.name)} priority" aria-label="Priority of ${esc(b.name)}">${H.options(pr,b.priority)}</select></td><td>${statusSel(b,B.pick)}</td><td>${whoSel(b)}</td>
-  <td class="num"><input class="hub-inline num" type="number" min="0" step="0.5" data-edit="ADM_Work__c" data-type="num" data-id="${esc(b.id)}" data-field="Story_Points__c" data-prev="${b.points==null?'':esc(b.points)}" data-label="${esc(b.name)} points" aria-label="Story points of ${esc(b.name)}" value="${b.points==null?'':esc(b.points)}"></td><td>${esc(b.build)}</td><td class="num">${age(b.created)}</td></tr>`).join(''):`<tr><td colspan="8"><div class="empty-state hub-empty"><h3>No bugs match</h3><p>No ${[...B.pri].join('/')||'selected'} bugs for ${esc(H.team.short)} with these filters.</p></div></td></tr>`}</tbody></table></div>${bugPager(rows.length)}`;
-  el.querySelector('#bug-count').textContent=rows.length;
+  <td class="num"><input class="hub-inline num" type="number" min="0" step="0.5" data-edit="ADM_Work__c" data-type="num" data-id="${esc(b.id)}" data-field="Story_Points__c" data-prev="${b.points==null?'':esc(b.points)}" data-label="${esc(b.name)} points" aria-label="Story points of ${esc(b.name)}" value="${b.points==null?'':esc(b.points)}"></td><td>${esc(b.build)}</td><td class="num">${age(b.created)}</td></tr>`).join(''):`<tr><td colspan="8"><div class="empty-state hub-empty"><h3>No bugs match</h3><p>No ${B.wk?'matching':[...B.pri].join('/')||'selected'} bugs for ${esc(H.team.short)} with these filters.</p></div></td></tr>`}</tbody></table></div>${bugPager(rows.length)}`;
+  el.querySelector('#bug-count').textContent=rows.length;el.querySelector('#bug-allbar h2').firstChild.textContent=B.wk?(B.wk.kind==='closed'?'Closed bugs ':'Opened bugs '):'Open bugs ';
   el.querySelector('#bug-counts').innerHTML=['P0','P1','P2'].map(p=>`<span class="sp-chip ${PCLS(p)}">${p} ${B.bugs.filter(b=>b.priority===p&&inMember(b)).length}</span>`).join('');
   const sts=[...new Set(B.bugs.map(b=>b.status))].sort();el.querySelector('#bug-status').innerHTML='<option value="">All statuses</option>'+sts.map(s=>`<option${s===B.status?' selected':''}>${esc(s)}</option>`).join('');
 }
@@ -74,18 +75,28 @@ function drawTrend(el,t){
   const W=Math.max(560,Math.round(host.clientWidth||760)),Ht=190,L=34,R=38,T=14,Bt=28,iw=W-L-R,ih=Ht-T-Bt,n=w.length,slot=iw/n,bw=Math.min(16,slot/2-3);
   const mx=Math.max(4,...w.map(x=>Math.max(x.opened,x.closed))),mb=Math.max(1,...w.map(x=>x.backlog)),y=v=>T+ih-v/mx*ih,yb=v=>T+ih-v/mb*ih,cx=i=>L+slot*i+slot/2;
   const grid=[0,.5,1].map(f=>`<line x1="${L}" x2="${W-R}" y1="${T+ih-f*ih}" y2="${T+ih-f*ih}" class="bt-g"/><text x="${L-6}" y="${T+ih-f*ih+4}" text-anchor="end" class="bt-ax">${Math.round(mx*f)}</text><text x="${W-R+6}" y="${T+ih-f*ih+4}" class="bt-ax bt-axb">${Math.round(mb*f)}</text>`).join('');
-  const bars=w.map((x,i)=>`<g><title>Week of ${x.start}: ${x.opened} opened, ${x.closed} closed, backlog ${x.backlog}</title><rect x="${cx(i)-bw-1}" y="${y(x.opened)}" width="${bw}" height="${T+ih-y(x.opened)}" rx="3" class="bt-o"/><rect x="${cx(i)+1}" y="${y(x.closed)}" width="${bw}" height="${T+ih-y(x.closed)}" rx="3" class="bt-c"/><text x="${cx(i)}" y="${Ht-10}" text-anchor="middle" class="bt-ax">${esc(x.start.slice(5).replace('-','/'))}</text></g>`).join('');
+  const hit=(k,x,xx,v,c)=>`<rect x="${xx}" y="${y(v)}" width="${bw}" height="${T+ih-y(v)}" rx="3" class="${c}${B.wk&&B.wk.kind===k&&B.wk.start===x.start?' bt-sel':''}${v?' bt-hit':''}"${v?` data-wk="${x.start}" data-kind="${k}" tabindex="0" role="button" aria-label="Show ${v} bug${v===1?'':'s'} ${k} the week of ${x.start}"`:''}/>`;
+  const bars=w.map((x,i)=>`<g><title>Week of ${x.start}: ${x.opened} opened, ${x.closed} closed, backlog ${x.backlog}. Click a bar to list those bugs.</title>${hit('opened',x,cx(i)-bw-1,x.opened,'bt-o')}${hit('closed',x,cx(i)+1,x.closed,'bt-c')}<text x="${cx(i)}" y="${Ht-10}" text-anchor="middle" class="bt-ax">${esc(x.start.slice(5).replace('-','/'))}</text></g>`).join('');
   const line=w.map((x,i)=>`${i?'L':'M'}${cx(i).toFixed(1)} ${yb(x.backlog).toFixed(1)}`).join(' '),dots=w.map((x,i)=>`<circle cx="${cx(i)}" cy="${yb(x.backlog)}" r="3" class="bt-d"/>`).join('');
   const tile=(l,v,c,sub)=>`<div class="bt-tile ${c||''}"><span>${l}</span><b>${v}</b><small>${sub||''}</small></div>`;
   const ob=t.openBy||{};
-  host.innerHTML=`<div class="bt-tiles">${tile('Opened',op,'o','12 weeks')}${tile('Closed',cl,'c','12 weeks')}${tile('Net',(net>0?'+':'')+net,net>0?'bad':'good',net>0?'backlog growing':net<0?'backlog shrinking':'flat')}${tile('Open backlog now',t.openNow,'',`${last-first>=0?'+':''}${last-first} vs 12 weeks ago`)}${tile('Open by priority',['P0','P1','P2','P3','P4'].map(p=>`<i class="bt-p ${PCLS(p)}">${p} ${ob[p]||0}</i>`).join(''),'wide','')}</div>
+  host.innerHTML=`<div class="bt-tiles">${tile('Opened',op,'o','12 weeks')}${tile('Closed',cl,'c','12 weeks')}${tile('Net',(net>0?'+':'')+net,net>0?'bad':'good',net>0?'backlog growing':net<0?'backlog shrinking':'flat')}${tile('Open backlog now',t.openNow,'',`${last-first>=0?'+':''}${last-first} vs 12 weeks ago`)}${tile('Open by priority',['P0','P1','P2','P3','P4'].map(p=>`<button type="button" class="bt-p ${PCLS(p)}" data-tp="${p}" title="Show open ${p} bugs">${p} ${ob[p]||0}</button>`).join(''),'wide','')}</div>
   <svg class="bt-svg" viewBox="0 0 ${W} ${Ht}" role="img" aria-label="Bugs opened and closed per week with open backlog">${grid}${bars}<path d="${line}" class="bt-l"/>${dots}</svg>
   <div class="bt-legend"><span><i class="bt-o"></i>Opened</span><span><i class="bt-c"></i>Closed</span><span><i class="bt-lg"></i>Open backlog (right axis)</span>${t.truncated?'<span class="note">Counts capped at 2,000 per series.</span>':''}</div>`;
-  host._bt=t;if(!host._btRs){host._btRs=1;let tm;window.addEventListener('resize',()=>{clearTimeout(tm);tm=setTimeout(()=>{if(host.isConnected&&host._bt&&Math.abs(host.clientWidth-host._btW)>40)drawTrend(el,host._bt);},200);});}host._btW=host.clientWidth;
+  B.trendData=t;host._bt=t;if(!host._btRs){host._btRs=1;let tm;window.addEventListener('resize',()=>{clearTimeout(tm);tm=setTimeout(()=>{if(host.isConnected&&host._bt&&Math.abs(host.clientWidth-host._btW)>40)drawTrend(el,host._bt);},200);});}host._btW=host.clientWidth;
+}
+/** Clicking a trend bar lists the bugs opened/closed that week in the table below; clicking it again clears the filter. */
+async function pickWeek(el,kind,start){
+  if(B.wk&&B.wk.kind===kind&&B.wk.start===start){B.wk=null;B.pg=1;drawQueue(el);drawTrend(el,B.trendData);return;}
+  const my=++B.wkSeq;B.sel='all';B.pg=1;B.status='';
+  el.querySelector('#bug-queue').innerHTML='<div class="hub-loading" role="status"><span class="executive-spinner" aria-hidden="true"></span> Loading bugs from GUS…</div>';
+  try{const r=await call('hub-bug-trend-items',{teamId:H.team.Id,kind,start});if(my!==B.wkSeq)return;B.wk=r;}
+  catch(e){if(my!==B.wkSeq)return;B.wk=null;window.toast?.('Could not load bugs for that week: '+e.message,true);}
+  drawBugs(el);drawTrend(el,B.trendData);el.querySelector('#bug-allbar').scrollIntoView({block:'nearest',behavior:'smooth'});
 }
 function drawBugs(el){drawTiles(el);drawQueue(el);}
 async function loadBugs(el){
-  const my=++B.seq;el.querySelector('#bug-queue').innerHTML='<div class="hub-loading" role="status"><span class="executive-spinner" aria-hidden="true"></span> Loading bugs from GUS…</div>';
+  B.wk=null;const my=++B.seq;el.querySelector('#bug-queue').innerHTML='<div class="hub-loading" role="status"><span class="executive-spinner" aria-hidden="true"></span> Loading bugs from GUS…</div>';
   try{
     const id=H.team.Id;
     // Draw as each piece arrives: the table needs bugs + members + picklists; SLA tiles and the champion fill in when ready.
@@ -112,11 +123,15 @@ H.register({id:'bugs',label:'Bugs',icon:'bug',tone:'rose',desc:'SLA board and op
     if(bugTeam!==H.team.Id){bugTeam=H.team.Id;B.who='';B.status='';B.sel='all';}
     withIcons(el);
     el.onclick=e=>{
-      const c=e.target.closest('[data-pri]');if(c){B.pg=1;const p=c.dataset.pri;B.pri.has(p)?B.pri.delete(p):B.pri.add(p);c.classList.toggle('on',B.pri.has(p));c.setAttribute('aria-pressed',String(B.pri.has(p)));loadBugs(el);return;}
+      const wc=e.target.closest('[data-wk-clear]');if(wc){B.wk=null;B.pg=1;drawQueue(el);if(B.trendData)drawTrend(el,B.trendData);return;}
+      const tp=e.target.closest('[data-tp]');if(tp){B.wk=null;B.sel='all';B.pg=1;B.pri=new Set([tp.dataset.tp]);el.querySelectorAll('[data-pri]').forEach(b=>{const on=B.pri.has(b.dataset.pri);b.classList.toggle('on',on);b.setAttribute('aria-pressed',String(on));});loadBugs(el);el.querySelector('#bug-allbar').scrollIntoView({block:'start',behavior:'smooth'});return;}
+      const wb=e.target.closest('[data-wk]');if(wb){pickWeek(el,wb.dataset.kind,wb.dataset.wk);return;}
+      const c=e.target.closest('[data-pri]');if(c){B.wk=null;B.pg=1;const p=c.dataset.pri;B.pri.has(p)?B.pri.delete(p):B.pri.add(p);c.classList.toggle('on',B.pri.has(p));c.setAttribute('aria-pressed',String(B.pri.has(p)));loadBugs(el);return;}
       const pgb=e.target.closest('[data-bug-page]');if(pgb&&!pgb.disabled){B.pg=+pgb.dataset.bugPage;drawQueue(el);el.querySelector('#bug-queue').scrollIntoView({block:'start'});return;}
       const t=e.target.closest('[data-sla]');if(t){B.pg=1;B.sel=B.sel===t.dataset.sla?'all':t.dataset.sla;drawBugs(el);return;}
       const s=e.target.closest('[data-sel]');if(s){B.pg=1;B.sel=s.dataset.sel;drawBugs(el);return;}
       if(e.target.closest('[data-refresh]'))loadBugs(el);};
+    el.addEventListener('keydown',e=>{const wb=(e.key==='Enter'||e.key===' ')&&e.target.closest&&e.target.closest('[data-wk]');if(wb){e.preventDefault();pickWeek(el,wb.dataset.kind,wb.dataset.wk);}});
     el.addEventListener('change',e=>{if(e.target.matches('[data-bug-size]')){B.size=+e.target.value;B.pg=1;drawQueue(el);}});
     el.querySelector('#bug-closed').onchange=e=>{B.pg=1;B.closed=e.target.checked;loadBugs(el);};
     el.querySelector('#bug-status').onchange=e=>{B.pg=1;B.status=e.target.value;drawQueue(el);};
@@ -126,7 +141,7 @@ H.register({id:'bugs',label:'Bugs',icon:'bug',tone:'rose',desc:'SLA board and op
       try{const r=await call('hub-champion-save',{teamId:H.team.Id,champion:m?{id:m.id,name:m.name}:null,revision:B.champ&&B.champ.revision});B.champ=r;drawChamp(el);window.toast?.(m?`Trust Champion set to ${m.name}`:'Trust Champion cleared',false);}
       catch(err){window.toast?.('Could not save Trust Champion: '+err.message,true);drawChamp(el);}};
     bindPage(el,(id,field,val)=>{
-      const lists=[B.bugs,...B.sla.map(c=>c.items)];
+      const lists=[B.bugs,...(B.wk?[B.wk.bugs]:[]),...B.sla.map(c=>c.items)];
       for(const l of lists)for(const b of l)if(b.id===id){if(field==='Priority__c')b.priority=val;else if(field==='Status__c')b.status=val;else if(field==='Assignee__c'){b.assigneeId=val;b.assignee=(B.members.find(m=>m.id===val)||{}).name||'';}else if(field==='Story_Points__c')b.points=val;}
       drawTiles(el);if(!B.sla.some(c=>c.id===B.sel)){el.querySelector('#bug-counts').innerHTML=['P0','P1','P2'].map(p=>`<span class="sp-chip ${PCLS(p)}">${p} ${B.bugs.filter(x=>x.priority===p&&inMember(x)).length}</span>`).join('');}});
     loadBugs(el);

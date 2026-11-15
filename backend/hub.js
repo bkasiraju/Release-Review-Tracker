@@ -93,6 +93,20 @@ async function getBugTrend(sf, teamId) {
   return { weeks, openNow, openBy, truncated: (c.records || []).length >= 2000 || (d.records || []).length >= 2000 };
 }
 
+/** Bugs opened or closed in one trend week (all priorities/statuses) so a clicked bar can filter the table. */
+async function getBugTrendItems(sf, teamId, opts = {}) {
+  requireTeam(teamId);
+  const kind = opts.kind === 'closed' ? 'closed' : 'opened', m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(opts.start || ''));
+  if (!m) throw new Error('Invalid week.');
+  const t = Date.parse(opts.start + 'T00:00:00Z');
+  if (isNaN(t) || weekStart(t) !== t) throw new Error('Invalid week.');
+  const lit = ms => new Date(ms).toISOString().replace(/\.\d{3}Z$/, 'Z'), f = kind === 'closed' ? 'Closed_On__c' : 'CreatedDate';
+  const res = await sf.query(
+    `SELECT Id, Name, Subject__c, Status__c, Priority__c, Story_Points__c, Assignee__c, Assignee__r.Name, Found_In_Build__c, CreatedDate FROM ADM_Work__c ` +
+    `WHERE Scrum_Team__c = '${teamId}' AND RecordType.Name = 'Bug' AND ${f} >= ${lit(t)} AND ${f} < ${lit(t + 7 * 864e5)} ORDER BY Priority__c ASC, CreatedDate ASC LIMIT 500`);
+  return { kind, start: opts.start, truncated: (res.records || []).length >= 500, bugs: (res.records || []).map(w => ({ id: w.Id, name: w.Name, subject: w.Subject__c || '', status: w.Status__c, priority: w.Priority__c, points: w.Story_Points__c, assigneeId: w.Assignee__c, assignee: (w.Assignee__r && w.Assignee__r.Name) || '', build: w.Found_In_Build__c || '', created: w.CreatedDate })) };
+}
+
 // ── Bug SLAs (Trust Champion view) ──────────────────────────────────────────────
 const BUGFIX_DAYS = { P0: 2, P1: 15, P2: 30 };
 const PRI_WEIGHT = { P0: 100, P1: 60, P2: 30, P3: 10, P4: 5 };
@@ -350,4 +364,4 @@ async function getPicklists(sf) {
   return lists;
 }
 
-module.exports = { getBugTrend, getTests, getPeople, getSla, getChampion, saveChampion, getTeams, getMembers, getBugs, getTds, getHome, getRotation, saveRotation, updateGus, getPicklists, requireTeam, WRITABLE, __test: { computeBugTrend, cleanRota, updateOne, computeSla } };
+module.exports = { getBugTrend, getBugTrendItems, getTests, getPeople, getSla, getChampion, saveChampion, getTeams, getMembers, getBugs, getTds, getHome, getRotation, saveRotation, updateGus, getPicklists, requireTeam, WRITABLE, __test: { computeBugTrend, cleanRota, updateOne, computeSla } };

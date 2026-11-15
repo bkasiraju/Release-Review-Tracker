@@ -5,7 +5,7 @@
 const H=window.Hub,{esc,icon}=H;
 const REPORT='https://git.soma.salesforce.com/pages/core-foundational-services/hourglass/reports/';
 const T={median:8,p80:16,under:90}; // Hourglass targets
-const S={flt:null,fkey:'',all:false,data:null,sprint:'2026.11a',sort:'median_h',dir:1};
+const S={flt:null,fkey:'',all:false,data:null,sprint:'2026.11a',sort:'median_h',dir:1,open:{1:true,2:true}};
 const f1=v=>v==null?'–':(Math.round(v*10)/10).toString();
 const hh=v=>v==null?'–':f1(v)+'h';
 const tone=(v,t,hi)=>v==null?'':(hi?v>=t:v<=t)?'ok':(hi?v>=t*.8:v<=t*2)?'warn':'bad';
@@ -154,8 +154,11 @@ function draw(el){
     const act=t=>{const f=t.closest('[data-flt]'),pt=t.closest('[data-pt]');
     if(f){const id=f.dataset.flt;S.flt=id==='all'||S.flt===id?null:id;S.all=false;}else if(pt){S.sprint=pt.dataset.pt;}else if(t.closest('[data-clear]')){S.flt=null;S.all=false;}else if(t.closest('[data-showall]')){S.all=!S.all;}else return false;
     const sc=document.scrollingElement,y=sc.scrollTop;draw(el);sc.scrollTop=y;return true;};
-  el.onclick=e=>{if(act(e.target))e.preventDefault();};
-  el.onkeydown=e=>{if((e.key==='Enter'||e.key===' ')&&e.target.closest('[data-flt],[data-pt]')&&act(e.target))e.preventDefault();};
+  const setSec=(h,on)=>{const c=h.closest('.hg-card');if(c)c.classList.toggle('hg-closed',!on);h.setAttribute('aria-expanded',String(on));};
+  el.querySelectorAll('.hg-sec').forEach(h=>{const n=h.querySelector('.hg-secn').textContent;h.dataset.sec=n;h.tabIndex=0;h.setAttribute('role','button');setSec(h,!!S.open[n]);});
+  const toggle=t=>{const h=t.closest&&t.closest('.hg-sec');if(!h)return false;const on=!S.open[h.dataset.sec];S.open[h.dataset.sec]=on;setSec(h,on);return true;};
+  el.onclick=e=>{if(toggle(e.target))return;if(act(e.target))e.preventDefault();};
+  el.onkeydown=e=>{if((e.key==='Enter'||e.key===' ')&&e.target.closest&&e.target.closest('.hg-sec')){e.preventDefault();toggle(e.target);return;}if((e.key==='Enter'||e.key===' ')&&e.target.closest('[data-flt],[data-pt]')&&act(e.target))e.preventDefault();};
   const fit=()=>el.querySelectorAll('.hg-trendhost').forEach(h=>{const w=Math.floor(h.clientWidth);if(w>280&&h.dataset.w!==String(w)){h.dataset.w=String(w);h.innerHTML=trend(S.data.teams[h.dataset.team],w);}});
   fit();if(S.ro)S.ro.disconnect();if(window.ResizeObserver){S.ro=new ResizeObserver(fit);el.querySelectorAll('.hg-trendhost').forEach(h=>S.ro.observe(h));}
   el.querySelectorAll('[data-sprint]').forEach(b=>b.onclick=()=>{S.sprint=b.dataset.sprint;draw(el);});

@@ -42,7 +42,9 @@ Designated by the user as the best working state and rollback baseline (previous
 - Footer items are centered with · separators and sit a little lower.
 - Standup alignment, bullet-driven executive summary, instant loader avatars.
 - Release Planning: the "New project" / "New epic" popup is about 50% wider (the 300px cap is lifted), so the Measure name field has room; the Release Window dates now sit right after the Team dropdown.
-- Folded into the same version at the user's request (revision 20261115-42); the first 5.0.0-GA snapshot is kept at `releases/5.0.0-GA-original/` and tag `GOLDEN-BUILD-5.0.0-GA-original`.
+- Bugs: the trend bars (opened / closed per week) and the Open-by-priority chips are now clickable and filter the bug table (bars list every bug opened or closed that week; click again or "Clear filter" to reset; a priority chip shows that priority's open bugs).
+- Hourglass: all numbered sections are collapsible (click the header); sections 1-2 start expanded, 3-7 collapsed.
+- Folded into the same version at the user's request (revision 20261115-43); the first 5.0.0-GA snapshot is kept at `releases/5.0.0-GA-original/` and tag `GOLDEN-BUILD-5.0.0-GA-original`.
 - Rollback: `releases/5.0.0-GA/` ZIP (SHA-256 in `build.json`), tag `GOLDEN-BUILD-5.0.0-GA`.
 - Verification: unit tests 225 pass / 38 fail (same as baseline); UI changes not render-verified in a signed-in browser.
 
