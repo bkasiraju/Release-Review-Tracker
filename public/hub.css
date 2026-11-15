@@ -1441,3 +1441,5 @@ body[data-sp-view=standup] #sp-sprintbar>*{margin-left:0!important;margin-right:
 body[data-sp-view=standup] #sp-sprintbar .sp-bar-actions{margin-left:0!important}
 /* plan153: five controls in Standup (Shuffle added) */
 main .executive-heading:has(#sp-end) .heading-actions{grid-template-columns:repeat(5,auto)!important;grid-auto-columns:auto}
+/* plan154: two lines of breathing room between the header row and the Standup sprint row */
+body[data-sp-view=standup] #sp-sprintbar{margin-top:40px!important}
