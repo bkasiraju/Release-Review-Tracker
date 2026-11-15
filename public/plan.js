@@ -5,7 +5,7 @@
 'use strict';
 const H=window.Hub,{esc,icon,call}=H;
 const P={plan:null,rev:null,refs:{releases:[],programs:[],projects:[],sprints:[]},members:[],seq:0,timer:0,state:'idle',stateAt:'',inflight:null,el:null};
-P.open={theme:false,eng:false};
+P.open={theme:false,eng:false,exec:false};
 P.view={q:'',release:[],line:[],eng:[],theme:[],group:'project'};
 const MF=['release','line','eng','theme'],FKEY='pl-filters-';
 const filtersOn=V=>!!(V.q||MF.some(k=>V[k].length));
@@ -339,6 +339,11 @@ function drawRps(){
   const sm2=new Map();epics.forEach(e=>sm2.set(e.status||'Planned',(sm2.get(e.status||'Planned')||0)+1));const stc=[...sm2.entries()].map(([k,v])=>`<span class="pl-bl"><i style="background:${SC[k]||'#6b7f93'}"></i>${esc(k)} ${v}</span>`).join('');
   const boardHtml=`<section class="pl-card pl-board"><h3>${icon('board','teal')} Priority board <small>${epics.length} epics</small></h3><div class="pl-bl-row">${stc}</div><p class="note">Drag an epic onto another to take its priority and place, or change the priority in the list. Changes save automatically.</p><div class="pl-bh"><span></span><span>Priority</span><span>Epic</span><span>Planned release</span><span>Status</span><span>Progress</span><span>Effort</span><span>Owner</span><span>Project</span></div>${grp('Above the line (ABL)',ord(epics.filter(e=>e.line==='ABL')))}${grp('Below the line (BTL)',ord(epics.filter(e=>e.line!=='ABL')))}</section>`;
   el.innerHTML=`<div class="pl-rps-top">${donut}${prio}</div>${health}${boardHtml}${execHtml}${savedHtml}`;
+  /* every summary section starts collapsed; the heading toggles it (state kept in P.open) */
+  [['.pl-donut-card','r-donut'],['.pl-prio-card','r-prio'],['.pl-board','r-board'],['.pl-saved','r-saved']].forEach(([q,k])=>{const c=el.querySelector('section'+q);if(c)c.dataset.fk=k;});
+  const hc=[...el.querySelectorAll(':scope > section.pl-card')].find(c=>!c.dataset.fk&&!c.classList.contains('pl-exec'));if(hc)hc.dataset.fk='r-health';
+  el.querySelectorAll('section.pl-card[data-fk]').forEach(c=>{const k=c.dataset.fk,h=c.querySelector(':scope > h3'),on=P.open[k]===true;if(!h)return;
+    h.innerHTML=`<button type="button" class="pl-fold" data-fold="${k}" aria-expanded="${on}"><span aria-hidden="true">${on?'▾':'▸'}</span> ${h.innerHTML}</button>`;c.classList.toggle('collapsed',!on);});
   if(!el.dataset.board){el.dataset.board='1';let drag=null;
     const clr=()=>el.querySelectorAll('.pl-br-over').forEach(x=>x.classList.remove('pl-br-over'));
     el.addEventListener('dragstart',ev=>{const r=ev.target.closest&&ev.target.closest('.pl-br');if(!r)return;drag=r.dataset.be;ev.dataTransfer.effectAllowed='move';ev.dataTransfer.setData('text/plain',drag);r.classList.add('pl-br-drag');});

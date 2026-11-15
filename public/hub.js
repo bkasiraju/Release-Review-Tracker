@@ -423,9 +423,9 @@ function loadOrbit(){
   // Few people known yet (first visit): repeat them over the remaining slots so the strip is never mostly empty.
   const cycle=()=>{const l=[...seen.values()];if(!l.length)return;for(let i=used;i<N;i++)fill(i,l[i%l.length]);};
   Promise.allSettled(groups.map(g=>loadPeople(g).then(add,()=>{}))).then(()=>{if(used<N)cycle();});
-  const msgs=['Connecting to GUS…','Planning: reading projects and epics…','Executing: syncing sprints and builds…','Reviewing: checking release health…','Iterating: lining up every team…'],dims=document.querySelectorAll('#hub-boot .ri-dims span');let k=0;
-  const show=()=>{const m=document.getElementById('ri-msg');if(m)m.textContent=msgs[k%msgs.length];dims.forEach(d=>d.classList.toggle('on',+d.dataset.d===(k%msgs.length)-1));};show();
-  const t=setInterval(()=>{if(!document.getElementById('ri-msg')||document.body.dataset.settled){clearInterval(t);return;}k++;show();},1300);
+  const msgs=['Planning: reading projects and epics…','Executing: syncing sprints and builds…','Reviewing: checking release health…','Iterating: lining up every team…'],dims=document.querySelectorAll('#hub-boot .ri-dims span');let k=0;
+  const show=()=>{const m=document.getElementById('ri-msg');if(m)m.textContent=msgs[k%msgs.length];dims.forEach(d=>d.classList.toggle('on',+d.dataset.d===k%msgs.length));};show();
+  const t=setInterval(()=>{if(!document.getElementById('ri-msg')||document.body.dataset.settled){clearInterval(t);return;}k++;show();},900);
 }
 async function boot(){
   installCache();loadOrbit();

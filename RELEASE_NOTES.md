@@ -1,3 +1,8 @@
+## Unreleased on top of 4.0.0-GA (plan119) — Summary sections collapsed by default; loader chips start at once
+
+- Planned Release Summary: every section (theme distribution, priority breakdown, planning health, priority board, executive summary, saved epics) now opens collapsed. Click a heading to expand; the choice is kept while you stay on the page.
+- Loader: the Plan chip is highlighted from the first frame (it used to wait about 1.3 s with nothing lit) and the chips step Plan, Execute, Review, Iterate every 0.9 s, so all four show within the 3-second minimum. The "Connecting to GUS" line is gone; the first message is the Plan one.
+
 ## Unreleased on top of 4.0.0-GA (plan118) — Incomplete epics tile counted below-the-line epics wrongly
 
 - Fix: the "Incomplete epics" tile treated an epic as having no estimate when its epic estimate was 0, but below-the-line (BTL) epics always show 0 there because only above-the-line effort counts. It now checks the workstream days instead, so a BTL epic with effort entered is no longer flagged.
