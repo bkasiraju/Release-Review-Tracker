@@ -56,7 +56,7 @@ function datesHtml(){const sp=S.sprint,a=ymd(sp&&sp.Start_Date__c),b=ymd(sp&&sp.
    +item(calIcon('e',MON[b.getMonth()],b.getDate(),'rose'),'End',full(b),'Sprint end date from GUS: '+full(b))
    +item(calIcon('d',dlTop,dlBig,tone),over?'Sprint ended':!started?'Days to start':left===0?'Last day':'Days left',over?'completed':left===0?'ends today':left===1?'1 day to go':left+' days to go',`${over?'The sprint has ended.':left+' calendar day'+(left===1?'':'s')+' until the sprint ends (updates daily).'}${gl!=null&&gl!==''?' GUS reports '+gl+' working day'+(String(gl)==='1'?'':'s')+' remaining.':''}`);
 }
-function renderDates(){const el=$('sp-dates');if(!el)return;const h=datesHtml();el.innerHTML=h;el.classList.toggle('hidden',!h);const sub=document.querySelector('.su-epics .sp-dates');if(sub)sub.innerHTML=h;}
+function renderDates(){const el=$('sp-dates');if(!el)return;const h=datesHtml();el.innerHTML=h;el.classList.toggle('hidden',!h);document.querySelectorAll('.su-epics .sp-dates,#sp-end .sp-dates').forEach(x=>{x.innerHTML=h;});}
 // Re-evaluate at local midnight and when the tab regains focus, so "days left" follows the calendar without a reload.
 let datesTimer=0;function scheduleDates(){clearTimeout(datesTimer);const n=new Date(),next=new Date(n.getFullYear(),n.getMonth(),n.getDate()+1,0,0,5)-n;datesTimer=setTimeout(()=>{renderDates();scheduleDates();},Math.min(next,2147483000));}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)renderDates();});scheduleDates();
@@ -280,7 +280,8 @@ function renderStandup(){
   S.standupIdx=Math.min(Math.max(S.standupIdx,-1),ms.length-1);const m=ms[S.standupIdx]||null,items=m?activeItems(m).sort((a,b)=>isClosed(a)-isClosed(b)||String(a.name).localeCompare(String(b.name))):[];
   const sp=items.reduce((n,i)=>n+spOf(i),0),doneSp=items.filter(isClosed).reduce((n,i)=>n+spOf(i),0);
   const pills=ms.map((x,k)=>{const a=activeItems(x);return `<button class="su-pill${k===S.standupIdx?' active':''}" data-su="${k}" aria-pressed="${k===S.standupIdx}">${avImg(x)}<span>${esc(x.name)}</span><small class="pill-chips"><i class="mchip pl">${fmt(planOf(a))}</i><i class="mchip ac">${fmt(a.reduce((n,i)=>n+spOf(i),0))}</i><span>${a.length} WI</span></small></button>`;}).join('');
-  const acts=$('sp-bar-actions');if(acts)acts.innerHTML=`<button class="button small" data-su-step="-1" aria-label="Previous member"${S.standupIdx<=0?' disabled':''}>‹ Prev</button><button class="button small" data-su-step="1" aria-label="Next member"${S.standupIdx===ms.length-1?' disabled':''}>Next ›</button><button class="button small" data-shuffle title="Randomise the order of engineers for standup">🔀 Shuffle</button>${(m||ms[0])?`<button class="button small${m?' sp-fs-flash':''}" data-open-member="${esc((m||ms[0]).name)}" title="${m?'Open this engineer full-screen':'Open the first engineer full-screen'}">Full-Screen ⤢</button>`:''}`;
+  const end=$('sp-end');if(end){const t=m||ms[0];end.innerHTML=(datesHtml()?`<div class="sp-dates">${datesHtml()}</div>`:'')+(t?`<button class="button small${m?' sp-fs-flash':''}" data-open-member="${esc(t.name)}" title="${m?'Open this engineer full-screen':'Open the first engineer full-screen'}">Full-Screen ⤢</button>`:'');}
+  const acts=$('sp-bar-actions');if(acts)acts.innerHTML=`<button class="button small" data-su-step="-1" aria-label="Previous member"${S.standupIdx<=0?' disabled':''}>‹ Prev</button><button class="button small" data-su-step="1" aria-label="Next member"${S.standupIdx===ms.length-1?' disabled':''}>Next ›</button><button class="button small" data-shuffle title="Randomise the order of engineers for standup">🔀 Shuffle</button>`;
   host.innerHTML=`<section class="table-card su-card"><div class="su-pills" role="group" aria-label="Team members">${pills}</div>
   <div class="su-carousel"><div class="su-nav"><div class="su-nav-c"><span class="su-count">${m?`${S.standupIdx+1} of ${ms.length}`:`${ms.length} engineers`}</span><div class="su-dots" role="tablist">${ms.map((x,k)=>`<button class="su-dot${k===S.standupIdx?' active':''}" data-su="${k}" role="tab" aria-selected="${k===S.standupIdx}" aria-label="${esc(x.name)}"></button>`).join('')}</div></div></div>
   ${m?`<div class="su-member"><div class="su-member-head">${avImg(m,1)}<div><h3>${esc(m.name)}</h3><p>${S.standupIdx+1} of ${ms.length}</p><div class="mchips su-groups">${statChips(items)}</div>${memberChips(m)}</div><span class="sp-bar su-bar"><i style="width:${Math.min(100,pct(doneSp,sp))}%;background:#2e844a"></i></span></div>
@@ -331,7 +332,7 @@ async function show(){
 function setSubview(v){
   S.view=v;$('sp-pulse').classList.toggle('hidden',v!=='pulse');$('sp-standup').classList.toggle('hidden',v!=='standup');
   document.querySelectorAll('[data-sp-view]').forEach(x=>{const on=x.dataset.spView===v;x.classList.toggle('selected',on);x.setAttribute('aria-pressed',String(on));});
-  const ba=$('sp-bar-actions');if(ba&&v!=='standup')ba.innerHTML='';
+  const ba=$('sp-bar-actions');if(ba&&v!=='standup')ba.innerHTML='';const se=$('sp-end');if(se&&v!=='standup')se.innerHTML='';
   const bar=$('sp-sprintbar');if(bar){if(v==='standup'){const hb=document.querySelector('#sp-panel-body .heading-actions, .heading-actions .sp-tabs');const tabs=document.querySelector('.sp-tabs');tabs.before(bar);}else $('sp-metrics').before(bar);}
   if(v==='standup')renderStandup();
 }

@@ -1378,3 +1378,5 @@ main>.dashboard-footer>*:not(:first-child)::before{content:'·';position:absolut
 .su-epics>h3 .sp-dates-epics{margin-left:auto;padding:4px 10px;gap:12px}
 .su-epics>h3 .sp-dates-epics .sp-cal{width:34px;height:34px}
 .su-epics>h3 .su-clear{margin-left:6px}
+
+.sp-end{display:inline-flex;align-items:center;gap:12px;margin-left:auto}.sp-end:empty{display:none}
