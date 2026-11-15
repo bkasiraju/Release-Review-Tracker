@@ -1380,3 +1380,7 @@ main>.dashboard-footer>*:not(:first-child)::before{content:'·';position:absolut
 .su-epics>h3 .su-clear{margin-left:6px}
 
 .sp-end{display:inline-flex;align-items:center;gap:12px;margin-left:auto}.sp-end:empty{display:none}
+/* plan142: Sprints toolbar — Pulse/Standup/Action Log/Refresh/Full-Screen/dates group pinned to the extreme right */
+.heading-actions:has(#sp-end){flex:1 1 100%;width:100%}
+.heading-actions:has(#sp-end) .sp-tabs{margin-left:auto}
+.heading-actions:has(#sp-end) .sp-end{margin-left:0}
