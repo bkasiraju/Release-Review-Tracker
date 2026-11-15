@@ -1596,3 +1596,15 @@ body[data-hub=plan] .pl-planner-btns .gus-links{display:flex!important}
 .pl-br{box-shadow:inset 6px 0 var(--pc,#a8b7c7),inset 8px 0 #fff}
 /* plan180: delta flags in Save to GUS review */
 .pl-rv-ws tr.pl-ws-new td{background:#eefaf1}.pl-rv-ws tr.pl-ws-chg td{background:#fff8e6}.pl-rv-ws em.pl-rv-tag{font-style:normal;margin-left:6px}
+/* plan181: Open TFs tables - every column has an explicit width that fits its content, the subject takes the slack, nothing spills right */
+.tf-section .table-scroll{overflow-x:auto;max-width:100%}
+.tf-section table.tf-table{table-layout:fixed!important;width:100%!important;min-width:1040px!important;max-width:none}
+.tf-section table.tf-table th,.tf-section table.tf-table td{box-sizing:border-box;padding-left:10px;padding-right:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle}
+.tf-section table.tf-table th:nth-child(1),.tf-section table.tf-table td:nth-child(1){width:150px!important}
+.tf-section table.tf-table th:nth-child(2),.tf-section table.tf-table td:nth-child(2){width:auto!important;white-space:normal}
+.tf-section table.tf-table th:nth-child(3),.tf-section table.tf-table td:nth-child(3){width:150px!important}
+.tf-section table.tf-table th:nth-child(4),.tf-section table.tf-table td:nth-child(4){width:90px!important}
+.tf-section table.tf-table th:nth-child(5),.tf-section table.tf-table td:nth-child(5){width:100px!important}
+.tf-section table.tf-table th:nth-child(6),.tf-section table.tf-table td:nth-child(6){width:90px!important}
+.tf-section table.tf-table th:nth-child(7),.tf-section table.tf-table td:nth-child(7){width:150px!important;overflow:visible}
+.tf-section table.tf-table td select.hub-inline{display:block;width:100%!important;max-width:100%!important;min-width:0!important;box-sizing:border-box;text-overflow:ellipsis}
