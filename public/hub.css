@@ -1608,3 +1608,5 @@ body[data-hub=plan] .pl-planner-btns .gus-links{display:flex!important}
 .tf-section table.tf-table th:nth-child(6),.tf-section table.tf-table td:nth-child(6){width:90px!important}
 .tf-section table.tf-table th:nth-child(7),.tf-section table.tf-table td:nth-child(7){width:150px!important;overflow:visible}
 .tf-section table.tf-table td select.hub-inline{display:block;width:100%!important;max-width:100%!important;min-width:0!important;box-sizing:border-box;text-overflow:ellipsis}
+/* plan182: TF table - ID cell holds link + Nudge on one line; subject never capped */
+.tf-section table.tf-table td:nth-child(1){white-space:nowrap}.tf-section table.tf-table td.sp-subject{max-width:none!important}
