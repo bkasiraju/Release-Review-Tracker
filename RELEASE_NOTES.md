@@ -1,3 +1,7 @@
+## Unreleased on top of 4.0.0-GA (plan130) — Loading animation shows team members only
+
+- The loading marquee skips the CFS leaders and shows only team members.
+
 ## Unreleased on top of 4.0.0-GA (plan129) — Hourglass PR cycle-time page
 
 - New Hourglass tab and page: PR cycle time per team and sprint (median, P80, % merged under 24h, first-review time), distribution, trend 07a to 11a, rule-based root causes and recommendations, repositories, slowest PRs, visibility gaps, and an all-teams comparison against the Hourglass targets (8h, 16h, 90%).

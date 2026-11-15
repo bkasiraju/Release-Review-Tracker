@@ -417,7 +417,7 @@ function loadOrbit(){
     el.className='ri-av';el.innerHTML=`<b><i>${esc(initials(p.name))}</i></b>`;
     if(p.avatar){const im=new Image();im.decoding='async';im.alt='';im.onload=()=>{const b=el.firstChild;if(b){im.className='ri-img';b.appendChild(im);requestAnimationFrame(()=>im.classList.add('in'));}};im.src=p.avatar;}});};
   let used=0;
-  const add=d=>{if(!d||!d.people)return;d.people.forEach(p=>{if(p.name&&!seen.has(p.name)){seen.set(p.name,p);if(used<N)fill(used++,p);}});};
+  const add=d=>{if(!d||!d.people)return;d.people.forEach(p=>{if(p.name&&H.leaderRank(p.name)<0&&!seen.has(p.name)){seen.set(p.name,p);if(used<N)fill(used++,p);}});};
   const groups=['maps','mq','vegacache','vegastore','caching'];
   groups.forEach(g=>{try{const c=JSON.parse(localStorage.getItem('hub-people2-'+g)||'null');if(c&&c.d)add(c.d);}catch(_){}});
   // Few people known yet (first visit): repeat them over the remaining slots so the strip is never mostly empty.
