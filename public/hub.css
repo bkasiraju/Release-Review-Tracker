@@ -1384,3 +1384,6 @@ main>.dashboard-footer>*:not(:first-child)::before{content:'·';position:absolut
 .heading-actions:has(#sp-end){flex:1 1 100%;width:100%}
 .heading-actions:has(#sp-end) .sp-tabs{margin-left:auto}
 .heading-actions:has(#sp-end) .sp-end{margin-left:0}
+/* plan143: Pulse and Standup keep the toolbar buttons in the same place, with padding clear of the rule above */
+.heading-actions:has(#sp-end){padding-top:8px;align-items:center}
+#sp-sprintbar{margin:10px 0}
