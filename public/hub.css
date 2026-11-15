@@ -933,3 +933,10 @@ body[data-ready] #hub-boot{display:flex}
 /* plan96: single-line headers */
 .pl-eng-h,.pl-eng-r{grid-template-columns:minmax(90px,.9fr) 56px 48px 56px 92px 108px minmax(140px,1.3fr);gap:6px}
 .pl-eng-h>span,.pl-eng-h>span:nth-child(5),.pl-eng-h>span:nth-child(6){white-space:nowrap!important;line-height:1.2}
+
+/* plan97: Total / Leave / Holidays / On-call / Available / Planned order */
+.pl-sum-grid>.pl-card:has(.pl-eng):not(.collapsed){grid-column:1/-1}
+.pl-eng-h,.pl-eng-r{grid-template-columns:minmax(130px,1.2fr) 58px 54px 68px 60px 74px 92px 108px minmax(190px,1.6fr);gap:8px}
+.pl-eng-h>span.b,.pl-eng-r>span.b{font-weight:800}
+.pl-leaves-h,.pl-leaves-r{grid-template-columns:minmax(140px,2fr) 1fr 1fr 1fr 1fr 80px}
+.pl-leaves input.pl-total{font-weight:700;background:#f4f8fb}

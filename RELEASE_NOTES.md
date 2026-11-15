@@ -1,3 +1,8 @@
+## Unreleased on top of 4.0.0-GA (plan97) — Total days per engineer, ATL/BTL label
+
+- New editable "Total (days)" per engineer, auto-filled with the weekdays in the planning window (so it follows window changes until edited) and stored per engineer only when it differs. Available = Total − Leave − Holidays − On-call. The Leaves, holidays & on-call dialog shows Total, Leave, Holidays, On-call, Available; the Engineer bandwidth table now runs Total (bold), Leave, Holidays, On-call, Available (bold), Planned (bold), Unplanned, Allocation, and spans the full width when open.
+- The "Line" filter and table headings are labelled "ATL/BTL".
+
 ## Unreleased on top of 4.0.0-GA (plan96) — One-line bandwidth headers
 
 - Every Engineer bandwidth header is on one line; "Un-planned (BTL)" is now "Unplanned (BTL)" (and "Unallocated" in the allocation legend), with the columns resized to fit. (Plan95 fixed the Save to GUS permission lookup — the button now enables for the allowed users.)

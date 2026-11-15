@@ -1022,3 +1022,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan95: live connection shows no identity method and username null (checked with the deploy cookie); fix verified only by the post-deploy canCommit read below.
 
 - plan96: header widths screenshotted on the local harness; not verified on live.
+
+- plan97: on the local harness, editing one engineer Total to 40 gave Available 26 with the table order as specified; backend sanitiser accepts total (not unit-tested); not verified on live.
