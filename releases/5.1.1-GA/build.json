@@ -3,7 +3,7 @@
   "label": "PLATINUM BUILD",
   "product": "Release Intelligence",
   "artifact": "cfs-release-review-tracker.zip",
-  "sha256": "0253c2f9472f88e1b1db5d5020910f6e6016195b7efe166a33531d168197f2bb",
+  "sha256": "834238937c16ff99aa628b921efb25cbd9828f7a75f2110b9c8e2ad7e83d7a80",
   "gitTags": [
     "v5.1.1-GA",
     "PLATINUM-BUILD-5.1.1-GA"
@@ -11,7 +11,7 @@
   "productionUrl": "https://gus-apps.internal.salesforce.com/applets/cfs-release-review-tracker/",
   "preferredRollbackTag": "PLATINUM-BUILD-5.1.1-GA",
   "previousBaselineTag": "GOLDEN-BUILD-5.0.0-GA",
-  "revision": "20261115-66",
+  "revision": "20261115-67",
   "verification": {
     "validationScope": "Plan unit tests 10/10 pass; full suite 225 pass / 38 fail baseline from the 5.0.0-GA review; UI changes since 5.0.0-GA (planner allocation rules, delta-only Save to GUS, project colour bars, table widths, calmer load) not render-verified in a signed-in browser; live backend/footer version needs a signed-in GUS Apps check; not independently re-reviewed",
     "fullSuiteRun": false,

@@ -1,7 +1,7 @@
 {
   "version": "5.1.1-GA",
   "label": "PLATINUM BUILD",
-  "revision": "20261115-66",
+  "revision": "20261115-67",
   "manifest": "releases/5.1.1-GA/build.json",
   "preferredRollbackTag": "PLATINUM-BUILD-5.1.1-GA",
   "immutable": true,
