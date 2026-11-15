@@ -400,7 +400,7 @@ function renderHome(el){
   Promise.all([call('hub-home',{teamId}),call('hub-rotation',{teamId}).then(r=>r.rota,()=>null)]).then(([home,rota])=>{if(H.current==='home'&&H.team.Id===teamId)draw(home,rota);})
     .catch(e=>{if(H.current==='home')el.insertAdjacentHTML('afterbegin',`<p class="note error">Could not load team summary: ${esc(e.message)}</p>`);});
 }
-H.register({id:'home',label:'ReleaseIQ',icon:'home',tone:'violet',desc:'Team hub',render:renderHome});
+H.register({id:'home',label:'Team Hub',icon:'home',tone:'violet',desc:'Team hub',render:renderHome});
 H.register({id:'epics',label:'Release Review (Monthly)',icon:'scope',tone:'green',desc:'Release epics, health and monthly updates',legacy:'overview',stat:()=>({text:'Release review · health and updates'})});
 H.register({id:'status',label:'V2MOM Updates',icon:'ai',tone:'violet',desc:'V2MOM executive updates',legacy:'executive',stat:()=>({text:'V2MOM executive summary and leadership update'})});
 function soon(id,label,ic,tone,desc){
