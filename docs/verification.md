@@ -1028,3 +1028,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan98: multi-select searchable filters + flashing Clear filters — checked on the local harness only (open, select, label, saved state, clear button class).
 
 - plan99: allocation renaming — label-only change, checked by source inspection and test run; not rendered live.
+
+- plan100: header button styling — CSS/markup only; checked on the local harness screenshot.

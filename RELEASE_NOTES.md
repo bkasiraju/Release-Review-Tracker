@@ -1,3 +1,7 @@
+## Unreleased on top of 4.0.0-GA (plan100) — Coloured plan header actions
+
+- Team selector gets a blue tinted border and hover lift. "Leaves, holidays & on-call" is purple with a calendar icon, "Save" is green with a disk icon, and "Review & save to GUS" has a blue gradient. All have hover lift and a visible focus ring.
+
 ## Unreleased on top of 4.0.0-GA (plan99) — Allocation naming
 
 - Allocation % legend and tooltips: Planned (ABL) is now "Prioritised (ABL)", Unplanned (BTL) is "Planned, Not Priority (BTL)", and Unallocated is "Unplanned".
