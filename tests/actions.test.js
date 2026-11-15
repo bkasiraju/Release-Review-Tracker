@@ -29,3 +29,9 @@ test('retention: items older than 30 days are dropped on list and save, history 
   const s3={async list(){return [{teamId:MQ,items:[],snapshot:true}];},async purgeOlderThan(t,d){purged++;assert.equal(t,'actions');assert.equal(d,30);return {purged:1,failed:0};}};
   assert.equal((await actions.sweep(s3,true)).purged,1);assert.equal(purged,1);
 });
+
+test('deletes an action item',async()=>{
+  const store=mem();const r=await actions.save(store,sf,MQ,base);
+  await assert.rejects(()=>actions.remove(store,MQ,{id:'nope'}),/not found/);
+  assert.equal((await actions.remove(store,MQ,{id:r.item.id})).items.length,0);
+});

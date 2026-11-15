@@ -6,18 +6,23 @@ const rec=o=>`data-nudge="${esc(o.id)}" data-name="${esc(o.name||'')}" data-subj
 H.nudgeBtn=o=>o&&o.id?`<button type="button" class="nudge-btn" ${rec(o)} title="Nudge ${esc(o.assignee||'someone')} about ${esc(o.name||'this item')} on Slack or GUS Chatter" aria-label="Nudge about ${esc(o.name||'this item')}">Nudge</button>`:'';
 let S=null;
 const link=id=>`${H.GUS}${/^a3Q|^a0/.test(id)?'ADM_Epic__c':'ADM_Work__c'}/${id}/view`;
-const draft=(s,u)=>`Hi ${(u?u.name:s.who||'there').split(' ')[0]}, quick nudge on ${s.name}${s.subject&&s.subject!==s.name?' — '+s.subject:''}. Could you share an update?\n${link(s.id)}`;
+const KINDS={update:['Status update','Could you share an update?'],eta:['ETA check','Could you confirm the ETA?'],block:['Blocked?','Is anything blocking this, and how can I help?']};
+const draft=(s,u,k)=>`Hi ${(u?u.name:s.who||'there').split(' ')[0]}, quick nudge on ${s.name}${s.subject&&s.subject!==s.name?' — '+s.subject:''}. ${KINDS[k||s.kind||'update'][1]}\n${link(s.id)}`;
+const ICO={slack:'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 3 7 21M17 3l-2 18M4 8h17M3 16h17"/></svg>',chatter:'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12Z"/></svg>',copy:'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg>',send:'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-11 11M22 2l-7 20-4-9-9-4z"/></svg>',bell:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg>',info:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>'};
 function close(){if(S){S.el.remove();document.removeEventListener('keydown',S.key);S.opener&&S.opener.focus&&S.opener.focus();S=null;}}
 function msg(t,kind){const n=S.el.querySelector('#nd-msg');n.className='nd-msg '+(kind||'');n.textContent=t||'';}
 function draw(){
-  const s=S,tab=s.tab;
-  s.el.querySelector('#nd-tabs').innerHTML=['slack','chatter'].map(t=>`<button type="button" role="tab" class="nd-tab${t===tab?' on':''}" data-tab="${t}" aria-selected="${t===tab}">${t==='slack'?'Slack (default)':'GUS Chatter'}</button>`).join('');
-  const u=s.user;
-  s.el.querySelector('#nd-chosen').innerHTML=u?`<span class="nd-chip">@${esc(u.name)}<button type="button" data-clear aria-label="Remove ${esc(u.name)}">×</button></span>`:'';
-  const act=s.el.querySelector('#nd-actions');
-  if(tab==='chatter')act.innerHTML=`<button type="button" class="button primary" data-send ${u&&!s.busy?'':'disabled'}>${s.busy?'Posting…':'Post to Chatter'}</button>`;
-  else act.innerHTML=`<button type="button" class="button primary" data-copy ${u?'':'disabled'}>Copy message</button>${s.slack&&s.slack.dmUrl?`<a class="button" href="${esc(s.slack.dmUrl)}">Open Slack DM</a>`:''}`;
-  s.el.querySelector('#nd-hint').textContent=tab==='chatter'?`Posts on the record's Chatter feed in GUS and @mentions ${u?u.name:'the user'}.`:(s.slack?s.slack.notice:'Pick a user to look up their Slack account.');
+  const s=S,tab=s.tab,u=s.user;
+  s.el.querySelector('#nd-tabs').innerHTML=['slack','chatter'].map(t=>`<button type="button" role="tab" class="nd-tab${t===tab?' on':''}" data-tab="${t}" aria-selected="${t===tab}">${ICO[t]}<span>${t==='slack'?'Slack':'GUS Chatter'}</span>${t==='slack'?'<em>default</em>':''}</button>`).join('');
+  s.el.querySelector('#nd-chosen').innerHTML=u?`<span class="nd-chip">${H.avatarHtml?H.avatarHtml(u.id,u.name,22):''}<b>${esc(u.name)}</b><button type="button" data-clear aria-label="Remove ${esc(u.name)}">×</button></span>`:'';
+  s.el.querySelector('#nd-q').placeholder=u?'Change recipient…':'Search a teammate…';
+  s.el.querySelector('#nd-kinds').innerHTML=Object.entries(KINDS).map(([k,v])=>`<button type="button" class="nd-kind${k===s.kind?' on':''}" data-kind="${k}">${esc(v[0])}</button>`).join('');
+  s.el.querySelector('#nd-count').textContent=s.el.querySelector('#nd-text').value.length+' / 4000';
+  const act=s.el.querySelector('#nd-actions'),cancel='<button type="button" class="button nd-cancel" data-close>Cancel</button>';
+  if(tab==='chatter')act.innerHTML=`${cancel}<button type="button" class="button primary nd-go" data-send ${u&&!s.busy?'':'disabled'}>${ICO.send}${s.busy?'Posting…':'Post to Chatter'}</button>`;
+  else act.innerHTML=`${cancel}${s.slack&&s.slack.dmUrl?`<a class="button" href="${esc(s.slack.dmUrl)}">Open Slack DM</a>`:''}<button type="button" class="button primary nd-go" data-copy ${u?'':'disabled'}>${ICO.copy}Copy message</button>`;
+  const hint=tab==='chatter'?`Posts on the record's Chatter feed in GUS and @mentions ${u?u.name:'the user'}.`:(s.slack?s.slack.notice:'Pick a user to look up their Slack account.');
+  const h=s.el.querySelector('#nd-hint');h.innerHTML=hint?`${ICO.info}<span>${esc(hint)}</span>`:'';h.className='nd-hint'+(tab==='slack'&&s.slack&&!s.slack.dmUrl&&u?' warn':'');
 }
 async function pickSlack(){const s=S;s.slack=null;draw();if(!s.user)return;const id=s.user.id;try{const r=await call('post-slack',{userId:id});if(S===s&&s.user&&s.user.id===id){s.slack=r;draw();}}catch(e){if(S===s){s.slack={notice:'Slack lookup failed: '+e.message};draw();}}}
 function choose(u){S.user=u;S.el.querySelector('#nd-q').value='';S.el.querySelector('#nd-list').innerHTML='';const t=S.el.querySelector('#nd-text');if(!S.edited)t.value=draft(S,u);msg('');draw();pickSlack();}
@@ -26,29 +31,30 @@ async function search(term,auto){
   const s=S,list=s.el.querySelector('#nd-list'),my=++s.seq;list.innerHTML='<li class="nd-note">Searching…</li>';
   try{const r=await call('post-users',{q:term});if(S!==s||my!==s.seq)return;
     if(auto&&r.users.length===1){choose(r.users[0]);return;}
-    list.innerHTML=r.users.length?r.users.map(u=>`<li><button type="button" data-user="${esc(u.id)}"><b>${esc(u.name)}</b><span>${esc(u.title)}</span></button></li>`).join(''):'<li class="nd-note">No matching MAPS / MQ / VegaCache member.</li>';
+    list.innerHTML=r.users.length?r.users.map(u=>`<li><button type="button" data-user="${esc(u.id)}">${H.avatarHtml?H.avatarHtml(u.id,u.name,28):''}<div><b>${esc(u.name)}</b><span>${esc(u.title||'')}</span></div></button></li>`).join(''):'<li class="nd-note">No matching MAPS / MQ / VegaCache member.</li>';
     s.users=r.users;
   }catch(e){if(S===s&&my===s.seq)list.innerHTML=`<li class="nd-note">${esc(e.message)}</li>`;}
 }
 function open(btn){
   close();
-  const d=btn.dataset;S={id:d.nudge,name:d.name,subject:d.subject,who:d.who,tab:'slack',user:null,slack:null,busy:false,edited:false,seq:0,users:[],opener:btn};
+  const d=btn.dataset;S={kind:'update',id:d.nudge,name:d.name,subject:d.subject,who:d.who,tab:'slack',user:null,slack:null,busy:false,edited:false,seq:0,users:[],opener:btn};
   const el=document.createElement('div');el.className='nd-overlay';
-  el.innerHTML=`<div class="nd-modal" role="dialog" aria-modal="true" aria-labelledby="nd-title"><div class="nd-head"><h2 id="nd-title">Nudge · ${esc(d.name)}</h2><button type="button" class="nd-x" data-close aria-label="Close">×</button></div>
+  el.innerHTML=`<div class="nd-modal nd2" role="dialog" aria-modal="true" aria-labelledby="nd-title"><div class="nd-head"><span class="nd-badge">${ICO.bell}</span><div class="nd-ttl"><h2 id="nd-title">Nudge</h2><p><b>${esc(d.name)}</b>${d.subject&&d.subject!==d.name?' · '+esc(d.subject):''}</p></div><button type="button" class="nd-x" data-close aria-label="Close">×</button></div>
   <div id="nd-tabs" class="nd-tabs" role="tablist"></div>
-  <label class="nd-lab" for="nd-q">To (@user)</label><div id="nd-chosen"></div><input id="nd-q" class="hub-inline" autocomplete="off" placeholder="Search MAPS, MQ, VegaCache, VegaStore and Caching Services members" role="combobox" aria-controls="nd-list"><ul id="nd-list" class="nd-list" role="listbox"></ul>
-  <label class="nd-lab" for="nd-text">Message</label><textarea id="nd-text" rows="5" maxlength="4000"></textarea>
-  <p id="nd-hint" class="note"></p><div id="nd-msg" class="nd-msg" role="status"></div><div id="nd-actions" class="nd-actions"></div></div>`;
+  <label class="nd-lab" for="nd-q">To</label><div class="nd-to"><span id="nd-chosen"></span><input id="nd-q" autocomplete="off" role="combobox" aria-controls="nd-list"></div><ul id="nd-list" class="nd-list" role="listbox"></ul>
+  <div class="nd-row"><label class="nd-lab" for="nd-text">Message</label><span id="nd-count" class="nd-count"></span></div><div id="nd-kinds" class="nd-kinds"></div><textarea id="nd-text" rows="5" maxlength="4000"></textarea>
+  <div id="nd-hint" class="nd-hint"></div><div id="nd-msg" class="nd-msg" role="status"></div><div id="nd-actions" class="nd-actions"></div></div>`;
   document.body.appendChild(el);S.el=el;
   S.key=e=>{if(e.key==='Escape')close();};document.addEventListener('keydown',S.key);
   el.querySelector('#nd-text').value=draft(S,null);
-  el.querySelector('#nd-text').oninput=()=>{S.edited=true;};
+  el.querySelector('#nd-text').oninput=()=>{S.edited=true;draw();};
   el.querySelector('#nd-q').oninput=e=>{clearTimeout(timer);const v=e.target.value;timer=setTimeout(()=>search(v,false),250);};
   el.querySelector('#nd-q').onfocus=e=>{if(!e.target.value&&!S.users.length)search('',false);};
   el.addEventListener('click',async e=>{
     const t=e.target.closest('button,a');if(e.target===el||(t&&t.matches('[data-close]')))return close();
     if(!t)return;
-    if(t.dataset.tab){S.tab=t.dataset.tab;msg('');draw();}
+    if(t.dataset.kind){S.kind=t.dataset.kind;S.edited=false;el.querySelector('#nd-text').value=draft(S,S.user);draw();}
+    else if(t.dataset.tab){S.tab=t.dataset.tab;msg('');draw();}
     else if(t.dataset.user){choose(S.users.find(u=>u.id===t.dataset.user));}
     else if('clear' in t.dataset){S.user=null;S.slack=null;draw();}
     else if('copy' in t.dataset){const txt=el.querySelector('#nd-text').value;try{await navigator.clipboard.writeText(`<@${S.slack&&S.slack.slackUserId||S.user.name}> ${txt}`.replace(/^<@([^>]*)>/,(m,x)=>S.slack&&S.slack.slackUserId?m:'@'+x));msg('Copied. Paste it into the Slack DM.','ok');}catch(_){msg('Copy failed — select the message text and copy it manually.','err');}}

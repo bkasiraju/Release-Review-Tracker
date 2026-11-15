@@ -1077,3 +1077,4 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan122: harness screenshot of the expanded rail with magnified icon; live feel of the animation not checked.
 - plan123: unit tests for 30-day pruning, snapshot-gated purge and ETA bound pass on the local harness; physical file deletion in GUS Apps not verified live.
 - plan124: unit tests pass; timeout and redirect fixes not verified against live GUS.
+- plan125: unit tests pass (delete); Nudge redesign checked for syntax only, not visually reviewed live.

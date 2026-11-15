@@ -67,4 +67,9 @@ async function resolve(store,teamId,b){
   await bounded(sweep(store,false));
   return {items:r.items,found};
 }
-module.exports={list,save,resolve,sweep,prune,PRIORITIES,RETENTION_DAYS};
+async function remove(store,teamId,b){
+  const id=text(b.id,40);
+  const r=await write(store,teamId,items=>{const i=items.findIndex(x=>x.id===id);if(i<0)throw Error('Action item not found.');items.splice(i,1);});
+  return {items:r.items};
+}
+module.exports={list,save,resolve,remove,sweep,prune,PRIORITIES,RETENTION_DAYS};

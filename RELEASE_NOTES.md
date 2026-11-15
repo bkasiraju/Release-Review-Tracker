@@ -1,3 +1,8 @@
+## Unreleased on top of 4.0.0-GA (plan125) — Nudge redesign; delete action items
+
+- Nudge modal redesigned: gradient header with the W-ID and subject, a segmented Slack / GUS Chatter switch, a single recipient field with avatar chip and search-as-you-type results with avatars and titles, quick message styles (Status update / ETA check / Blocked?), a character counter, a clear info or warning callout, and a footer with Cancel and the primary action.
+- Sprint Action Log: each row has a delete button (click once, then click again to confirm). Server action `sal-delete` removes the item from the team's record; tests added.
+
 ## Unreleased on top of 4.0.0-GA (plan124) — Fix request timeouts and avatar redirect storm
 
 - Action-log reads no longer run the retention sweep (it listed every team's record on first load and could push a request past the 25-second limit). The sweep now runs after a save or resolve, capped at 8 seconds, and a failure never fails the request.
