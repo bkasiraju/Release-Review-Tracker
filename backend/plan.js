@@ -101,6 +101,25 @@ async function teamProgram(sf, teamId) {
   } catch (_) { return null; }
 }
 
+/** Epic description written to GUS: plan context plus the workstream breakdown, so the GUS epic carries every planned detail. */
+function epicDescription(e, project, includeBtl) {
+  const L = [];
+  if (project) L.push('Project: ' + (project.name || '') + (project.short ? ' (' + project.short + ')' : ''));
+  if (e.releaseName) L.push('Planned release: ' + e.releaseName);
+  L.push('Line: ' + (e.line === 'ABL' ? 'Above the line (ABL)' : 'Below the line (BTL)'));
+  if (e.status) L.push('Status: ' + e.status);
+  if (e.theme) L.push('Theme: ' + e.theme);
+  if (e.hrp) L.push('HRP: ' + e.hrp);
+  if (e.v2mom) L.push('V2MOM: ' + e.v2mom);
+  if (e.ownerNames && e.ownerNames.length) L.push('Owner(s): ' + e.ownerNames.join(', '));
+  if (e.doc) L.push('Design doc: ' + e.doc);
+  L.push('Planned effort: ' + effortOf(e, includeBtl) + ' days');
+  const ws = e.workstreams.filter(w => includeBtl || wsLine(e, w) === 'ABL');
+  if (ws.length) { L.push('', 'Workstreams:'); for (const w of ws) L.push('- ' + (w.name || '(unnamed)') + ' | ' + ((w.engNames && w.engNames.length ? w.engNames : [w.engName].filter(Boolean)).join(', ') || 'unassigned') + ' | ' + w.days + 'd' + (w.status ? ' | ' + w.status : '')); }
+  L.push('', 'Created from the Release Intelligence release plan.');
+  return L.join('\n').slice(0, 30000);
+}
+
 // New projects are tagged to the team's program automatically; `program` is that program (or null when GUS has none).
 function review(plan, releaseIds, program, includeBtl) {
   const byProject = new Map(plan.projects.map(p => [p.id, p]));
@@ -116,15 +135,16 @@ function review(plan, releaseIds, program, includeBtl) {
     if (!e.releaseId) problems.push('Select a planned release');
     else if (releaseIds && !releaseIds.has(e.releaseId)) problems.push('Planned release does not belong to this team');
     if (!(effort > 0)) problems.push('Add effort (days) on at least one workstream');
-    const item = { epicId: e.id, name: e.name, project: project ? project.name : '', program: project ? (project.gusId ? project.programName : (program ? program.name : '')) : '', projectAction: project ? (project.gusId ? 'existing' : 'create-or-link') : '', release: e.releaseName, priority: e.priority, effort, action: e.gusId ? 'update' : 'create', problems };
+    const item = { epicId: e.id, name: e.name, project: project ? project.name : '', program: project ? (project.gusId ? project.programName : (program ? program.name : '')) : '', projectAction: project ? (project.gusId ? 'existing' : 'create-or-link') : '', release: e.releaseName, priority: e.priority, effort, action: e.gusId ? 'update' : 'create', problems, line: e.line, status: e.status, theme: e.theme, hrp: e.hrp, v2mom: e.v2mom, doc: e.doc, owners: e.ownerNames || [], workstreams: e.workstreams.filter(w => includeBtl || wsLine(e, w) === 'ABL').map(w => ({ name: w.name, eng: (w.engNames && w.engNames.length ? w.engNames : [w.engName].filter(Boolean)).join(', '), days: w.days, status: w.status })), description: epicDescription(e, project, includeBtl) };
     items.push(item);
     if (problems.length) blockers.push({ epicId: e.id, name: e.name || '(unnamed epic)', problems });
   }
   return { items, blockers, skipped: includeBtl ? 0 : plan.epics.filter(x => x.line !== 'ABL').length };
 }
 
-async function commitPlan(sf, store, teamId, confirm, includeBtl) {
+async function commitPlan(sf, store, teamId, confirm, includeBtl, acknowledged) {
   planKey(teamId);
+  if (confirm && acknowledged === false) throw new Error('Review the summary and accept it before the epics are created in GUS.');
   const { plan } = await getPlan(store, teamId);
   const rel = await teamReleases(sf, teamId, false).then(r => new Set(r.map(x => x.Id)), () => null);
   const program = await teamProgram(sf, teamId);
@@ -151,17 +171,24 @@ async function commitPlan(sf, store, teamId, confirm, includeBtl) {
       const effort = effortOf(e, includeBtl === true);
       const fields = { Project__c: projectId, Planned_Release__c: e.releaseId, Planned_Story_Points__c: effort };
       if (e.priority != null) fields.Priority__c = e.priority;
+      // Richer details (description, development lead); if the org rejects them the epic is still saved with the core fields.
+      const extra = { Description__c: epicDescription(e, project, includeBtl === true) };
+      if (e.owners && e.owners[0]) extra.Development_Lead__c = e.owners[0];
+      const attempt = async (fn) => {
+        try { const x = await fn({ ...fields, ...extra }); if (x && !ok(x)) throw new Error((x.errors || []).join(', ')); return x; }
+        catch (err) { r.note = 'saved without description/lead (' + String(err && err.message || err).slice(0, 120) + ')'; return fn(fields); }
+      };
       let epicId = e.gusId;
       if (!epicId) {
         const hit = ((await sf.query(`SELECT Id FROM ADM_Epic__c WHERE Name = '${soql(e.name)}' AND Team__c = '${teamId}' LIMIT 1`)).records || [])[0];
         if (hit) epicId = hit.Id;
       }
       if (epicId) {
-        const u = await sf.update('ADM_Epic__c', epicId, fields);
+        const u = await attempt(f => sf.update('ADM_Epic__c', epicId, f));
         if (u && !ok(u)) throw new Error('GUS rejected the epic update.');
         r.action = e.gusId ? 'updated' : 'linked and updated existing epic';
       } else {
-        const c = await sf.create('ADM_Epic__c', { Name: e.name, Team__c: teamId, ...fields });
+        const c = await attempt(f => sf.create('ADM_Epic__c', { Name: e.name, Team__c: teamId, ...f }));
         if (!ok(c) || !newId(c)) throw new Error('GUS rejected the epic: ' + ((c && c.errors) || []).join(', '));
         epicId = newId(c); r.action = 'created';
       }

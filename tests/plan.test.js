@@ -35,7 +35,9 @@ test('commit creates project then epic for ABL only, saves effort, and stores GU
   const r=await plan.commitPlan(sfMock(log),store,T,true);assert.equal(r.failed,0);
   const writes=log.filter(x=>x[0]==='c');assert.deepEqual(writes.map(w=>w[1]),['PPM_Project__c','ADM_Epic__c']);
   assert.deepEqual(writes[0][2],{Name:'M1: Baseline',Program__c:PROG});
-  assert.deepEqual(writes[1][2],{Name:'ABL epic',Team__c:T,Project__c:'a1PEE00000PRJ0001A',Planned_Release__c:REL,Planned_Story_Points__c:9.5,Priority__c:2});
+  const {Description__c:desc,...core}=writes[1][2];
+  assert.deepEqual(core,{Name:'ABL epic',Team__c:T,Project__c:'a1PEE00000PRJ0001A',Planned_Release__c:REL,Planned_Story_Points__c:9.5,Priority__c:2});
+  assert.match(desc,/Workstreams:/);assert.match(desc,/Planned release: /);
   const saved=(await plan.getPlan(store,T)).plan;assert.equal(saved.epics[0].gusId,'a0XEE00000EPC0001A');assert.equal(saved.epics[1].gusId,'');assert.equal(saved.projects[0].gusId,'a1PEE00000PRJ0001A');
   const log2=[];await plan.commitPlan(sfMock(log2),store,T,true);assert.equal(log2.filter(x=>x[0]==='c').length,0);assert.equal(log2.filter(x=>x[0]==='u').length,1);
 });
