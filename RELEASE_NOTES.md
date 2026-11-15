@@ -1,3 +1,7 @@
+## Unreleased on top of 4.0.0-GA (plan128) — Visible handle for the hidden side bar
+
+- A small blue tab with a chevron sits at the left edge, vertically centered, so the side bar is discoverable. It nudges three times on load, widens on hover, and hides while the side bar is open.
+
 ## Unreleased on top of 4.0.0-GA (plan127) — Bug trend summary; auto-hiding side bar
 
 - Bugs page: new "Bug trend · last 12 weeks" card with Opened, Closed, Net and Open-backlog tiles, open-by-priority chips, and a chart of weekly opened vs closed bars with the open backlog line (new `hub-bug-trend` action; weekly buckets computed from CreatedDate and Closed_On__c, backlog rebuilt from today's open count).

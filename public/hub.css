@@ -1238,3 +1238,11 @@ rect.bt-o,i.bt-o{fill:#f59e0b;background:#f59e0b}rect.bt-c,i.bt-c{fill:#2e844a;b
 .rail.show{transform:none}
 .rail-edge{position:fixed;left:0;top:0;bottom:0;width:12px;z-index:899}
 body.rail-peek .rail-edge{width:12px}
+
+/* plan128: visible handle for the auto-hiding side bar */
+.rail-edge{width:22px!important;display:flex;align-items:center}
+.rail-tab{display:grid;place-items:center;width:18px;height:64px;margin-left:0;border-radius:0 12px 12px 0;color:#fff;background:linear-gradient(180deg,#1b96ff,#0b5cab);box-shadow:2px 2px 10px rgba(11,92,171,.35);transition:width .18s,opacity .18s,transform .18s;animation:railHint 2.6s ease-in-out 1.2s 3}
+.rail-edge:hover .rail-tab{width:24px}
+.rail-edge.gone .rail-tab{opacity:0;transform:translateX(-100%)}
+@keyframes railHint{0%,100%{width:18px}50%{width:28px}}
+@media(prefers-reduced-motion:reduce){.rail-tab{animation:none}}
