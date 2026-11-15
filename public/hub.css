@@ -1628,3 +1628,4 @@ main{min-height:100vh}
 .dashboard-bar .hub-nav{align-items:center!important}
 .dashboard-bar .hub-nav button.selected{margin-bottom:-1px;align-self:flex-end}
 .hub-nav .hub-tab-gus{align-self:center!important;margin:3px 0 0 -36px!important;width:24px;height:24px}
+body[data-hub=epics] #gus-links{display:none!important}
