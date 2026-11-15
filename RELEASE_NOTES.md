@@ -1,3 +1,12 @@
+## Unreleased on top of 4.0.0-GA (plan139) — Hourglass links, engineers, hover reasons, guardrails
+
+- Slowest PRs: PR title, repo and #number link to the PR / git.soma; the work item links to GUS; new Engineer column (avatar and git login), 1st review and Size columns, delay tags and a per-PR recommendation with its best-practice threshold.
+- Hover reasons on cycle time, first review, size, comments, tags and repository notes explain the number against the target.
+- Root causes now show the best-practice threshold, the recommended action and linked example PRs with author and cycle time; recommendations show their threshold.
+- Guardrail strip (median ≤ 8h, P80 ≤ 16h, ≥ 90% merged within 24h, first review < 4h, size ≤ 400 lines) on the team and all-teams views, with actual vs target.
+- Data: `prs` now carries `author` and `wi`.
+- Verified on unit tests only (no live render check).
+
 ## Unreleased on top of 4.0.0-GA (plan138) — Hourglass charts rebuilt and clickable
 
 - Trend redrawn at its real pixel width (no more scaled, oversized bold axis text); fonts now match the rest of the app. Target labels no longer collide. Clicking a sprint on the trend opens that sprint.

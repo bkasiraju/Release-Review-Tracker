@@ -189,7 +189,7 @@ def analyze(team, sprint, wis, win):
                     'pct_no_human_review': round(100 * sum(1 for p in merged if p['human_reviews'] == 0) / len(merged)) if merged else None,
                     'pct_self_merged': round(100 * sum(1 for p in merged if p['self_merged']) / len(merged)) if merged else None},
         'dist': dist, 'repos': repo_stats[:12], 'slowest': [{k: p[k] for k in ('repo', 'num', 'title', 'url', 'author', 'wi', 'cycle_h', 'ttfr_h', 'comments', 'size', 'tags')} for p in slow],
-        'prs': [{k: p[k] for k in ('repo', 'num', 'title', 'url', 'cycle_h', 'ttfr_h', 'comments', 'size', 'tags')} for p in sorted(merged, key=lambda p: -p['cycle_h'])],
+        'prs': [{k: p[k] for k in ('repo', 'num', 'title', 'url', 'author', 'wi', 'cycle_h', 'ttfr_h', 'comments', 'size', 'tags')} for p in sorted(merged, key=lambda p: -p['cycle_h'])],
         'root_causes': rc, 'recommendations': recs,
         'gaps': {'work_items': len(wis), 'with_pr': n_code, 'no_pr': len(wis) - n_code, 'non_code': sum(1 for w in wis if (w.get('RecordType') or {}).get('Name') in ('Investigation', 'ToDo'))},
     }
