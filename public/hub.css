@@ -1452,3 +1452,14 @@ body[data-sp-view=standup] #sp-sprintbar{margin-top:40px!important}
 /* plan156: agile-sprint 3D icon before the sprint title */
 .sp-bar-ico{display:inline-flex;flex:none;width:34px;height:34px;filter:drop-shadow(0 2px 2px rgba(10,40,80,.22))}
 .sp-bar-ico svg{width:100%;height:100%}
+/* plan157: home tiles — at most three lines: title / "number + label" inline / chips (or a two-line description) */
+body[data-hub=home] .hub-tile{min-height:92px;padding:10px 12px;gap:5px}
+body[data-hub=home] .hub-tile-head{font-size:12.5px;gap:6px;min-height:22px}
+body[data-hub=home] .hub-tile-head strong{flex:1 1 auto;min-width:0;font-size:12.5px}
+body[data-hub=home] .hub-tile-head .hub-tile-go{margin-left:auto;flex:none}
+body[data-hub=home] .hub-tile-stat{flex-direction:row!important;align-items:center;flex-wrap:nowrap!important;gap:7px}
+body[data-hub=home] .hub-tile-stat b{font-size:22px;flex:none}
+body[data-hub=home] .hub-tile-stat small{font-size:10.5px;line-height:1.3;min-width:0;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+body[data-hub=home] .hub-tile:has(.hub-tile-chips) .hub-tile-stat small{-webkit-line-clamp:1}
+body[data-hub=home] .hub-tile .hub-tile-stat.nobig small{font-size:10.5px}
+body[data-hub=home] .hub-tile-chips{flex-wrap:nowrap;overflow:hidden;margin-top:0;gap:4px}
