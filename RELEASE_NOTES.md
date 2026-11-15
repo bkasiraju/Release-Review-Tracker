@@ -1,3 +1,8 @@
+## Unreleased on top of 4.0.0-GA (plan108) — No more sideways page overflow
+
+- Fix: on Release Review (and Status) the Release / Review Month / Lists / Refresh toolbar was pushed past the right edge, making the whole page scroll sideways and shoving the header out of view. The dashboard bar now wraps, and the page content can no longer widen the page (wide tables keep scrolling inside their own containers).
+- Checked every page (Home, Release Review, Sprints, Planning, Bugs, Tests, TDs, Rotations, Status) at 1430, 1100 and 800 px wide on the local harness: no horizontal page scroll.
+
 ## Unreleased on top of 4.0.0-GA (plan107) — Loader shows for at least 3 seconds
 
 - The loading animation now stays up for a minimum of 3 seconds from page start, even when the page is ready sooner, so it can actually be seen. Slower loads are unaffected (it still waits for the page to settle).

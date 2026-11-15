@@ -1045,3 +1045,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan106: loader chips renamed, one line — harness screenshot only.
 
 - plan107: 3-second minimum loader — harness check only.
+
+- plan108: horizontal-overflow guard — scrollWidth==clientWidth on all 9 pages at 1430/1100/800 px on the local harness (empty/stub data, not live data).
