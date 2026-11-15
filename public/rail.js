@@ -16,13 +16,14 @@ rail.addEventListener('mousemove',e=>{magnify(e.clientY);});
 rail.addEventListener('focusin',show);
 rail.addEventListener('focusout',e=>{if(!rail.contains(e.relatedTarget))hide();});
 
-/* MQ Chronicle exists only for MQ: link it for that team, show it disabled for every other team. */
-const chron=rail.querySelector('a[data-label="MQ Chronicle"]');
-if(chron){const URL0=chron.getAttribute('href'),lab=chron.querySelector('.rail-label');
-  const sync=()=>{const t=window.Hub&&window.Hub.team,mq=!!t&&t.short==='MQ';
-    if(mq){chron.setAttribute('href',URL0);chron.removeAttribute('aria-disabled');chron.removeAttribute('tabindex');chron.title='MQ Chronicle (opens in a new tab)';chron.setAttribute('aria-label','MQ Chronicle, opens in a new tab');}
-    else{chron.removeAttribute('href');chron.setAttribute('aria-disabled','true');chron.tabIndex=-1;chron.title='MQ Chronicle is available for the MQ team only';chron.setAttribute('aria-label','MQ Chronicle, available for the MQ team only');}
-    chron.classList.toggle('disabled',!mq);};
+/* Daily Chronicle opens the selected team's chronicle page; teams without one show it disabled. Add a team's page here when it exists. */
+const CHRON={MQ:'https://git.soma.salesforce.com/pages/bkasiraju/mq-chronicle/index.html'};
+const chron=rail.querySelector('a[data-label="Daily Chronicle"]');
+if(chron){
+  const sync=()=>{const t=window.Hub&&window.Hub.team,u=t&&CHRON[t.short],nm=t&&t.short&&t.short!=='all'?t.short:'';
+    if(u){chron.setAttribute('href',u);chron.removeAttribute('aria-disabled');chron.removeAttribute('tabindex');chron.title='Daily Chronicle for '+nm+' (opens in a new tab)';chron.setAttribute('aria-label','Daily Chronicle for '+nm+', opens in a new tab');}
+    else{chron.removeAttribute('href');chron.setAttribute('aria-disabled','true');chron.tabIndex=-1;chron.title=nm?'Daily Chronicle is not available for '+nm+' yet':'Select a team to open its Daily Chronicle';chron.setAttribute('aria-label',chron.title);}
+    chron.classList.toggle('disabled',!u);};
   chron.addEventListener('click',e=>{if(chron.getAttribute('aria-disabled')==='true')e.preventDefault();});
   window.addEventListener('hub:team',sync);sync();let n=0;const iv=setInterval(()=>{sync();if(window.Hub&&window.Hub.teams&&window.Hub.teams.length||++n>40)clearInterval(iv);},500);}
 })();

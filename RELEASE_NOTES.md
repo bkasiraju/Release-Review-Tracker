@@ -1,3 +1,7 @@
+## Unreleased on top of 4.0.0-GA (plan139) — Daily Chronicle
+
+- The side-bar MQ Chronicle entry is renamed Daily Chronicle and opens the selected team's chronicle page in a new tab. Only MQ has a page today; other teams show it disabled until their page is added to the `CHRON` map in `public/rail.js`.
+
 ## Unreleased on top of 4.0.0-GA (plan139) — MQ Chronicle enabled for MQ only
 
 - The MQ Chronicle side-bar icon links out only when the MQ team is selected; for every other team (and All) it is greyed out and not clickable,.
