@@ -1,5 +1,3 @@
-## Unreleased on top of 5.0.0-GA (plan140) — footer
-
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
 ## 5.0.0-GA — GOLDEN BUILD (15 November 2026)
@@ -8,7 +6,9 @@ Designated by the user as the best working state and rollback baseline (previous
 
 - Hourglass: team-level trend, seven-section team view, clickable filters from tiles, donuts, bars and trend; links to PRs, repos and GUS work items; Engineer column; hover reasons; best-practice thresholds, guardrail strip and per-PR recommendations.
 - Dimensional 3D side-bar icons; Daily Chronicle side-bar link (MQ only); header logo; tooltips above the side bar.
+- Footer: GUS Apps Hub link removed, "For feedback, reach out to Bhanu Kasiraju" added; the duplicate header "Sources & connection" button removed (the footer link remains).
 - Standup alignment, bullet-driven executive summary, instant loader avatars.
+- Folded into the same version at the user's request (revision 20261115-2); the first 5.0.0-GA snapshot is kept at `releases/5.0.0-GA-original/` and tag `GOLDEN-BUILD-5.0.0-GA-original`.
 - Rollback: `releases/5.0.0-GA/` ZIP (SHA-256 in `build.json`), tag `GOLDEN-BUILD-5.0.0-GA`.
 - Verification: unit tests 225 pass / 38 fail (same as baseline); UI changes not render-verified in a signed-in browser.
 
