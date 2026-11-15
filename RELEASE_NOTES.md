@@ -12,6 +12,7 @@ Designated by the user as the best working state and rollback baseline (previous
 - Loading animation: removed the 3-second minimum display time (the screen leaves as soon as the page has settled). The Plan, Execute, Review, Iterate chips now step once per second, each in its own colour with a smooth cross-fade.
 - Sprint dates: three 3D calendar icons (start, end, days left) sit at the far right of the Standup toolbar, followed by Full-Screen as the last item; they are hidden on Pulse. They also appear in the Epics header, with the date embedded: sprint start, sprint end (both from the GUS sprint record) and days left. Days left is recomputed from the end date at local midnight and when the tab regains focus; the tooltip also shows GUS's own working-days figure. The sprint payload now includes Start_Date__c and End_Date__c.
 - Epics header: "Epics" and its count on the left, the calendar icons at the right of the same line.
+- Sprints: header rebuilt as a grid so Pulse and Standup share one clean layout (description left, controls right, dates beneath).
 - Sprints (Standup): sprint dates and days-left sit on a second line, right-aligned below the buttons.
 - Sprints: description on the left and the button group on the right share one line in both views; vertical spacing tightened.
 - Sprints: toolbar buttons stay in the same position in Pulse and Standup (sprint selector row sits below), with padding clear of the rule above.
@@ -20,7 +21,7 @@ Designated by the user as the best working state and rollback baseline (previous
 - Footer: the feedback contact name links to the owner's Slack profile for direct messages.
 - Footer items are centered with · separators and sit a little lower.
 - Standup alignment, bullet-driven executive summary, instant loader avatars.
-- Folded into the same version at the user's request (revision 20261115-17); the first 5.0.0-GA snapshot is kept at `releases/5.0.0-GA-original/` and tag `GOLDEN-BUILD-5.0.0-GA-original`.
+- Folded into the same version at the user's request (revision 20261115-18); the first 5.0.0-GA snapshot is kept at `releases/5.0.0-GA-original/` and tag `GOLDEN-BUILD-5.0.0-GA-original`.
 - Rollback: `releases/5.0.0-GA/` ZIP (SHA-256 in `build.json`), tag `GOLDEN-BUILD-5.0.0-GA`.
 - Verification: unit tests 225 pass / 38 fail (same as baseline); UI changes not render-verified in a signed-in browser.
 
