@@ -393,13 +393,15 @@ function settle(){
 function loadOrbit(){
   const host=document.querySelector('#hub-boot .ri-track');if(!host)return;const seen=new Map();
   const av=p=>`<span class="ri-av"><b><i>${esc(initials(p.name))}</i>${p.avatar?`<img src="${esc(p.avatar)}" alt="" decoding="async" onerror="this.remove()">`:''}</b></span>`;
-  const draw=()=>{const html=[...seen.values()].map(av).join('');const n=seen.size||1;host.innerHTML=html.repeat(2*Math.ceil(10/n));};
+  const ph='<span class="ri-av ri-ph"><b></b></span>';
+  const draw=()=>{if(!seen.size){host.innerHTML=ph.repeat(24);return;}const html=[...seen.values()].map(av).join('');const n=seen.size;host.innerHTML=html.repeat(2*Math.ceil(10/n));};
   const add=d=>{if(!d||!d.people)return;d.people.forEach(p=>{if(p.name&&!seen.has(p.name))seen.set(p.name,p);});draw();};
   const groups=['maps','mq','vegacache','vegastore','caching'];
   groups.forEach(g=>{try{const c=JSON.parse(localStorage.getItem('hub-people2-'+g)||'null');if(c&&c.d)c.d.people.forEach(p=>{if(p.name&&!seen.has(p.name))seen.set(p.name,p);});}catch(_){}});
   draw();groups.forEach(g=>loadPeople(g).then(add,()=>{}));
-  const msgs=['Connecting to GUS…','Reading sprints and epics…','Checking release health…','Lining up your team…'];let k=0;
-  const t=setInterval(()=>{const m=document.getElementById('ri-msg');if(!m||document.body.dataset.settled){clearInterval(t);return;}m.textContent=msgs[++k%msgs.length];},1400);
+  const msgs=['Connecting to GUS…','Reading projects and epics…','Mapping planned releases…','Checking builds and release health…','Lining up every team…'],dims=document.querySelectorAll('#hub-boot .ri-dims span');let k=0;
+  const show=()=>{const m=document.getElementById('ri-msg');if(m)m.textContent=msgs[k%msgs.length];dims.forEach(d=>d.classList.toggle('on',+d.dataset.d===(k%msgs.length)-1));};show();
+  const t=setInterval(()=>{if(!document.getElementById('ri-msg')||document.body.dataset.settled){clearInterval(t);return;}k++;show();},1300);
 }
 async function boot(){
   installCache();loadOrbit();

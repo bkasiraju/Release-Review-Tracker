@@ -1,6 +1,16 @@
+## Unreleased on top of 4.0.0-GA (plan102) — Dashboard blurred behind the loader
+
+- While loading, the real dashboard now renders behind the loading animation, fully blurred. The animation has no card or background of its own and floats on the blurred dashboard. The page is still non-interactive until loading settles.
+- Fix: the avatar marquee was collapsing to zero size because of leftover orbit positioning, so no avatars ever showed. It now renders.
+
+## Unreleased on top of 4.0.0-GA (plan101) — Loader shows what it reads
+
+- The loading screen gains Projects, Releases, Builds and Teams chips that light up in turn with the status message ("Reading projects and epics…", "Mapping planned releases…", "Checking builds and release health…", "Lining up every team…").
+- The avatar strip shows shimmering placeholders until team members arrive, so it is never blank on a first visit. Avatars come from all five rosters (MAPS, MQ, VegaCache, VegaStore, Caching Services).
+
 ## Unreleased on top of 4.0.0-GA (plan100) — Coloured plan header actions
 
-- Team selector gets a blue tinted border and hover lift. "Leaves, holidays & on-call" is purple with a calendar icon, "Save" is green with a disk icon, and "Review & save to GUS" has a blue gradient. All have hover lift and a visible focus ring.
+- (Revised in plan102) The plan header actions use the app's own teal palette: "Leaves, holidays & on-call" is teal-outlined with a calendar icon, "Save" is solid teal with a save icon, "Review & save to GUS" keeps the standard primary style, and the Team selector is back to the standard look.
 
 ## Unreleased on top of 4.0.0-GA (plan99) — Allocation naming
 

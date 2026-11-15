@@ -1030,3 +1030,8 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan99: allocation renaming — label-only change, checked by source inspection and test run; not rendered live.
 
 - plan100: header button styling — CSS/markup only; checked on the local harness screenshot.
+
+- plan101: loader dimension chips + avatar placeholders — checked with a harness screenshot only.
+
+- plan102: blurred dashboard behind transparent loader — harness screenshot only.
+- plan102: header buttons re-styled to the app's teal palette — harness screenshot only.

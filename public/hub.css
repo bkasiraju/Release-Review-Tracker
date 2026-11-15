@@ -957,15 +957,35 @@ body[data-ready] #hub-boot{display:flex}
 /* plan99: wider Prioritised / Not Priority columns */
 .pl-eng-h,.pl-eng-r{grid-template-columns:minmax(130px,1.2fr) 58px 54px 68px 60px 74px 118px 140px minmax(190px,1.6fr)!important}
 
-/* plan100: coloured, friendlier plan header actions */
-.pl-team{display:inline-flex;align-items:center;gap:8px;font-weight:700;color:#0b4f6e}
-.pl-team select{border:1.5px solid #3b8fc4;border-radius:10px;background:#eef6fb;color:#0b4f6e;font-weight:600;padding:7px 10px;box-shadow:0 1px 2px rgba(11,79,110,.12);cursor:pointer;transition:box-shadow .15s,border-color .15s}
-.pl-team select:hover{border-color:#0b6fa8;box-shadow:0 2px 6px rgba(11,111,168,.25)}
-.pl-hb{display:inline-flex;align-items:center;gap:7px;font-weight:700;border-radius:10px;padding:8px 14px;transition:transform .12s,box-shadow .15s,filter .15s;box-shadow:0 1px 3px rgba(0,0,0,.18)}
-.pl-hb:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 4px 10px rgba(0,0,0,.22);filter:brightness(1.05)}
-.pl-hb:active:not(:disabled){transform:none}
-.pl-hb:focus-visible,.pl-team select:focus-visible{outline:3px solid #ffb703;outline-offset:2px}
-.pl-hb-leaves{background:linear-gradient(135deg,#7c3aed,#5b21b6);border:1px solid #5b21b6;color:#fff}
-.pl-hb-save{background:linear-gradient(135deg,#16a34a,#15803d);border:1px solid #15803d;color:#fff}
-#pl-commit{background:linear-gradient(135deg,#0b6fa8,#0a4f7a);border-radius:10px;font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,.18)}
-@media(prefers-reduced-motion:reduce){.pl-hb{transition:none}.pl-hb:hover:not(:disabled){transform:none}}
+/* plan100 (revised): plan header actions use the app's own teal palette */
+.pl-team{display:inline-flex;align-items:center;gap:8px;font-weight:700}
+.pl-hb{display:inline-flex;align-items:center;gap:7px;font-weight:600}
+.pl-hb svg{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.pl-hb-leaves{background:#fff;border:1px solid #176b91;color:#176b91}
+.pl-hb-leaves:hover:not(:disabled){background:#eaf4f9}
+.pl-hb-save{background:#176b91;border:1px solid #176b91;color:#fff}
+.pl-hb-save:hover:not(:disabled){background:#125a7a}
+.pl-hb:focus-visible{outline:3px solid #ffb703;outline-offset:2px}
+
+/* plan101: loader shows what Release Intelligence reads (projects, releases, builds, teams) and never an empty avatar strip */
+.ri-dims{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:0 14px}
+.ri-dims span{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700;color:#5a6f82;background:#eef3f8;border:1px solid #d6e6f2;transition:all .3s}
+.ri-dims svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ri-dims span.on{color:#fff;background:linear-gradient(135deg,#176b91,#1e8e6a);border-color:transparent;transform:translateY(-2px) scale(1.06);box-shadow:0 4px 10px rgba(23,107,145,.35)}
+.ri-dims span[data-d="1"].on{background:linear-gradient(135deg,#7c3aed,#5b21b6)}.ri-dims span[data-d="2"].on{background:linear-gradient(135deg,#f59e0b,#d97706)}.ri-dims span[data-d="3"].on{background:linear-gradient(135deg,#16a34a,#15803d)}
+.ri-ph b{background:linear-gradient(90deg,#e3eef6,#f6fafd,#e3eef6)!important;background-size:200% 100%!important;animation:riShim 1.4s linear infinite!important;box-shadow:none!important}
+@keyframes riShim{to{background-position:-200% 0}}
+@media(prefers-reduced-motion:reduce){.ri-ph b{animation:none!important}.ri-dims span{transition:none}}
+
+/* plan102: the dashboard renders live behind the loader, fully blurred; the loader animation floats on it with no card */
+body[data-ready]:not([data-settled]) main>*:not(#hub-boot){visibility:visible;position:static;left:auto;width:auto}
+body[data-ready]:not([data-settled]) main{pointer-events:none;user-select:none}
+#hub-boot{background:rgba(244,247,250,.28);-webkit-backdrop-filter:blur(18px) saturate(1.1);backdrop-filter:blur(18px) saturate(1.1)}
+#hub-boot .ri-load{background:transparent;box-shadow:none;overflow:visible}
+#hub-boot .ri-load strong{color:#0b2b40;text-shadow:0 0 12px #fff,0 0 4px #fff}
+#hub-boot .ri-msg{color:#274a63;font-weight:600;text-shadow:0 0 10px #fff,0 0 4px #fff}
+#hub-boot .ri-dims span:not(.on){background:rgba(255,255,255,.7);backdrop-filter:blur(2px)}
+#hub-boot .ri-dash{border-bottom-color:rgba(23,107,145,.35)}
+#hub-boot .ri-prog{background:rgba(255,255,255,.55);border-radius:4px;width:70%;margin-left:auto;margin-right:auto}
+/* plan102: reset the old orbit positioning so the avatar marquee actually takes up space */
+.ri-track .ri-av{position:relative;left:auto;top:auto;margin:0;transform:none}

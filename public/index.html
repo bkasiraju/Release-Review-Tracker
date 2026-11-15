@@ -3,20 +3,20 @@
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#4f46e5"><title>Release Intelligence</title>
-  <link rel="icon" type="image/svg+xml" href="./favicon.svg"><link rel="preload" href="./SalesforceSans-Regular.woff" as="font" type="font/woff" crossorigin><link rel="stylesheet" href="./styles.css?v=4.0.0-GA-plan100"><link rel="stylesheet" href="./lite.css?v=4.0.0-GA-plan100"><link rel="stylesheet" href="./sprint.css?v=4.0.0-GA-plan100"><link rel="stylesheet" href="./hub.css?v=4.0.0-GA-plan100">
-  <script src="./queue.js?v=4.0.0-GA-plan100" defer></script>
-  <script src="./controls.js?v=4.0.0-GA-plan100" defer></script>
-  <script src="./ai.js?v=4.0.0-GA-plan100" defer></script>
-  <script src="./icons.js?v=4.0.0-GA-plan100" defer></script>
-  <script src="./comments-view.js?v=4.0.0-GA-plan100" defer></script>
-  <script src="./tooltips.js?v=4.0.0-GA-plan100" defer></script>
-  <script src="./app.js?v=4.0.0-GA-plan100" defer></script>
-  <script src="./hub.js?v=4.0.0-GA-plan100" defer></script>
-  <script src="./sprint.js?v=4.0.0-GA-plan100" defer></script>
-  <script src="./hub-post.js?v=4.0.0-GA-plan100" defer></script>
-  <script src="./hub-pages.js?v=4.0.0-GA-plan100" defer></script>
-  <script src="./plan-io.js?v=4.0.0-GA-plan100" defer></script>
-  <script src="./plan.js?v=4.0.0-GA-plan100" defer></script>
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg"><link rel="preload" href="./SalesforceSans-Regular.woff" as="font" type="font/woff" crossorigin><link rel="stylesheet" href="./styles.css?v=4.0.0-GA-plan102"><link rel="stylesheet" href="./lite.css?v=4.0.0-GA-plan102"><link rel="stylesheet" href="./sprint.css?v=4.0.0-GA-plan102"><link rel="stylesheet" href="./hub.css?v=4.0.0-GA-plan102">
+  <script src="./queue.js?v=4.0.0-GA-plan102" defer></script>
+  <script src="./controls.js?v=4.0.0-GA-plan102" defer></script>
+  <script src="./ai.js?v=4.0.0-GA-plan102" defer></script>
+  <script src="./icons.js?v=4.0.0-GA-plan102" defer></script>
+  <script src="./comments-view.js?v=4.0.0-GA-plan102" defer></script>
+  <script src="./tooltips.js?v=4.0.0-GA-plan102" defer></script>
+  <script src="./app.js?v=4.0.0-GA-plan102" defer></script>
+  <script src="./hub.js?v=4.0.0-GA-plan102" defer></script>
+  <script src="./sprint.js?v=4.0.0-GA-plan102" defer></script>
+  <script src="./hub-post.js?v=4.0.0-GA-plan102" defer></script>
+  <script src="./hub-pages.js?v=4.0.0-GA-plan102" defer></script>
+  <script src="./plan-io.js?v=4.0.0-GA-plan102" defer></script>
+  <script src="./plan.js?v=4.0.0-GA-plan102" defer></script>
 </head>
 <body class="loading-dashboard">
 <script>document.body.dataset.hub=(location.hash.match(/^#\/([a-z]+)/)||[])[1]||"home";setTimeout(function(){document.body.dataset.ready=document.body.dataset.ready||"1";},10000);</script>
@@ -40,7 +40,7 @@
   <div class="workspace">
     <header class="topbar"><div class="product-heading"><h1><a href="#/home" id="ri-home" class="ri-home" title="Back to Release Intelligence">Release Intelligence</a></h1><p class="subtitle">Release Priorities - Sprints and standups, dependencies, test and bug health, monthly reviews, quarterly planning, and V2MOM updates.</p></div><div class="topbar-right"><span class="connection" id="connection">Checking GUS connection…</span><label class="hub-team" for="hub-team"><span class="tiny-label">TEAM</span><select id="hub-team" aria-label="Team filter"><option>Loading…</option></select></label><span id="gus-sync" class="gus-sync" role="status" aria-live="polite"></span><button class="button primary source-trigger" id="source-sync-button"><span data-icon3d="database" data-tone="teal"></span> Sources &amp; connection</button><a class="button small back-home" href="/" target="_top"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m9 5-5 5 5 5M4 10h12"/></svg>Back to Hub</a></div></header>
     <main>
-      <div id="hub-boot" class="dashboard-loading" role="status" aria-live="polite"><div class="ri-load"><div class="ri-dash" aria-hidden="true"><div class="ri-bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><svg class="ri-line" viewBox="0 0 140 60" preserveAspectRatio="none"><path d="M2 48 L26 34 L50 40 L74 20 L98 26 L122 8 L138 14"/></svg><span class="ri-dot"></span></div><div class="ri-strip" aria-hidden="true"><div class="ri-track"></div></div><strong>Loading Release Intelligence…</strong><small class="ri-msg" id="ri-msg">Connecting to GUS…</small><span class="ri-prog" aria-hidden="true"></span></div></div>
+      <div id="hub-boot" class="dashboard-loading" role="status" aria-live="polite"><div class="ri-load"><div class="ri-dims" aria-hidden="true"><span data-d="0"><svg viewBox="0 0 24 24"><path d="M3 7l9-4 9 4-9 4-9-4zM3 12l9 4 9-4M3 17l9 4 9-4"/></svg>Projects</span><span data-d="1"><svg viewBox="0 0 24 24"><path d="M5 3v18M5 4h11l-2 4 2 4H5"/></svg>Releases</span><span data-d="2"><svg viewBox="0 0 24 24"><path d="M12 3l8 4v10l-8 4-8-4V7l8-4zM12 12l8-5M12 12v9M12 12L4 7"/></svg>Builds</span><span data-d="3"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6M17 11a3 3 0 100-6M21 20c0-2.6-1.5-4.6-4-5.5"/></svg>Teams</span></div><div class="ri-dash" aria-hidden="true"><div class="ri-bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><svg class="ri-line" viewBox="0 0 140 60" preserveAspectRatio="none"><path d="M2 48 L26 34 L50 40 L74 20 L98 26 L122 8 L138 14"/></svg><span class="ri-dot"></span></div><div class="ri-strip" aria-hidden="true"><div class="ri-track"></div></div><strong>Loading Release Intelligence…</strong><small class="ri-msg" id="ri-msg">Connecting to GUS…</small><span class="ri-prog" aria-hidden="true"></span></div></div>
       <div id="dashboard-loading" class="dashboard-loading" role="status" aria-live="polite"><span class="executive-spinner" aria-hidden="true"></span><span><strong>Loading your dashboard…</strong><small>Connecting to GUS and reading shared release data.</small></span></div>
       <section id="save-status" class="save-status hidden" aria-label="Monthly save progress" aria-live="polite"></section><div id="global-banner" class="banner hidden" role="status"></div>
       <div class="page-heading"><div class="breadcrumb">Core Foundation Services <span aria-hidden="true">/</span> <strong>Release Review</strong></div></div>
