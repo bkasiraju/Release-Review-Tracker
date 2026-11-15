@@ -1327,3 +1327,6 @@ body[data-hub=hourglass] #gus-links{display:none!important}
 
 /* plan139: header logo */
 .ri-home{display:inline-flex;align-items:center;gap:10px}.ri-hlogo{flex:none;width:30px;height:30px}
+
+/* plan139: external rail link */
+a.rail-button{display:flex;align-items:center;justify-content:center;text-decoration:none;color:inherit}

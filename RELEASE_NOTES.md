@@ -1,3 +1,7 @@
+## Unreleased on top of 4.0.0-GA (plan139) — MQ Chronicle in the side bar, header logo
+
+- New side-bar entry "MQ Chronicle" with a 3D timeline-ledger icon; it opens the MQ Chronicle page (git.soma Pages) in a new tab. The header title now starts with the product logo.
+
 ## Unreleased on top of 4.0.0-GA (plan139) — Hourglass links, engineers, hover reasons, guardrails
 
 - Slowest PRs: PR title, repo and #number link to the PR / git.soma; the work item links to GUS; new Engineer column (avatar and git login), 1st review and Size columns, delay tags and a per-PR recommendation with its best-practice threshold.
