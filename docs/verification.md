@@ -1049,3 +1049,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan108: horizontal-overflow guard — scrollWidth==clientWidth on all 9 pages at 1430/1100/800 px on the local harness (empty/stub data, not live data).
 
 - plan109: project colour bars, top-bar right alignment — harness screenshots only.
+
+- plan110: avatar lookup across rosters — harness Sprints page showed 8 of 13 avatar slots with photos (others have no photo in the harness data); not seen on live MAPS data.

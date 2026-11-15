@@ -298,6 +298,7 @@ async function loadSprint(sprintId){
 }
 async function show(){
   const H=window.Hub;H.peopleReady().then(()=>{if(S.members.length){renderMembers();renderModal();renderStandup();}});
+  if(!S.peopleWired){S.peopleWired=true;let tm;document.addEventListener('hub-people',()=>{clearTimeout(tm);tm=setTimeout(()=>{if(S.members.length&&document.querySelector('.su-av,.sp-member')){renderMembers();renderModal();renderStandup();}},60);});}
   H.members().then(m=>{S.mem=m;if(S.members.length){renderMembers();renderModal();renderStandup();}},()=>{});
   if(!S.pick)H.picklists().then(p=>{S.pick=p;if(S.members.length){renderMembers();renderStandup();}},()=>{});
   if(!H.hasTeam()){S.seq++;S.teamId='';S.members=[];$('sp-metrics').innerHTML='';$('sp-chart').innerHTML='';$('sp-trend-stats').innerHTML='';$('sp-standup').innerHTML='';

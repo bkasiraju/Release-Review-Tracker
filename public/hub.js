@@ -183,6 +183,8 @@ function tile(p,stat){
 const groupKey=t=>t.short==='MAPS'?'maps':t.short==='MQ'?'mq':/vegastore/i.test(t.Name)?'vegastore':/caching services/i.test(t.Name)?'caching':/vega/i.test(t.Name)?'vegacache':null;
 const initials=n=>String(n).split(/\s+/).filter(Boolean).map(w=>w[0]).slice(0,2).join('').toUpperCase();
 let peopleData=null;
+const peopleByGroup=new Map();/** every roster loaded so far, keyed by group: loading another team's roster must not hide this one */
+const rosterOf=g=>{if(!peopleByGroup.has(g)){try{const c=JSON.parse(localStorage.getItem('hub-people2-'+g)||'null');if(c&&c.d)peopleByGroup.set(g,c.d);}catch(_){}}return peopleByGroup.get(g)||null;};
 function drawPeople(el){
   const box=el.querySelector('#hub-people');if(!box)return;
   const g=groupKey(H.team);if(!g){box.hidden=true;return;}
@@ -197,13 +199,16 @@ function drawPeople(el){
 const peopleLoads=new Map();
 function loadPeople(g){
   if(!peopleLoads.has(g))peopleLoads.set(g,call('hub-people',{group:g}).then(d=>{
-    peopleData={g,d};try{localStorage.setItem('hub-people2-'+g,JSON.stringify({d}));}catch(_){}
+    peopleData={g,d};try{localStorage.setItem('hub-people2-'+g,JSON.stringify({d}));}catch(_){}peopleByGroup.set(g,d);setTimeout(()=>document.dispatchEvent(new Event('hub-people')),0);
     d.people.forEach(p=>{if(p.avatar){const i=new Image();i.src=p.avatar;}if(p.alt){const j=new Image();j.src=p.alt;}});return d;},e=>{peopleLoads.delete(g);throw e;}));
   return peopleLoads.get(g);
 }
 /** Avatar lookup for other pages (matched by GUS user id, then name); resolves once the team's people are loaded. */
-H.personAvatar=(id,name)=>{const g=groupKey(H.team);if(!g||!peopleData||peopleData.g!==g)return null;const n=String(name||'').toLowerCase();return peopleData.d.people.find(p=>(id&&p.id===id)||(n&&p.name.toLowerCase()===n))||null;};
-H.peopleReady=()=>{const g=groupKey(H.team);return g?loadPeople(g).catch(()=>null):Promise.resolve(null);};
+H.personAvatar=(id,name)=>{const n=String(name||'').toLowerCase(),find=d=>d&&d.people.find(p=>(id&&p.id===id)||(n&&p.name.toLowerCase()===n));const g=groupKey(H.team);
+  // This team's roster first, then any other roster already loaded (QA engineers and assignees can sit on another team).
+  let hit=g&&find(rosterOf(g));if(hit)return hit;for(const k of ['maps','mq','vegacache','vegastore','caching']){if(k!==g&&(hit=find(rosterOf(k))))return hit;}return null;};
+/** Resolves once this team's roster is loaded; retries a failed load twice so a transient error does not leave the page without avatars. */
+H.peopleReady=async()=>{const g=groupKey(H.team);if(!g)return null;for(let i=0;i<3;i++){try{return await loadPeople(g);}catch(_){await new Promise(r=>setTimeout(r,1500*(i+1)));}}return null;};
 /** Shared table column sizing. Every table gets a <colgroup>: short columns (status, priority, ids, numbers) take just the width their
  *  header and values need; long-text columns (subject, summary, notes) share the remaining width in proportion to their text length. */
 const FIT_CH=7.8,FIT_PAD=26,FIT_SHORT=34,FIT_MIN_TEXT=150;

@@ -1,3 +1,8 @@
+## Unreleased on top of 4.0.0-GA (plan110) — Avatars always load
+
+- Fix: avatars on Sprints could be missing. The loader pre-fetches all five team rosters, and the avatar lookup only trusted the last roster loaded, so it often missed the current team's people. Rosters are now kept per team, a lookup checks the current team first and then every other loaded roster (assignees and QA can sit on another team), and rosters read from the browser cache when not yet fetched.
+- A failed roster load is retried twice, and Sprints re-renders its avatars as soon as any roster arrives.
+
 ## Unreleased on top of 4.0.0-GA (plan109) — Project colours, top bar to the far right
 
 - Release Planning: each measure/project gets its own colour for the bar on the left of its rows (14-colour palette, by the project's order in the plan), so projects are easy to tell apart. ABL/BTL remains in its own column.
