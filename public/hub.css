@@ -1289,3 +1289,6 @@ body[data-hub=hourglass] #gus-links{display:none!important}
 .hg-badges{display:flex;gap:6px;flex:none}.hg-badges i{font-style:normal;font-size:11.5px;font-weight:600;padding:2px 9px;border-radius:99px;background:#eef2f6;color:#334155}.hg-badges i.b{background:#fdecee;color:#ba0517}.hg-badges i.c{background:#fff4e0;color:#8a5a00}.hg-ex{padding:0 12px 10px 50px}
 .hg-rec{align-items:flex-start}.hg-recb{flex:1;min-width:0}.hg-recb em{font-style:italic}.hg-impact{flex:0 0 260px;color:#2e844a;font-size:12.5px;font-weight:600;text-align:right}@media(max-width:900px){.hg-rec{flex-wrap:wrap}.hg-impact{flex:1 0 100%;text-align:left}}
 .hg-warnlist{list-style:none;padding:0}.hg-warnlist li{position:relative;padding:5px 0 5px 24px;font-size:13px}.hg-warnlist li::before{content:'⚠';position:absolute;left:0;color:#b57b22}
+/* plan134: dimensional side-bar icons */
+.rail-button .cfs-icon.cfs-r{width:34px;height:34px;background:none;border:0;box-shadow:none;border-radius:0;transform:scale(var(--k));filter:drop-shadow(0 3px 3px rgba(20,40,80,.28))}.cfs-r svg{width:100%;height:100%;stroke:none;stroke-width:0;fill:none}
+.rail-button:hover .cfs-icon.cfs-r{transform:scale(var(--k)) translateY(-1px) rotate(-3deg)}

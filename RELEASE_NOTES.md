@@ -1,3 +1,7 @@
+## Unreleased on top of 4.0.0-GA (plan134) — dimensional side-bar icons
+
+- Replaced the basic side-bar glyph tiles with purpose-drawn dimensional icons named for each page: house (Home), rocket (Sprints), node graph (Dependencies), flask (Tests), shield (Trust Champion), bug (Bugs), hourglass (Hourglass), package with check (Review), roadmap calendar (Planning), target with arrow (V2MOM) and database (Sources). Inline SVG with extruded edge, gloss and shadow; no image assets. Other icons in the app are unchanged.
+
 ## Unreleased on top of 4.0.0-GA (plan133) — Hourglass follows the top-level team and the original report layout
 
 - Removed the page-level Team selector: Hourglass now uses the top-level team (MAPS, MQ, VegaCache). "All" shows the 3-team comparison; other teams get a note that Hourglass covers those three.

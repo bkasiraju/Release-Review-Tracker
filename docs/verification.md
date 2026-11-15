@@ -1087,3 +1087,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan132: CSS width only; not visually checked.
 
 - plan133: Hourglass team selector removed (top-level team drives it), trend restyled, sections reordered to the original report. Verified with unit tests and a local headless render only; not live-verified.
+
+- plan134: side-bar icons replaced with inline SVG dimensional icons. Verified with unit tests and a local headless render only; not live-verified.
