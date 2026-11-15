@@ -2,7 +2,7 @@
 
 ## 5.1.2-GA (15 November 2026) — working build after the PLATINUM 5.1.1-GA
 
-PLATINUM 5.1.1-GA and GOLDEN 5.0.0-GA are untouched. Adds a **GUS** shortcut at the right edge of the active tab; it opens the selected team's matching GUS related list (Sprints, Epics, Team Dependencies, Work items, team members, or the team record on Home). With "All teams" selected it falls back to the object list view.
+PLATINUM 5.1.1-GA and GOLDEN 5.0.0-GA are untouched. Adds an open-link icon inside the right end of the active tab; it opens the selected team's matching GUS related list (Sprints, Epics, Team Dependencies, Work items, team members, or the team record on Home). With "All teams" selected it falls back to the object list view.
 
 ## 5.1.1-GA — PLATINUM BUILD (15 November 2026)
 
