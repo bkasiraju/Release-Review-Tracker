@@ -1,3 +1,7 @@
+## Unreleased on top of 4.0.0-GA (plan91) — Allocation split into Planned vs Un-planned
+
+- Engineer bandwidth "Allocation %" is a two-colour stacked bar: solid blue = Planned (ABL), hatched amber = Un-planned (BTL), with a legend in the header. Each row's label reads "10% + 6% = 16%" (hover for the days). The total turns amber above 85% and red above 100%, and the bar gets a red outline when over capacity.
+
 ## Unreleased on top of 4.0.0-GA (plan90) — Auto-save for Release Planning
 
 - Every edit is saved to the backend in the background about 1.5 s after the last change, with no popup; a 2-minute heartbeat retries anything still unsaved (for example after a failed save). The status note reads "Auto-save on", "Changes pending — auto-saving…", "Saving…", then "✓ All changes saved at hh:mm · auto-save on". Conflicts and errors show in the note with Reload / Retry; only the explicit Save button toasts.

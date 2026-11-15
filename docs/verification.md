@@ -1012,3 +1012,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan89: import with Status/Theme/WS Status/Doc columns on the local harness saved the plan ("Saved hh:mm"); template download with all columns and dropdowns not opened in Excel; not verified on live.
 
 - plan90: an edit on the local harness moved the note pending -> saved within 3 s; the 2-minute heartbeat and error retry not exercised; not verified on live.
+
+- plan91: stacked allocation bar screenshotted on the local harness with one hand-injected row (58% + 27%); no real planned data in the harness; not verified on live.
