@@ -1,3 +1,7 @@
+## Unreleased on top of 4.0.0-GA (plan113) — Compact Release Planning
+
+- Release Planning is more compact: less empty space above the page tab, smaller headings, summary cards, filter bar and table rows (about 25% shorter rows), and tighter tab and button heights. Layout and features are unchanged.
+
 ## Unreleased on top of 4.0.0-GA (plan112) — Release Review controls on two lines
 
 - Release Review and Release Status: the page tab and the release / review month / Lists / Refresh controls share one line, with the controls on the right. "Open in GUS" links and the selected-release chips share the next line (links left, chips right), instead of three separate rows.

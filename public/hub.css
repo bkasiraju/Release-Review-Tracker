@@ -1048,3 +1048,33 @@ main>*{min-width:0;max-width:100%}
 #ctl-row .gus-links{margin:0!important}
 #ctl-row .selected-release-summary{margin:0 0 0 auto;justify-content:flex-end}
 #ctl-row .selected-release-summary.hidden{display:none}
+
+/* plan113: compact Release Planning */
+body[data-hub=plan] main{padding-top:6px!important;padding-bottom:14px!important}
+body[data-hub=plan] #hub-page>*:first-child,body[data-hub=plan] #hub-page{margin-top:0!important}
+body[data-hub=plan] .executive-heading{margin:0 0 4px!important;padding:0!important;gap:8px!important}
+body[data-hub=plan] .executive-heading h2{font-size:15px!important;margin:0!important}
+body[data-hub=plan] .executive-heading p{margin:2px 0 0!important;font-size:11.5px!important}
+body[data-hub=plan] .executive-heading .button,body[data-hub=plan] .executive-heading select{height:30px!important;min-height:30px!important;padding-top:0!important;padding-bottom:0!important;font-size:12px!important}
+body[data-hub=plan] .pl-tabs{margin:4px 0 8px!important;padding-bottom:5px!important}
+body[data-hub=plan] .pl-tabs button[data-tab]{padding:4px 12px!important;font-size:12px!important}
+body[data-hub=plan] .pl-kpis{gap:8px!important;margin:6px 0!important}
+body[data-hub=plan] .pl-kpi{padding:7px 10px!important}
+body[data-hub=plan] .pl-kpi b{font-size:21px!important}
+body[data-hub=plan] .pl-kpi small,body[data-hub=plan] .pl-kpi span{font-size:10.5px!important}
+body[data-hub=plan] .pl-kpi [class*=ico],body[data-hub=plan] .pl-kpi .cfs-icon,body[data-hub=plan] .pl-kpi svg{max-height:40px}
+body[data-hub=plan] .pl-card{padding:7px 10px!important}
+body[data-hub=plan] .pl-card h3{font-size:13px!important;margin:0 0 5px!important}
+body[data-hub=plan] .pl-sum-grid{gap:8px!important}
+body[data-hub=plan] .pl-grid{font-size:12px!important}
+body[data-hub=plan] .pl-grid td{padding:1px 6px!important}
+body[data-hub=plan] .pl-grid th{padding:5px 6px!important;font-size:11px!important}
+body[data-hub=plan] .pl-grid input,body[data-hub=plan] .pl-grid select,body[data-hub=plan] .pl-grid .pl-ms,body[data-hub=plan] .pl-grid .multi-trigger,body[data-hub=plan] .pl-grid .pl-line button{min-height:26px!important;height:26px!important;font-size:12px!important;padding-top:0!important;padding-bottom:0!important}
+body[data-hub=plan] .pl-grid .pl-days{height:26px!important}
+body[data-hub=plan] .pl-tools,body[data-hub=plan] .pl-filters{padding:6px 8px!important;gap:6px!important}
+body[data-hub=plan] .pl-tools label,body[data-hub=plan] .pl-filters label{font-size:11px!important}
+body[data-hub=plan] .pl-tools input,body[data-hub=plan] .pl-tools select,body[data-hub=plan] .pl-mf button{min-height:28px!important;height:28px!important;font-size:12px!important}
+body[data-hub=plan] .pl-hb,body[data-hub=plan] .pl-tools .button{height:28px!important;min-height:28px!important;font-size:12px!important;padding:0 10px!important}
+body[data-hub=plan] .hub-crumb,body[data-hub=plan] .breadcrumb-trail{margin:0 0 4px!important}
+body[data-hub=plan] .pl-sec-h,body[data-hub=plan] .pl-planner>h3{margin:6px 0!important}
+body[data-hub=plan] .hub-warn,body[data-hub=plan] .hub-banner{margin:4px 0!important;padding:5px 10px!important}
