@@ -1357,3 +1357,5 @@ main>.dashboard-footer{display:flex;flex-wrap:wrap;justify-content:center;align-
 main>.dashboard-footer>*{display:inline-flex;align-items:center}
 main>.dashboard-footer>*:not(:first-child){position:relative;padding-left:14px;margin-left:14px}
 main>.dashboard-footer>*:not(:first-child)::before{content:'·';position:absolute;left:-2px;top:50%;transform:translateY(-52%);color:#8aa0b6;font-weight:700}
+
+.footer-feedback a{margin-left:4px;font-weight:600;color:#0b5cab;text-decoration:none}.footer-feedback a:hover{text-decoration:underline}
