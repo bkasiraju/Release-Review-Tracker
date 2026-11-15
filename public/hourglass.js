@@ -10,7 +10,7 @@ const f1=v=>v==null?'–':(Math.round(v*10)/10).toString();
 const hh=v=>v==null?'–':f1(v)+'h';
 const tone=(v,t,hi)=>v==null?'':(hi?v>=t:v<=t)?'ok':(hi?v>=t*.8:v<=t*2)?'warn':'bad';
 const sum=(t,sp)=>(t.sprints[sp]||{}).summary;
-const load=()=>S.data?Promise.resolve(S.data):fetch('./hourglass-data.json?v=4.0.0-GA-plan135').then(r=>{if(!r.ok)throw new Error('Hourglass data not found ('+r.status+')');return r.json();}).then(d=>(S.data=d));
+const load=()=>S.data?Promise.resolve(S.data):fetch('./hourglass-data.json?v=4.0.0-GA-plan136').then(r=>{if(!r.ok)throw new Error('Hourglass data not found ('+r.status+')');return r.json();}).then(d=>(S.data=d));
 const sprintsOf=d=>{const all=new Set();Object.values(d.teams).forEach(t=>{Object.keys(t.sprints).forEach(s=>all.add(s));Object.keys(t.published).forEach(s=>all.add(s));});return [...all].sort().reverse();};
 const generated=(d,sp)=>Object.values(d.teams).some(t=>t.sprints[sp]);
 const tile=(label,val,target,cls,sub)=>`<div class="hg-tile ${cls||''}"><div class="hg-tl">${label}</div><div class="hg-tv">${val}</div><div class="hg-ts">${target?'Target '+target:''}${sub?(target?' · ':'')+sub:''}</div></div>`;
@@ -48,9 +48,22 @@ const repoNote=(r,sp)=>{const sl=sp.slowest.find(p=>p.repo===r.repo),n=[];
   if(sl&&sl.cycle_h>24)n.push('slowest PR #'+sl.num+' took '+hh(sl.cycle_h));if(r.prs===1)n.push('single PR');else if(r.median_cycle_h!=null&&r.avg_cycle_h>2*r.median_cycle_h)n.push('a few outliers skew the average (median '+hh(r.median_cycle_h)+')');
   const t=n.join('; ');return t.charAt(0).toUpperCase()+t.slice(1)+'.';};
 const secH=(n,t,sub)=>`<h3 class="hg-sec"><span class="hg-secn">${n}</span>${t}</h3>${sub?`<p class="hg-sub">${sub}</p>`:''}`;
-const execSummary=(t,sp)=>{const s=sp.summary,rc=sp.root_causes[0];
-  return `${esc(t.name)} merged <b>${s.merged}</b> PRs in ${esc(sp.sprint.name||S.sprint)} (${s.work_items_with_pr} of ${s.work_items} work items resolved to a PR). Median cycle time was <b>${hh(s.median_h)}</b> (target &lt; ${T.median}h) and P80 was <b>${hh(s.p80_h)}</b> (target &lt; ${T.p80}h); <b>${s.pct_under_24h}%</b> merged within 24h (target &gt; ${T.under}%).${rc?` The biggest source of delay was <b>${esc(rc.cause.toLowerCase())}</b>, behind about ${rc.hours_lost}h (${rc.pct_of_delay}%) of time past 24h.`:' No PR ran past 24h.'}${sp.sprint.in_progress?' This sprint is still in progress, so the numbers will move.':''}`;};
-
+const execSummary=(t,sp)=>{const s=sp.summary,rc=sp.root_causes[0],ok=[],gr=[];
+  const prevK=[...new Set([...Object.keys(t.sprints),...Object.keys(t.published)])].filter(k=>k<S.sprint).sort().pop(),pv=prevK&&((t.sprints[prevK]||{}).summary||t.published[prevK]),pm=pv&&(pv.median_h),pp=pv&&pv.p80_h;
+  if(s.median_h<=T.median)ok.push(`Median cycle time <b>${hh(s.median_h)}</b>, inside the &lt;${T.median}h target`);else gr.push(`Median cycle time <b>${hh(s.median_h)}</b> is above the &lt;${T.median}h target`);
+  if(s.p80_h<=T.p80)ok.push(`P80 cycle time <b>${hh(s.p80_h)}</b>, inside the &lt;${T.p80}h target`);else gr.push(`P80 cycle time <b>${hh(s.p80_h)}</b> is ${f1(s.p80_h-T.p80)}h over the &lt;${T.p80}h target: a slow tail of PRs`);
+  if(s.pct_under_24h>=T.under)ok.push(`<b>${s.pct_under_24h}%</b> of PRs merged within 24h (target &gt;${T.under}%)`);else gr.push(`Only <b>${s.pct_under_24h}%</b> of PRs merged within 24h (target &gt;${T.under}%)`);
+  ok.push(`<b>${s.merged}</b> PRs merged across ${sp.repos.length} repo${sp.repos.length===1?'':'s'}; ${s.work_items_with_pr} of ${s.work_items} work items traced to a PR`);
+  if(pm!=null&&s.median_h<pm)ok.push(`Median improved from ${hh(pm)} in ${prevK.replace('2026.','')} to ${hh(s.median_h)}`);else if(pm!=null&&s.median_h>pm)gr.push(`Median slipped from ${hh(pm)} in ${prevK.replace('2026.','')} to ${hh(s.median_h)}`);
+  if(pp!=null&&s.p80_h<pp)ok.push(`P80 improved from ${hh(pp)} to ${hh(s.p80_h)} versus ${prevK.replace('2026.','')}`);else if(pp!=null&&s.p80_h>pp)gr.push(`P80 rose from ${hh(pp)} to ${hh(s.p80_h)} versus ${prevK.replace('2026.','')}`);
+  if(s.median_ttfr_h!=null&&s.median_ttfr_h<=8)ok.push(`Reviews start quickly: median first review in <b>${hh(s.median_ttfr_h)}</b>`);
+  if(rc)gr.push(`<b>${esc(rc.cause)}</b> drove ~${rc.hours_lost}h (${rc.pct_of_delay}%) of time past 24h across ${rc.prs_affected} PR${rc.prs_affected===1?'':'s'}`);
+  if(s.pct_ttfr_over_24h>=15)gr.push(`${s.pct_ttfr_over_24h}% of PRs waited over 24h for a first review`);
+  if(s.pct_large>=15)gr.push(`${s.pct_large}% of PRs are large changes, which slow review`);
+  const w=sp.slowest[0];if(w&&w.cycle_h>48)gr.push(`Slowest PR ${esc(w.repo.split('/').pop())}#${w.num} took <b>${hh(w.cycle_h)}</b>`);
+  const verdict=gr.length<=1&&s.median_h<=T.median&&s.p80_h<=T.p80?'On track':s.median_h<=T.median?'Median on target, tail needs attention':'Cycle time needs attention';
+  const li=a=>a.length?a.map(x=>`<li>${x}</li>`).join(''):'<li class="hg-none">Nothing notable.</li>';
+  return `<div class="hg-verdict"><b>${esc(verdict)}</b> · ${esc(t.name)}, ${esc(S.sprint)}${sp.sprint.in_progress?' (sprint in progress, numbers will move)':''}</div><div class="hg-exgrid"><div class="hg-ex-ok"><h4>✓ Accomplished</h4><ul>${li(ok)}</ul></div><div class="hg-ex-gr"><h4>▲ Growth areas</h4><ul>${li(gr)}</ul></div></div>`;};
 function teamView(key){
   const t=S.data.teams[key],sp=t.sprints[S.sprint],pub=t.published[S.sprint];
   if(!sp){
@@ -59,7 +72,7 @@ function teamView(key){
   const s=sp.summary,g=sp.gaps||{},lost=sp.root_causes.reduce((a,c)=>a+c.hours_lost,0),mxr=Math.max(1,...sp.repos.map(r=>r.avg_cycle_h||0)),over=100-(s.pct_under_24h||0);
   const rbar=v=>`<span class="hg-rbar"><i class="${tone(v,T.p80)}" style="width:${Math.max(3,100*v/mxr)}%"></i></span>`;
   return `<section class="table-card hg-card"><div class="hg-head"><h3>${esc(t.name)} · ${S.sprint}</h3><span class="hg-sub">${sp.sprint.start} to ${sp.sprint.end}${sp.sprint.in_progress?' · <b class="hg-live">in progress</b>':''}</span></div>
-   ${secH(1,'Executive Summary')}<p class="hg-exec">${execSummary(t,sp)}</p></section>
+   ${secH(1,'Executive Summary')}<div class="hg-exec">${execSummary(t,sp)}</div></section>
   <section class="table-card hg-card">${secH(2,'Summary Metrics')}
    <div class="hg-tiles hg-six">${tile('Total PRs',s.prs,'',null,s.open+' still open')}${tile('Merged PRs',s.merged,'',null)}${tile('Median cycle',hh(s.median_h),'&lt; '+T.median+'h',tone(s.median_h,T.median))}${tile('P80 cycle',hh(s.p80_h),'&lt; '+T.p80+'h',tone(s.p80_h,T.p80))}${tile('Merged &lt; 24h',s.pct_under_24h+'%','&gt; '+T.under+'%',tone(s.pct_under_24h,T.under,1))}${tile('Avg comments',f1(s.avg_comments),'',null,'per PR')}</div>
    <div class="hg-donuts">${donut('% merged &lt; 24h'.replace('&lt;','<'),s.pct_under_24h,'#249474','target > '+T.under+'%')}${donut('% Core PRs',null,'#0b6fa8','Core-on-Git not collected')}${donut('% merged > 24h',over,'#d15b68','of merged PRs')}</div>

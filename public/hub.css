@@ -1292,3 +1292,9 @@ body[data-hub=hourglass] #gus-links{display:none!important}
 /* plan134: dimensional side-bar icons */
 .rail-button .cfs-icon.cfs-r{width:34px;height:34px;background:none;border:0;box-shadow:none;border-radius:0;transform:scale(var(--k));filter:drop-shadow(0 3px 3px rgba(20,40,80,.28))}.cfs-r svg{width:100%;height:100%;stroke:none;stroke-width:0;fill:none}
 .rail-button:hover .cfs-icon.cfs-r{transform:scale(var(--k)) translateY(-1px) rotate(-3deg)}
+/* plan136: bullet-driven executive summary */
+.hg-verdict{font-size:14px;margin-bottom:10px;padding:8px 12px;border-radius:8px;background:#eef4fb;color:#10243a}
+.hg-exgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:900px){.hg-exgrid{grid-template-columns:1fr}}
+.hg-exgrid>div{border:1px solid var(--border);border-top:4px solid #249474;border-radius:10px;padding:10px 14px;background:#fff}.hg-exgrid .hg-ex-gr{border-top-color:#d98a1b}
+.hg-exgrid h4{margin:0 0 6px;font-size:12.5px;text-transform:uppercase;letter-spacing:.04em;color:#249474}.hg-exgrid .hg-ex-gr h4{color:#b57b22}
+.hg-exgrid ul{margin:0;padding-left:18px;font-size:13px;line-height:1.55}.hg-exgrid li{margin:2px 0}.hg-none{color:var(--muted);list-style:none;margin-left:-18px}

@@ -1,3 +1,7 @@
+## Unreleased on top of 4.0.0-GA (plan136) — Hourglass executive summary as bullets
+
+- The Executive Summary paragraph is now a one-line verdict plus two bullet panels: Accomplished (targets met, PRs merged and work-item coverage, improvement versus the previous sprint, fast first review) and Growth areas (targets missed, slowdown versus the previous sprint, top root cause with hours lost, slow first-review share, large PRs, slowest PR). Rule-based from the existing metrics; no AI.
+
 ## Unreleased on top of 4.0.0-GA (plan135) — Sprint standup work-item rows realigned
 
 - Fixed the standup member view where every cell sat one column to the right of its header (subject under QA, status under Planned, churn wrapping onto a second line). The SAL button was a stray extra grid cell; it now sits inside the Work cell. Status pills no longer wrap, and the numeric cells are right-aligned under their headers.
