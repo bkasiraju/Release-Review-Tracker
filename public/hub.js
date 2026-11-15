@@ -70,7 +70,7 @@ const GL='https://gus.lightning.force.com/lightning/o/',gnew=o=>GL+o+'/new',glis
 const GUS_LINKS={
   home:[['New Epic',gnew('ADM_Epic__c'),1],['New work item',gnew('ADM_Work__c')],['Epics',glist('ADM_Epic__c')],['Work items',glist('ADM_Work__c')]],
   epics:[['New Epic',gnew('ADM_Epic__c'),1],['All epics',glist('ADM_Epic__c')],['New work item',gnew('ADM_Work__c')]],
-  sprints:[['New work item',gnew('ADM_Work__c'),1],['Sprints',glist('ADM_Sprint__c')],['Work items',glist('ADM_Work__c')]],
+  sprints:[['Sprints',glist('ADM_Sprint__c')],['Work items',glist('ADM_Work__c')],['New work item',gnew('ADM_Work__c'),1]],
   tds:[['New team dependency',gnew('ADM_Team_Dependency__c'),1],['All TDs',glist('ADM_Team_Dependency__c')]],
   plan:[['New Epic',gnew('ADM_Epic__c'),1],['Epics',glist('ADM_Epic__c')],['Projects',glist('PPM_Project__c')],['Programs',glist('PPM_Program__c')]],
   tests:[['New work item',gnew('ADM_Work__c'),1],['Work items',glist('ADM_Work__c')]],
