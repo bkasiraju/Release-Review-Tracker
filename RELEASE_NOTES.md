@@ -1,3 +1,7 @@
+## Unreleased on top of 4.0.0-GA (plan122) — Dock-style side bar
+
+- The left side bar now expands on hover or keyboard focus to show a short label under each icon, floats over the page (content does not shift) and shrinks again when the pointer leaves. Icons magnify toward the pointer like the macOS Dock, with a smooth width, label and shadow animation. Reduced-motion users get no animation. The native hover tooltips are replaced by the labels (accessible names are unchanged).
+
 ## Unreleased on top of 4.0.0-GA (plan121) — Sprint Action Log; cleaner Release Planning header
 
 - Sprints: a small notepad icon after every W-ID (Pulse table, engineer full-screen view and Standup list) opens a small modal to capture the W-ID, assignee, action owner (any member of the selected team, defaulting to the assignee), action item details, ETA (date picker) and priority (Critical/High/Medium/Low). A red dot on the icon marks work items that already have open action items.

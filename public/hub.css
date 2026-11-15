@@ -1172,3 +1172,17 @@ body[data-hub=plan] .pl-tabs>.heading-actions button.button{border-bottom:1px so
 body[data-hub=plan] .pl-tabs>.heading-actions .pl-state{min-width:0;font-size:11.5px;color:#6b7280}
 body[data-hub=plan] .pl-tabs>.heading-actions #pl-team{height:30px;min-width:120px;font-size:12px}
 body[data-hub=plan] .page-heading{display:none!important}
+
+/* plan122: dock-style side bar */
+.rail{position:fixed;left:0;top:0;bottom:0;z-index:900;width:62px;overflow:hidden auto;scrollbar-width:none;align-items:center;transition:width .24s cubic-bezier(.2,.8,.2,1),box-shadow .24s;will-change:width}
+.rail::-webkit-scrollbar{display:none}
+.rail.open{width:104px;box-shadow:8px 0 28px rgba(8,26,46,.16)}
+.rail-button{--k:1;position:relative;width:46px;height:auto;min-height:40px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding:4px 0;border:0;background:none;border-radius:12px;margin-bottom:6px;transition:width .24s,background .15s}
+.rail.open .rail-button{width:92px;margin-bottom:4px}
+.rail-button .cfs-icon{transform:scale(var(--k));transform-origin:50% 60%;transition:transform .16s cubic-bezier(.2,.8,.2,1)}
+.rail-button:hover{background:#eef4f9}.rail-button.active{background:#e3eff8}
+.rail-label{max-height:0;opacity:0;overflow:hidden;font-size:10.5px;font-weight:600;line-height:1.2;color:#27425c;text-align:center;white-space:nowrap;transform:translateY(-3px);transition:max-height .22s,opacity .18s,transform .22s,margin .22s}
+.rail.open .rail-label{max-height:16px;opacity:1;transform:none;margin-top:5px}
+.rail-button.active .rail-label{color:#0b5a8a}
+.rail .brand{flex:0 0 auto}
+@media(prefers-reduced-motion:reduce){.rail,.rail-button,.rail-label,.rail-button .cfs-icon{transition:none!important}}
