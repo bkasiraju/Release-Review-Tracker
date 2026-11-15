@@ -78,6 +78,13 @@ const statChips=items=>{const act=items.filter(i=>i.itemStatus!=='Removed'),sp=l
   done=act.filter(isClosed),prog=act.filter(i=>!isClosed(i)&&/st-prog|st-review/.test(stCls(i.status))),blk=act.filter(i=>!isClosed(i)&&stCls(i.status)==='st-block');
   return `<span class="mchip pl" title="Story points planned at sprint start">Planned <b>${fmt(planOf(items))} SP</b></span><span class="mchip ac" title="Story points now (excludes removed items)">Actual <b>${fmt(act.reduce((n,i)=>n+spOf(i),0))} SP</b></span>`
    +g('dn2',done,'Completed','Items in a closed status')+g('ip',prog,'In progress','Items in progress, in review or in QA')+g('bk',blk,'Blocked','Items blocked, waiting or on hold');};
+/** Compact icon+count metrics for an engineer tile: Planned · Actual · Completed · In progress · Blocked (same order as the engineer header chips). */
+const MI={pl:'<path d="M5 2v12M5 3h7l-2 2.500 2 2.500H5" fill="none" stroke="currentColor" stroke-width="1.600" stroke-linecap="round" stroke-linejoin="round"/>',ac:'<path d="M2 12 6 7l3 3 5-6" fill="none" stroke="currentColor" stroke-width="1.700" stroke-linecap="round" stroke-linejoin="round"/>',dn:'<circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.500"/><path d="m5.200 8.200 2 2 3.600-4" fill="none" stroke="currentColor" stroke-width="1.600" stroke-linecap="round" stroke-linejoin="round"/>',ip:'<circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.500"/><path d="M8 4.500V8l2.400 1.500" fill="none" stroke="currentColor" stroke-width="1.500" stroke-linecap="round"/>',bk:'<circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.500"/><path d="M4.200 11.800 11.800 4.200" stroke="currentColor" stroke-width="1.500"/>'};
+const miniMetrics=items=>{const act=items.filter(i=>i.itemStatus!=='Removed'),n=l=>l.length,
+  done=act.filter(isClosed),prog=act.filter(i=>!isClosed(i)&&/st-prog|st-review/.test(stCls(i.status))),blk=act.filter(i=>!isClosed(i)&&stCls(i.status)==='st-block'),
+  m=(c,ic,v,tip)=>`<i class="pm ${c}" title="${esc(tip)}"><svg viewBox="0 0 16 16" aria-hidden="true">${MI[ic]}</svg>${v}</i>`;
+  return m('pl','pl',fmt(planOf(items)),'Planned: '+fmt(planOf(items))+' SP')+m('ac','ac',fmt(act.reduce((x,i)=>x+spOf(i),0)),'Actual: '+fmt(act.reduce((x,i)=>x+spOf(i),0))+' SP')
+   +m('dn','dn',n(done),'Completed: '+n(done)+' items')+m('ip','ip',n(prog),'In progress: '+n(prog)+' items')+m('bk','bk',n(blk),'Blocked: '+n(blk)+' items');};
 const churnOf=i=>i.itemStatus==='Added'?(i.storyPoints||0):i.forecastPts==null?null:(i.storyPoints||0)-i.forecastPts;
 const planCell=i=>i.forecastPts==null?'<span class="muted">—</span>':`<span class="mchip pl sm">${esc(i.forecastPts)}</span>`;
 const churnCell=i=>{const c=churnOf(i);return c==null?'<span class="muted">—</span>':`<span class="mchip ch sm ${c>0?'up':c<0?'dn':''}">${sgn(c)}</span>`;};
@@ -281,7 +288,7 @@ function renderStandup(){
   if(!ms.length){{const a=$('sp-bar-actions');if(a)a.innerHTML='';}host.innerHTML='<div class="empty-state sp-empty"><h3>No work in this sprint</h3><p>There are no committed items for the selected sprint.</p></div>';return;}
   S.standupIdx=Math.min(Math.max(S.standupIdx,-1),ms.length-1);const m=ms[S.standupIdx]||null,items=m?activeItems(m).sort((a,b)=>isClosed(a)-isClosed(b)||String(a.name).localeCompare(String(b.name))):[];
   const sp=items.reduce((n,i)=>n+spOf(i),0),doneSp=items.filter(isClosed).reduce((n,i)=>n+spOf(i),0);
-  const pills=ms.map((x,k)=>{const a=activeItems(x);return `<button class="su-pill${k===S.standupIdx?' active':''}" data-su="${k}" aria-pressed="${k===S.standupIdx}">${avImg(x)}<span>${esc(x.name)}</span><small class="pill-chips"><i class="mchip pl">${fmt(planOf(a))}</i><i class="mchip ac">${fmt(a.reduce((n,i)=>n+spOf(i),0))}</i><span>${a.length} WI</span></small></button>`;}).join('');
+  const pills=ms.map((x,k)=>{const a=activeItems(x);return `<button class="su-pill${k===S.standupIdx?' active':''}" data-su="${k}" aria-pressed="${k===S.standupIdx}">${avImg(x)}<span>${esc(x.name)}</span><small class="pill-chips">${miniMetrics(a)}</small></button>`;}).join('');
   const end=$('sp-end');if(end){const t=m||ms[0];end.innerHTML=(t?`<button class="button small${m?' sp-fs-flash':''}" data-open-member="${esc(t.name)}" title="${m?'Open this engineer full-screen':'Open the first engineer full-screen'}">Full-Screen ⤢</button>`:'');}
   const bd=$('sp-bar-dates');if(bd)bd.innerHTML=datesHtml()?`<div class="sp-dates">${datesHtml()}</div>`:'';
   const acts=$('sp-bar-actions');if(acts)acts.innerHTML='';

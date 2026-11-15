@@ -1443,3 +1443,9 @@ body[data-sp-view=standup] #sp-sprintbar .sp-bar-actions{margin-left:0!important
 main .executive-heading:has(#sp-end) .heading-actions{grid-template-columns:repeat(5,auto)!important;grid-auto-columns:auto}
 /* plan154: two lines of breathing room between the header row and the Standup sprint row */
 body[data-sp-view=standup] #sp-sprintbar{margin-top:40px!important}
+/* plan155: engineer tiles — five icon+count metrics */
+.su-pill .pill-chips{display:inline-flex;gap:6px;min-width:0;justify-content:flex-end}
+.pm{display:inline-flex;align-items:center;gap:3px;font-style:normal;font-weight:700;font-size:11.5px;padding:2px 7px 2px 5px;border-radius:999px;border:1px solid transparent;white-space:nowrap}
+.pm svg{width:13px;height:13px;flex:none}
+.pm.pl{background:#e7f6ec;color:#1d7a46;border-color:#bfe5cd}.pm.ac{background:#e6f1fb;color:#0b5cab;border-color:#bcd7ef}
+.pm.dn{background:#e8f0fe;color:#1b4fa0;border-color:#c2d4f5}.pm.ip{background:#e9f7ee;color:#17803f;border-color:#c3e6cf}.pm.bk{background:#fff1e3;color:#b85a00;border-color:#f6d3ad}
