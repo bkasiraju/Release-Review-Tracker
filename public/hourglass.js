@@ -10,7 +10,7 @@ const f1=v=>v==null?'–':(Math.round(v*10)/10).toString();
 const hh=v=>v==null?'–':f1(v)+'h';
 const tone=(v,t,hi)=>v==null?'':(hi?v>=t:v<=t)?'ok':(hi?v>=t*.8:v<=t*2)?'warn':'bad';
 const sum=(t,sp)=>(t.sprints[sp]||{}).summary;
-const load=()=>S.data?Promise.resolve(S.data):fetch('./hourglass-data.json?v=4.0.0-GA-plan131').then(r=>{if(!r.ok)throw new Error('Hourglass data not found ('+r.status+')');return r.json();}).then(d=>(S.data=d));
+const load=()=>S.data?Promise.resolve(S.data):fetch('./hourglass-data.json?v=4.0.0-GA-plan132').then(r=>{if(!r.ok)throw new Error('Hourglass data not found ('+r.status+')');return r.json();}).then(d=>(S.data=d));
 const sprintsOf=d=>{const all=new Set();Object.values(d.teams).forEach(t=>{Object.keys(t.sprints).forEach(s=>all.add(s));Object.keys(t.published).forEach(s=>all.add(s));});return [...all].sort().reverse();};
 const generated=(d,sp)=>Object.values(d.teams).some(t=>t.sprints[sp]);
 const tile=(label,val,target,cls,sub)=>`<div class="hg-tile ${cls||''}"><div class="hg-tl">${label}</div><div class="hg-tv">${val}</div><div class="hg-ts">${target?'Target '+target:''}${sub?(target?' · ':'')+sub:''}</div></div>`;

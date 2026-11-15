@@ -1084,3 +1084,4 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan129: hourglass data tests pass; page rendered in local headless Chrome; not verified live.
 - plan130: loading marquee filter (leaders excluded); syntax checked only.
 - plan131: hourglass data restricted to 3 teams; label rename; unit tests only.
+- plan132: CSS width only; not visually checked.

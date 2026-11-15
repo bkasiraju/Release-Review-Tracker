@@ -1,3 +1,7 @@
+## Unreleased on top of 4.0.0-GA (plan132) — Wider Projects popovers
+
+- The Projects popover and the New project popup are wider so full project / measure names are visible.
+
 ## Unreleased on top of 4.0.0-GA (plan131) — Hourglass limited to MAPS, MQ, VegaCache; Release Window label
 
 - Hourglass data now covers only MAPS, MQ and VegaCache (VegaCache generated for 09a, 10a, 10b, 11a; it has no published Hourglass reports).

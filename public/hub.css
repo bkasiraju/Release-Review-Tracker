@@ -1269,3 +1269,8 @@ body.rail-peek .rail-edge{width:12px}
 .hg-meter{display:inline-block;width:70px;height:6px;border-radius:3px;background:#e8eaf1;margin-right:6px;vertical-align:middle}.hg-meter i{display:block;height:100%;border-radius:3px;background:#d15b68}
 .hg-tag{display:inline-block;margin:0 4px 3px 0;padding:1px 7px;border-radius:10px;background:#eef2f7;font-size:11px}.hg-gaps{margin:0;padding-left:18px}
 body[data-hub=hourglass] #gus-links{display:none!important}
+
+/* plan132: wider Projects popover and New project popup so full measure names are visible */
+.pl-pwrap .pl-pmenu{width:min(900px,calc(100vw - 32px))!important;max-width:calc(100vw - 32px)!important}
+.pl-pmenu .pl-pname{flex:1 1 440px!important}.pl-pmenu .pl-pshort{flex:0 1 150px!important}
+.pl-newproj{width:min(640px,94vw)!important;box-sizing:border-box}.pl-newproj input.hub-inline{width:100%;box-sizing:border-box}
