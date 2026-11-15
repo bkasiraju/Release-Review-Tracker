@@ -1,3 +1,7 @@
+## Unreleased on top of 4.0.0-GA (plan139) — tooltips above the side bar
+
+- Tooltips no longer render behind the side bar; they sit above it, and tooltips for side-bar icons open to the right of the icon.
+
 ## Unreleased on top of 4.0.0-GA (plan139) — Daily Chronicle
 
 - The side-bar MQ Chronicle entry is renamed Daily Chronicle and opens the selected team's chronicle page in a new tab. Only MQ has a page today; other teams show it disabled until their page is added to the `CHRON` map in `public/rail.js`.
