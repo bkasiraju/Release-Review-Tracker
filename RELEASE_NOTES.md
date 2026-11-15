@@ -14,7 +14,7 @@ Designated by the user as the best working state and rollback baseline (previous
 - Epics header: "Epics" and its count on the left, the calendar icons at the right of the same line.
 - Home: tiles are capped at three lines — title, number and label inline (e.g. "8 open P0–P2 bugs"), then chips or a two-line description; fonts tightened.
 - Sprints (Full-Screen): with an epic selected, the first Esc clears only the epic filter; the next Esc exits full-screen.
-- Sprints: new 3D agile-sprint icon (looping sprint arrows with a bolt) before the Sprint title on the sprint row.
+- Sprints: new 3D agile-sprint icon (rocket launching with speed lines) before the Sprint title on the sprint row.
 - Sprints (Standup): the page description now describes the standup walkthrough instead of the Pulse text.
 - Sprints: deep links — `#/sprints/pulse` and `#/sprints/standup` open that view directly; the address bar follows the Pulse/Standup toggle.
 - Sprints (Standup): engineer tiles show Planned · Actual · Completed · In progress · Blocked as icon + count (same order as the engineer header).
@@ -36,7 +36,7 @@ Designated by the user as the best working state and rollback baseline (previous
 - Footer: the feedback contact name links to the owner's Slack profile for direct messages.
 - Footer items are centered with · separators and sit a little lower.
 - Standup alignment, bullet-driven executive summary, instant loader avatars.
-- Folded into the same version at the user's request (revision 20261115-33); the first 5.0.0-GA snapshot is kept at `releases/5.0.0-GA-original/` and tag `GOLDEN-BUILD-5.0.0-GA-original`.
+- Folded into the same version at the user's request (revision 20261115-34); the first 5.0.0-GA snapshot is kept at `releases/5.0.0-GA-original/` and tag `GOLDEN-BUILD-5.0.0-GA-original`.
 - Rollback: `releases/5.0.0-GA/` ZIP (SHA-256 in `build.json`), tag `GOLDEN-BUILD-5.0.0-GA`.
 - Verification: unit tests 225 pass / 38 fail (same as baseline); UI changes not render-verified in a signed-in browser.
 
