@@ -39,7 +39,7 @@ test('commit creates project then epic for ABL only, saves effort, and stores GU
   assert.deepEqual(core,{Name:'ABL epic',Team__c:T,Project__c:'a1PEE00000PRJ0001A',Planned_Release__c:REL,Planned_Story_Points__c:9.5,Priority__c:2});
   assert.match(desc,/Workstreams:/);assert.match(desc,/Planned release: /);
   const saved=(await plan.getPlan(store,T)).plan;assert.equal(saved.epics[0].gusId,'a0XEE00000EPC0001A');assert.equal(saved.epics[1].gusId,'');assert.equal(saved.projects[0].gusId,'a1PEE00000PRJ0001A');
-  const log2=[];await plan.commitPlan(sfMock(log2),store,T,true);assert.equal(log2.filter(x=>x[0]==='c').length,0);assert.equal(log2.filter(x=>x[0]==='u').length,1);
+  const log2=[];await plan.commitPlan(sfMock(log2),store,T,true);assert.equal(log2.filter(x=>x[0]==='c').length,0);assert.equal(log2.filter(x=>x[0]==='u').length,0);
 });
 test('commit refuses blocked plans and a failed epic leaves no id so it can be retried',async()=>{
   const store=mkStore(),bad=draft();bad.epics[0].releaseId='';await plan.savePlan(store,T,bad,null);
@@ -81,4 +81,30 @@ test('review includes below-the-line epics only when asked', () => {
   assert.equal(review(plan, null, { id: 'x', name: 'P' }, false).items.length, 1);
   const all = review(plan, null, { id: 'x', name: 'P' }, true);
   assert.equal(all.items.length, 2); assert.equal(all.skipped, 0);
+});
+test('incremental saves send only deltas and never duplicate epics',async()=>{
+  const store=mkStore(),log=[],sf=()=>sfMock(log),writes=()=>log.filter(x=>x[0]==='c'||x[0]==='u');
+  await plan.savePlan(store,T,draft(),null);
+  // 1. first full save creates project + epic
+  let r=await plan.commitPlan(sf(),store,T,true);assert.equal(writes().length,2);
+  // 2. immediate re-save with no edits: nothing is sent
+  log.length=0;let pre=await plan.commitPlan(sf(),store,T,false);assert.equal(pre.preview.items[0].action,'unchanged');assert.deepEqual(pre.preview.counts,{create:0,update:0,unchanged:1});
+  r=await plan.commitPlan(sf(),store,T,true);assert.equal(writes().length,0);assert.equal(r.results[0].skipped,true);
+  // 3. new workstream on a saved epic: one update (effort grows), no create
+  let g=await plan.getPlan(store,T),p=g.plan;p.epics[0].workstreams.push({id:'w9',name:'Docs',days:3,engIds:[],engNames:[]});await plan.savePlan(store,T,p,g.revision);
+  log.length=0;pre=await plan.commitPlan(sf(),store,T,false);const it=pre.preview.items[0];assert.equal(it.action,'update');assert.deepEqual(it.workstreams.map(w=>w.flag),['unchanged','unchanged','new']);assert.match(it.delta[0],/New workstream: Docs/);
+  r=await plan.commitPlan(sf(),store,T,true);assert.equal(log.filter(x=>x[0]==='c').length,0);const u=log.filter(x=>x[0]==='u');assert.equal(u.length,1);assert.equal(u[0][3].Planned_Story_Points__c,12.5);
+  // 4. and again: nothing
+  log.length=0;await plan.commitPlan(sf(),store,T,true);assert.equal(writes().length,0);
+  // 5. changed days on one workstream: update only
+  g=await plan.getPlan(store,T);p=g.plan;p.epics[0].workstreams[0].days=8;await plan.savePlan(store,T,p,g.revision);
+  log.length=0;pre=await plan.commitPlan(sf(),store,T,false);assert.deepEqual(pre.preview.items[0].workstreams.map(w=>w.flag),['changed','unchanged','unchanged']);await plan.commitPlan(sf(),store,T,true);assert.equal(log.filter(x=>x[0]==='u').length,1);assert.equal(log.filter(x=>x[0]==='c').length,0);
+  // 6. new epic alongside an unchanged one: only the new epic is created
+  g=await plan.getPlan(store,T);p=g.plan;p.epics.push({id:'e5',projectId:'p1',name:'Second epic',line:'ABL',releaseId:REL,releaseName:'MQ 266',workstreams:[{id:'w5',name:'A',days:2}]});await plan.savePlan(store,T,p,g.revision);
+  log.length=0;await plan.commitPlan(sf(),store,T,true);assert.deepEqual(writes().map(w=>w[0]+w[1]),['cADM_Epic__c']);
+  // 7. a BTL workstream is not part of the ABL save, so adding one is not a delta
+  g=await plan.getPlan(store,T);p=g.plan;p.epics[0].workstreams.push({id:'w6',name:'Later',days:5,line:'BTL'});await plan.savePlan(store,T,p,g.revision);
+  log.length=0;await plan.commitPlan(sf(),store,T,true);assert.equal(writes().length,0);
+  // 8. two unsaved epics with the same name are blocked rather than linked to one GUS epic
+  const d=plan.cleanPlan(draft());d.epics.push({...d.epics[0],id:'e7'});assert.match(plan.review(d,new Set([REL]),{id:PROG,name:'x'}).blockers[0].problems.join(' '),/same name/);
 });

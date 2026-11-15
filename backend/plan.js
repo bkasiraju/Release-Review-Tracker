@@ -14,6 +14,37 @@ const soql = s => String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 const ok = r => r && r.success !== false && !(r.errors && r.errors.length);
 const newId = r => (r && (r.id || r.Id)) || '';
 
+const crypto = require('crypto');
+const hash = o => crypto.createHash('sha256').update(JSON.stringify(o)).digest('hex').slice(0, 24);
+const wsEngNames = w => (w.engNames && w.engNames.length ? w.engNames : [w.engName].filter(Boolean)).join(', ');
+/** Fingerprint of one workstream as written to GUS (inside the epic description and effort). */
+const wsHash = (e, w) => hash([w.name, wsEngNames(w), w.days, w.status || '', wsLine(e, w)]);
+/** Everything written to the GUS epic; an unchanged fingerprint means GUS already has exactly this, so nothing is sent. */
+const epicPayload = (e, project, includeBtl, projectId) => {
+  const fields = { Project__c: projectId || (project && project.gusId) || '', Planned_Release__c: e.releaseId, Planned_Story_Points__c: effortOf(e, includeBtl) };
+  if (e.priority != null) fields.Priority__c = e.priority;
+  const extra = { Description__c: epicDescription(e, project, includeBtl) };
+  if (e.owners && e.owners[0]) extra.Development_Lead__c = e.owners[0];
+  return { name: e.name, fields, extra };
+};
+const epicHash = (e, project, includeBtl) => hash(epicPayload(e, project, includeBtl, project && project.gusId));
+/** Delta of an already-saved epic against what was last written: which workstreams are new/changed/removed. */
+function deltaOf(e, project, includeBtl) {
+  if (!e.gusId) return { action: 'create', changes: [], wsFlags: {} };
+  const sy = e.synced || null, wsFlags = {}, changes = [];
+  const inc = e.workstreams.filter(w => includeBtl || wsLine(e, w) === 'ABL');
+  for (const w of inc) {
+    const prev = sy && sy.ws && sy.ws[w.id], cur = wsHash(e, w);
+    wsFlags[w.id] = !sy ? 'changed' : prev === undefined ? 'new' : prev === cur ? 'unchanged' : 'changed';
+    if (wsFlags[w.id] === 'new') changes.push('New workstream: ' + (w.name || '(unnamed)'));
+    else if (wsFlags[w.id] === 'changed' && sy) changes.push('Changed workstream: ' + (w.name || '(unnamed)'));
+  }
+  if (sy && sy.ws) for (const id of Object.keys(sy.ws)) if (!inc.some(w => w.id === id)) changes.push('Removed a workstream');
+  const unchanged = !!(sy && sy.hash === epicHash(e, project, includeBtl));
+  if (!unchanged && !changes.length) changes.push(sy ? 'Epic details changed' : 'First sync of this epic');
+  return { action: unchanged ? 'unchanged' : 'update', changes: unchanged ? [] : changes, wsFlags };
+}
+
 const STATUS = ['Planned', 'In Progress', 'Completed', 'On Hold'];
 function cleanPlan(input) {
   const p = input && typeof input === 'object' ? input : {};
@@ -27,6 +58,7 @@ function cleanPlan(input) {
     theme: text(x.theme, 80), hrp: text(x.hrp, 80), v2mom: text(x.v2mom, 80), estimate: days(x.estimate), status: STATUS.includes(x.status) ? x.status : '', doc: /^https?:\/\//i.test(String(x.doc || '')) ? text(x.doc, 300) : '',
     owners: (Array.isArray(x.owners) ? x.owners : []).map(gid).filter(Boolean).slice(0, 12), ownerNames: (Array.isArray(x.ownerNames) ? x.ownerNames : []).slice(0, 12).map(n => text(n, 80)),
     releaseId: gid(x.releaseId), releaseName: text(x.releaseName, 120), gusId: gid(x.gusId),
+    synced: x.synced && typeof x.synced === 'object' && /^[0-9a-f]{24}$/.test(String(x.synced.hash || '')) ? { hash: x.synced.hash, at: text(x.synced.at, 40), ws: Object.fromEntries(Object.entries(x.synced.ws && typeof x.synced.ws === 'object' ? x.synced.ws : {}).filter(([k, v]) => LOCAL.test(k) && /^[0-9a-f]{24}$/.test(String(v))).slice(0, MAX.workstreams)) } : null,
     workstreams: (Array.isArray(x.workstreams) ? x.workstreams : []).slice(0, MAX.workstreams).map((s, j) => ({
       id: lid(s.id, j, 'w'), name: text(s.name, 120), status: STATUS.includes(s.status) ? s.status : '', engIds: (Array.isArray(s.engIds) ? s.engIds : []).map(gid).filter(Boolean).slice(0, 12), engNames: (Array.isArray(s.engNames) ? s.engNames : []).slice(0, 12).map(n => text(n, 80)), priority: Number.isFinite(Number(s.priority)) && s.priority !== '' && s.priority != null ? Math.min(Math.max(Math.round(Number(s.priority)), 0), 9999) : null, engId: gid(s.engId), engName: text(s.engName, 80), days: days(s.days), line: s.line === 'ABL' || s.line === 'BTL' ? s.line : '', sprint: text(s.sprint, 60)
     }))
@@ -132,18 +164,27 @@ function review(plan, releaseIds, program, includeBtl) {
       if (!project.name) problems.push('Project needs a name');
       if (!project.gusId && !program) problems.push(`No “${PROGRAM_RELEASE}” program found in GUS for this team, so project “${project.name || '?'}” cannot be tagged to one`);
     }
+    if (!e.gusId && e.name && plan.epics.some(o => o !== e && !o.gusId && o.name.toLowerCase() === e.name.toLowerCase() && (includeBtl || o.line === 'ABL'))) problems.push('Another unsaved epic has the same name; rename one so GUS does not get duplicates');
     if (!e.releaseId) problems.push('Select a planned release');
     else if (releaseIds && !releaseIds.has(e.releaseId)) problems.push('Planned release does not belong to this team');
     if (!(effort > 0)) problems.push('Add effort (days) on at least one workstream');
-    const item = { epicId: e.id, name: e.name, project: project ? project.name : '', program: project ? (project.gusId ? project.programName : (program ? program.name : '')) : '', projectAction: project ? (project.gusId ? 'existing' : 'create-or-link') : '', release: e.releaseName, priority: e.priority, effort, action: e.gusId ? 'update' : 'create', problems, line: e.line, status: e.status, theme: e.theme, hrp: e.hrp, v2mom: e.v2mom, doc: e.doc, owners: e.ownerNames || [], workstreams: e.workstreams.filter(w => includeBtl || wsLine(e, w) === 'ABL').map(w => ({ name: w.name, eng: (w.engNames && w.engNames.length ? w.engNames : [w.engName].filter(Boolean)).join(', '), days: w.days, status: w.status })), description: epicDescription(e, project, includeBtl) };
+    const dl = deltaOf(e, project, includeBtl), item = { delta: dl.changes, epicId: e.id, name: e.name, project: project ? project.name : '', program: project ? (project.gusId ? project.programName : (program ? program.name : '')) : '', projectAction: project ? (project.gusId ? 'existing' : 'create-or-link') : '', release: e.releaseName, priority: e.priority, effort, action: dl.action, problems, line: e.line, status: e.status, theme: e.theme, hrp: e.hrp, v2mom: e.v2mom, doc: e.doc, owners: e.ownerNames || [], workstreams: e.workstreams.filter(w => includeBtl || wsLine(e, w) === 'ABL').map(w => ({ flag: e.gusId ? dl.wsFlags[w.id] : 'new', name: w.name, eng: (w.engNames && w.engNames.length ? w.engNames : [w.engName].filter(Boolean)).join(', '), days: w.days, status: w.status })), description: epicDescription(e, project, includeBtl) };
     items.push(item);
     if (problems.length) blockers.push({ epicId: e.id, name: e.name || '(unnamed epic)', problems });
   }
-  return { items, blockers, skipped: includeBtl ? 0 : plan.epics.filter(x => x.line !== 'ABL').length };
+  return { counts: { create: items.filter(i => i.action === 'create').length, update: items.filter(i => i.action === 'update').length, unchanged: items.filter(i => i.action === 'unchanged').length }, items, blockers, skipped: includeBtl ? 0 : plan.epics.filter(x => x.line !== 'ABL').length };
 }
 
+const inFlight = new Set();
 async function commitPlan(sf, store, teamId, confirm, includeBtl, acknowledged) {
   planKey(teamId);
+  if (!confirm) return commitRun(sf, store, teamId, confirm, includeBtl, acknowledged);
+  // One save per team at a time: a double click or second tab can never race into duplicate epics.
+  if (inFlight.has(teamId)) throw new Error('A save to GUS is already running for this team. Wait for it to finish, then review again.');
+  inFlight.add(teamId);
+  try { return await commitRun(sf, store, teamId, confirm, includeBtl, acknowledged); } finally { inFlight.delete(teamId); }
+}
+async function commitRun(sf, store, teamId, confirm, includeBtl, acknowledged) {
   if (confirm && acknowledged === false) throw new Error('Review the summary and accept it before the epics are created in GUS.');
   const { plan } = await getPlan(store, teamId);
   const rel = await teamReleases(sf, teamId, false).then(r => new Set(r.map(x => x.Id)), () => null);
@@ -152,10 +193,13 @@ async function commitPlan(sf, store, teamId, confirm, includeBtl, acknowledged) 
   if (!confirm) return { preview };
   if (!preview.items.length) throw new Error('No epics to save. Mark epics ABL (or include below-the-line epics) to save them to GUS.');
   if (preview.blockers.length) throw new Error(`Fix ${preview.blockers.length} epic(s) before saving to GUS.`);
-  const done = { projects: new Map(), epics: new Map() }, results = [];
+  const actionOf = new Map(preview.items.map(i => [i.epicId, i]));
+  const done = { projects: new Map(), epics: new Map(), synced: new Map() }, results = [];
   const byProject = new Map(plan.projects.map(p => [p.id, p]));
   for (const e of plan.epics.filter(x => includeBtl === true || x.line === 'ABL')) {
     const project = byProject.get(e.projectId), r = { epicId: e.id, name: e.name };
+    const pv = actionOf.get(e.id);
+    if (pv && pv.action === 'unchanged') { r.ok = true; r.action = 'unchanged (already in GUS, nothing sent)'; r.skipped = true; r.gusId = e.gusId; results.push(r); continue; }
     try {
       let projectId = project.gusId || done.projects.get(project.id);
       if (!projectId) {
@@ -193,15 +237,17 @@ async function commitPlan(sf, store, teamId, confirm, includeBtl, acknowledged) 
         epicId = newId(c); r.action = 'created';
       }
       done.epics.set(e.id, epicId); r.gusId = epicId; r.ok = true;
+      if (pv && pv.delta && pv.delta.length) r.note = [r.note, pv.delta.join('; ')].filter(Boolean).join(' · ').slice(0, 300);
+      done.synced.set(e.id, { hash: hash(epicPayload(e, project, includeBtl === true, projectId)), at: new Date().toISOString(), ws: Object.fromEntries(e.workstreams.filter(w => includeBtl === true || wsLine(e, w) === 'ABL').map(w => [w.id, wsHash(e, w)])) });
     } catch (err) { r.ok = false; r.error = String(err && err.message || err).slice(0, 300); }
     results.push(r);
   }
   // Record the GUS ids on a fresh copy so concurrent engineer edits are kept and a retry never duplicates records.
   const fresh = await getPlan(store, teamId), next = fresh.plan;
   for (const p of next.projects) if (done.projects.has(p.id)) p.gusId = done.projects.get(p.id);
-  for (const e of next.epics) if (done.epics.has(e.id)) e.gusId = done.epics.get(e.id);
+  for (const e of next.epics) if (done.epics.has(e.id)) { e.gusId = done.epics.get(e.id); if (done.synced.has(e.id)) e.synced = done.synced.get(e.id); }
   const good = results.filter(x => x.ok);
-  next.lastCommit = { at: new Date().toISOString(), created: good.filter(x => x.action === 'created').length, updated: good.filter(x => x.action !== 'created').length };
+  next.lastCommit = { at: new Date().toISOString(), created: good.filter(x => x.action === 'created').length, updated: good.filter(x => x.action !== 'created' && !x.skipped).length };
   let saved = null, saveError = null;
   try { saved = await savePlan(store, teamId, next, fresh.revision); } catch (err) { saveError = String(err && err.message || err); }
   return { results, failed: results.filter(x => !x.ok).length, plan: saved && saved.plan, revision: saved && saved.revision, saveError };
