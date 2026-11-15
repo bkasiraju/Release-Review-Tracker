@@ -1423,3 +1423,7 @@ body[data-sp-view=standup] #sp-sprintbar{justify-content:center;flex-wrap:wrap;g
 body[data-sp-view=standup] #sp-bar-dates .sp-dates{margin:0}
 /* plan149: breadcrumb removed — the tab itself reads "<Team> - <Page>" */
 .page-heading{display:none!important}
+/* plan150: sprint dates — borderless, compact, single line, same size everywhere */
+.sp-dates,.sp-dates-epics{border:0!important;background:transparent!important;box-shadow:none!important;padding:0!important;gap:16px!important;flex-wrap:nowrap!important;white-space:nowrap}
+.sp-dates .sp-cal,.su-epics>h3 .sp-dates-epics .sp-cal{width:28px!important;height:28px!important;filter:none}
+.sp-di{gap:6px}.sp-di b{font-size:11.5px;line-height:1.2}.sp-di small{font-size:10.5px;line-height:1.2}
