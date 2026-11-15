@@ -1503,3 +1503,10 @@ body[data-hub=plan] .pl-planner-btns .gus-links{margin:0 12px 0 0!important;flex
 /* plan163: Sprint header centred over the three timeline tiles */
 .su-epics .sp-tl{align-items:stretch}
 .su-epics .sp-tl-head{justify-content:center}
+/* plan164: New project / New epic popup ~50% wider (lifts the .pl-confirm 300px max-width cap) */
+.pl-confirm.pl-newproj{width:min(675px,94vw)!important;max-width:94vw!important;box-sizing:border-box}
+.pl-confirm.pl-newproj input.hub-inline,.pl-confirm.pl-newproj select.hub-inline{width:100%!important;box-sizing:border-box}
+/* plan165: Release Window sits right after the Team dropdown in the planner controls */
+body[data-hub=plan] .pl-planner-btns .pl-dates{display:inline-flex;align-items:center;gap:8px;margin:0 6px;padding:0;font-size:12px}
+body[data-hub=plan] .pl-planner-btns .pl-dates label{display:flex;align-items:center;gap:8px;font-weight:600;color:#16324a;font-size:12px}
+body[data-hub=plan] .pl-planner-btns .pl-dates input[type=date]{height:30px;min-height:30px;font-size:12px;padding:0 8px;box-sizing:border-box}

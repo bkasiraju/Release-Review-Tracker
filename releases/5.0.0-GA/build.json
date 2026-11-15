@@ -3,7 +3,7 @@
   "label": "GOLDEN BUILD",
   "product": "Release Intelligence",
   "artifact": "cfs-release-review-tracker.zip",
-  "sha256": "727d31c7a2cddf0a392a4941a6158f8453d108e0bbe08d7b59808777cad86b7d",
+  "sha256": "98e9576b2e630fbfa460b6040ef95a1084bd297ed066f49b89e4c170064cf5dc",
   "gitTags": [
     "v5.0.0-GA",
     "GOLDEN-BUILD-5.0.0-GA"
@@ -11,7 +11,7 @@
   "productionUrl": "https://gus-apps.internal.salesforce.com/applets/cfs-release-review-tracker/",
   "preferredRollbackTag": "GOLDEN-BUILD-5.0.0-GA",
   "previousBaselineTag": "GOLDEN-BUILD-4.0.0-GA",
-  "revision": "20261115-41",
+  "revision": "20261115-42",
   "verification": {
     "validationScope": "Unit tests 225 pass / 38 fail, identical to the pre-change baseline; Hourglass, side-bar and tooltip changes not render-verified in a signed-in browser; not independently re-reviewed",
     "fullSuiteRun": false,

@@ -41,7 +41,8 @@ Designated by the user as the best working state and rollback baseline (previous
 - Footer: the feedback contact name links to the owner's Slack profile for direct messages.
 - Footer items are centered with · separators and sit a little lower.
 - Standup alignment, bullet-driven executive summary, instant loader avatars.
-- Folded into the same version at the user's request (revision 20261115-41); the first 5.0.0-GA snapshot is kept at `releases/5.0.0-GA-original/` and tag `GOLDEN-BUILD-5.0.0-GA-original`.
+- Release Planning: the "New project" / "New epic" popup is about 50% wider (the 300px cap is lifted), so the Measure name field has room; the Release Window dates now sit right after the Team dropdown.
+- Folded into the same version at the user's request (revision 20261115-42); the first 5.0.0-GA snapshot is kept at `releases/5.0.0-GA-original/` and tag `GOLDEN-BUILD-5.0.0-GA-original`.
 - Rollback: `releases/5.0.0-GA/` ZIP (SHA-256 in `build.json`), tag `GOLDEN-BUILD-5.0.0-GA`.
 - Verification: unit tests 225 pass / 38 fail (same as baseline); UI changes not render-verified in a signed-in browser.
 
