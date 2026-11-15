@@ -52,10 +52,10 @@ let picks;H.picklists=()=>picks||(picks=call('hub-picklists',{}).catch(e=>{picks
 H.register=page=>{H.pages.set(page.id,page);};
 const NAV=['home','sprints','tds','tests','rotations','bugs','hourglass','epics','plan','status'];
 /** Breadcrumb follows the team dropdown and the active page: <Team> / <Page>. */
-function setCrumb(){const c=document.querySelector('.page-heading .breadcrumb'),p=H.pages.get(H.current);if(!c||!p||!H.team)return;c.innerHTML=`${esc(H.team.short||H.team.Name)} <span aria-hidden="true">/</span> <strong>${esc(p.label)}</strong>`;}
+function setCrumb(){const c=document.querySelector('.page-heading .breadcrumb'),p=H.pages.get(H.current);if(!c||!p||!H.team)return;c.innerHTML=`${esc(H.team.short||H.team.Name)} <span aria-hidden="true">/</span> <strong>${esc(p.label)}</strong>`;const t=document.querySelector('#hub-nav .hub-tab-label');if(t)t.textContent=`${H.team.short||H.team.Name} - ${p.label}`;}
 function renderNav(){setCrumb(); // only the active tab shows; the left rail switches pages
   $('hub-nav').innerHTML=NAV.filter(id=>H.pages.has(id)&&id===H.current) .map(id=>{const p=H.pages.get(id),on=id===H.current;
-    return `<button data-page="${id}" class="${on?'selected':''}" aria-pressed="${on}" ${on?'aria-current="page"':''}>${icon(p.icon,p.tone)} ${esc(p.label)}</button>`;}).join('');
+    return `<button data-page="${id}" class="${on?'selected':''}" aria-pressed="${on}" ${on?'aria-current="page"':''}>${icon(p.icon,p.tone)} <span class="hub-tab-label">${esc(H.team?(H.team.short||H.team.Name)+' - ':'')}${esc(p.label)}</span></button>`;}).join('');
   document.querySelectorAll('.rail-button[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===H.current));
 }
 function legacy(view){const b=document.querySelector(`[data-view="${view}"]`);if(b)b.click();}

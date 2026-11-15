@@ -1421,3 +1421,5 @@ body[data-sp-view=standup] #sp-sprintbar .sp-bar-l{display:none}
 body[data-sp-view=standup] #sp-sprintbar{justify-content:center;flex-wrap:wrap;gap:16px}
 #sp-bar-dates:empty{display:none}
 body[data-sp-view=standup] #sp-bar-dates .sp-dates{margin:0}
+/* plan149: breadcrumb removed — the tab itself reads "<Team> - <Page>" */
+.page-heading{display:none!important}
