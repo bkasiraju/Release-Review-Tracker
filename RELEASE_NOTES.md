@@ -7,8 +7,9 @@ Designated by the user as the best working state and rollback baseline (previous
 - Hourglass: team-level trend, seven-section team view, clickable filters from tiles, donuts, bars and trend; links to PRs, repos and GUS work items; Engineer column; hover reasons; best-practice thresholds, guardrail strip and per-PR recommendations.
 - Dimensional 3D side-bar icons; Daily Chronicle side-bar link (MQ only); header logo; tooltips above the side bar.
 - Footer: GUS Apps Hub link removed, "For feedback, reach out to Bhanu Kasiraju" added; the duplicate header "Sources & connection" button removed (the footer link remains).
+- Sources & connection panel redesigned into five numbered sections (Release, GUS epic lists and links, Connection, Drafts, Annual V2MOM baseline) with status chips, link chips for the GUS lists and a verified-definition card; Edit sources is now the primary footer action.
 - Standup alignment, bullet-driven executive summary, instant loader avatars.
-- Folded into the same version at the user's request (revision 20261115-2); the first 5.0.0-GA snapshot is kept at `releases/5.0.0-GA-original/` and tag `GOLDEN-BUILD-5.0.0-GA-original`.
+- Folded into the same version at the user's request (revision 20261115-3); the first 5.0.0-GA snapshot is kept at `releases/5.0.0-GA-original/` and tag `GOLDEN-BUILD-5.0.0-GA-original`.
 - Rollback: `releases/5.0.0-GA/` ZIP (SHA-256 in `build.json`), tag `GOLDEN-BUILD-5.0.0-GA`.
 - Verification: unit tests 225 pass / 38 fail (same as baseline); UI changes not render-verified in a signed-in browser.
 
