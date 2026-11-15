@@ -45,7 +45,8 @@ Designated by the user as the best working state and rollback baseline (previous
 - Bugs: the trend bars (opened / closed per week) and the Open-by-priority chips are now clickable and filter the bug table (bars list every bug opened or closed that week; click again or "Clear filter" to reset; a priority chip shows that priority's open bugs).
 - Hourglass: all numbered sections are collapsible (click the header); sections 1-2 start expanded, 3-7 collapsed.
 - Release Planning: every field in the New project / New epic popup (Project, Epic name, Planned release, ATL/BTL, Short form) now spans the full popup width.
-- Folded into the same version at the user's request (revision 20261115-44); the first 5.0.0-GA snapshot is kept at `releases/5.0.0-GA-original/` and tag `GOLDEN-BUILD-5.0.0-GA-original`.
+- Release Planning: the New project / New epic popups are restructured: a titled header, bordered 36px fields with a focus ring (epic: name on top, Project / Planned release / ATL-BTL in one row), and a bordered footer with Cancel and Add.
+- Folded into the same version at the user's request (revision 20261115-45); the first 5.0.0-GA snapshot is kept at `releases/5.0.0-GA-original/` and tag `GOLDEN-BUILD-5.0.0-GA-original`.
 - Rollback: `releases/5.0.0-GA/` ZIP (SHA-256 in `build.json`), tag `GOLDEN-BUILD-5.0.0-GA`.
 - Verification: unit tests 225 pass / 38 fail (same as baseline); UI changes not render-verified in a signed-in browser.
 
