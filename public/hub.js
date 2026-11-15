@@ -408,7 +408,7 @@ function settle(){
   const b=document.body,done=()=>{obs.disconnect();clearTimeout(quiet);clearTimeout(cap);
     // No artificial wait: the loading screen goes away as soon as the page has settled.
     b.dataset.settled='1';};
-  let quiet;const arm=()=>{clearTimeout(quiet);quiet=setTimeout(()=>{if(document.querySelector('#hub-page .hub-loading,#hub-page .executive-spinner,#hub-page [aria-busy=true]'))arm();else done();},350);};
+  let quiet;const arm=()=>{clearTimeout(quiet);quiet=setTimeout(()=>{if(document.querySelector('#hub-page .hub-loading,#hub-page .executive-spinner,#hub-page [aria-busy=true]'))arm();else done();},250);};
   const obs=new MutationObserver(arm),cap=setTimeout(done,8000);
   obs.observe($('hub-page'),{childList:true,subtree:true,characterData:true});arm();
 }

@@ -87,6 +87,13 @@ async function savePlan(store, teamId, plan, expected) {
 // Reference data for the pickers. Each lookup fails soft so the planner still opens.
 async function getRefs(sf, teamId) {
   planKey(teamId);
+  const hit = refsCache.get(teamId);
+  if (hit && Date.now() - hit.t < REFS_TTL) return hit.v;
+  const v = await loadRefs(sf, teamId);
+  if (!v.warnings.length) refsCache.set(teamId, { v, t: Date.now() });
+  return v;
+}
+async function loadRefs(sf, teamId) {
   const warnings = [], safe = (label, p) => p.then(r => (r && r.records) || [], e => { warnings.push(label + ': ' + (e && e.message || 'unavailable')); return []; });
   const [releases, programs, used, sprints] = await Promise.all([
     safe('Planned releases', teamReleases(sf, teamId, true).then(r => ({ records: r }))),
@@ -104,7 +111,15 @@ async function getRefs(sf, teamId) {
 }
 
 // Validate ABL epics against the saved plan and describe exactly what a commit would do.
+const shortCache = new Map(), refsCache = new Map(), SHORT_TTL = 600000, REFS_TTL = 60000;
 async function teamShort(sf, teamId) {
+  const hit = shortCache.get(teamId);
+  if (hit && Date.now() - hit.t < SHORT_TTL) return hit.v;
+  const v = await teamShortLookup(sf, teamId);
+  shortCache.set(teamId, { v, t: Date.now() });
+  return v;
+}
+async function teamShortLookup(sf, teamId) {
   const t = ((await sf.query(`SELECT Name FROM ADM_Scrum_Team__c WHERE Id = '${teamId}' LIMIT 1`)).records || [])[0];
   if (!t) return null;
   return /message queue/i.test(t.Name) ? 'MQ' : /maps|managed async/i.test(t.Name) ? 'MAPS' : String(t.Name).replace(/\s*\(.*\)/, '');
@@ -115,9 +130,10 @@ const releasePrefix = n => String(n || '').replace(/\s*-?\s*\d+\s*$/, '').trim()
 // (e.g. MQ 268 sits on the MAPS team), so match by name across teams as well as the team's own list. Teams with no
 // name match (Caching Services) fall back to their own list.
 async function teamReleases(sf, teamId, futureOnly) {
-  const short = await teamShort(sf, teamId).catch(() => null);
   const when = futureOnly ? ' AND (End_Date__c >= TODAY OR End_Date__c = null)' : '';
-  const own = ((await sf.query(`SELECT Id, Name FROM ADM_Planned_Release__c WHERE Team__c = '${teamId}'${when} ORDER BY Start_Date__c, Name LIMIT 100`)).records || []);
+  // The team lookup and the team's own releases do not depend on each other, so they run together.
+  const [short, ownRes] = await Promise.all([teamShort(sf, teamId).catch(() => null), sf.query(`SELECT Id, Name FROM ADM_Planned_Release__c WHERE Team__c = '${teamId}'${when} ORDER BY Start_Date__c, Name LIMIT 100`)]);
+  const own = ownRes.records || [];
   if (!short) return own;
   const byName = ((await sf.query(`SELECT Id, Name FROM ADM_Planned_Release__c WHERE Name LIKE '${soql(short)} %'${when} ORDER BY Start_Date__c, Name LIMIT 100`).catch(() => ({}))).records || []);
   const seen = new Set(), names = new Set(), mine = [...own, ...byName].filter(r => !seen.has(r.Id) && seen.add(r.Id) && releasePrefix(r.Name) === short.toLowerCase() && !names.has(r.Name) && names.add(r.Name));
@@ -194,6 +210,7 @@ async function commitRun(sf, store, teamId, confirm, includeBtl, acknowledged) {
   if (!preview.items.length) throw new Error('No epics to save. Mark epics ABL (or include below-the-line epics) to save them to GUS.');
   if (preview.blockers.length) throw new Error(`Fix ${preview.blockers.length} epic(s) before saving to GUS.`);
   const actionOf = new Map(preview.items.map(i => [i.epicId, i]));
+  refsCache.delete(teamId);
   const done = { projects: new Map(), epics: new Map(), synced: new Map() }, results = [];
   const byProject = new Map(plan.projects.map(p => [p.id, p]));
   for (const e of plan.epics.filter(x => includeBtl === true || x.line === 'ABL')) {
@@ -250,6 +267,7 @@ async function commitRun(sf, store, teamId, confirm, includeBtl, acknowledged) {
   next.lastCommit = { at: new Date().toISOString(), created: good.filter(x => x.action === 'created').length, updated: good.filter(x => x.action !== 'created' && !x.skipped).length };
   let saved = null, saveError = null;
   try { saved = await savePlan(store, teamId, next, fresh.revision); } catch (err) { saveError = String(err && err.message || err); }
+  refsCache.delete(teamId);
   return { results, failed: results.filter(x => !x.ok).length, plan: saved && saved.plan, revision: saved && saved.revision, saveError };
 }
 
