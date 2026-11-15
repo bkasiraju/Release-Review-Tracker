@@ -1324,3 +1324,6 @@ body[data-hub=hourglass] #gus-links{display:none!important}
 .hg-g{display:flex;flex-direction:column;gap:2px;min-width:140px;padding:6px 10px;border-radius:8px;background:#fff;border:1px solid #dbe6ee;cursor:help}
 .hg-g span{font-size:12px;color:#556}.hg-g b{font-size:16px}.hg-g small{font-size:12px;font-weight:600}
 .hg-g.ok{border-color:#9bd3bf}.hg-g.ok small{color:#1c7a5c}.hg-g.bad{border-color:#eab0b6}.hg-g.bad small{color:#b4303f}
+
+/* plan139: header logo */
+.ri-home{display:inline-flex;align-items:center;gap:10px}.ri-hlogo{flex:none;width:30px;height:30px}
