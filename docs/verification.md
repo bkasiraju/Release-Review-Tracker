@@ -1,3 +1,7 @@
+## 5.1.1-GA PLATINUM (15 November 2026)
+
+Same code as 5.0.0-GA revision 20261115-65 with version strings updated. Plan unit tests 10/10; broader suite unchanged from the 5.0.0-GA baseline (225 pass / 38 fail). UI not render-verified in a signed-in browser; live backend/footer version check outstanding.
+
 ## 5.0.0-GA (15 November 2026)
 
 Golden designation of plans 133–139. Node suite 225 pass / 38 fail, identical to the pre-change baseline. Hourglass links, engineer column, guardrails, Daily Chronicle link and tooltip layering were verified by syntax checks and unit tests only; no signed-in browser render or live footer-version check was performed. Deploy reported "Update activated".

@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 5.1.1-GA — PLATINUM BUILD (15 November 2026)
+
+Designated by the user as the master build and first rollback choice (revision 20261115-66); 5.0.0-GA stays as the GOLDEN BUILD second rollback baseline, frozen at revision 20261115-65. Same code as the final 5.0.0-GA revision with the version, footer (`v5.1.1-GA`) and asset suffix updated. Highlights since the first 5.0.0-GA snapshot: Release Planner allocation rules (workstream effort baseline, ABL only for ATL-tagged workstreams, split among assigned engineers, highlighted Unassigned row and filter), delta-only Save to GUS with reviewed summary, distinct project colour bars, WS Est before Epic Est, fixed Test Failures table widths, calmer page loads and faster planner reference loads.
+
 ## 5.0.0-GA — GOLDEN BUILD (15 November 2026)
 
 Designated by the user as the best working state and rollback baseline (previous: 4.0.0-GA). Rolls up everything since 4.0.0-GA (plans 133–139):
