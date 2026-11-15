@@ -1,6 +1,6 @@
 {
   "slug": "cfs-release-review-tracker",
-  "title": "Release Intelligence",
+  "title": "ReleaseIQ",
   "description": "Monthly release reviews with GUS epic fetch, work item details, persistent drafts and verified health comment sync.",
   "icon": "dashboard",
   "iconColor": "#4f46e5",

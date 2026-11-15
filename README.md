@@ -1,4 +1,4 @@
-# Release Intelligence
+# ReleaseIQ
 
 A GUS Apps dashboard for reviewing a release's epics month by month. Current release: **3.0.0-GA GOLDEN BUILD**, consolidated with unified light tooltips and independent text/expansion controls.
 
@@ -170,7 +170,7 @@ The reusable guide is `docs/AI_EPIC_SUMMARY_INSTRUCTIONS.md`; its runtime source
 
 ## Team hub (MQ · MAPS · VegaCache)
 
-Release Intelligence opens on a tile-based hub. A **team filter** in the top bar (before *Sources & connection*) scopes every page, including the release picker, Epics and Status Report. The choice is remembered in the browser.
+ReleaseIQ opens on a tile-based hub. A **team filter** in the top bar (before *Sources & connection*) scopes every page, including the release picker, Epics and Status Report. The choice is remembered in the browser.
 
 | Page | Source |
 |------|--------|

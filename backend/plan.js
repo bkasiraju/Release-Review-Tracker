@@ -164,7 +164,7 @@ function epicDescription(e, project, includeBtl) {
   L.push('Planned effort: ' + effortOf(e, includeBtl) + ' days');
   const ws = e.workstreams.filter(w => includeBtl || wsLine(e, w) === 'ABL');
   if (ws.length) { L.push('', 'Workstreams:'); for (const w of ws) L.push('- ' + (w.name || '(unnamed)') + ' | ' + ((w.engNames && w.engNames.length ? w.engNames : [w.engName].filter(Boolean)).join(', ') || 'unassigned') + ' | ' + w.days + 'd' + (w.status ? ' | ' + w.status : '')); }
-  L.push('', 'Created from the Release Intelligence release plan.');
+  L.push('', 'Created from the ReleaseIQ release plan.');
   return L.join('\n').slice(0, 30000);
 }
 
