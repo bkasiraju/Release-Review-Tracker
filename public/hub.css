@@ -1435,3 +1435,7 @@ body[data-sp-view=standup] #sp-bar-dates .sp-dates{margin:0}
 .su-epics .sp-dates-epics .sp-cal{width:54px!important;height:54px!important}
 .su-epics .sp-dates-epics .sp-di b{font-size:14px}.su-epics .sp-dates-epics .sp-di small{font-size:12px}
 @media(max-width:1100px){.su-epics-row{flex-wrap:wrap}.su-epics .sp-dates-epics{margin-left:0}}
+/* plan152: Standup sprint row truly centred (children no longer pushed apart by auto margins) */
+body[data-sp-view=standup] #sp-sprintbar{justify-content:center!important;margin-left:auto;margin-right:auto;width:100%}
+body[data-sp-view=standup] #sp-sprintbar>*{margin-left:0!important;margin-right:0!important}
+body[data-sp-view=standup] #sp-sprintbar .sp-bar-actions{margin-left:0!important}
