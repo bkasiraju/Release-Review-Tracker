@@ -1,3 +1,7 @@
+## Unreleased on top of 4.0.0-GA (plan95) — Fix: Save to GUS permission lookup
+
+- The live GUS connection exposes no identity call, so the allow-list check in plan92 found no username and disabled the button for everyone. The check now takes the signed-in user id (connection userId, else identity) and reads that user's Username and Email from GUS before matching the allow-list. It still fails closed.
+
 ## Unreleased on top of 4.0.0-GA (plan94) — Leaves and On-call columns
 
 - Engineer bandwidth gains Leaves and On-call columns right after Available, with each engineer's days as the team provided them (and a Team total row). The small "x d leave · y d holiday · z d on-call" line under each engineer name is removed. (plan93 was folded into this entry.)

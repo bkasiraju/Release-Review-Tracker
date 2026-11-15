@@ -5,8 +5,13 @@ const pref=require('./pref');const post=require('./post');
 const COMMIT_USERS=['bkasiraju@salesforce.com','bkasiraju@gus.com'];
 async function canCommit(sf,ctx){
   if(ctx.testMode)return true;
-  if(!sf||typeof sf.identity!=='function')return false;
-  try{const w=await sf.identity()||{};return [w.username,w.email,w.user_email,w.preferred_username].some(x=>x&&COMMIT_USERS.includes(String(x).trim().toLowerCase()));}catch{return false;}
+  if(!sf)return false;
+  const ok=v=>v&&COMMIT_USERS.includes(String(v).trim().toLowerCase());
+  let id=sf.userId,w={};
+  if(typeof sf.identity==='function'){try{w=await sf.identity()||{};id=id||w.user_id||w.userId;}catch{/* identity is optional */}}
+  if([w.username,w.email,w.user_email,w.preferred_username].some(ok))return true;
+  if(!/^[a-zA-Z0-9]{15,18}$/.test(String(id||'')))return false;
+  try{const r=await sf.query(`SELECT Username, Email FROM User WHERE Id = '${id}' LIMIT 1`);const u=(r.records||[])[0]||{};return ok(u.Username)||ok(u.Email);}catch{return false;}
 }
 function connection(ctx){
   const roots=[['ctx',ctx],['request',ctx.request],['invocation',ctx.invocation],['runtime',ctx.runtime],['context',ctx.context],['applet',ctx.applet],['auth',ctx.auth],['user',ctx.user],['salesforce',ctx.salesforce],['request.context',ctx.request?.context]].filter(([,r])=>r&&typeof r==='object');
@@ -30,7 +35,7 @@ async function handleRequest(ctx){
       case 'connection':{
         if(!ctx.gus)await sf.query('SELECT Id FROM ADM_Epic__c LIMIT 1');
         let who={};if(typeof sf?.identity==='function'){try{who=await sf.identity();}catch{/* Identity permission is optional. */}}
-        payload={connected:true,source,username:who.username||null,organizationId:who.organization_id||null,storage:store.shared?'Shared GUS ContentVersion':'GUS ContentVersion',sharedBackend:store.shared===true,demo:!!ctx.demo,testMode:!!ctx.testMode,conditionalWrites:typeof sf?.request==='function',methods:Object.keys(sf||{}).filter(k=>typeof sf[k]==='function'),version:'4.0.0-GA',canCommit:await canCommit(sf,ctx)};break;
+        payload={connected:true,source,username:who.username||null,organizationId:who.organization_id||null,storage:store.shared?'Shared GUS ContentVersion':'GUS ContentVersion',sharedBackend:store.shared===true,demo:!!ctx.demo,testMode:!!ctx.testMode,conditionalWrites:typeof sf?.request==='function',methods:Object.keys(sf||{}).filter(k=>typeof sf[k]==='function'),version:'4.0.0-GA',canCommit:await canCommit(sf,ctx),userIdKnown:!!(sf&&sf.userId)};break;
       }
       case 'state':payload=await service.state();break;
       case 'list-catalog':payload={lists:(gus.definitions||require('./list-definitions')).map(d=>({name:d.developerName,label:d.label,url:'https://gus.lightning.force.com/lightning/o/ADM_Epic__c/list?filterName='+encodeURIComponent(d.developerName),verifiedAt:d.verifiedAt}))};break;
