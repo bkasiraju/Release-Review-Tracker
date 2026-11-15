@@ -1,3 +1,9 @@
+## Unreleased on top of 4.0.0-GA (plan98) — Multi-select filters with search; flashing Clear filters
+
+- Release Planning filter bar: Release, ATL/BTL, Engineer and Theme are now multi-select dropdowns with a search box, Select all / Clear, and checkboxes. The button shows "All", the single choice, or "N selected".
+- Selections are saved per team (in memory and localStorage) and restored on return. Group by stays single-choice.
+- "Clear filters" gets a red border that flashes while any filter or search is applied (static red ring under reduced-motion).
+
 ## Unreleased on top of 4.0.0-GA (plan97) — Total days per engineer, ATL/BTL label
 
 - New editable "Total (days)" per engineer, auto-filled with the weekdays in the planning window (so it follows window changes until edited) and stored per engineer only when it differs. Available = Total − Leave − Holidays − On-call. The Leaves, holidays & on-call dialog shows Total, Leave, Holidays, On-call, Available; the Engineer bandwidth table now runs Total (bold), Leave, Holidays, On-call, Available (bold), Planned (bold), Unplanned, Allocation, and spans the full width when open.

@@ -6,7 +6,13 @@
 const H=window.Hub,{esc,icon,call}=H;
 const P={plan:null,rev:null,refs:{releases:[],programs:[],projects:[],sprints:[]},members:[],seq:0,timer:0,state:'idle',stateAt:'',inflight:null,el:null};
 P.open={theme:false,eng:false};
-P.view={q:'',release:'',line:'',eng:'',theme:'',group:'project'};
+P.view={q:'',release:[],line:[],eng:[],theme:[],group:'project'};
+const MF=['release','line','eng','theme'],FKEY='pl-filters-';
+const filtersOn=V=>!!(V.q||MF.some(k=>V[k].length));
+/** Saved filter selections per team: kept in memory for the session and in localStorage when the frame allows it. */
+const memFilters={};
+function restoreFilters(){const t=H.team&&H.team.Id;if(!t||P.view._team===t)return;P.view._team=t;let v=memFilters[t];if(!v){try{v=JSON.parse(localStorage.getItem(FKEY+t));}catch(_){}}MF.forEach(k=>{P.view[k]=v&&Array.isArray(v[k])?v[k].slice():[];});}
+function saveFilters(){const t=H.team&&H.team.Id;if(!t)return;const v={};MF.forEach(k=>{v[k]=P.view[k].slice();});memFilters[t]=v;try{localStorage.setItem(FKEY+t,JSON.stringify(v));}catch(_){}}
 // Grid columns: chooser order = default order; the first GDEF are shown until the user picks their own (saved in this browser).
 const GCOL={project:'Project',name:'Epic Name',ws:'Workstream',owners:'Epic Owner',engs:'Workstream Owner(s)',estimate:'Epic Est',days:'WS Est',line:'ATL/BTL',sprint:'Sprint',priority:'Priority',status:'Status',release:'Release',theme:'Theme',wstatus:'WS status',doc:'Doc',gus:'GUS',hrp:'HRP V2MOM method',v2mom:'CFS V2MOM'};
 const GW={project:112,name:230,ws:200,owners:120,priority:84,estimate:84,status:116,engs:170,days:72,sprint:120,release:150,line:104,theme:130,wstatus:116,doc:150,gus:84,hrp:130,v2mom:130,act:92};
@@ -368,10 +374,10 @@ function drawPlanner(){
   const el=P.el.querySelector('#pl-planner'),pl=P.plan,rel=P.refs.releases;
   const projOpts=sel=>pl.projects.map(p=>opt(p.id,p.name||'(unnamed project)',p.id===sel)).join('');
   const engOpts=sel=>'<option value="">Unassigned</option>'+P.members.filter(m=>H.leaderRank(m.name)<0).map(m=>opt(m.id,m.name,m.id===sel)).join('');
-  const V=P.view,prj=new Map(pl.projects.map(p=>[p.id,p])),q=V.q.trim().toLowerCase(),filtering=!!(q||V.release||V.line||V.eng||V.theme);
+  const V=P.view,prj=new Map(pl.projects.map(p=>[p.id,p])),q=V.q.trim().toLowerCase(),filtering=!!(q||MF.some(k=>V[k].length));
   const match=e=>{const p=prj.get(e.projectId);
-    if(V.release&&e.releaseId!==V.release)return false;if(V.line&&!(e.workstreams.length?e.workstreams.some(w=>wl(e,w)===V.line):e.line===V.line))return false;
-    if(V.eng&&!e.workstreams.some(w=>wsEngs(w).includes(V.eng)))return false;if(V.theme&&epicTheme(e)!==V.theme)return false;
+    if(V.release.length&&!V.release.includes(e.releaseId))return false;if(V.line.length&&!(e.workstreams.length?e.workstreams.some(w=>V.line.includes(wl(e,w))):V.line.includes(e.line)))return false;
+    if(V.eng.length&&!e.workstreams.some(w=>wsEngs(w).some(i=>V.eng.includes(i))))return false;if(V.theme.length&&!V.theme.includes(epicTheme(e)))return false;
     if(q&&!((e.name||'')+' '+(p&&p.name||'')+' '+e.workstreams.map(w=>w.name).join(' ')).toLowerCase().includes(q))return false;return true;};
   const shown=pl.epics.filter(match);
   const cnt=P.el.querySelector('#pl-count');if(cnt)cnt.textContent=filtering?`${shown.length} of ${pl.epics.length} epics`:`${pl.epics.length} epic${pl.epics.length===1?'':'s'}`;
@@ -427,13 +433,26 @@ const wire=()=>P.el.querySelectorAll('#pl-planner select').forEach(s=>H.customSe
 function drawTools(){
   const box=P.el.querySelector('#pl-tools'),pl=P.plan;if(!box||!pl)return;const V=P.view;
   const themes=[...new Set(pl.epics.map(epicTheme))].sort(),engs=P.members.filter(m=>H.leaderRank(m.name)<0);
-  const sel=(k,label,list)=>`<label class="pl-tf"><span>${label}</span><select class="sp-select" data-v="${k}" aria-label="${label}"><option value="">All</option>${list.map(([v,l])=>opt(v,l,V[k]===v)).join('')}</select></label>`;
+  restoreFilters();
+  const mfLabel=(k,list)=>{const sel=V[k];if(!sel.length)return 'All';const nm=v=>(list.find(x=>x[0]===v)||[v,v])[1];return sel.length===1?nm(sel[0]):sel.length+' selected';};
+  const sel=(k,label,list)=>`<div class="pl-tf pl-mf${V[k].length?' on':''}" data-mf="${k}"><span>${label}</span><button type="button" class="pl-mf-btn" aria-haspopup="true" aria-expanded="false" aria-label="${label} filter"><b>${esc(mfLabel(k,list))}</b><i aria-hidden="true">▾</i></button><div class="pl-mf-pop" hidden><input type="search" class="hub-inline" placeholder="Search ${label.toLowerCase()}…" aria-label="Search ${label}"><div class="pl-mf-acts"><button type="button" data-mf-all>Select all</button><button type="button" data-mf-none>Clear</button></div><ul>${list.map(([v,l])=>`<li data-t="${esc(String(l).toLowerCase())}"><label><input type="checkbox" value="${esc(v)}"${V[k].includes(v)?' checked':''}> <span>${esc(l)}</span></label></li>`).join('')||'<li class="note">Nothing to filter yet</li>'}</ul></div></div>`;
   const rels=[...new Map(pl.epics.filter(e=>e.releaseId).map(e=>[e.releaseId,e.releaseName||(P.refs.releases.find(r=>r.id===e.releaseId)||{}).name||e.releaseId])).entries()];
   box.innerHTML=`<label class="pl-tf pl-q"><span>Search</span><input type="search" class="hub-inline" data-v="q" placeholder="Epic, workstream or project…" aria-label="Search epics" value="${esc(V.q)}"></label>`+
     sel('release','Release',rels)+sel('line','ATL/BTL',[['ABL','ABL'],['BTL','BTL']])+sel('eng','Engineer',engs.map(m=>[m.id,m.name]))+sel('theme','Theme',themes.map(t=>[t,t]))+
     `<label class="pl-tf"><span>Group by</span><select class="sp-select" data-v="group" aria-label="Group by">${[['project','Project'],['release','Planned release'],['line','ABL / BTL'],['theme','Theme']].map(([v,l])=>opt(v,l,V.group===v)).join('')}</select></label>`+
-    `<button type="button" class="button small" data-clear-view${V.q||V.release||V.line||V.eng||V.theme?'':' disabled'}>Clear filters</button><span class="note pl-count" id="pl-count"></span>`;
+    `<button type="button" class="button small pl-clear${filtersOn(V)?' pl-clear-on':''}" data-clear-view${filtersOn(V)?'':' disabled'}>Clear filters</button><span class="note pl-count" id="pl-count"></span>`;
   box.querySelectorAll('select').forEach(x=>H.customSelect(x));
+  const lists={};MF.forEach(k=>{const w=box.querySelector(`[data-mf=${k}]`);if(w)lists[k]=[...w.querySelectorAll('li input')].map(i=>[i.value,i.nextElementSibling.textContent]);});
+  const refresh=w=>{const k=w.dataset.mf;w.classList.toggle('on',V[k].length>0);w.querySelector('.pl-mf-btn b').textContent=mfLabel(k,lists[k]||[]);const c=box.querySelector('[data-clear-view]');if(c){const on=filtersOn(V);c.disabled=!on;c.classList.toggle('pl-clear-on',on);}drawPlanner();wire();};
+  const closeAll=()=>box.querySelectorAll('.pl-mf-pop').forEach(p=>{p.hidden=true;p.parentNode.querySelector('.pl-mf-btn').setAttribute('aria-expanded','false');});
+  box.onclick=e=>{const w=e.target.closest('.pl-mf');if(!w)return;const k=w.dataset.mf;
+    if(e.target.closest('.pl-mf-btn')){const pop=w.querySelector('.pl-mf-pop'),open=pop.hidden;closeAll();if(open){pop.hidden=false;w.querySelector('.pl-mf-btn').setAttribute('aria-expanded','true');const q=pop.querySelector('input[type=search]');q.focus();}return;}
+    if(e.target.closest('[data-mf-all]')){V[k]=[...w.querySelectorAll('li:not([hidden]) input')].map(i=>i.value);w.querySelectorAll('li input').forEach(i=>{i.checked=V[k].includes(i.value);});saveFilters();refresh(w);return;}
+    if(e.target.closest('[data-mf-none]')){V[k]=[];w.querySelectorAll('li input').forEach(i=>{i.checked=false;});saveFilters();refresh(w);return;}};
+  box.onchange=e=>{const i=e.target.closest('.pl-mf li input');if(!i)return;const w=i.closest('.pl-mf'),k=w.dataset.mf;V[k]=[...w.querySelectorAll('li input:checked')].map(x=>x.value);saveFilters();refresh(w);};
+  box.addEventListener('input',e=>{const q=e.target.closest('.pl-mf-pop input[type=search]');if(!q)return;const t=q.value.trim().toLowerCase();q.closest('.pl-mf-pop').querySelectorAll('li[data-t]').forEach(li=>{li.hidden=!!t&&!li.dataset.t.includes(t);});});
+  box.onkeydown=e=>{if(e.key==='Escape'&&e.target.closest('.pl-mf')){const w=e.target.closest('.pl-mf');closeAll();w.querySelector('.pl-mf-btn').focus();e.stopPropagation();}};
+  if(!P.mfDoc){P.mfDoc=true;document.addEventListener('mousedown',e=>{if(e.target.closest('.pl-mf'))return;document.querySelectorAll('.pl-mf-pop').forEach(p=>{p.hidden=true;});});}
 }
 function draw(){drawSummary();drawTools();drawPlanner();wire();}
 
@@ -522,7 +541,7 @@ function onClick(ev){
   const fd=t.closest('[data-fold]')||(t.closest('.pl-card>h3>small')?.parentElement.querySelector('[data-fold]'));if(fd){P.open[fd.dataset.fold]=!P.open[fd.dataset.fold];drawSummary();return;}
   if(t.closest('[data-grid-add-epic]')){newEpicAt(t.closest('[data-grid-add-epic]'));return;}
   if(t.closest('[data-proj-toggle]')){P.projOpen=!P.projOpen;drawPlanner();wire();return;}
-  if(t.closest('[data-clear-view]')){P.view=Object.assign(P.view,{q:'',release:'',line:'',eng:'',theme:''});drawTools();drawPlanner();wire();return;}
+  if(t.closest('[data-clear-view]')){P.view=Object.assign(P.view,{q:'',release:[],line:[],eng:[],theme:[]});saveFilters();drawTools();drawPlanner();wire();return;}
   if(t.closest('#pl-save')){const b=t.closest('#pl-save');b.disabled=true;P.state='dirty';flush().then(()=>{b.disabled=false;if(P.state==='saved')window.toast?.('Plan saved to GUS Apps for the whole team.');else window.toast?.('Could not save the plan.',true);},()=>{b.disabled=false;});return;}
   if(t.closest('#pl-leaves'))return openLeaves();
   if(t.closest('#pl-commit'))return openCommit(false);
