@@ -1,3 +1,7 @@
+## Unreleased on top of 4.0.0-GA (plan117) — RoB/KTLO chip
+
+- The "Capacity lost" chip on the Time off & on-call tile in Release Planning now reads "RoB/KTLO".
+
 ## Unreleased on top of 4.0.0-GA (plan116) — Priority board in Planned Release Summary
 
 - New "Priority board" on the Planned Release Summary tab: every epic as a ranked row, in two groups (above and below the line). Each row shows a drag handle, a priority selector, the epic and its theme, planned release, status badge, a progress ring (share of workstreams marked Completed), effort in days, owner and project, with the project's colour bar on the left.
