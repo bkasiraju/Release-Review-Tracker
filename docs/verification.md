@@ -1010,3 +1010,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan88: chart animation screenshotted on the local harness; avatar strip not seen populated in a screenshot; not verified on live.
 
 - plan89: import with Status/Theme/WS Status/Doc columns on the local harness saved the plan ("Saved hh:mm"); template download with all columns and dropdowns not opened in Excel; not verified on live.
+
+- plan90: an edit on the local harness moved the note pending -> saved within 3 s; the 2-minute heartbeat and error retry not exercised; not verified on live.

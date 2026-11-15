@@ -216,7 +216,7 @@ function openImport(file,opener){
     const sum=st.epics?`<p class="note">${st.epics} epic(s) and ${st.ws} workstream(s) in the file (${st.created} new, ${st.updated} matched to existing epics)${st.projects?` · ${st.projects} new project(s)`:''}${st.carried?` · ${st.carried} row(s) grouped under the epic above (blank Epic/Project cell)`:''}.</p><p class="pl-iss-bad">This is a clean import: ${st.removed} epic(s) currently in the plan that are not in the file will be removed${st.removedGus?` (${st.removedGus} already in GUS stay there; they are only dropped from this plan)`:''}.</p>`:'';
     const prev=res.epics.length?`<details class="pl-prev"><summary>Preview grouping (${res.epics.length} epics)</summary><ul class="pl-iss">${res.epics.slice(0,150).map(g=>`<li><b>${esc(projShort(g.pr))}</b> · ${esc(g.name)} <small>${g.line||'—'}${g.pri!=null?' · P'+g.pri:''}</small><ul>${g.ws.map(w=>`<li>${esc(w.name||'(unnamed)')} — ${fmt(w.days)}d${w.nm.length?' · '+esc(w.nm.join(', ')):''}${w.sprint?' · '+esc(w.sprint):''}</li>`).join('')||'<li>(no workstreams)</li>'}</ul></li>`).join('')}</ul></details>`:'';
     const el=openModal('Import release plan',`${sum}${errs.length?`<p class="pl-iss-bad">Fix ${errs.length} error(s) in the file and import again. Nothing was changed.</p>`:`<p class="pl-iss-ok">No errors found.${warns.length?' Review the warnings below, then import.':''}</p>`}${list(errs,'Errors')}${list(warns,'Warnings')}${prev}<div class="pl-iss-btns"><button type="button" class="button" data-close>${errs.length?'Close':'Cancel'}</button>${errs.length?'':'<button type="button" class="button primary" data-do-import>Replace plan with this file</button>'}</div>`,opener);
-    const go=el.querySelector('[data-do-import]');if(go)go.onclick=()=>{const bad=applyImport(res);closeModal();P.state='dirty';window.toast?.(bad.length?`Imported with ${bad.length} mismatch(es): ${bad.slice(0,3).join(', ')}. Saving to the backend…`:`Imported ${st.epics} epic(s) and ${st.ws} workstream(s). Saving to the backend…`);flush().then(()=>window.toast?.(P.state==='saved'?`Imported ${st.epics} epic(s) and ${st.ws} workstream(s) and saved to the backend for the whole team.${bad.length?' Check the mismatched epics: '+bad.slice(0,3).join(', ')+'.':''}`:'Imported, but the plan could not be saved to the backend. Use Retry.',P.state!=='saved'));};
+    const go=el.querySelector('[data-do-import]');if(go)go.onclick=()=>{const bad=applyImport(res);closeModal();P.state='dirty';flush().then(()=>window.toast?.(P.state==='saved'?`Imported ${st.epics} epic(s) and ${st.ws} workstream(s) and saved to the backend for the whole team.${bad.length?' Check the mismatched epics: '+bad.slice(0,3).join(', ')+'.':''}`:'Imported, but the plan could not be saved to the backend. Use Retry.',P.state!=='saved'));};
   }).catch(err=>openModal('Import release plan',`<p class="pl-iss-bad">${esc(err&&err.message||'The file could not be read.')}</p><div class="pl-iss-btns"><button type="button" class="button" data-close>Close</button></div>`,opener));
 }
 // Inline confirmation popover, shown just above the button that was clicked.
@@ -337,14 +337,17 @@ function setTab(t){P.tab=t;const q=s=>P.el.querySelector(s);q('#pl-main').hidden
 const tone=pct=>pct>100?'over':pct>85?'warn':'ok';
 
 // ── Persistence ─────────────────────────────────────────────────────────────
-const stateText=()=>({idle:'',dirty:'Unsaved changes — click Save',saving:'Saving…',saved:'Saved '+P.stateAt,conflict:'Someone else changed this plan. <button type="button" class="text-button" data-reload>Reload</button>',error:'Could not save. <button type="button" class="text-button" data-retry>Retry</button>'}[P.state]||'');
+const stateText=()=>({idle:'Auto-save on',dirty:'Changes pending — auto-saving…',saving:'Saving…',saved:'✓ All changes saved at '+P.stateAt+' · auto-save on',conflict:'Someone else changed this plan. <button type="button" class="text-button" data-reload>Reload</button>',error:'Could not save. <button type="button" class="text-button" data-retry>Retry</button>'}[P.state]||'');
 function setState(s){P.state=s;if(s==='saved')P.stateAt=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});const c=P.el&&P.el.querySelector('#pl-state');if(c){c.className='pl-state '+s;c.innerHTML=stateText();}}
-function queueSave(){setState('dirty');}
+// Auto-save: every edit is saved quietly in the background shortly after the last change, and a 2-minute heartbeat retries anything still unsaved.
+const AUTOSAVE_MS=1500,HEARTBEAT_MS=120000;
+function queueSave(){setState('dirty');clearTimeout(P.timer);P.timer=setTimeout(()=>{if(P.plan&&P.el&&P.el.isConnected)flush(true);},AUTOSAVE_MS);}
+setInterval(()=>{if(P.plan&&P.el&&P.el.isConnected&&(P.state==='dirty'||P.state==='error'))flush(true);},HEARTBEAT_MS);
 window.addEventListener('beforeunload',ev=>{if(P.state==='dirty'||P.state==='error'){ev.preventDefault();ev.returnValue='';}});
-async function flush(){
+async function flush(quiet){
   clearTimeout(P.timer);if(P.inflight)await P.inflight;if(P.state!=='dirty'&&P.state!=='error')return P.inflight;
   const my=P.seq;setState('saving');
-  P.inflight=call('plan-save',{teamId:H.team.Id,plan:P.plan,revision:P.rev}).then(r=>{if(my!==P.seq)return;P.rev=r.revision;if(P.state==='saving')setState('saved');},e=>{if(my!==P.seq)return;setState(/changed/i.test(e.message)?'conflict':'error');window.toast?.(e.message,true);});
+  P.inflight=call('plan-save',{teamId:H.team.Id,plan:P.plan,revision:P.rev}).then(r=>{if(my!==P.seq)return;P.rev=r.revision;if(P.state==='saving')setState('saved');},e=>{if(my!==P.seq)return;setState(/changed/i.test(e.message)?'conflict':'error');if(!quiet)window.toast?.(e.message,true);});
   return P.inflight;
 }
 
