@@ -1566,3 +1566,5 @@ body[data-hub=plan] .pl-tools .pl-grid-tools{align-self:flex-end!important}
 .tf-section .tf-table th:nth-child(7),.tf-section .tf-table td:nth-child(7){width:230px!important;overflow:visible!important}
 .tf-section .tf-table td:nth-child(7) select.hub-inline{width:100%!important;min-width:150px!important;max-width:none!important}
 .tf-section .tf-table td.sp-subject{max-width:none!important;overflow:hidden;text-overflow:ellipsis}
+/* plan174: no Open-in-GUS chips on the Release Planning page */
+body[data-hub=plan] .gus-links{display:none!important}

@@ -50,7 +50,8 @@ Designated by the user as the best working state and rollback baseline (previous
 - Release Planning: the filter bar and the grid actions are one line - Search and the Release / ATL-BTL / Engineer / Theme / Group by filters, Clear and the epic count on the left; + Epic, + Project, Projects and Columns grouped on the right.
 - Release Planning: the filter-bar search is narrower (so Release / ATL-BTL / Engineer / Theme / Group by have room) and the epic count is aligned on the same baseline as the controls.
 - Test Failures: Status column widened to 230px so long statuses are not clipped; the page assets (CSS and scripts) now carry a revision in their URL so browsers pick up each update instead of serving a cached copy.
-- Folded into the same version at the user's request (revision 20261115-49); the first 5.0.0-GA snapshot is kept at `releases/5.0.0-GA-original/` and tag `GOLDEN-BUILD-5.0.0-GA-original`.
+- Release Planning: removed the "Open in GUS" chips (New Epic, Epics, Projects, Programs) from the page.
+- Folded into the same version at the user's request (revision 20261115-50); the first 5.0.0-GA snapshot is kept at `releases/5.0.0-GA-original/` and tag `GOLDEN-BUILD-5.0.0-GA-original`.
 - Rollback: `releases/5.0.0-GA/` ZIP (SHA-256 in `build.json`), tag `GOLDEN-BUILD-5.0.0-GA`.
 - Verification: unit tests 225 pass / 38 fail (same as baseline); UI changes not render-verified in a signed-in browser.
 
