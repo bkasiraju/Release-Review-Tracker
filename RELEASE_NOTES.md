@@ -1,3 +1,7 @@
+## Unreleased on top of 4.0.0-GA (plan103) — Informative engineer allocation tooltip
+
+- Hovering (or focusing) an engineer's Allocation % cell opens a hover card: coloured chips for Prioritised (ABL), Planned, Not Priority (BTL), Unplanned and Total; then each theme (with its colour and days) and the engineer's epics under it with ABL/BTL day chips. Long lists are trimmed to 6 themes and 5 epics per theme with a "+N more" note. Escape or scrolling closes it.
+
 ## Unreleased on top of 4.0.0-GA (plan102) — Dashboard blurred behind the loader
 
 - While loading, the real dashboard now renders behind the loading animation, fully blurred. The animation has no card or background of its own and floats on the blurred dashboard. The page is still non-interactive until loading settles.

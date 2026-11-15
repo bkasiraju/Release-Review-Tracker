@@ -989,3 +989,15 @@ body[data-ready]:not([data-settled]) main{pointer-events:none;user-select:none}
 #hub-boot .ri-prog{background:rgba(255,255,255,.55);border-radius:4px;width:70%;margin-left:auto;margin-right:auto}
 /* plan102: reset the old orbit positioning so the avatar marquee actually takes up space */
 .ri-track .ri-av{position:relative;left:auto;top:auto;margin:0;transform:none}
+
+/* plan103: engineer allocation hover card */
+.pl-alloc[data-tip-eng]{cursor:help}.pl-alloc[data-tip-eng]:focus-visible{outline:2px solid #176b91;outline-offset:2px;border-radius:6px}
+.pl-tt{position:fixed;z-index:3000;width:380px;max-width:calc(100vw - 16px);max-height:70vh;overflow:auto;background:#fff;border:1px solid #c9d6e2;border-radius:12px;box-shadow:0 12px 32px rgba(10,50,90,.25);padding:12px 14px;font-size:12.5px;color:#16324a;pointer-events:none}
+.pl-tt-h{display:flex;justify-content:space-between;gap:10px;align-items:baseline;margin-bottom:8px}.pl-tt-h b{font-size:14px}.pl-tt-h span{color:#5a6f82;font-size:12px}
+.pl-tt-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.pl-tc{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11.5px;font-weight:700;white-space:nowrap}
+.pl-tc.a{background:#e3f1fa;color:#0b5a82;border:1px solid #9fcbe6}.pl-tc.b{background:#fdf0d9;color:#8a5206;border:1px solid #f1c27a}.pl-tc.f{background:#eef1f4;color:#4a5b6b;border:1px solid #cfd8e1}.pl-tc.t{background:#176b91;color:#fff;border:1px solid #176b91}
+.pl-tt-th{border-top:1px solid #e3eaf0;padding:7px 0 2px}
+.pl-tt-thh{display:flex;align-items:center;gap:7px}.pl-tt-thh i{width:10px;height:10px;border-radius:3px;flex:none}.pl-tt-thh b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pl-tt-thh span{color:#5a6f82;font-size:11.5px;white-space:nowrap}
+.pl-tt ul{list-style:none;margin:5px 0 4px 17px;padding:0}.pl-tt li{display:flex;align-items:center;gap:5px;padding:2px 0}.pl-tt li>span:first-child{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pl-tt li .pl-tc{font-size:10.5px;padding:1px 7px}.pl-tt .more{color:#5a6f82;font-style:italic;margin:2px 0}

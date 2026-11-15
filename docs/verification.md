@@ -1035,3 +1035,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 
 - plan102: blurred dashboard behind transparent loader — harness screenshot only.
 - plan102: header buttons re-styled to the app's teal palette — harness screenshot only.
+
+- plan103: engineer allocation hover card — harness screenshot only.
