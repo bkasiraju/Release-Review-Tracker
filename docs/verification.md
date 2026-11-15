@@ -1020,3 +1020,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan94: new columns screenshotted on the local harness (Leaves 10 for one engineer, others 0); holiday days remain in Available but have no column; not verified on live.
 
 - plan95: live connection shows no identity method and username null (checked with the deploy cookie); fix verified only by the post-deploy canCommit read below.
+
+- plan96: header widths screenshotted on the local harness; not verified on live.

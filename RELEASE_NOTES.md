@@ -1,3 +1,7 @@
+## Unreleased on top of 4.0.0-GA (plan96) — One-line bandwidth headers
+
+- Every Engineer bandwidth header is on one line; "Un-planned (BTL)" is now "Unplanned (BTL)" (and "Unallocated" in the allocation legend), with the columns resized to fit. (Plan95 fixed the Save to GUS permission lookup — the button now enables for the allowed users.)
+
 ## Unreleased on top of 4.0.0-GA (plan95) — Fix: Save to GUS permission lookup
 
 - The live GUS connection exposes no identity call, so the allow-list check in plan92 found no username and disabled the button for everyone. The check now takes the signed-in user id (connection userId, else identity) and reads that user's Username and Email from GUS before matching the allow-list. It still fails closed.

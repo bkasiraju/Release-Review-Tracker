@@ -930,3 +930,6 @@ body[data-ready] #hub-boot{display:flex}
 .pl-eng-h,.pl-eng-r{grid-template-columns:minmax(100px,1fr) 54px 46px 52px 66px 78px minmax(150px,1.5fr);gap:6px}
 .pl-alloc b{font-size:10.5px}.pl-eng-h{font-size:11.5px}
 .pl-eng-h>span:nth-child(5),.pl-eng-h>span:nth-child(6){white-space:normal;line-height:1.15}
+/* plan96: single-line headers */
+.pl-eng-h,.pl-eng-r{grid-template-columns:minmax(90px,.9fr) 56px 48px 56px 92px 108px minmax(140px,1.3fr);gap:6px}
+.pl-eng-h>span,.pl-eng-h>span:nth-child(5),.pl-eng-h>span:nth-child(6){white-space:nowrap!important;line-height:1.2}
