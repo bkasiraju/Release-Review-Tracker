@@ -1556,3 +1556,8 @@ body[data-hub=plan] .pl-tools .pl-grid-tools{margin:0 0 0 auto!important;padding
 body[data-hub=plan] .pl-tools .pl-grid-tools .pl-tl{display:inline-flex;gap:8px}
 body[data-hub=plan] .pl-tools .pl-clear{white-space:nowrap;align-self:flex-end}
 @media(max-width:1280px){body[data-hub=plan] .pl-tools{flex-wrap:wrap!important}}
+/* plan172: compact search, epic count aligned with the controls */
+body[data-hub=plan] .pl-tools .pl-q{flex:0 1 220px!important;max-width:240px;min-width:120px}
+body[data-hub=plan] .pl-tools .pl-count{align-self:flex-end!important;display:inline-flex;align-items:center;height:28px;margin:0 6px!important;line-height:1}
+body[data-hub=plan] .pl-tools .pl-clear{align-self:flex-end!important;height:28px!important}
+body[data-hub=plan] .pl-tools .pl-grid-tools{align-self:flex-end!important}
