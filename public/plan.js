@@ -434,7 +434,7 @@ function applyKpi(a){
     V.flag=['unassigned','incomplete','pending'].includes(a)?a:'';V.kpi=a;
   }
   drawSummary();drawTools();drawPlanner();wire();
-  const g=P.el.querySelector('#pl-planner');if(g&&P.tab!=='rps')g.scrollIntoView({block:'nearest',behavior:'smooth'});
+  const g=P.el.querySelector('#pl-planner');if(g&&P.tab!=='rps')g.scrollIntoView({block:'nearest'});
 }
 function drawSummary(){
   if(P.tab==='rps')drawRps();

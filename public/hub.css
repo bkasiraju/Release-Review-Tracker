@@ -1608,3 +1608,12 @@ body[data-hub=plan] .pl-planner-btns .gus-links{display:flex!important}
 .tf-section table.tf-table td select.hub-inline{display:block;width:100%!important;max-width:100%!important;min-width:0!important;box-sizing:border-box;text-overflow:ellipsis}
 /* plan182: TF table - ID cell holds link + Nudge on one line; subject never capped */
 .tf-section table.tf-table td:nth-child(1){white-space:nowrap}.tf-section table.tf-table td.sp-subject{max-width:none!important}
+/* plan183: calm page load - no vertical/horizontal movement while content renders */
+html{overflow-y:scroll;scrollbar-gutter:stable;scroll-behavior:auto;overflow-anchor:none}
+body[data-settled] main>*:not(#hub-boot){animation:none!important;transform:none!important}
+.pl-tabs button[data-tab=plan].on svg,.pl-tabs button[data-tab=rps].on svg{animation:none!important}
+.pl-tabs button[data-tab],.hub-tile,.pl-kpi[data-kpi]{transition:background-color .15s,border-color .15s,box-shadow .15s!important}
+.hub-tile:hover,.pl-kpi[data-kpi]:hover,button.tf-filter:hover,.rail .brand:hover{transform:none!important}
+.sp-modal.sp-swap .sp-modal-top,.sp-modal.sp-swap .sp-modal-body{animation:none!important}
+main{min-height:100vh}
+.pl-grid-wrap,.table-scroll{scrollbar-gutter:stable}
