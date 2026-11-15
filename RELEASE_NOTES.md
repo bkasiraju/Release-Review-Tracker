@@ -1,3 +1,7 @@
+## Unreleased on top of 4.0.0-GA (plan106) — Loader chips: Plan, Execute, Review, Iterate
+
+- The loader's four chips are now Plan, Execute, Review and Iterate on a single line, lighting up in turn with the status message. All use the app's teal highlight.
+
 ## Unreleased on top of 4.0.0-GA (plan105) — Saved history loads without queryMore()
 
 - Fix: "GUS Apps must expose queryMore() to read the complete saved history." The saved-history reader now falls back to keyset paging (CreatedDate, Id) when GUS Apps provides neither queryMore() nor request(), so a long history loads in full. It still uses queryMore()/request() when available, and still fails with the same message only if no continuation is possible. Work-item reads in `backend/gus.js` keep the old behaviour.

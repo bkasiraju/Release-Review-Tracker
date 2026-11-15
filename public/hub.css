@@ -1014,3 +1014,7 @@ body[data-ready]:not([data-settled]) main{pointer-events:none;user-select:none}
 #hub-boot{-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
 #hub-boot .ri-load{transform:translateZ(0)}
 @media(prefers-reduced-motion:reduce){.ri-track{animation-duration:120s}.ri-img{transition:none}}
+
+/* plan106: Plan / Execute / Review / Iterate chips on one line */
+.ri-dims{flex-wrap:nowrap;gap:6px}.ri-dims span{white-space:nowrap;padding:4px 9px}
+.ri-dims span[data-d="1"].on{background:linear-gradient(135deg,#176b91,#1e8e6a)}.ri-dims span[data-d="2"].on{background:linear-gradient(135deg,#176b91,#1e8e6a)}.ri-dims span[data-d="3"].on{background:linear-gradient(135deg,#176b91,#1e8e6a)}
