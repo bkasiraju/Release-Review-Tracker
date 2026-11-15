@@ -373,7 +373,7 @@ function renderHome(el){
   Promise.all([call('hub-home',{teamId}),call('hub-rotation',{teamId}).then(r=>r.rota,()=>null)]).then(([home,rota])=>{if(H.current==='home'&&H.team.Id===teamId)draw(home,rota);})
     .catch(e=>{if(H.current==='home')el.insertAdjacentHTML('afterbegin',`<p class="note error">Could not load team summary: ${esc(e.message)}</p>`);});
 }
-H.register({id:'home',label:'Team Hub',icon:'home',tone:'violet',desc:'Team hub',render:renderHome});
+H.register({id:'home',label:'Release Intelligence',icon:'home',tone:'violet',desc:'Team hub',render:renderHome});
 H.register({id:'epics',label:'Release Review (Monthly)',icon:'scope',tone:'green',desc:'Release epics, health and monthly updates',legacy:'overview',stat:()=>({text:'Release review · health and updates'})});
 H.register({id:'status',label:'V2MOM Updates',icon:'ai',tone:'violet',desc:'V2MOM executive updates',legacy:'executive',stat:()=>({text:'V2MOM executive summary and leadership update'})});
 function soon(id,label,ic,tone,desc){
@@ -389,8 +389,18 @@ function settle(){
   const obs=new MutationObserver(arm),cap=setTimeout(done,8000);
   obs.observe($('hub-page'),{childList:true,subtree:true,characterData:true});arm();
 }
+/** Loading screen: every team member from all teams orbits the product mark. Cached rosters paint at once; the rest fill in as they load. */
+function loadOrbit(){
+  const host=document.querySelector('#hub-boot .ri-orbit-spin');if(!host)return;const seen=new Map();
+  const draw=()=>{const list=[...seen.values()].slice(0,18),n=list.length;
+    host.innerHTML=list.map((p,i)=>`<span class="ri-av" style="--a:${Math.round(i*360/n)}deg"><b><i>${esc(initials(p.name))}</i>${p.avatar?`<img src="${esc(p.avatar)}" alt="" decoding="async" onerror="this.remove()">`:''}</b></span>`).join('');};
+  const add=d=>{if(!d||!d.people)return;d.people.forEach(p=>{if(p.name&&!seen.has(p.name))seen.set(p.name,p);});draw();};
+  const groups=['maps','mq','vegacache','vegastore','caching'];
+  groups.forEach(g=>{try{const c=JSON.parse(localStorage.getItem('hub-people2-'+g)||'null');if(c&&c.d)c.d.people.forEach(p=>{if(p.name&&!seen.has(p.name))seen.set(p.name,p);});}catch(_){}});
+  draw();groups.forEach(g=>loadPeople(g).then(add,()=>{}));
+}
 async function boot(){
-  installCache();
+  installCache();loadOrbit();
   document.addEventListener('click',e=>{const g=e.target.closest('[data-go],[data-page]');if(g){e.preventDefault();const id=g.dataset.go||g.dataset.page;
     // Release Planning is a workspace of its own: open it full screen in a new browser tab (it renders in place once there)
     if(id==='plan'&&H.current!=='plan'&&!H.standalone){if(!window.open(location.href.split('#')[0]+'#/plan?full&team='+encodeURIComponent(H.team.Id),'_blank'))H.go(id);return;}

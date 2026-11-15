@@ -236,9 +236,9 @@ function bindModal(){
     const tc=t.closest('[data-type-chip]');if(tc){const v=tc.dataset.typeChip;if(!v)S.types.clear();else S.types.has(v)?S.types.delete(v):S.types.add(v);renderStandup();renderModal();return;}
     const ec=t.closest('[data-epic]');if(ec&&!t.closest('a')){S.epic=S.epic===ec.dataset.epic?null:ec.dataset.epic;renderStandup();renderModal();return;}
     const so=t.closest('[data-sort]');if(so){const k=so.dataset.sort;S.sort=S.sort.key===k?{key:k,dir:S.sort.dir==='asc'?'desc':'asc'}:{key:k,dir:'asc'};renderMembers();renderModal();return;}
-    const op=t.closest('[data-open-member]');if(op){S.modal=op.dataset.openMember;renderModal();return;}
-    const go=t.closest('[data-modal-go]');if(go){const ms=orderedMembers(),k=ms.findIndex(x=>x.name===go.dataset.modalGo);if(k>=0){S.modal=ms[k].name;S.standupIdx=k;renderModal();renderStandup();}return;}
-    const st=t.closest('[data-modal-step]');if(st){const ms=orderedMembers(),k=ms.findIndex(x=>x.name===S.modal)+Number(st.dataset.modalStep);if(ms[k]){S.modal=ms[k].name;S.standupIdx=k;renderModal();renderStandup();}return;}
+    const op=t.closest('[data-open-member]');if(op){S.types.clear();S.modal=op.dataset.openMember;renderModal();return;}
+    const go=t.closest('[data-modal-go]');if(go){const ms=orderedMembers(),k=ms.findIndex(x=>x.name===go.dataset.modalGo);if(k>=0){S.types.clear();S.modal=ms[k].name;S.standupIdx=k;renderModal();renderStandup();}return;}
+    const st=t.closest('[data-modal-step]');if(st){const ms=orderedMembers(),k=ms.findIndex(x=>x.name===S.modal)+Number(st.dataset.modalStep);if(ms[k]){S.types.clear();S.modal=ms[k].name;S.standupIdx=k;renderModal();renderStandup();}return;}
     if(t.closest('[data-shuffle]')){shuffle();return;}
     if(t.closest('[data-modal-close]')||t.id==='sp-modal'){S.modal=null;renderModal();}
   });
@@ -247,7 +247,7 @@ function bindModal(){
     if((e.key==='Enter'||e.key===' ')&&e.target.matches&&e.target.matches('[data-epic]')){e.preventDefault();e.target.click();return;}
     if(/INPUT|SELECT|TEXTAREA/.test(document.activeElement?.tagName))return;
     const d=e.key==='ArrowRight'?1:e.key==='ArrowLeft'?-1:0;if(!d)return;
-    const ms=orderedMembers(),k=ms.findIndex(x=>x.name===S.modal)+d;if(ms[k]){S.modal=ms[k].name;S.standupIdx=k;renderModal();renderStandup();}
+    const ms=orderedMembers(),k=ms.findIndex(x=>x.name===S.modal)+d;if(ms[k]){S.types.clear();S.modal=ms[k].name;S.standupIdx=k;renderModal();renderStandup();}
   });
 }
 function renderStandup(){
@@ -267,7 +267,7 @@ function renderStandup(){
   <ol class="su-items">${epicFilter(items).map(i=>`<li class="${isClosed(i)?'done':''}"><span class="su-no"></span><a href="${GUS_WORK}${esc(i.id)}/view" target="_blank" rel="noopener noreferrer">${esc(i.name)}</a><span class="su-subject" title="${esc(i.subject)}${i.epic?esc('\n\nEpic: '+i.epic):''}">${esc(i.subject)}${i.epic?` <span class="sp-chip">${esc(i.epic)}</span>`:''} <span class="sp-tags">${itemTags(i)}</span></span>${qaCell(i)}${statusSelect(i)}<span class="num">${planCell(i)}</span>${ptsInput(i)}<span class="num">${churnCell(i)}</span></li>`).join('')}</ol></div></div></section>`;
 }
 function bindStandup(){
-  const stepClick=e=>{const t=e.target.closest('[data-su],[data-su-step]');if(!t)return;S.standupIdx=t.dataset.su!=null?Number(t.dataset.su):S.standupIdx+Number(t.dataset.suStep);renderStandup();};
+  const stepClick=e=>{const t=e.target.closest('[data-su],[data-su-step]');if(!t)return;S.standupIdx=t.dataset.su!=null?Number(t.dataset.su):S.standupIdx+Number(t.dataset.suStep);S.types.clear();S.epic=null;renderStandup();};
   $('sp-standup').addEventListener('click',stepClick);$('sp-sprintbar').addEventListener('click',stepClick);
   document.addEventListener('keydown',e=>{if(S.modal||S.view!=='standup'||document.body.dataset.hub!=='sprints'||/INPUT|SELECT|TEXTAREA/.test(document.activeElement?.tagName))return;if(e.key==='ArrowRight'){S.standupIdx++;renderStandup();}else if(e.key==='ArrowLeft'){S.standupIdx--;renderStandup();}});
 }

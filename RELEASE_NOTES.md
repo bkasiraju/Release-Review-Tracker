@@ -1,3 +1,9 @@
+## Unreleased on top of 4.0.0-GA (plan86) — Orbiting-avatar loader, product name, per-member type chips
+
+- The loading screen shows every team member from MAPS, MQ, VegaCache, VegaStore and Caching Services orbiting the Release Intelligence mark (cached rosters paint at once, the rest fill in as they load). The title reads "Loading Release Intelligence…".
+- The home page and rail are named "Release Intelligence" instead of "Team Hub".
+- Sprint work-item type chips (User Story / Investigation …) are independent toggles; All resets them. The selection no longer carries over to the next team member.
+
 ## Unreleased on top of 4.0.0-GA (plan85) — Clean, correctly grouped import; ATL/BTL editable after import; Sprints Full-Screen button
 
 - **Bug fix (introduced in plan72):** an epic's ATL/BTL was derived from values that were forced to BTL while the epic itself was BTL, so imported epics (which start as BTL) stayed BTL and the toggle could not change them. The derivation now reads each workstream's own value; saved plans are re-derived on load so already-imported epics become editable.

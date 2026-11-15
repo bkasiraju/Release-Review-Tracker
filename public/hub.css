@@ -855,3 +855,17 @@ body[data-ready] #hub-boot{display:flex}
 .sp-fs-flash{border:2px solid #176b91!important;font-weight:700;color:#176b91;animation:spFsFlash 1.2s ease-in-out infinite}
 @keyframes spFsFlash{0%,100%{border-color:#176b91;box-shadow:0 0 0 0 rgba(23,107,145,.45)}50%{border-color:#e8590c;box-shadow:0 0 0 5px rgba(232,89,12,.18)}}
 @media(prefers-reduced-motion:reduce){.sp-fs-flash{animation:none;border-color:#e8590c!important}}
+
+/* plan86: loading screen — all team members orbiting the Release Intelligence mark */
+.ri-load{padding:26px 40px 24px;gap:10px}
+.ri-orbit{position:relative;width:250px;height:250px}
+.ri-orbit .ri-ring{position:absolute;inset:34px;width:auto;height:auto;border:2px dashed #b9d3e6;animation:none;border-radius:50%}
+.ri-core{position:absolute;left:50%;top:50%;width:76px;height:76px;margin:-38px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(23,107,145,.28),0 0 0 6px #e8f2f9;animation:riPulse 2.2s ease-in-out infinite}
+.ri-orbit-spin{position:absolute;inset:0;animation:riSpin 18s linear infinite}
+.ri-av{position:absolute;left:50%;top:50%;width:40px;height:40px;margin:-20px;transform:rotate(var(--a)) translateY(-91px) rotate(calc(-1*var(--a)))}
+.ri-av b{position:relative;display:block;width:100%;height:100%;border-radius:50%;overflow:hidden;background:linear-gradient(135deg,#176b91,#1e8e6a);border:2px solid #fff;box-shadow:0 3px 8px rgba(10,50,90,.3);animation:riSpinRev 18s linear infinite}
+.ri-av i{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:700 13px/1 inherit;font-style:normal;color:#fff}
+.ri-av img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+@keyframes riSpinRev{to{transform:rotate(-360deg)}}
+@keyframes riPulse{50%{transform:scale(1.07)}}
+@media(prefers-reduced-motion:reduce){.ri-orbit-spin,.ri-av b{animation-duration:60s}.ri-core{animation:none}}
