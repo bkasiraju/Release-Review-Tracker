@@ -66,12 +66,29 @@ function drawChamp(el){
   el.querySelector('#bug-champ').innerHTML=c?`<span class="champ on" title="Trust Champion">🏆 ${esc(c.name)}</span>`:'<span class="champ">No Trust Champion defined</span>';
   const s=el.querySelector('#bug-champ-set');s.innerHTML='<option value="">Set Trust Champion…</option>'+B.members.map(m=>`<option value="${esc(m.id)}"${c&&c.id===m.id?' selected':''}>${esc(m.name)}</option>`).join('');
 }
+
+function drawTrend(el,t){
+  const host=el.querySelector('#bug-trend');if(!host)return;
+  if(!t||!t.weeks||!t.weeks.length){host.innerHTML='<div class="empty-state hub-empty"><p>Trend unavailable.</p></div>';return;}
+  const w=t.weeks,sum=k=>w.reduce((a,x)=>a+x[k],0),op=sum('opened'),cl=sum('closed'),net=op-cl,last=w[w.length-1].backlog,first=w[0].backlog;
+  const W=760,Ht=220,L=34,R=38,T=14,Bt=28,iw=W-L-R,ih=Ht-T-Bt,n=w.length,slot=iw/n,bw=Math.min(16,slot/2-3);
+  const mx=Math.max(4,...w.map(x=>Math.max(x.opened,x.closed))),mb=Math.max(1,...w.map(x=>x.backlog)),y=v=>T+ih-v/mx*ih,yb=v=>T+ih-v/mb*ih,cx=i=>L+slot*i+slot/2;
+  const grid=[0,.5,1].map(f=>`<line x1="${L}" x2="${W-R}" y1="${T+ih-f*ih}" y2="${T+ih-f*ih}" class="bt-g"/><text x="${L-6}" y="${T+ih-f*ih+4}" text-anchor="end" class="bt-ax">${Math.round(mx*f)}</text><text x="${W-R+6}" y="${T+ih-f*ih+4}" class="bt-ax bt-axb">${Math.round(mb*f)}</text>`).join('');
+  const bars=w.map((x,i)=>`<g><title>Week of ${x.start}: ${x.opened} opened, ${x.closed} closed, backlog ${x.backlog}</title><rect x="${cx(i)-bw-1}" y="${y(x.opened)}" width="${bw}" height="${T+ih-y(x.opened)}" rx="3" class="bt-o"/><rect x="${cx(i)+1}" y="${y(x.closed)}" width="${bw}" height="${T+ih-y(x.closed)}" rx="3" class="bt-c"/><text x="${cx(i)}" y="${Ht-10}" text-anchor="middle" class="bt-ax">${esc(x.start.slice(5).replace('-','/'))}</text></g>`).join('');
+  const line=w.map((x,i)=>`${i?'L':'M'}${cx(i).toFixed(1)} ${yb(x.backlog).toFixed(1)}`).join(' '),dots=w.map((x,i)=>`<circle cx="${cx(i)}" cy="${yb(x.backlog)}" r="3" class="bt-d"/>`).join('');
+  const tile=(l,v,c,sub)=>`<div class="bt-tile ${c||''}"><span>${l}</span><b>${v}</b><small>${sub||''}</small></div>`;
+  const ob=t.openBy||{};
+  host.innerHTML=`<div class="bt-tiles">${tile('Opened',op,'o','12 weeks')}${tile('Closed',cl,'c','12 weeks')}${tile('Net',(net>0?'+':'')+net,net>0?'bad':'good',net>0?'backlog growing':net<0?'backlog shrinking':'flat')}${tile('Open backlog now',t.openNow,'',`${last-first>=0?'+':''}${last-first} vs 12 weeks ago`)}${tile('Open by priority',['P0','P1','P2','P3','P4'].map(p=>`<i class="bt-p ${PCLS(p)}">${p} ${ob[p]||0}</i>`).join(''),'wide','')}</div>
+  <svg class="bt-svg" viewBox="0 0 ${W} ${Ht}" role="img" aria-label="Bugs opened and closed per week with open backlog">${grid}${bars}<path d="${line}" class="bt-l"/>${dots}</svg>
+  <div class="bt-legend"><span><i class="bt-o"></i>Opened</span><span><i class="bt-c"></i>Closed</span><span><i class="bt-lg"></i>Open backlog (right axis)</span>${t.truncated?'<span class="note">Counts capped at 2,000 per series.</span>':''}</div>`;
+}
 function drawBugs(el){drawTiles(el);drawQueue(el);}
 async function loadBugs(el){
   const my=++B.seq;el.querySelector('#bug-queue').innerHTML='<div class="hub-loading" role="status"><span class="executive-spinner" aria-hidden="true"></span> Loading bugs from GUS…</div>';
   try{
     const id=H.team.Id;
     // Draw as each piece arrives: the table needs bugs + members + picklists; SLA tiles and the champion fill in when ready.
+    call('hub-bug-trend',{teamId:id}).then(t=>{if(my===B.seq)drawTrend(el,t);},e=>{const h=el.querySelector('#bug-trend');if(h&&my===B.seq)h.innerHTML=`<div class="empty-state hub-empty"><p>Trend unavailable: ${esc(e.message)}</p></div>`;});
     const pSla=call('hub-sla',{teamId:id}).catch(e=>({cards:[],error:e.message})),pChamp=call('hub-champion',{teamId:id}).catch(()=>null);
     const [r,members,pick]=await Promise.all([call('hub-bugs',{teamId:id,priorities:[...B.pri],includeClosed:B.closed}),H.members().catch(()=>[]),H.picklists().catch(()=>null)]);
     if(my!==B.seq)return;B.bugs=r.bugs;B.members=members;B.pick=pick;B.pg=1;
@@ -89,6 +106,7 @@ H.register({id:'bugs',label:'Bugs',icon:'bug',tone:'rose',desc:'SLA board and op
     el.innerHTML=heading('bug','rose','Bugs',`SLA board for ${H.team.Name}. Click a tile for its priority queue; edit status, assignee, priority and points inline — changes save to GUS immediately.`,refreshBtn)+
     `<section class="table-card"><div class="filterbar bug-head"><label class="hub-field">Team<select class="sp-select" disabled aria-label="Team (set in the top filter)"><option>${esc(H.team.short||H.team.Name)}</option></select></label><label class="hub-field">Member<select id="bug-who" class="sp-select" aria-label="Member filter"><option value="">All members</option></select></label><span class="hub-field">Trust Champion<span id="bug-champ"></span></span><label class="hub-field">Set champion<select id="bug-champ-set" class="sp-select" aria-label="Set Trust Champion"></select></label></div>
     <div id="sla-tiles" class="sla-tiles" role="group" aria-label="SLA tiles"></div></section>
+    <section class="table-card bt-card"><div class="filterbar"><div class="epic-toolbar-title"><h2>Bug trend · last 12 weeks</h2></div><span class="note">Opened vs closed per week, with the open backlog</span></div><div id="bug-trend" class="bt-body"><div class="hub-loading" role="status"><span class="executive-spinner" aria-hidden="true"></span> Loading trend…</div></div></section>
     <section class="table-card"><div class="filterbar" id="bug-allbar"><div class="epic-toolbar-title"><h2>Open bugs <span class="count-pill" id="bug-count">0</span></h2></div><div class="hub-chips" aria-label="Priority">${['P0','P1','P2','P3','P4'].map(p=>chipBtn('data-pri',p,p,B.pri.has(p))).join('')}</div><span id="bug-counts" class="sp-chips"></span><span class="toolbar-spacer"></span><select id="bug-status" class="sp-select" aria-label="Status filter"></select><label class="hub-check"><input type="checkbox" id="bug-closed"${B.closed?' checked':''}> Include closed</label><div class="search-box"><svg viewBox="0 0 20 20"><circle cx="8.5" cy="8.5" r="5.5"/><path d="m13 13 4 4"/></svg><input id="bug-q" placeholder="Search bugs…" aria-label="Search bugs" value="${esc(B.q)}"></div></div><div id="bug-queue"></div><div class="table-footer"><span>Source: GUS · ADM_Work__c (Bug, Investigation) · ${esc(H.team.Name)} · SLA thresholds and urgency are computed in the dashboard</span></div></section>`;
     if(bugTeam!==H.team.Id){bugTeam=H.team.Id;B.who='';B.status='';B.sel='all';}
     withIcons(el);

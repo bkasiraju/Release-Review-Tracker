@@ -65,6 +65,34 @@ async function getBugs(sf, teamId, opts = {}) {
   return { bugs: (res.records || []).map(w => ({ id: w.Id, name: w.Name, subject: w.Subject__c || '', status: w.Status__c, priority: w.Priority__c, points: w.Story_Points__c, assigneeId: w.Assignee__c, assignee: (w.Assignee__r && w.Assignee__r.Name) || '', build: w.Found_In_Build__c || '', created: w.CreatedDate })), truncated: (res.records || []).length >= 500 };
 }
 
+// ── Bug trend (weekly opened vs closed, plus backlog) ───────────────────────────
+const TREND_WEEKS = 12;
+const weekStart = d => { const x = new Date(d); x.setUTCHours(0, 0, 0, 0); x.setUTCDate(x.getUTCDate() - ((x.getUTCDay() + 6) % 7)); return x.getTime(); };
+/** Pure: bucket created/closed timestamps into the last `weeks` Monday-based weeks and rebuild the weekly backlog from today's open count. */
+function computeBugTrend(created, closed, openNow, now = Date.now(), weeks = TREND_WEEKS) {
+  const end = weekStart(now), starts = Array.from({ length: weeks }, (_, i) => end - (weeks - 1 - i) * 7 * 864e5);
+  const out = starts.map(t => ({ start: new Date(t).toISOString().slice(0, 10), opened: 0, closed: 0, backlog: 0 }));
+  const put = (list, key) => list.forEach(d => { if (!d) return; const i = starts.indexOf(weekStart(d)); if (i >= 0) out[i][key]++; });
+  put(created, 'opened'); put(closed, 'closed');
+  let b = openNow;
+  for (let i = weeks - 1; i >= 0; i--) { out[i].backlog = Math.max(0, b); b -= out[i].opened - out[i].closed; }
+  return out;
+}
+async function getBugTrend(sf, teamId) {
+  requireTeam(teamId);
+  const base = `Scrum_Team__c = '${teamId}' AND RecordType.Name = 'Bug'`, since = `LAST_N_DAYS:${TREND_WEEKS * 7 + 7}`;
+  const openWhere = `${base} AND Status__c NOT IN (${inList(CLOSED_STATUSES)}) AND (NOT Status__c LIKE 'Closed%')`;
+  const [c, d, o] = await Promise.all([
+    sf.query(`SELECT CreatedDate FROM ADM_Work__c WHERE ${base} AND CreatedDate >= ${since} LIMIT 2000`),
+    sf.query(`SELECT Closed_On__c FROM ADM_Work__c WHERE ${base} AND Closed_On__c >= ${since} LIMIT 2000`),
+    sf.query(`SELECT Priority__c pri, COUNT(Id) n FROM ADM_Work__c WHERE ${openWhere} GROUP BY Priority__c`)
+  ]);
+  const openBy = {}; let openNow = 0;
+  for (const r of o.records || []) { openBy[r.pri || 'None'] = r.n; openNow += r.n; }
+  const weeks = computeBugTrend((c.records || []).map(r => r.CreatedDate), (d.records || []).map(r => r.Closed_On__c), openNow);
+  return { weeks, openNow, openBy, truncated: (c.records || []).length >= 2000 || (d.records || []).length >= 2000 };
+}
+
 // ── Bug SLAs (Trust Champion view) ──────────────────────────────────────────────
 const BUGFIX_DAYS = { P0: 2, P1: 15, P2: 30 };
 const PRI_WEIGHT = { P0: 100, P1: 60, P2: 30, P3: 10, P4: 5 };
@@ -322,4 +350,4 @@ async function getPicklists(sf) {
   return lists;
 }
 
-module.exports = { getTests, getPeople, getSla, getChampion, saveChampion, getTeams, getMembers, getBugs, getTds, getHome, getRotation, saveRotation, updateGus, getPicklists, requireTeam, WRITABLE, __test: { cleanRota, updateOne, computeSla } };
+module.exports = { getBugTrend, getTests, getPeople, getSla, getChampion, saveChampion, getTeams, getMembers, getBugs, getTds, getHome, getRotation, saveRotation, updateGus, getPicklists, requireTeam, WRITABLE, __test: { computeBugTrend, cleanRota, updateOne, computeSla } };

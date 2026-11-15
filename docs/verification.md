@@ -1079,3 +1079,4 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan124: unit tests pass; timeout and redirect fixes not verified against live GUS.
 - plan125: unit tests pass (delete); Nudge redesign checked for syntax only, not visually reviewed live.
 - plan126: CSS only; not visually checked at real widths.
+- plan127: unit test for weekly bucketing passes; trend card and rail behaviour not checked live.

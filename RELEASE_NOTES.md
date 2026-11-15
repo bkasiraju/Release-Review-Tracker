@@ -1,3 +1,8 @@
+## Unreleased on top of 4.0.0-GA (plan127) — Bug trend summary; auto-hiding side bar
+
+- Bugs page: new "Bug trend · last 12 weeks" card with Opened, Closed, Net and Open-backlog tiles, open-by-priority chips, and a chart of weekly opened vs closed bars with the open backlog line (new `hub-bug-trend` action; weekly buckets computed from CreatedDate and Closed_On__c, backlog rebuilt from today's open count).
+- Side bar auto-hides off-screen so it never overlaps page content, and the page uses the full width. Moving the pointer to the left edge (or tabbing into it, or tapping the edge) slides it in with the dock animation; moving away hides it.
+
 ## Unreleased on top of 4.0.0-GA (plan126) — Action Log buttons no longer clip
 
 - The Actions column in the full-screen Action Log is pinned to the right edge with a fixed width, so resolve, follow-up and delete are always visible; subject and details columns are narrower.

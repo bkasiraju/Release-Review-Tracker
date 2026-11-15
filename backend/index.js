@@ -79,6 +79,7 @@ async function handleRequest(ctx){
       case 'hub-members':payload=await hub.getMembers(sf,b.teamId);break;
       case 'hub-home':payload=await hub.getHome(sf,b.teamId);break;
       case 'hub-bugs':payload=await hub.getBugs(sf,b.teamId,b);break;
+      case 'hub-bug-trend':payload=await hub.getBugTrend(sf,b.teamId);break;
       case 'hub-sla':payload=await hub.getSla(sf,b.teamId);break;
       case 'hub-champion':payload=await hub.getChampion(store,b.teamId);break;
       case 'hub-champion-save':payload=await hub.saveChampion(store,b.teamId,b.champion,b.revision);break;
