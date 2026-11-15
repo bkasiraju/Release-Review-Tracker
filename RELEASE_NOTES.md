@@ -1,3 +1,9 @@
+## Unreleased on top of 4.0.0-GA (plan116) — Priority board in Planned Release Summary
+
+- New "Priority board" on the Planned Release Summary tab: every epic as a ranked row, in two groups (above and below the line). Each row shows a drag handle, a priority selector, the epic and its theme, planned release, status badge, a progress ring (share of workstreams marked Completed), effort in days, owner and project, with the project's colour bar on the left.
+- Reorder by dragging an epic onto another in the same group (it takes that epic's priority and place), or change the priority in the row. Both save automatically through the normal plan auto-save; nothing is written to GUS until "Review & save to GUS".
+- A status legend with counts sits above the list. On narrow windows the secondary columns are hidden.
+
 ## Unreleased on top of 4.0.0-GA (plan115) — Balanced planning header, subtler tiles, four risk tiles
 
 - Release Planning header: description, save status, Team, Leaves, Save and Review buttons share one aligned row at one height; tabs and the planning window share the next row with even spacing.

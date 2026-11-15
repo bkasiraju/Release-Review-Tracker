@@ -1061,3 +1061,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan114: smaller planner table fonts and controls — harness screenshot checked.
 
 - plan115: planning header layout and nine summary tiles — harness screenshots at 2000 and 1300 px checked; tile values read from the harness plan only.
+
+- plan116: priority board — harness: renders both groups, priority selector updates the epic and redraws; drag-and-drop was not exercised in a real browser.
