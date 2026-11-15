@@ -1336,7 +1336,7 @@ a.rail-button.disabled{opacity:.38;filter:grayscale(.85);cursor:not-allowed;poin
 .ui-tooltip{z-index:5000}
 
 /* plan140: footer feedback line */
-.footer-feedback{margin-left:auto;font-size:inherit;color:inherit;white-space:nowrap}
+.footer-feedback{font-size:inherit;color:inherit;white-space:nowrap}
 
 /* plan141: Sources & connection panel */
 .src-sec{padding:14px 0;border-bottom:1px solid #e3ebf2}.src-sec:last-of-type{border-bottom:0}
@@ -1351,3 +1351,9 @@ a.rail-button.disabled{opacity:.38;filter:grayscale(.85);cursor:not-allowed;poin
 .src-link:hover{background:#e9f3fb;text-decoration:none}
 .src-card{margin:2px 0 6px;padding:12px;border:1px solid #cfe3f3;border-left:4px solid #1c7a5c;border-radius:10px;background:#f7fbf9}
 .src-card .src-link{margin-top:8px}
+
+/* plan141: centered footer with separators, a little lower */
+main>.dashboard-footer{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:6px 0;padding-top:34px;padding-bottom:26px;text-align:center}
+main>.dashboard-footer>*{display:inline-flex;align-items:center}
+main>.dashboard-footer>*:not(:first-child){position:relative;padding-left:14px;margin-left:14px}
+main>.dashboard-footer>*:not(:first-child)::before{content:'·';position:absolute;left:-2px;top:50%;transform:translateY(-52%);color:#8aa0b6;font-weight:700}
