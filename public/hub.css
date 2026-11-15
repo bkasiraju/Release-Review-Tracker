@@ -1653,3 +1653,8 @@ body[data-hub=status] #gus-links{display:none!important}
 #sp-sprint.sp-select:hover,#sp-sprint.sp-select:focus{box-shadow:0 4px 14px rgba(11,92,171,.5)!important;transform:translateY(-1px);animation:none}
 #sp-sprint.sp-select:focus-visible{outline:2px solid #0b5cab;outline-offset:2px}
 #sp-sprint.sp-select option{color:#032d60;background:#fff;font-weight:600}
+/* header: ReleaseIQ - tagline on a single line */
+.topbar .product-heading{display:flex;flex-direction:row;align-items:center;gap:8px;flex-wrap:nowrap;min-width:0;flex:1 1 auto}
+.topbar .product-heading h1{margin:0;flex:none;white-space:nowrap}
+.topbar .product-heading .subtitle{margin:0;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.topbar .product-heading .subtitle::before{content:"- ";font-weight:700}
