@@ -1,3 +1,7 @@
+## Unreleased on top of 4.0.0-GA (plan114) — Smaller planner table
+
+- Release Planner table: smaller text (11px, headers 10px), smaller days boxes, ABL/BTL toggle, estimate cells and action icons, and tighter cell padding.
+
 ## Unreleased on top of 4.0.0-GA (plan113) — Compact Release Planning
 
 - Release Planning is more compact: less empty space above the page tab, smaller headings, summary cards, filter bar and table rows (about 25% shorter rows), and tighter tab and button heights. Layout and features are unchanged.

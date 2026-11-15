@@ -1057,3 +1057,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan112: harness screenshots at 1900 and 1300 px wide show the layout; the selected-release chip placement was not seen (harness has no releases).
 
 - plan113: compact Release Planning — harness screenshot at 2000 px wide; table rows 45px to 33px; not compared against live data.
+
+- plan114: smaller planner table fonts and controls — harness screenshot checked.
