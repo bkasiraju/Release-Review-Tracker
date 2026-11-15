@@ -1449,3 +1449,6 @@ body[data-sp-view=standup] #sp-sprintbar{margin-top:40px!important}
 .pm svg{width:13px;height:13px;flex:none}
 .pm.pl{background:#e7f6ec;color:#1d7a46;border-color:#bfe5cd}.pm.ac{background:#e6f1fb;color:#0b5cab;border-color:#bcd7ef}
 .pm.dn{background:#e8f0fe;color:#1b4fa0;border-color:#c2d4f5}.pm.ip{background:#e9f7ee;color:#17803f;border-color:#c3e6cf}.pm.bk{background:#fff1e3;color:#b85a00;border-color:#f6d3ad}
+/* plan156: agile-sprint 3D icon before the sprint title */
+.sp-bar-ico{display:inline-flex;flex:none;width:34px;height:34px;filter:drop-shadow(0 2px 2px rgba(10,40,80,.22))}
+.sp-bar-ico svg{width:100%;height:100%}
