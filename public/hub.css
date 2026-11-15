@@ -1534,3 +1534,15 @@ button.bt-p{font:inherit;border:0;cursor:pointer}button.bt-p:hover{filter:bright
 .pl-newproj .pl-pop-b input.hub-inline:focus,.pl-newproj .pl-pop-b select.hub-inline:focus{outline:none;border-color:#0b6fa8!important;box-shadow:0 0 0 3px rgba(11,111,168,.18)}
 .pl-newproj .pl-pop-f{display:flex;justify-content:flex-end;gap:8px;padding:12px 18px;border-top:1px solid #c9d6e2;background:#f7fafc}
 @media(max-width:640px){.pl-newproj .pl-pop-b{grid-template-columns:1fr}.pl-newproj .pl-pop-b>.pl-f-project,.pl-newproj .pl-pop-b>.pl-f-rel,.pl-newproj .pl-pop-b>.pl-f-atl{grid-column:1/-1}}
+/* plan170: Open TFs tables - fixed column widths so the Status dropdown never clips */
+.tf-section .table-scroll{overflow-x:auto}
+.tf-table{width:100%;table-layout:fixed;min-width:1000px}
+.tf-table th:nth-child(1),.tf-table td:nth-child(1){width:170px}
+.tf-table th:nth-child(3),.tf-table td:nth-child(3){width:150px}
+.tf-table th:nth-child(4),.tf-table td:nth-child(4){width:90px}
+.tf-table th:nth-child(5),.tf-table td:nth-child(5){width:100px}
+.tf-table th:nth-child(6),.tf-table td:nth-child(6){width:90px}
+.tf-table th:nth-child(7),.tf-table td:nth-child(7){width:200px}
+.tf-table td{overflow:hidden;text-overflow:ellipsis}
+.tf-table td:nth-child(2){white-space:normal}
+.tf-table td select.hub-inline{width:100%;min-width:0;box-sizing:border-box;text-overflow:ellipsis}
