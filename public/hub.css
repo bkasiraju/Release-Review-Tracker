@@ -1591,7 +1591,9 @@ body[data-hub=plan] .pl-planner-btns .gus-links{display:flex!important}
 .pl-eng-r.pl-eng-un{background:#fff4e5;border:1px solid #f0b35a;border-radius:6px;padding:6px 8px;font-weight:600;cursor:pointer}
 .pl-eng-r.pl-eng-un:hover,.pl-eng-r.pl-eng-un-on{background:#ffe8c7;box-shadow:0 0 0 2px rgba(240,179,90,.45)}
 .pl-eng-r.pl-eng-un .pl-eng-n{color:#8a4b00}
-/* plan179: reverted - project bars back to the rev -57 look */
+/* plan179: project bars - wider, with a white gap so neighbouring projects read as distinct */
+.pl-grid tr[data-e] td:first-child,.pl-grid tr.abl.pl-g-first td:first-child{box-shadow:inset 7px 0 var(--pc,#a8b7c7),inset 9px 0 #fff!important}
+.pl-br{box-shadow:inset 6px 0 var(--pc,#a8b7c7),inset 8px 0 #fff}
 /* plan180: delta flags in Save to GUS review */
 .pl-rv-ws tr.pl-ws-new td{background:#eefaf1}.pl-rv-ws tr.pl-ws-chg td{background:#fff8e6}.pl-rv-ws em.pl-rv-tag{font-style:normal;margin-left:6px}
 /* plan181: Open TFs tables - every column has an explicit width that fits its content, the subject takes the slack, nothing spills right */
