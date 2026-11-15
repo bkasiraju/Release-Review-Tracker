@@ -1,3 +1,8 @@
+## Unreleased on top of 4.0.0-GA (plan99) — Allocation naming
+
+- Allocation % legend and tooltips: Planned (ABL) is now "Prioritised (ABL)", Unplanned (BTL) is "Planned, Not Priority (BTL)", and Unallocated is "Unplanned".
+- Engineer bandwidth headers: "Prioritised (ABL)" and "Not Priority (BTL)" (full name on hover), columns widened to stay on one line.
+
 ## Unreleased on top of 4.0.0-GA (plan98) — Multi-select filters with search; flashing Clear filters
 
 - Release Planning filter bar: Release, ATL/BTL, Engineer and Theme are now multi-select dropdowns with a search box, Select all / Clear, and checkboxes. The button shows "All", the single choice, or "N selected".

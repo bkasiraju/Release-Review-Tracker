@@ -1026,3 +1026,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan97: on the local harness, editing one engineer Total to 40 gave Available 26 with the table order as specified; backend sanitiser accepts total (not unit-tested); not verified on live.
 
 - plan98: multi-select searchable filters + flashing Clear filters — checked on the local harness only (open, select, label, saved state, clear button class).
+
+- plan99: allocation renaming — label-only change, checked by source inspection and test run; not rendered live.
