@@ -78,7 +78,7 @@ function newEpicAt(btn){
   document.addEventListener('mousedown',away,true);document.addEventListener('keydown',key,true);n.focus();
 }
 // ── Export template / import (xlsx) ────────────────────────────────────────
-const IO_COLS=['Project (short form)','Measure name (project in GUS)','Epic Name','Workstream','Epic Owner(s)','Workstream Owner(s)','WS Est (days)','ATL/BTL','Sprint','Priority'];
+const IO_COLS=['Project (short form)','Measure name (project in GUS)','Epic Name','Workstream','Epic Owner(s)','Workstream Owner(s)','WS Est (days)','ATL/BTL','Sprint','Priority','Epic Est (days, calculated - ignored)','Epic Status','Planned Release','Theme','WS Status','Doc link','GUS epic (reference only)','HRP V2MOM method','CFS V2MOM'];
 const IO_ROWS=300;
 const projShort=p=>p.short||shortProj(p.name);
 function ioLists(){
@@ -92,9 +92,9 @@ function exportTemplate(){
     const p=prj.get(e.projectId)||{},names=(e.ownerNames&&e.ownerNames.length?e.ownerNames:(e.owners||[]).map(memName)).filter(Boolean);
     const ws=e.workstreams.length?e.workstreams:[null];
     ws.forEach((w,j)=>{const f=j===0,wn=w?(w.engNames&&w.engNames.length?w.engNames:wsEngs(w).map(memName)).filter(Boolean):[];
-      rows.push([projShort(p),p.name||'',e.name||'',w?w.name:'',f?names.join(', '):'',wn.join(', '),w&&w.days?w.days:'',w?wl(e,w):(f?e.line:''),w?w.sprint:'',f?'P'+(e.priority==null?0:e.priority):'']);});
+      rows.push([projShort(p),p.name||'',e.name||'',w?w.name:'',f?names.join(', '):'',wn.join(', '),w&&w.days?w.days:'',w?wl(e,w):(f?e.line:''),w?w.sprint:'',f?'P'+(e.priority==null?0:e.priority):'',f?epicDays(e):'',f?(e.status||''):'',f?(e.releaseName||(P.refs.releases.find(r=>r.id===e.releaseId)||{}).name||''):'',f?(e.theme||''):'',w?(w.status||''):'',f?(e.doc||''):'',f?(e.gusId||''):'',f?(e.hrp||''):'',f?(e.v2mom||''):'']);});
   }
-  const lcols=[['Projects',L.projects],['Engineers',L.eng],['ATL/BTL',L.line],['Priority',L.pri]];
+  const lcols=[['Projects',L.projects],['Engineers',L.eng],['ATL/BTL',L.line],['Priority',L.pri],['Status',L.status],['Releases',L.releases]];
   const lrows=[lcols.map(c=>c[0])],lh=Math.max(...lcols.map(c=>c[1].length));
   for(let i=0;i<lh;i++)lrows.push(lcols.map(c=>c[1][i]==null?'':c[1][i]));
   const rng=(c,n)=>`Lists!$${c}$2:$${c}$${Math.max(2,n+1)}`,last=Math.max(rows.length+IO_ROWS,IO_ROWS);
@@ -103,16 +103,16 @@ function exportTemplate(){
     ['Column','Expected value'],
     [IO_COLS[0],'Short form such as HRP M1.1.3. Pick from the list, or type a new one (then also fill Measure name).'],[IO_COLS[1],'Full measure / project name as in GUS. Required only for a new project.'],[IO_COLS[2],'Required.'],[IO_COLS[3],'Workstream / feature name. Leave empty for an epic without workstreams.'],
     [IO_COLS[4],'Engineer names exactly as on the Engineers list; separate several with commas.'],[IO_COLS[5],'Same as Epic Owner(s).'],[IO_COLS[6],'Days, a number of 0 or more. Epic Est is calculated by the dashboard from these, so it is not in the sheet (and is ignored if you add it).'],
-    [IO_COLS[7],'ABL (above the line, also accepted as ATL) or BTL. A BTL epic makes all its workstreams BTL. Only ABL work counts toward capacity and is saved to GUS.'],[IO_COLS[8],'Free text, e.g. a sprint name.'],[IO_COLS[9],'P0 to P5 (a plain number also works).'],
-    [''],['Epic Status and Planned Release are not part of the sheet: new epics get the default planned release, and existing epics keep theirs.'],
+    [IO_COLS[7],'ABL (above the line, also accepted as ATL) or BTL. A BTL epic makes all its workstreams BTL. Only ABL work counts toward capacity and is saved to GUS.'],[IO_COLS[8],'Free text, e.g. a sprint name.'],[IO_COLS[9],'P0 to P5 (a plain number also works).'],[IO_COLS[10],'Calculated by the dashboard from the WS Est values; shown for reference and ignored on import.'],[IO_COLS[11],'Optional: Planned, In Progress, Completed or On Hold. Blank keeps the current status.'],[IO_COLS[12],'Optional: a planned release name from the Releases list. Blank keeps the current release (new epics get the default).'],[IO_COLS[13],'Optional epic theme. Blank keeps the current one.'],[IO_COLS[14],'Optional workstream status (same values as Epic Status).'],[IO_COLS[15],'Optional link starting with http(s)://.'],[IO_COLS[16],'Reference only: the GUS epic this plan row is linked to. Ignored on import.'],[IO_COLS[17],'Optional free text.'],[IO_COLS[18],'Optional free text.'],
+    [''],['All optional columns can be left blank. Blank cells never overwrite what the plan already has for an existing epic.'],
     [''],['Importing merges into the plan: an epic that already exists (same project and name) has its fields updated and its workstreams replaced by the rows in the file; epics that are not in the file are left alone.']];
   const bytes=PlanIO.write({sheets:[
-    {name:'Plan',header:true,freeze:true,rows,widths:[16,34,34,30,28,28,12,10,16,10],validations:[
+    {name:'Plan',header:true,freeze:true,rows,widths:[16,34,34,30,28,28,12,10,16,10,16,14,16,16,14,30,22,18,18],validations:[
       V('A','A',L.projects.length,{title:'Project',prompt:'Pick a project short form, or type a new one.',error:'Not an existing project. A new project will be created if you also fill Measure name.',warn:true}),
       V('E','B',L.eng.length,{title:'Owners',prompt:'Engineer name; separate several with commas.',error:'Use engineer names from the Engineers list (comma-separated for several).',warn:true}),
       V('F','B',L.eng.length,{title:'Owners',prompt:'Engineer name; separate several with commas.',error:'Use engineer names from the Engineers list (comma-separated for several).',warn:true}),
-      V('H','C',2,{error:'Use ABL or BTL.'}),V('J','D',6,{error:'Use P0 to P5.'})]},
-    {name:'Lists',header:true,rows:lrows,widths:[28,28,10,10]},
+      V('H','C',2,{error:'Use ABL or BTL.'}),V('J','D',6,{error:'Use P0 to P5.'}),V('L','E',L.status.length,{warn:true,error:'Use Planned, In Progress, Completed or On Hold.'}),V('M','F',L.releases.length,{warn:true,error:'Not a known release name.'}),V('O','E',L.status.length,{warn:true,error:'Use Planned, In Progress, Completed or On Hold.'})]},
+    {name:'Lists',header:true,rows:lrows,widths:[28,28,10,10,14,24]},
     {name:'Instructions',header:true,rows:help,widths:[40,110],wrap:[1]}]});
   const a=document.createElement('a'),url=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
   a.href=url;a.download=`release-plan-${(H.team.short||H.team.Name||'team').replace(/[^\w.-]+/g,'-')}-${new Date().toISOString().slice(0,10)}.xlsx`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);
@@ -122,7 +122,7 @@ function checkImport(sheet){
   const pl=P.plan,issues=[],add=(sev,row,msg)=>issues.push({sev,row,msg});
   const norm=x=>String(x==null?'':x).replace(/\s+/g,' ').trim().toLowerCase();
   const strip=x=>norm(x).replace(/\s*\(.*?\)\s*/g,' ').replace(/\s+/g,' ').trim();
-  const ALIAS={proj:['project short form','project','short form'],pname:['measure name','measure','project name'],epic:['epic name','epic'],ws:['workstream','workstream name','feature'],eo:['epic owner','epic owners'],wo:['workstream owner','workstream owners','ws owner','ws owners'],days:['ws est','ws days','days','ws effort'],line:['atl/btl','abl/btl','atl btl','line'],sprint:['sprint'],pri:['priority']};
+  const ALIAS={proj:['project short form','project','short form'],pname:['measure name','measure','project name'],epic:['epic name','epic'],ws:['workstream','workstream name','feature'],eo:['epic owner','epic owners'],wo:['workstream owner','workstream owners','ws owner','ws owners'],days:['ws est','ws days','days','ws effort'],line:['atl/btl','abl/btl','atl btl','line'],sprint:['sprint'],pri:['priority'],stat:['epic status','status'],rel:['planned release','release'],theme:['theme'],wst:['ws status','workstream status'],doc:['doc link','doc'],hrp:['hrp v2mom method'],v2m:['cfs v2mom']};
   // The header row is the first row (within the top 15) that has an Epic Name column; rows above it (titles, notes) are ignored.
   let hr=0;for(let i=0;i<Math.min(sheet.length,15);i++){if((sheet[i]||[]).some(c=>ALIAS.epic.includes(strip(c)))){hr=i;break;}}
   const head=(sheet[hr]||[]).map(strip);
@@ -164,13 +164,18 @@ function checkImport(sheet){
     const ln=get(r,'line').toUpperCase();let rowLine='';if(ln){if(ln==='ABL'||ln==='ATL')rowLine='ABL';else if(ln==='BTL')rowLine='BTL';else add('error',row,`ATL/BTL: “${get(r,'line')}” is not valid (use ABL or BTL).`);if(rowLine&&!g.line)g.line=rowLine;}
     let rowPri=null;const pv=get(r,'pri');if(pv){const m=/^p?\s*(\d{1,4})$/i.exec(pv);if(m){rowPri=Number(m[1]);g.pri=g.pri==null?rowPri:Math.min(g.pri,rowPri);}else add('error',row,`Priority: “${pv}” is not valid (use P0 to P5).`);}
     const eo=get(r,'eo');if(eo){const o=names(eo,row,'Epic Owner(s)');if(o.ids.length){if(!g.eo)g.eo={ids:[],nm:[]};o.ids.forEach((id,k)=>{if(!g.eo.ids.includes(id)){g.eo.ids.push(id);g.eo.nm.push(o.nm[k]);}});}}
+    const sv=get(r,'stat');if(sv){const hit=STAT.find(x=>norm(x)===norm(sv));if(hit){if(!g.status)g.status=hit;}else add('error',row,`Epic Status: “${sv}” is not valid (use ${STAT.join(', ')}).`);}
+    const rv=get(r,'rel');if(rv&&!g.rel){const hit=P.refs.releases.find(x=>norm(x.name)===norm(rv));if(hit)g.rel=hit;else add('warn',row,`Planned Release: “${rv}” is not a known release; it is ignored.`);}
+    const dv=get(r,'doc');if(dv&&!g.doc){if(/^https?:\/\//i.test(dv))g.doc=dv;else add('warn',row,`Doc link: “${dv}” must start with http:// or https://; it is ignored.`);}
+    [['theme','theme'],['hrp','hrp'],['v2m','v2mom']].forEach(([k,f])=>{const v=get(r,k);if(v&&!g[f])g[f]=v.slice(0,80);});
+    let wsv='';const wv=get(r,'wst');if(wv){const hit=STAT.find(x=>norm(x)===norm(wv));if(hit)wsv=hit;else add('error',row,`WS Status: “${wv}” is not valid (use ${STAT.join(', ')}).`);}
     const wn=get(r,'ws'),wd=get(r,'days'),wo=get(r,'wo'),sp=get(r,'sprint');
     if(wn||wd||wo||sp){
       let d=0;if(wd!==''){d=Number(String(wd).replace(',','.').replace(/\s*d(ays?)?$/i,''));if(!isFinite(d)||d<0||d>5000){add('error',row,`WS Est: “${wd}” must be a number of days between 0 and 5000.`);d=0;}}
       if(!wn)add('warn',row,'Row has effort or owners but no Workstream name; it is imported as an unnamed workstream.');
       if(g.ws.some(x=>wn&&norm(x.name)===norm(wn)))add('warn',row,`Workstream “${wn}” appears twice in epic “${en}”.`);
       const o=names(wo,row,'Workstream Owner(s)');
-      g.ws.push({name:wn,days:d,pri:rowPri,line:rowLine,sprint:sp,ids:o.ids,nm:o.nm});
+      g.ws.push({name:wn,days:d,pri:rowPri,line:rowLine,sprint:sp,status:wsv,ids:o.ids,nm:o.nm});
     }
   }
   const epics=[...groups.values()];
@@ -191,9 +196,10 @@ function applyImport(res){
     let e=prev.find(x=>x.projectId===g.pr.id&&norm(x.name)===norm(g.name)&&!out.includes(x));
     if(!e){e=newEpic(g.pr.id);e.name=g.name;e.workstreams=[];}
     if(g.pri!=null)e.priority=g.pri;
+    if(g.status)e.status=g.status;if(g.rel){e.releaseId=g.rel.id;e.releaseName=g.rel.name;}if(g.theme)e.theme=g.theme;if(g.doc)e.doc=g.doc;if(g.hrp)e.hrp=g.hrp;if(g.v2mom)e.v2mom=g.v2mom;
     e.owners=g.eo?g.eo.ids:[];e.ownerNames=g.eo?g.eo.nm:[];
     const base=g.line||e.line,old=e.workstreams;
-    e.workstreams=g.ws.map(x=>{const o=old.find(w=>x.name&&norm(w.name)===norm(x.name));return Object.assign({},o||{},{id:o?o.id:uid('w'),name:x.name,priority:x.pri!=null?x.pri:(o?o.priority:0),days:x.days,line:x.line||base,sprint:x.sprint,engIds:x.ids,engNames:x.nm,engId:x.ids[0]||'',engName:x.nm[0]||''});});
+    e.workstreams=g.ws.map(x=>{const o=old.find(w=>x.name&&norm(w.name)===norm(x.name));return Object.assign({},o||{},{id:o?o.id:uid('w'),name:x.name,priority:x.pri!=null?x.pri:(o?o.priority:0),days:x.days,line:x.line||base,sprint:x.sprint,status:x.status||(o&&o.status)||'',engIds:x.ids,engNames:x.nm,engId:x.ids[0]||'',engName:x.nm[0]||''});});
     e.line=base;deriveLine(e);out.push(e);
   }
   pl.epics=out;
@@ -210,7 +216,7 @@ function openImport(file,opener){
     const sum=st.epics?`<p class="note">${st.epics} epic(s) and ${st.ws} workstream(s) in the file (${st.created} new, ${st.updated} matched to existing epics)${st.projects?` · ${st.projects} new project(s)`:''}${st.carried?` · ${st.carried} row(s) grouped under the epic above (blank Epic/Project cell)`:''}.</p><p class="pl-iss-bad">This is a clean import: ${st.removed} epic(s) currently in the plan that are not in the file will be removed${st.removedGus?` (${st.removedGus} already in GUS stay there; they are only dropped from this plan)`:''}.</p>`:'';
     const prev=res.epics.length?`<details class="pl-prev"><summary>Preview grouping (${res.epics.length} epics)</summary><ul class="pl-iss">${res.epics.slice(0,150).map(g=>`<li><b>${esc(projShort(g.pr))}</b> · ${esc(g.name)} <small>${g.line||'—'}${g.pri!=null?' · P'+g.pri:''}</small><ul>${g.ws.map(w=>`<li>${esc(w.name||'(unnamed)')} — ${fmt(w.days)}d${w.nm.length?' · '+esc(w.nm.join(', ')):''}${w.sprint?' · '+esc(w.sprint):''}</li>`).join('')||'<li>(no workstreams)</li>'}</ul></li>`).join('')}</ul></details>`:'';
     const el=openModal('Import release plan',`${sum}${errs.length?`<p class="pl-iss-bad">Fix ${errs.length} error(s) in the file and import again. Nothing was changed.</p>`:`<p class="pl-iss-ok">No errors found.${warns.length?' Review the warnings below, then import.':''}</p>`}${list(errs,'Errors')}${list(warns,'Warnings')}${prev}<div class="pl-iss-btns"><button type="button" class="button" data-close>${errs.length?'Close':'Cancel'}</button>${errs.length?'':'<button type="button" class="button primary" data-do-import>Replace plan with this file</button>'}</div>`,opener);
-    const go=el.querySelector('[data-do-import]');if(go)go.onclick=()=>{const bad=applyImport(res);closeModal();window.toast?.(bad.length?`Imported with ${bad.length} mismatch(es): ${bad.slice(0,3).join(', ')}. Check these epics.`:`Imported ${st.epics} epic(s) and ${st.ws} workstream(s); the plan now matches the file. Review it, then save to GUS when ready.`);};
+    const go=el.querySelector('[data-do-import]');if(go)go.onclick=()=>{const bad=applyImport(res);closeModal();P.state='dirty';window.toast?.(bad.length?`Imported with ${bad.length} mismatch(es): ${bad.slice(0,3).join(', ')}. Saving to the backend…`:`Imported ${st.epics} epic(s) and ${st.ws} workstream(s). Saving to the backend…`);flush().then(()=>window.toast?.(P.state==='saved'?`Imported ${st.epics} epic(s) and ${st.ws} workstream(s) and saved to the backend for the whole team.${bad.length?' Check the mismatched epics: '+bad.slice(0,3).join(', ')+'.':''}`:'Imported, but the plan could not be saved to the backend. Use Retry.',P.state!=='saved'));};
   }).catch(err=>openModal('Import release plan',`<p class="pl-iss-bad">${esc(err&&err.message||'The file could not be read.')}</p><div class="pl-iss-btns"><button type="button" class="button" data-close>Close</button></div>`,opener));
 }
 // Inline confirmation popover, shown just above the button that was clicked.

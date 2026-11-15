@@ -1,3 +1,9 @@
+## Unreleased on top of 4.0.0-GA (plan89) — Full template and auto-save on import
+
+- The exported template now carries every plan field as a column: the original ten plus Epic Est (calculated, ignored), Epic Status, Planned Release, Theme, WS Status, Doc link, GUS epic (reference only), HRP V2MOM method and CFS V2MOM. The new columns are optional; blank cells never overwrite what an existing epic already has. Lists gained Status and Releases, with dropdowns on Epic Status, Planned Release and WS Status.
+- Import reads those optional columns (first value per epic wins; invalid status is an error, unknown release or non-http doc link is a warning and is ignored).
+- After "Replace plan with this file" the plan is saved to the backend automatically (same save as the Save button) and the toast says whether it succeeded.
+
 ## Unreleased on top of 4.0.0-GA (plan88) — Dashboard-building loader
 
 - The loading screen replaces the avatar ring with a dashboard assembling (bars rising, an amber trend line drawing), rotating status lines, a progress sweep, and a scrolling strip of every team member across MAPS, MQ, VegaCache, VegaStore and Caching Services.

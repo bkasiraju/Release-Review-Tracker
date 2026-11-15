@@ -1008,3 +1008,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan87: header rename + widths; not screenshotted; not verified on live.
 
 - plan88: chart animation screenshotted on the local harness; avatar strip not seen populated in a screenshot; not verified on live.
+
+- plan89: import with Status/Theme/WS Status/Doc columns on the local harness saved the plan ("Saved hh:mm"); template download with all columns and dropdowns not opened in Excel; not verified on live.
