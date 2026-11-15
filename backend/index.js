@@ -72,6 +72,9 @@ async function handleRequest(ctx){
       case 'post-slack':payload=await post.slackTarget(sf,ctx.slack,b.userId);break;
       case 'post-chatter':payload=await post.postChatter(sf,b);break;
       case 'hub-teams':payload=await hub.getTeams(sf);break;
+      case 'sal-list':payload=await require('./actions').list(store,b.teamId);break;
+      case 'sal-save':payload=await require('./actions').save(store,sf,b.teamId,b);break;
+      case 'sal-resolve':payload=await require('./actions').resolve(store,b.teamId,b);break;
       case 'hub-members':payload=await hub.getMembers(sf,b.teamId);break;
       case 'hub-home':payload=await hub.getHome(sf,b.teamId);break;
       case 'hub-bugs':payload=await hub.getBugs(sf,b.teamId,b);break;

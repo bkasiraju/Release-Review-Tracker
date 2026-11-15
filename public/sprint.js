@@ -61,10 +61,11 @@ const planChip=i=>i.itemStatus==='Added'?'<span class="sp-chip add">Added</span>
 const whoSelect=i=>`<select class="hub-inline who" data-edit="ADM_Work__c" data-type="ref" data-id="${esc(i.id)}" data-field="Assignee__c" data-prev="${esc(i.assigneeId||'')}" data-label="${esc(i.name)} assignee" aria-label="Assignee of ${esc(i.name)}"><option value="">Unassigned</option>${S.mem.map(m=>`<option value="${esc(m.id)}"${m.id===i.assigneeId?' selected':''}>${esc(m.name)}</option>`).join('')}${i.assigneeId&&!S.mem.some(m=>m.id===i.assigneeId)?`<option value="${esc(i.assigneeId)}" selected>${esc((S.members.find(m=>m.items.includes(i))||{}).name||'Assigned')}</option>`:''}</select>`;
 const statusSelect=i=>`<select class="hub-inline ${stCls(i.status)}" data-edit="ADM_Work__c" data-id="${esc(i.id)}" data-field="Status__c" data-prev="${esc(i.status)}" data-label="${esc(i.name)} status" aria-label="Status of ${esc(i.name)}">${window.Hub.options(S.pick?S.pick.workStatus:[],i.status)}</select>`;
 const ptsInput=i=>`<input class="hub-inline num" type="number" min="0" step="0.5" data-edit="ADM_Work__c" data-type="num" data-id="${esc(i.id)}" data-field="Story_Points__c" data-prev="${i.storyPoints==null?'':esc(i.storyPoints)}" data-label="${esc(i.name)} points" aria-label="Story points of ${esc(i.name)}" value="${i.storyPoints==null?'':esc(i.storyPoints)}">`;
+const salBtn=i=>window.SAL?window.SAL.btn(i):'';
 function itemRow(i,who){
   const flag=i.itemStatus==='Added'?'<span class="sp-chip add">Added</span>':i.itemStatus==='Removed'?'<span class="sp-chip rem">Removed</span>':'';
   const changed=i.ptsChanged?`<span class="sp-chip chg" title="Forecast ${esc(i.forecastPts)} pts, now ${esc(i.storyPoints)} pts">pts changed</span>`:'';
-  return `<tr class="${i.itemStatus==='Removed'?'sp-removed':''}"><td><a href="${GUS_WORK}${esc(i.id)}/view" target="_blank" rel="noopener noreferrer">${esc(i.name)}</a></td><td class="sp-subject" title="${esc(i.subject)}${i.epic?esc('\n\nEpic: '+i.epic):''}"><span class="sp-clip">${esc(i.subject)}</span>${who?`<span class="sp-tags">${itemTags(i)}</span>`:`${flag}${changed}`}</td><td class="sp-epic-cell" title="${esc(i.epic)}">${i.epicId?`<a href="${EPIC(esc(i.epicId))}" target="_blank" rel="noopener noreferrer">${esc(i.epic)}</a>`:'<span class="muted">—</span>'}</td><td class="sp-type">${esc(i.recordType)}</td>${who?`<td class="sp-qa-cell">${qaCell(i)}</td>`:''}<td>${statusSelect(i)}</td><td class="num">${planCell(i)}</td><td class="num">${ptsInput(i)}</td><td class="num">${churnCell(i)}</td></tr>`;
+  return `<tr class="${i.itemStatus==='Removed'?'sp-removed':''}"><td><a href="${GUS_WORK}${esc(i.id)}/view" target="_blank" rel="noopener noreferrer">${esc(i.name)}</a>${salBtn(i)}</td><td class="sp-subject" title="${esc(i.subject)}${i.epic?esc('\n\nEpic: '+i.epic):''}"><span class="sp-clip">${esc(i.subject)}</span>${who?`<span class="sp-tags">${itemTags(i)}</span>`:`${flag}${changed}`}</td><td class="sp-epic-cell" title="${esc(i.epic)}">${i.epicId?`<a href="${EPIC(esc(i.epicId))}" target="_blank" rel="noopener noreferrer">${esc(i.epic)}</a>`:'<span class="muted">—</span>'}</td><td class="sp-type">${esc(i.recordType)}</td>${who?`<td class="sp-qa-cell">${qaCell(i)}</td>`:''}<td>${statusSelect(i)}</td><td class="num">${planCell(i)}</td><td class="num">${ptsInput(i)}</td><td class="num">${churnCell(i)}</td></tr>`;
 }
 const SORTS={name:i=>i.name,subject:i=>i.subject,epic:i=>i.epic,recordType:i=>i.recordType,status:i=>i.status,forecast:i=>i.forecastPts,pts:i=>i.storyPoints,churn:churnOf};
 function sortRows(rows){
@@ -264,7 +265,7 @@ function renderStandup(){
   ${epicCards(items,'Epics for '+m.name+'’s sprint work',(items.find(i=>i.assigneeId)||{}).assigneeId)}
   <div class="sp-sec-row su-sec-row"><h4 class="sp-sec">Work items <span class="count-pill">${epicFilter(items).length<items.length?`${epicFilter(items).length} of ${items.length}`:items.length}</span></h4>${typeChips(items)}</div>
   <div class="su-cols" aria-hidden="true"><span>#</span><span>Work</span><span>Subject / Epic</span><span>QA</span><span>Status</span><span class="num pl">Planned</span><span class="num ac">Actual</span><span class="num">Churn</span></div>
-  <ol class="su-items">${epicFilter(items).map(i=>`<li class="${isClosed(i)?'done':''}"><span class="su-no"></span><a href="${GUS_WORK}${esc(i.id)}/view" target="_blank" rel="noopener noreferrer">${esc(i.name)}</a><span class="su-subject" title="${esc(i.subject)}${i.epic?esc('\n\nEpic: '+i.epic):''}">${esc(i.subject)}${i.epic?` <span class="sp-chip">${esc(i.epic)}</span>`:''} <span class="sp-tags">${itemTags(i)}</span></span>${qaCell(i)}${statusSelect(i)}<span class="num">${planCell(i)}</span>${ptsInput(i)}<span class="num">${churnCell(i)}</span></li>`).join('')}</ol></div>`:'<p class="su-hint0">Select an engineer above to see their epics and work items.</p>'}</div></section>`;
+  <ol class="su-items">${epicFilter(items).map(i=>`<li class="${isClosed(i)?'done':''}"><span class="su-no"></span><a href="${GUS_WORK}${esc(i.id)}/view" target="_blank" rel="noopener noreferrer">${esc(i.name)}</a>${salBtn(i)}<span class="su-subject" title="${esc(i.subject)}${i.epic?esc('\n\nEpic: '+i.epic):''}">${esc(i.subject)}${i.epic?` <span class="sp-chip">${esc(i.epic)}</span>`:''} <span class="sp-tags">${itemTags(i)}</span></span>${qaCell(i)}${statusSelect(i)}<span class="num">${planCell(i)}</span>${ptsInput(i)}<span class="num">${churnCell(i)}</span></li>`).join('')}</ol></div>`:'<p class="su-hint0">Select an engineer above to see their epics and work items.</p>'}</div></section>`;
 }
 function bindStandup(){
   const stepClick=e=>{const t=e.target.closest('[data-su],[data-su-step]');if(!t)return;S.standupIdx=t.dataset.su!=null?Number(t.dataset.su):S.standupIdx+Number(t.dataset.suStep);S.types.clear();S.epic=null;renderStandup();};
@@ -288,7 +289,7 @@ async function loadTeam(teamId){
     const d=await call('sprint-initial',{teamId});if(my!==S.seq)return;
     fill($('sp-sprint'),d.sprints,d.defaultSprintId,s=>s.Name);S.sprintId=d.defaultSprintId||'';S.defaultSprintId=d.defaultSprintId||'';
     if(d.sprint)applyData(d);else{S.sprint=null;renderGoal();renderMetrics();renderMembers();}
-    busy(false);void loadHistory();
+    busy(false);void loadHistory();window.SAL&&window.SAL.load();
   }catch(e){if(my!==S.seq)return;busy(false,'');window.toast?.('Sprint Insights: '+e.message,true);$('sp-members').innerHTML=`<div class="empty-state sp-empty"><h3>Could not load sprint data</h3><p>${esc(e.message)}</p></div>`;}
 }
 async function loadSprint(sprintId){
@@ -336,7 +337,7 @@ function bind(){
   $('sp-members').addEventListener('click',e=>{const t=e.target.closest('[data-toggle]');if(!t)return;const n=t.dataset.toggle;S.open.has(n)?S.open.delete(n):S.open.add(n);renderMembers();});
   document.querySelectorAll('[data-sp-tab]').forEach(b=>b.onclick=()=>{S.tab=b.dataset.spTab;document.querySelectorAll('[data-sp-tab]').forEach(x=>{const on=x===b;x.classList.toggle('selected',on);x.setAttribute('aria-pressed',String(on));});renderChart();});
 }
-window.SprintInsights={show};
+window.SprintInsights={show,ctx:()=>({teamId:S.teamId,sprintId:S.sprintId,sprintName:sprintCtx().cur,mem:S.mem||[],members:S.members})};
 bind();bindStandup();bindModal();
 $('sp-standup').addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('[data-epic]')){e.preventDefault();e.target.click();}});
 // Escape peels one level per press: popup → epic filter → search → sort → expanded cards

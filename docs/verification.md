@@ -1071,3 +1071,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan119: harness — all six summary sections collapsed on first open, board expands on click; loader chip timing changed, not timed on a real slow load.
 
 - plan120: harness — standup opens with 0 active pills and a hint; clicking a pill selects one; type chips single-select (1 on). Live not checked.
+
+- plan121: harness — action modal saved an item, badge 1, log table 1 row, summary header/reply generated, Slack follow-up icon present; plan header merged into one row (screenshot). tests/actions.test.js added. Live store write and Slack follow-up not checked.

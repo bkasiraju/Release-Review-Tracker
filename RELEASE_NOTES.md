@@ -1,3 +1,11 @@
+## Unreleased on top of 4.0.0-GA (plan121) — Sprint Action Log; cleaner Release Planning header
+
+- Sprints: a small notepad icon after every W-ID (Pulse table, engineer full-screen view and Standup list) opens a small modal to capture the W-ID, assignee, action owner (any member of the selected team, defaulting to the assignee), action item details, ETA (date picker) and priority (Critical/High/Medium/Low). A red dot on the icon marks work items that already have open action items.
+- New "Action Log" button on the Sprints header (with an open-count badge) opens a full-screen log of the team's action items: Open / Resolved / All filter, owner filter (team members only), mark resolved / reopen, and a Slack follow-up icon per open item that reuses the existing Nudge modal (Slack DM prepare + GUS Chatter).
+- "Daily Slack summary" in the log builds the thread: header "🧵 <Team> - <Sprint> - Action Items Summary - <Date>" and one reply listing every open item grouped by owner with ETA and priority (overdue flagged). Copy header / Copy reply / Copy both. The app cannot post to a Slack channel itself (its Slack connector only does identity lookup), so the thread is pasted into Slack by hand.
+- Storage: one shared record per team (`actions`) in the same GUS Apps store as plans; the owner is validated against the team's members server-side.
+- Release Planning: the description paragraph, separate heading row and breadcrumb are gone. Tabs, planning window and the Team / Leaves & on-call / Save / Review & save controls now share one row; save state is shortened to "Saving…" / "✓ Saved hh:mm".
+
 ## Unreleased on top of 4.0.0-GA (plan120) — Standup starts with no engineer selected; type chips are independent
 
 - Sprints → Standup: no engineer is selected on first view. Pick an engineer (pill, dot, Next or arrow key) and that engineer is highlighted and their epics and work items appear below. Shuffle also returns to the unselected state.

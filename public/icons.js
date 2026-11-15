@@ -33,6 +33,7 @@
   bolt:'<path d="M13 2 4 14h7l-1 8 9-12h-7Z"/>',
   sprint:'<path d="M4 20 20 4M14 4h6v6M4 12v8h8"/>',
   users:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14a6 6 0 0 1 3.5 6"/>',
+  notepad:'<rect x="5" y="4" width="14" height="17" rx="2.5"/><path d="M9 2v4M15 2v4M8.500 10h7M8.500 14h7M8.500 17.500h4"/>',
   clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/>',
   database:'<ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v7c0 4 16 4 16 0V5M4 12v7c0 4 16 4 16 0v-7"/>'
  };

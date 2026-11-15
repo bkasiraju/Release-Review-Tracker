@@ -1138,3 +1138,37 @@ body[data-hub=plan] .pl-kpi .pl-chip{background:color-mix(in srgb,var(--k) 12%,#
 
 /* plan120 */
 .su-hint0{margin:18px 20px;padding:18px;border:1px dashed #cfd8e0;border-radius:12px;color:#6b7280;text-align:center;font-size:13px}
+
+/* plan121: Sprint Action Log */
+.sal-btn{display:inline-grid;place-items:center;margin-left:6px;padding:0;border:0;background:none;cursor:pointer;vertical-align:middle;border-radius:8px;position:relative}
+.sal-btn .cfs-icon{width:20px;height:20px;border-radius:6px;box-shadow:0 2px 5px #0003,inset 0 1px 0 #fff8;transition:transform .12s}
+.sal-btn:hover .cfs-icon,.sal-btn:focus-visible .cfs-icon{transform:translateY(-1px) scale(1.12)}.sal-btn:focus-visible{outline:2px solid #176b91;outline-offset:2px}
+.sal-btn.has::after{content:"";position:absolute;right:-2px;top:-2px;width:8px;height:8px;border-radius:50%;background:#ba0517;border:1.5px solid #fff}
+#sal-open .cfs-icon{width:22px;height:22px;border-radius:7px}.sal-count{min-width:18px;padding:0 5px;margin-left:4px;border-radius:9px;background:#ba0517;color:#fff;font-size:11px;line-height:18px;text-align:center}
+.sal-sub{margin:4px 0 0;color:#6b7280;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sal-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}.sal-grid .hub-inline{width:100%;box-sizing:border-box}
+.sal-ro{padding:6px 8px;border:1px solid #e3e8ee;border-radius:6px;background:#f6f8fa;font-size:13px;min-height:18px}
+.sal-ov{z-index:1600}
+.sal-full{position:fixed;inset:0;z-index:1500;background:#fff;display:flex;flex-direction:column}
+.sal-card{display:flex;flex-direction:column;height:100%}
+.sal-head{display:flex;align-items:center;justify-content:space-between;padding:14px 22px;border-bottom:1px solid #e6ecf1}
+.sal-head h2{margin:0;font-size:20px;display:flex;align-items:center;gap:10px}.sal-head h2 small{font-size:13px;color:#6b7280;font-weight:500}.sal-head .cfs-icon{width:30px;height:30px;border-radius:9px}
+.sal-body{flex:1;overflow:auto;padding:14px 22px 28px}
+.sal-tools{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:12px}.sal-grow{flex:1}.sal-own-l{font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px}
+.sal-sum{margin:0 0 14px;padding:12px 16px;border:1px solid #e3e8ee;border-radius:12px;background:#fbfcfd}.sal-sum h3{margin:0 0 4px;font-size:15px}
+.sal-pre{margin:0;padding:10px 12px;border:1px solid #e3e8ee;border-radius:8px;background:#fff;white-space:pre-wrap;font:12px/1.5 ui-monospace,Menlo,monospace;max-height:260px;overflow:auto}
+.sal-table{width:100%;border-collapse:collapse;font-size:13px}.sal-table th{text-align:left;padding:8px 10px;border-bottom:1px solid #e3e8ee;font-size:12px;text-transform:none;color:#374151}
+.sal-table td{padding:9px 10px;border-bottom:1px solid #eef2f5;vertical-align:top}.sal-subj{max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sal-det{min-width:260px;white-space:pre-wrap}
+.sal-done td{opacity:.6}.sal-done .sal-det{text-decoration:line-through}.sal-late{color:#ba0517;font-weight:600}.sal-late small{font-weight:500}
+.sal-who{display:inline-flex;align-items:center;gap:6px}.sal-pri{white-space:nowrap;font-weight:600;font-size:12px}
+.sal-acts{white-space:nowrap}.sal-ic{width:30px;height:30px;margin-right:6px;border:1px solid #d8dde6;border-radius:8px;background:#fff;cursor:pointer;display:inline-grid;place-items:center;padding:0}
+.sal-ic svg{width:16px;height:16px;fill:none;stroke:#176b91;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.sal-ic.ok svg{stroke:#2e844a}.sal-ic:hover{background:#f1f6f9}.sal-ic:disabled{opacity:.5}
+
+/* plan121: Release Planning header on one clean row (tabs, window, then controls on the right) */
+body[data-hub=plan] .pl-tabs{gap:6px 10px!important;margin:0 0 8px!important;padding:0 0 8px!important}
+body[data-hub=plan] .pl-tabs .pl-dates{margin-left:6px!important}
+body[data-hub=plan] .pl-tabs>.heading-actions{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+body[data-hub=plan] .pl-tabs>.heading-actions button.button{border-bottom:1px solid #c9d3dd!important;margin-bottom:0!important;height:30px;margin:0;padding:0 12px;font-size:12px;display:inline-flex;align-items:center;gap:6px}
+body[data-hub=plan] .pl-tabs>.heading-actions .pl-state{min-width:0;font-size:11.5px;color:#6b7280}
+body[data-hub=plan] .pl-tabs>.heading-actions #pl-team{height:30px;min-width:120px;font-size:12px}
+body[data-hub=plan] .page-heading{display:none!important}
