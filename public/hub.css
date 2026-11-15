@@ -1387,3 +1387,12 @@ main>.dashboard-footer>*:not(:first-child)::before{content:'·';position:absolut
 /* plan143: Pulse and Standup keep the toolbar buttons in the same place, with padding clear of the rule above */
 .heading-actions:has(#sp-end){padding-top:8px;align-items:center}
 #sp-sprintbar{margin:10px 0}
+/* plan144: Sprints — description left, button group right on ONE line (both views); tighter vertical spacing */
+.executive-heading:has(#sp-end){display:flex;flex-wrap:nowrap;align-items:center;justify-content:space-between;gap:12px;margin-bottom:4px}
+.executive-heading:has(#sp-end)>div:first-child{flex:1 1 auto;min-width:0}
+.executive-heading:has(#sp-end) p{margin:0}
+.heading-actions:has(#sp-end){flex:0 0 auto;width:auto;padding-top:0;margin-left:auto;flex-wrap:nowrap}
+.heading-actions:has(#sp-end) .sp-tabs{margin-left:0}
+#sp-sprintbar{margin:6px 0}
+main .gus-links{margin:0 0 6px}
+@media(max-width:1100px){.executive-heading:has(#sp-end){flex-wrap:wrap}.heading-actions:has(#sp-end){flex-wrap:wrap}}
