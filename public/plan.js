@@ -483,6 +483,12 @@ function drawPlanner(){
   el.innerHTML=`<datalist id="pl-projects">${P.refs.projects.map(p=>`<option value="${esc(p.name)}"></option>`).join('')}</datalist><datalist id="pl-sprints">${P.refs.sprints.map(s=>`<option value="${esc(s.name)}"></option>`).join('')}</datalist>`+
     (!pl.projects.length?'<div class="empty-state hub-empty"><h3>No projects yet</h3><p>Add a project, then epics and workstreams with effort in days.</p></div>'
      :gridHtml());
+  hoistTools();
+}
+// The grid action buttons (+ Epic, + Project, Projects, Columns) live on the filter bar's right so everything sits on one line.
+function hoistTools(){
+  const box=P.el.querySelector('#pl-tools'),gt=P.el.querySelector('#pl-planner .pl-grid-tools');if(!box)return;
+  box.querySelectorAll(':scope > .pl-grid-tools').forEach(x=>{if(x!==gt)x.remove();});if(gt)box.appendChild(gt);
 }
 const wire=()=>P.el.querySelectorAll('#pl-planner select').forEach(s=>H.customSelect(s));
 function drawTools(){
@@ -492,10 +498,12 @@ function drawTools(){
   const mfLabel=(k,list)=>{const sel=V[k];if(!sel.length)return 'All';const nm=v=>(list.find(x=>x[0]===v)||[v,v])[1];return sel.length===1?nm(sel[0]):sel.length+' selected';};
   const sel=(k,label,list)=>`<div class="pl-tf pl-mf${V[k].length?' on':''}" data-mf="${k}"><span>${label}</span><button type="button" class="pl-mf-btn" aria-haspopup="true" aria-expanded="false" aria-label="${label} filter"><b>${esc(mfLabel(k,list))}</b><i aria-hidden="true">▾</i></button><div class="pl-mf-pop" hidden><input type="search" class="hub-inline" placeholder="Search ${label.toLowerCase()}…" aria-label="Search ${label}"><div class="pl-mf-acts"><button type="button" data-mf-all>Select all</button><button type="button" data-mf-none>Clear</button></div><ul>${list.map(([v,l])=>`<li data-t="${esc(String(l).toLowerCase())}"><label><input type="checkbox" value="${esc(v)}"${V[k].includes(v)?' checked':''}> <span>${esc(l)}</span></label></li>`).join('')||'<li class="note">Nothing to filter yet</li>'}</ul></div></div>`;
   const rels=[...new Map(pl.epics.filter(e=>e.releaseId).map(e=>[e.releaseId,e.releaseName||(P.refs.releases.find(r=>r.id===e.releaseId)||{}).name||e.releaseId])).entries()];
+  const keepGt=box.querySelector(':scope > .pl-grid-tools');
   box.innerHTML=`<label class="pl-tf pl-q"><span>Search</span><input type="search" class="hub-inline" data-v="q" placeholder="Epic, workstream or project…" aria-label="Search epics" value="${esc(V.q)}"></label>`+
     sel('release','Release',rels)+sel('line','ATL/BTL',[['ABL','ABL'],['BTL','BTL']])+sel('eng','Engineer',engs.map(m=>[m.id,m.name]))+sel('theme','Theme',themes.map(t=>[t,t]))+
     `<label class="pl-tf"><span>Group by</span><select class="sp-select" data-v="group" aria-label="Group by">${[['project','Project'],['release','Planned release'],['line','ABL / BTL'],['theme','Theme']].map(([v,l])=>opt(v,l,V.group===v)).join('')}</select></label>`+
     `<button type="button" class="button small pl-clear${filtersOn(V)?' pl-clear-on':''}" data-clear-view${filtersOn(V)?'':' disabled'}>Clear filters</button><span class="note pl-count" id="pl-count"></span>`;
+  if(keepGt)box.appendChild(keepGt);
   box.querySelectorAll('select').forEach(x=>H.customSelect(x));
   const lists={};MF.forEach(k=>{const w=box.querySelector(`[data-mf=${k}]`);if(w)lists[k]=[...w.querySelectorAll('li input')].map(i=>[i.value,i.nextElementSibling.textContent]);});
   const refresh=w=>{const k=w.dataset.mf;w.classList.toggle('on',V[k].length>0);w.querySelector('.pl-mf-btn b').textContent=mfLabel(k,lists[k]||[]);const c=box.querySelector('[data-clear-view]');if(c){const on=filtersOn(V);c.disabled=!on;c.classList.toggle('pl-clear-on',on);}drawPlanner();wire();};

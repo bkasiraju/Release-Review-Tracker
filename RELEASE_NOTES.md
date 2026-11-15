@@ -47,7 +47,8 @@ Designated by the user as the best working state and rollback baseline (previous
 - Release Planning: every field in the New project / New epic popup (Project, Epic name, Planned release, ATL/BTL, Short form) now spans the full popup width.
 - Release Planning: the New project / New epic popups are restructured: a titled header, bordered 36px fields with a focus ring (epic: name on top, Project / Planned release / ATL-BTL in one row), and a bordered footer with Cancel and Add.
 - Test Failures: the Status dropdown in the Open TFs tables no longer clips; columns have fixed widths (ID, Assignee, Found in, Scheduled, Age, Status) and Subject takes the remaining space.
-- Folded into the same version at the user's request (revision 20261115-46); the first 5.0.0-GA snapshot is kept at `releases/5.0.0-GA-original/` and tag `GOLDEN-BUILD-5.0.0-GA-original`.
+- Release Planning: the filter bar and the grid actions are one line - Search and the Release / ATL-BTL / Engineer / Theme / Group by filters, Clear and the epic count on the left; + Epic, + Project, Projects and Columns grouped on the right.
+- Folded into the same version at the user's request (revision 20261115-47); the first 5.0.0-GA snapshot is kept at `releases/5.0.0-GA-original/` and tag `GOLDEN-BUILD-5.0.0-GA-original`.
 - Rollback: `releases/5.0.0-GA/` ZIP (SHA-256 in `build.json`), tag `GOLDEN-BUILD-5.0.0-GA`.
 - Verification: unit tests 225 pass / 38 fail (same as baseline); UI changes not render-verified in a signed-in browser.
 

@@ -1546,3 +1546,13 @@ button.bt-p{font:inherit;border:0;cursor:pointer}button.bt-p:hover{filter:bright
 .tf-table td{overflow:hidden;text-overflow:ellipsis}
 .tf-table td:nth-child(2){white-space:normal}
 .tf-table td select.hub-inline{width:100%;min-width:0;box-sizing:border-box;text-overflow:ellipsis}
+/* plan171: filters left, grid actions right, all on one line */
+body[data-hub=plan] .pl-tools{flex-wrap:nowrap!important;align-items:flex-end!important;gap:8px!important}
+body[data-hub=plan] .pl-tools .pl-q{flex:1 1 180px!important;min-width:140px}
+body[data-hub=plan] .pl-tools .pl-q input{min-width:0!important}
+body[data-hub=plan] .pl-tools .pl-tf{flex:0 0 auto}body[data-hub=plan] .pl-tools .pl-tf .cs,body[data-hub=plan] .pl-tools .pl-tf select,body[data-hub=plan] .pl-tools .pl-mf-btn{min-width:104px!important}
+body[data-hub=plan] .pl-tools .pl-count{white-space:nowrap;align-self:center;margin:0 4px}
+body[data-hub=plan] .pl-tools .pl-grid-tools{margin:0 0 0 auto!important;padding-left:12px;border-left:1px solid #d8e2ec;flex-wrap:nowrap!important;flex:0 0 auto;gap:8px}
+body[data-hub=plan] .pl-tools .pl-grid-tools .pl-tl{display:inline-flex;gap:8px}
+body[data-hub=plan] .pl-tools .pl-clear{white-space:nowrap;align-self:flex-end}
+@media(max-width:1280px){body[data-hub=plan] .pl-tools{flex-wrap:wrap!important}}
