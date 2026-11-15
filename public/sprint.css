@@ -170,3 +170,7 @@ th.pl,.su-cols .pl{color:#1e6b34!important}th.ac,.su-cols .ac{color:#3682b9!impo
 .sp-items input.hub-inline.num,.su-items input.hub-inline.num{background:#f4f8fb;border-color:#cddde9;color:#29638c;font-weight:700;text-align:center;border-radius:999px;max-width:64px}
 .pill-chips{display:inline-flex;align-items:center;gap:4px}.pill-chips i{font-style:normal;font-weight:700;padding:0 6px;font-size:10px}
 .su-member-head p{margin:0}
+/* plan135: standup work-item rows keep one cell per column (the SAL button used to push every cell one column right) */
+.su-items .su-wk{display:flex;align-items:center;gap:6px;min-width:0}.su-items .su-wk>a{font-weight:600;color:#176b91;text-decoration:none;white-space:nowrap}.su-items .su-wk>a:hover{text-decoration:underline}
+.su-card .su-items li{padding:9px 0}.su-items select.hub-inline{width:100%;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.su-items li>.su-no,.su-items li>.num{justify-self:start}.su-items li>.num{justify-self:end}.su-items input.hub-inline.num{justify-self:end;width:56px}

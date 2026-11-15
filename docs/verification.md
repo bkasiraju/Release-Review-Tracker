@@ -1089,3 +1089,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan133: Hourglass team selector removed (top-level team drives it), trend restyled, sections reordered to the original report. Verified with unit tests and a local headless render only; not live-verified.
 
 - plan134: side-bar icons replaced with inline SVG dimensional icons. Verified with unit tests and a local headless render only; not live-verified.
+
+- plan135: standup rows realigned (SAL button moved into the Work cell). Verified by unit tests and code inspection of the 8-column grid only; no live or rendered check because the local harness has no sprint data.

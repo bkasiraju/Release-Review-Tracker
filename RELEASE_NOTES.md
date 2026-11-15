@@ -1,3 +1,7 @@
+## Unreleased on top of 4.0.0-GA (plan135) — Sprint standup work-item rows realigned
+
+- Fixed the standup member view where every cell sat one column to the right of its header (subject under QA, status under Planned, churn wrapping onto a second line). The SAL button was a stray extra grid cell; it now sits inside the Work cell. Status pills no longer wrap, and the numeric cells are right-aligned under their headers.
+
 ## Unreleased on top of 4.0.0-GA (plan134) — dimensional side-bar icons
 
 - Replaced the basic side-bar glyph tiles with purpose-drawn dimensional icons named for each page: house (Home), rocket (Sprints), node graph (Dependencies), flask (Tests), shield (Trust Champion), bug (Bugs), hourglass (Hourglass), package with check (Review), roadmap calendar (Planning), target with arrow (V2MOM) and database (Sources). Inline SVG with extruded edge, gloss and shadow; no image assets. Other icons in the app are unchanged.
