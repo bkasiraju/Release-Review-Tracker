@@ -1026,3 +1026,10 @@ main>*{min-width:0;max-width:100%}
 .dashboard-bar>*{min-width:0;max-width:100%}
 .dashboard-bar .release-toolbar{flex-wrap:wrap;justify-content:flex-end;flex:0 1 auto}
 .dashboard-bar .hub-nav{flex:1 1 auto;flex-wrap:wrap}
+/* plan109: team selector, connection state and header buttons sit at the far right of the top bar */
+.topbar{display:flex;align-items:center}
+.topbar-right{margin-left:auto;flex:0 0 auto;justify-content:flex-end}
+
+/* plan109: every row carries its project's colour on the left bar (ABL/BTL stays in its own column) */
+.pl-grid tr[data-e] td:first-child,.pl-grid tr.abl.pl-g-first td:first-child{box-shadow:inset 5px 0 var(--pc,#a8b7c7)!important}
+.topbar{padding-right:28px!important}

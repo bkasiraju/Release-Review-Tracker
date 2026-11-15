@@ -1,3 +1,8 @@
+## Unreleased on top of 4.0.0-GA (plan109) — Project colours, top bar to the far right
+
+- Release Planning: each measure/project gets its own colour for the bar on the left of its rows (14-colour palette, by the project's order in the plan), so projects are easy to tell apart. ABL/BTL remains in its own column.
+- The top bar's Team selector, connection status and buttons now sit at the extreme right (a leftover 150px gutter reserved for a button that no longer exists was removed).
+
 ## Unreleased on top of 4.0.0-GA (plan108) — No more sideways page overflow
 
 - Fix: on Release Review (and Status) the Release / Review Month / Lists / Refresh toolbar was pushed past the right edge, making the whole page scroll sideways and shoving the header out of view. The dashboard bar now wraps, and the page content can no longer widen the page (wide tables keep scrolling inside their own containers).

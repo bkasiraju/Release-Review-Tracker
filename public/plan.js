@@ -268,6 +268,9 @@ const epicTheme=e=>e.theme||themeOf((P.plan.projects.find(p=>p.id===e.projectId)
 const STAT=['Planned','In Progress','Completed','On Hold'];
 const statOpts=v=>`<option value="">Status</option>`+STAT.map(x=>`<option value="${x}"${x===v?' selected':''}>${x}</option>`).join('');
 const docOk=u=>/^https?:\/\//i.test(u||'');
+/** One distinct colour per project (by its order in the plan), used for the left bar of its rows. */
+const PROJ_PAL=['#1b73b3','#e8890c','#12a150','#9333ea','#e11d74','#0891b2','#c2410c','#4f46e5','#65a30d','#b91c1c','#0d9488','#a16207','#7c3aed','#be185d'];
+const projColor=id=>{const i=P.plan.projects.findIndex(p=>p.id===id);return i<0?'#a8b7c7':PROJ_PAL[i%PROJ_PAL.length];};
 function model(){
   const pl=P.plan,wd=workdays(pl.window.start,pl.window.end),prj=new Map(pl.projects.map(p=>[p.id,p]));
   const eng=new Map();
@@ -441,7 +444,7 @@ function drawPlanner(){
         const ep=cols.map(k=>C[k]()).join(''),wc='';
         const ico=d=>`<svg viewBox="0 0 20 20" aria-hidden="true">${d}</svg>`,ib=(cls,attr,lbl,d,on)=>`<button type="button" class="pl-ib ${cls}${on?'':' pl-ib-off'}" ${on?attr:'tabindex="-1" disabled'} aria-label="${lbl}" title="${lbl}">${ico(d)}</button>`;
         const act=`<td class="pl-g-act"><span class="pl-acts"${w?` data-w="${esc(w.id)}"`:''}>${w?`<button type="button" class="pl-ib pl-grip" draggable="true" data-grip aria-label="Move workstream: drag within this epic or into another epic (or press Up/Down)" title="Drag to move this workstream, within this epic or into another">${ico('<g fill="currentColor" stroke="none"><circle cx="7" cy="5" r="1.4"/><circle cx="13" cy="5" r="1.4"/><circle cx="7" cy="10" r="1.4"/><circle cx="13" cy="10" r="1.4"/><circle cx="7" cy="15" r="1.4"/><circle cx="13" cy="15" r="1.4"/></g>')}</button>`:ib('pl-grip','','',' ',false)}${ib('pl-add','data-add-ws','Add workstream','<path d="M10 4v12M4 10h12"/>',tail)}${ib('pl-rm','data-del-ws','Remove workstream','<circle cx="10" cy="10" r="7"/><path d="M6.8 10h6.4"/>',!!w)}${ib('pl-trash','data-del-epic','Delete epic','<path d="M4 6h12M8 6V4h4v2M6 6l.8 10h6.4L14 6M8.5 9v4M11.5 9v4"/>',first)}</span></td>`;
-        rows.push(`<tr data-e="${esc(e.id)}"${w?` data-wr="${esc(w.id)}"`:''} class="${wl(e,w)==='ABL'?'abl':'btl'}${first?' pl-g-first':''}">${ep}${wc}${act}</tr>`);
+        rows.push(`<tr data-e="${esc(e.id)}"${w?` data-wr="${esc(w.id)}"`:''} style="--pc:${projColor(e.projectId)}" class="${wl(e,w)==='ABL'?'abl':'btl'}${first?' pl-g-first':''}">${ep}${wc}${act}</tr>`);
       });
     });
     const pmenu=P.projOpen?`<div class="pl-pmenu" role="dialog" aria-label="Projects"><b>Projects</b>${pl.projects.map(p=>`<span class="pl-pchip" data-p="${esc(p.id)}"><input class="hub-inline pl-pname" type="text" list="pl-projects" placeholder="Project name (type to link a GUS project)" aria-label="Project name" data-f="name" value="${esc(p.name)}" maxlength="120"><input class="hub-inline pl-pshort" type="text" placeholder="Short form" aria-label="Short form, for example HRP M1.1.3" data-f="short" value="${esc(p.short||'')}" maxlength="30">${p.gusId?`<a class="pl-gus" href="${H.GUS}PPM_Project__c/${esc(p.gusId)}/view" target="_blank" rel="noopener">GUS ↗</a>`:'<em class="pl-draft">New</em>'}<button type="button" class="pl-x" data-add-epic aria-label="Add epic to this project" title="Add epic to this project">+</button><button type="button" class="pl-x" data-del-proj aria-label="Delete project" title="Delete project">×</button></span>`).join('')}<p class="note">Rename a project, edit its short form, or delete it. Use + Project to add one.</p></div>`:'';
