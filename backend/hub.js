@@ -254,6 +254,8 @@ async function slackAvatar(slack, email) {
   if (url) avatarCache.set(email, { url, at: Date.now() });
   return url || null;
 }
+/** Resolve to null instead of waiting past `ms`, so one slow or failing avatar lookup never delays the roster. */
+const within = (p, ms) => Promise.race([Promise.resolve(p).catch(() => null), new Promise(r => setTimeout(() => r(null), ms))]);
 async function getPeople(sf, slack, group) {
   const name = groupOf(group);
   if (!name) return { name: null, people: [] };
@@ -274,7 +276,7 @@ async function getPeople(sf, slack, group) {
   const list = [...rest, ...LEADERS.filter(i => byId.has(i)).map(i => byId.get(i))];
   const people = [];
   for (let k = 0; k < list.length; k += 10)
-    people.push(...await Promise.all(list.slice(k, k + 10).map(async u => ({ id: u.Id, name: u.Name, role: u.Title || '', avatar: (await slackAvatar(slack, u.Email)) || u.SmallPhotoUrl || null, alt: u.SmallPhotoUrl || null }))));
+    people.push(...await Promise.all(list.slice(k, k + 10).map(async u => ({ id: u.Id, name: u.Name, role: u.Title || '', avatar: (await within(slackAvatar(slack, u.Email), 2500)) || u.SmallPhotoUrl || null, alt: u.SmallPhotoUrl || null }))));
   return { name, people };
 }
 

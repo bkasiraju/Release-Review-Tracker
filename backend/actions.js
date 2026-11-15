@@ -19,6 +19,8 @@ async function enforce(store,teamId,cur){
   if(kept.length!==items.length||(cur.revision&&!cur.snapshot)){const saved=await put(store,teamId,kept,cur.revision??null);cur={...saved,items:kept};}
   return cur;
 }
+/** Housekeeping must never delay or fail a request: give it 8 seconds, then carry on. */
+const bounded=p=>Promise.race([p,new Promise(r=>setTimeout(()=>r(null),8000))]).catch(()=>null);
 async function purge(store){if(typeof store.purgeOlderThan!=='function')return null;try{return await store.purgeOlderThan('actions',RETENTION_DAYS);}catch(e){return {purged:0,failed:0,error:e.message};}}
 /** Apply retention to every team's record (throttled to once every 6 hours per runtime). */
 async function sweep(store,force){
@@ -41,8 +43,7 @@ async function write(store,teamId,mutate){
 }
 async function list(store,teamId){
   const d=await enforce(store,teamId,await read(store,teamId));
-  const swept=await sweep(store,false);
-  return {items:prune(d.items||[]),revision:d.revision||null,retentionDays:RETENTION_DAYS,purge:swept};
+  return {items:prune(d.items||[]),revision:d.revision||null,retentionDays:RETENTION_DAYS};
 }
 async function save(store,sf,teamId,b){
   hub.requireTeam(teamId);
@@ -57,11 +58,13 @@ async function save(store,sf,teamId,b){
   const assignee=text(b.assignee,120)||'Unassigned';
   const item={id:randomUUID(),workId:wid,workName:name,subject:text(b.subject,240),assignee,assigneeId:SF_ID.test(String(b.assigneeId||''))?b.assigneeId:null,ownerId:owner.id,owner:owner.name,details,eta,priority,sprintId:SF_ID.test(String(b.sprintId||''))?b.sprintId:null,sprintName:text(b.sprintName,120),status:'open',createdAt:new Date().toISOString(),resolvedAt:null};
   const r=await write(store,teamId,items=>{if(items.length>=MAX_ITEMS)throw Error('Action log is full. Resolve and archive older items first.');items.push(item);});
+  await bounded(sweep(store,false));
   return {items:r.items,item};
 }
 async function resolve(store,teamId,b){
   const id=text(b.id,40);let found=false;
   const r=await write(store,teamId,items=>{const it=items.find(x=>x.id===id);if(!it)throw Error('Action item not found.');found=true;const on=b.resolved!==false;it.status=on?'resolved':'open';it.resolvedAt=on?new Date().toISOString():null;});
+  await bounded(sweep(store,false));
   return {items:r.items,found};
 }
 module.exports={list,save,resolve,sweep,prune,PRIORITIES,RETENTION_DAYS};

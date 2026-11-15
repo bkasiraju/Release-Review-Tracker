@@ -1,3 +1,9 @@
+## Unreleased on top of 4.0.0-GA (plan124) — Fix request timeouts and avatar redirect storm
+
+- Action-log reads no longer run the retention sweep (it listed every team's record on first load and could push a request past the 25-second limit). The sweep now runs after a save or resolve, capped at 8 seconds, and a failure never fails the request.
+- Avatars: the browser no longer pre-loads every person's GUS photo fallback, which triggered dozens of `ERR_TOO_MANY_REDIRECTS` session redirects. The fallback loads only when the Slack photo fails to load, and a failed image falls back to initials.
+- The roster lookup gives each Slack avatar 2.5 seconds, then uses the GUS photo or initials, so one slow avatar can't delay or time out the page.
+
 ## Unreleased on top of 4.0.0-GA (plan123) — 30-day retention for the Sprint Action Log; Standup Full-Screen button restored
 
 - Action items are kept for at most 30 days (by creation date) for every team. Expired items are dropped on every list, save and resolve, and each team's record is rewritten as a full snapshot so earlier diffs no longer carry the expired data.

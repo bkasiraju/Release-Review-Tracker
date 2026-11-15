@@ -206,7 +206,7 @@ const peopleLoads=new Map();
 function loadPeople(g){
   if(!peopleLoads.has(g))peopleLoads.set(g,call('hub-people',{group:g}).then(d=>{
     peopleData={g,d};try{localStorage.setItem('hub-people2-'+g,JSON.stringify({d}));}catch(_){}peopleByGroup.set(g,d);setTimeout(()=>document.dispatchEvent(new Event('hub-people')),0);
-    d.people.forEach(p=>{if(p.avatar){const i=new Image();i.src=p.avatar;}if(p.alt){const j=new Image();j.src=p.alt;}});return d;},e=>{peopleLoads.delete(g);throw e;}));
+    d.people.forEach(p=>{if(p.avatar){const i=new Image();i.src=p.avatar;}});return d;},e=>{peopleLoads.delete(g);throw e;}));
   return peopleLoads.get(g);
 }
 /** Avatar lookup for other pages (matched by GUS user id, then name); resolves once the team's people are loaded. */
