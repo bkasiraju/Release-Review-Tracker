@@ -383,8 +383,11 @@ function soon(id,label,ic,tone,desc){
 // ── Boot ────────────────────────────────────────────────────────────────────
 function route(){const id=(location.hash.match(/^#\/([a-z]+)/)||[])[1];H.go(id||'home',{silent:true});}
 /** Keep the loading screen up until the first page has stopped changing, so sections do not appear and then jump. */
+const LOAD_T0=performance.now(),MIN_LOAD_MS=3000;
 function settle(){
-  const b=document.body,done=()=>{obs.disconnect();clearTimeout(quiet);clearTimeout(cap);b.dataset.settled='1';};
+  const b=document.body,done=()=>{obs.disconnect();clearTimeout(quiet);clearTimeout(cap);
+    // Keep the loading animation up for at least MIN_LOAD_MS, even when the page is ready sooner.
+    const wait=Math.max(0,MIN_LOAD_MS-(performance.now()-LOAD_T0));setTimeout(()=>{b.dataset.settled='1';},wait);};
   let quiet;const arm=()=>{clearTimeout(quiet);quiet=setTimeout(()=>{if(document.querySelector('#hub-page .hub-loading,#hub-page .executive-spinner,#hub-page [aria-busy=true]'))arm();else done();},350);};
   const obs=new MutationObserver(arm),cap=setTimeout(done,8000);
   obs.observe($('hub-page'),{childList:true,subtree:true,characterData:true});arm();

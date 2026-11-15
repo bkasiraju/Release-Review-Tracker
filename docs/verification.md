@@ -1043,3 +1043,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan105: keyset paging fallback for saved history — unit-tested with a fake connection (tests/store-keyset.test.js); not exercised against live GUS Apps.
 
 - plan106: loader chips renamed, one line — harness screenshot only.
+
+- plan107: 3-second minimum loader — harness check only.

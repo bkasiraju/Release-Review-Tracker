@@ -1,3 +1,7 @@
+## Unreleased on top of 4.0.0-GA (plan107) — Loader shows for at least 3 seconds
+
+- The loading animation now stays up for a minimum of 3 seconds from page start, even when the page is ready sooner, so it can actually be seen. Slower loads are unaffected (it still waits for the page to settle).
+
 ## Unreleased on top of 4.0.0-GA (plan106) — Loader chips: Plan, Execute, Review, Iterate
 
 - The loader's four chips are now Plan, Execute, Review and Iterate on a single line, lighting up in turn with the status message. All use the app's teal highlight.
