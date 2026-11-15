@@ -1,3 +1,10 @@
+## Unreleased on top of 4.0.0-GA (plan83) — Slimmer Google Sheet / Excel template
+
+- The export template and import no longer have Epic Est (calculated by the dashboard), Status, or Planned Release columns. The sheet is now: Project, Measure name, Epic Name, Workstream, Epic Owner(s), Workstream Owner(s), WS Est, ATL/BTL, Sprint, Priority.
+- Older sheets that still contain those columns import fine: the three columns are ignored (no errors, no "no Planned Release" warning).
+- Imported new epics get the default planned release (the team's highest-numbered release, as when adding an epic in the UI); existing epics keep their status and release.
+- The Lists and Instructions sheets and dropdown validations were updated to match.
+
 ## Unreleased on top of 4.0.0-GA (plan82) — Column picker works when browser storage is blocked
 
 - Column choice and order are now held in memory for the session, with localStorage as best-effort persistence. Before, every toggle/reorder was written only to localStorage and re-read from it; if storage is blocked in the GUS Apps frame the write silently failed, so nothing changed in the picker or the table. This is the likely cause of the live-only "cannot check/uncheck" report that did not reproduce on the local harness.

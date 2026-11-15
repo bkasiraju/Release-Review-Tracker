@@ -998,3 +998,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan81: Back button navigates to the applet root URL. Only the local-harness fallback (in-page #/home) was exercised; the applet-URL branch was not run live.
 
 - plan82: column picker keeps state in memory (local harness with localStorage forced to throw: Priority added, Sprint removed, table headers followed). Root cause on live is inferred, not confirmed; not verified on the live app.
+
+- plan83: template and import without Epic Est/Status/Planned Release (local harness: exported header row and Lists sheet checked; old 13-column file and new 10-column file both import with no errors; not opened in Excel/Sheets; not verified on the live app).

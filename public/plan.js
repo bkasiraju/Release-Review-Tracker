@@ -78,7 +78,7 @@ function newEpicAt(btn){
   document.addEventListener('mousedown',away,true);document.addEventListener('keydown',key,true);n.focus();
 }
 // ── Export template / import (xlsx) ────────────────────────────────────────
-const IO_COLS=['Project (short form)','Measure name (project in GUS)','Epic Name','Workstream','Epic Owner(s)','Workstream Owner(s)','Epic Est (calculated, ignored on import)','WS Est (days)','ATL/BTL','Sprint','Priority','Status','Planned Release'];
+const IO_COLS=['Project (short form)','Measure name (project in GUS)','Epic Name','Workstream','Epic Owner(s)','Workstream Owner(s)','WS Est (days)','ATL/BTL','Sprint','Priority'];
 const IO_ROWS=300;
 const projShort=p=>p.short||shortProj(p.name);
 function ioLists(){
@@ -92,26 +92,27 @@ function exportTemplate(){
     const p=prj.get(e.projectId)||{},names=(e.ownerNames&&e.ownerNames.length?e.ownerNames:(e.owners||[]).map(memName)).filter(Boolean);
     const ws=e.workstreams.length?e.workstreams:[null];
     ws.forEach((w,j)=>{const f=j===0,wn=w?(w.engNames&&w.engNames.length?w.engNames:wsEngs(w).map(memName)).filter(Boolean):[];
-      rows.push([projShort(p),p.name||'',e.name||'',w?w.name:'',f?names.join(', '):'',wn.join(', '),f?(epicDays(e)||''):'',w&&w.days?w.days:'',w?wl(e,w):(f?e.line:''),w?w.sprint:'',f?'P'+(e.priority==null?0:e.priority):'',f?e.status:'',f?(e.releaseName||(P.refs.releases.find(r=>r.id===e.releaseId)||{}).name||''):'']);});
+      rows.push([projShort(p),p.name||'',e.name||'',w?w.name:'',f?names.join(', '):'',wn.join(', '),w&&w.days?w.days:'',w?wl(e,w):(f?e.line:''),w?w.sprint:'',f?'P'+(e.priority==null?0:e.priority):'']);});
   }
-  const lcols=[['Projects',L.projects],['Planned releases',L.releases],['Engineers',L.eng],['ATL/BTL',L.line],['Priority',L.pri],['Status',L.status]];
+  const lcols=[['Projects',L.projects],['Engineers',L.eng],['ATL/BTL',L.line],['Priority',L.pri]];
   const lrows=[lcols.map(c=>c[0])],lh=Math.max(...lcols.map(c=>c[1].length));
   for(let i=0;i<lh;i++)lrows.push(lcols.map(c=>c[1][i]==null?'':c[1][i]));
   const rng=(c,n)=>`Lists!$${c}$2:$${c}$${Math.max(2,n+1)}`,last=Math.max(rows.length+IO_ROWS,IO_ROWS);
   const V=(col,c,n,o)=>Object.assign({sqref:`${col}2:${col}${last}`,formula:rng(c,n)},o);
-  const help=[['Release Planning template'],[''],['One row per workstream. Rows with the same Project + Epic Name belong to the same epic.'],['Epic-level columns (Epic Owner, ATL/BTL, Priority, Status, Planned Release) are read from the first row that has a value for that epic.'],[''],
+  const help=[['Release Planning template'],[''],['One row per workstream. Rows with the same Project + Epic Name belong to the same epic.'],['Epic-level columns (Epic Owner, ATL/BTL, Priority) are read from the first row that has a value for that epic.'],[''],
     ['Column','Expected value'],
     [IO_COLS[0],'Short form such as HRP M1.1.3. Pick from the list, or type a new one (then also fill Measure name).'],[IO_COLS[1],'Full measure / project name as in GUS. Required only for a new project.'],[IO_COLS[2],'Required.'],[IO_COLS[3],'Workstream / feature name. Leave empty for an epic without workstreams.'],
-    [IO_COLS[4],'Engineer names exactly as on the Engineers list; separate several with commas.'],[IO_COLS[5],'Same as Epic Owner(s).'],[IO_COLS[6],'Calculated: the sum of WS Est of an ATL epic. It is ignored when importing.'],[IO_COLS[7],'Days, a number of 0 or more.'],
-    [IO_COLS[8],'ABL (above the line, also accepted as ATL) or BTL. Only ABL epics count toward capacity and are saved to GUS.'],[IO_COLS[9],'Free text, e.g. a sprint name.'],[IO_COLS[10],'P0 to P5 (a plain number also works).'],[IO_COLS[11],'Planned, In Progress, Completed or On Hold.'],[IO_COLS[12],'Release name from the Planned releases list.'],
+    [IO_COLS[4],'Engineer names exactly as on the Engineers list; separate several with commas.'],[IO_COLS[5],'Same as Epic Owner(s).'],[IO_COLS[6],'Days, a number of 0 or more. Epic Est is calculated by the dashboard from these, so it is not in the sheet (and is ignored if you add it).'],
+    [IO_COLS[7],'ABL (above the line, also accepted as ATL) or BTL. A BTL epic makes all its workstreams BTL. Only ABL work counts toward capacity and is saved to GUS.'],[IO_COLS[8],'Free text, e.g. a sprint name.'],[IO_COLS[9],'P0 to P5 (a plain number also works).'],
+    [''],['Epic Status and Planned Release are not part of the sheet: new epics get the default planned release, and existing epics keep theirs.'],
     [''],['Importing merges into the plan: an epic that already exists (same project and name) has its fields updated and its workstreams replaced by the rows in the file; epics that are not in the file are left alone.']];
   const bytes=PlanIO.write({sheets:[
-    {name:'Plan',header:true,freeze:true,rows,widths:[16,34,34,30,28,28,18,12,10,16,10,14,24],validations:[
+    {name:'Plan',header:true,freeze:true,rows,widths:[16,34,34,30,28,28,12,10,16,10],validations:[
       V('A','A',L.projects.length,{title:'Project',prompt:'Pick a project short form, or type a new one.',error:'Not an existing project. A new project will be created if you also fill Measure name.',warn:true}),
-      V('E','C',L.eng.length,{title:'Owners',prompt:'Engineer name; separate several with commas.',error:'Use engineer names from the Engineers list (comma-separated for several).',warn:true}),
-      V('F','C',L.eng.length,{title:'Owners',prompt:'Engineer name; separate several with commas.',error:'Use engineer names from the Engineers list (comma-separated for several).',warn:true}),
-      V('I','D',2,{error:'Use ABL or BTL.'}),V('K','E',6,{error:'Use P0 to P5.'}),V('L','F',STAT.length,{error:'Use one of the listed statuses.'}),V('M','B',L.releases.length,{error:'Pick a planned release from the list.'})]},
-    {name:'Lists',header:true,rows:lrows,widths:[28,30,28,10,10,14]},
+      V('E','B',L.eng.length,{title:'Owners',prompt:'Engineer name; separate several with commas.',error:'Use engineer names from the Engineers list (comma-separated for several).',warn:true}),
+      V('F','B',L.eng.length,{title:'Owners',prompt:'Engineer name; separate several with commas.',error:'Use engineer names from the Engineers list (comma-separated for several).',warn:true}),
+      V('H','C',2,{error:'Use ABL or BTL.'}),V('J','D',6,{error:'Use P0 to P5.'})]},
+    {name:'Lists',header:true,rows:lrows,widths:[28,28,10,10]},
     {name:'Instructions',header:true,rows:help,widths:[40,110],wrap:[1]}]});
   const a=document.createElement('a'),url=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
   a.href=url;a.download=`release-plan-${(H.team.short||H.team.Name||'team').replace(/[^\w.-]+/g,'-')}-${new Date().toISOString().slice(0,10)}.xlsx`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);
@@ -121,7 +122,7 @@ function checkImport(sheet){
   const pl=P.plan,issues=[],add=(sev,row,msg)=>issues.push({sev,row,msg});
   const norm=x=>String(x==null?'':x).replace(/\s+/g,' ').trim().toLowerCase();
   const head=(sheet[0]||[]).map(norm),idx=i=>head.findIndex(h=>h.startsWith(norm(IO_COLS[i]).split(' (')[0].toLowerCase()));
-  const ci={proj:0,pname:1,epic:2,ws:3,eo:4,wo:5,days:7,line:8,sprint:9,pri:10,status:11,rel:12};
+  const ci={proj:0,pname:1,epic:2,ws:3,eo:4,wo:5,days:6,line:7,sprint:8,pri:9};
   for(const k of Object.keys(ci)){const j=idx(ci[k]);ci[k]=j;}
   if(ci.epic<0||ci.proj<0&&ci.pname<0){add('error',1,'Header row not recognised. Use “Export template” and keep its column headers (Project, Epic Name, … ).');return {issues,epics:[],stats:{}};}
   const get=(r,k)=>ci[k]<0?'':String(r[ci[k]]==null?'':r[ci[k]]).trim();
@@ -151,8 +152,6 @@ function checkImport(sheet){
     const take=(f,v)=>{if(v===''||v==null)return;if(g[f]===''||g[f]==null)g[f]=v;else if(String(g[f])!==String(v))add('warn',row,`Epic “${en}”: ${f==='eo'?'Epic Owner':f==='rel'?'Planned Release':f==='pri'?'Priority':f==='line'?'ATL/BTL':'Status'} differs between rows; the first value (${f==='eo'?g.eo.nm.join(', '):f==='rel'?g.rel.name:f==='pri'?'P'+g.pri:g[f]}) is used.`);};
     const ln=get(r,'line').toUpperCase();let rowLine='';if(ln){if(ln==='ABL'||ln==='ATL')rowLine='ABL';else if(ln==='BTL')rowLine='BTL';else add('error',row,`ATL/BTL: “${get(r,'line')}” is not valid (use ABL or BTL).`);if(rowLine&&!g.line)g.line=rowLine;}
     const pv=get(r,'pri');if(pv){const m=/^p?\s*(\d{1,4})$/i.exec(pv);if(m)take('pri',Number(m[1]));else add('error',row,`Priority: “${pv}” is not valid (use P0 to P5).`);}
-    const sv=get(r,'status');if(sv){const st=STAT.find(x=>norm(x)===norm(sv));if(st)take('status',st);else add('error',row,`Status: “${sv}” is not one of ${STAT.join(', ')}.`);}
-    const rv=get(r,'rel');if(rv){const rr=P.refs.releases.find(x=>norm(x.name)===norm(rv))||P.refs.releases.find(x=>relNum(x)>=0&&String(relNum(x))===rv);if(rr)take('rel',{id:rr.id,name:rr.name});else add('error',row,`Planned Release: “${rv}” is not a release of this team.`);}
     const eo=get(r,'eo');if(eo){const o=names(eo,row,'Epic Owner(s)');if(o.ids.length)take('eo',{ids:o.ids,nm:o.nm});}
     const wn=get(r,'ws'),wd=get(r,'days'),wo=get(r,'wo'),sp=get(r,'sprint');
     if(wn||wd||wo||sp){
@@ -164,7 +163,7 @@ function checkImport(sheet){
     }
   }
   const epics=[...groups.values()];
-  for(const g of epics){if(!g.rel&&!(pl.epics.find(e=>e.projectId===g.pr.id&&norm(e.name)===norm(g.name))||{}).releaseId)add('warn',g.row,`Epic “${g.name}” has no Planned Release; it will use ${defRel().releaseName||'none'}.`);
+  for(const g of epics){
     if(!g.line)add('warn',g.row,`Epic “${g.name}” has no ATL/BTL value; ${pl.epics.some(e=>e.projectId===g.pr.id&&norm(e.name)===norm(g.name))?'its current value is kept':'it is imported as BTL'}.`);}
   if(!epics.length&&!issues.some(x=>x.sev==='error'))add('error',1,'No epic rows found in the file.');
   if(pl.epics.length+epics.filter(g=>!pl.epics.some(e=>e.projectId===g.pr.id&&norm(e.name)===norm(g.name))).length>300)add('error',1,'The plan would exceed 300 epics.');
@@ -178,8 +177,7 @@ function applyImport(res){
   for(const g of res.epics){
     let e=pl.epics.find(x=>x.projectId===g.pr.id&&norm(x.name)===norm(g.name));
     if(!e){e=newEpic(g.pr.id);e.name=g.name;e.workstreams=[];pl.epics.push(e);}
-    if(g.pri!=null)e.priority=g.pri;if(g.status)e.status=g.status;
-    if(g.rel){e.releaseId=g.rel.id;e.releaseName=g.rel.name;}
+    if(g.pri!=null)e.priority=g.pri;
     if(g.eo){e.owners=g.eo.ids;e.ownerNames=g.eo.nm;}
     const old=e.workstreams;
     e.workstreams=g.ws.map(x=>{const o=old.find(w=>x.name&&norm(w.name)===norm(x.name));return Object.assign({},o||{},{id:o?o.id:uid('w'),name:x.name,priority:o?o.priority:0,days:x.days,line:x.line||o&&o.line||(g.line||e.line),sprint:x.sprint,engIds:x.ids,engNames:x.nm,engId:x.ids[0]||'',engName:x.nm[0]||''});});
