@@ -1584,3 +1584,6 @@ body[data-hub=plan] .pl-planner-btns .gus-links{display:flex!important}
 .pl-rv-ws{width:calc(100% - 24px);margin:0 12px 10px;border-collapse:collapse;font-size:12px}.pl-rv-ws th,.pl-rv-ws td{text-align:left;padding:4px 8px;border-top:1px solid #e3e9f0}.pl-rv-ws th{font-size:11px;color:#5b6b7c}
 .pl-rv em{display:block;padding:0 12px 8px}
 .pl-ack{display:flex;gap:10px;align-items:flex-start;margin:12px 0;padding:10px 12px;border:1px solid #0b6fa8;border-radius:8px;background:#f2f9fd;font-size:13px;font-weight:600;color:#16324a;cursor:pointer}
+/* plan177: clickable KPI tiles */
+.pl-kpi[data-kpi]{cursor:pointer;transition:box-shadow .15s,border-color .15s,transform .15s}.pl-kpi[data-kpi]:hover{border-color:#0b6fa8;transform:translateY(-1px)}
+.pl-kpi[data-kpi]:focus-visible{outline:2px solid #0b6fa8;outline-offset:2px}.pl-kpi.pl-kpi-on{border-color:#0b6fa8!important;box-shadow:0 0 0 2px rgba(11,111,168,.25)}

@@ -6,13 +6,13 @@
 const H=window.Hub,{esc,icon,call}=H;
 const P={plan:null,rev:null,refs:{releases:[],programs:[],projects:[],sprints:[]},members:[],seq:0,timer:0,state:'idle',stateAt:'',inflight:null,el:null};
 P.open={theme:false,eng:false,exec:false};
-P.view={q:'',release:[],line:[],eng:[],theme:[],group:'project'};
+P.view={q:'',release:[],line:[],eng:[],theme:[],group:'project',flag:'',kpi:''};
 const MF=['release','line','eng','theme'],FKEY='pl-filters-';
-const filtersOn=V=>!!(V.q||MF.some(k=>V[k].length));
+const filtersOn=V=>!!(V.q||V.flag||MF.some(k=>V[k].length));
 /** Saved filter selections per team: kept in memory for the session and in localStorage when the frame allows it. */
 const memFilters={};
 function restoreFilters(){const t=H.team&&H.team.Id;if(!t||P.view._team===t)return;P.view._team=t;let v=memFilters[t];if(!v){try{v=JSON.parse(localStorage.getItem(FKEY+t));}catch(_){}}MF.forEach(k=>{P.view[k]=v&&Array.isArray(v[k])?v[k].slice():[];});}
-function saveFilters(){const t=H.team&&H.team.Id;if(!t)return;const v={};MF.forEach(k=>{v[k]=P.view[k].slice();});memFilters[t]=v;try{localStorage.setItem(FKEY+t,JSON.stringify(v));}catch(_){}}
+function saveFilters(){P.view.flag='';P.view.kpi='';const t=H.team&&H.team.Id;if(!t)return;const v={};MF.forEach(k=>{v[k]=P.view[k].slice();});memFilters[t]=v;try{localStorage.setItem(FKEY+t,JSON.stringify(v));}catch(_){}}
 // Grid columns: chooser order = default order; the first GDEF are shown until the user picks their own (saved in this browser).
 const GCOL={project:'Project',name:'Epic Name',ws:'Workstream',owners:'Epic Owner',engs:'Workstream Owner(s)',estimate:'Epic Est',days:'WS Est',line:'ATL/BTL',sprint:'Sprint',priority:'Priority',status:'Status',release:'Release',theme:'Theme',wstatus:'WS status',doc:'Doc',gus:'GUS',hrp:'HRP V2MOM method',v2mom:'CFS V2MOM'};
 const GW={project:112,name:230,ws:200,owners:120,priority:84,estimate:84,status:116,engs:170,days:72,sprint:120,release:150,line:104,theme:130,wstatus:116,doc:150,gus:84,hrp:130,v2mom:130,act:92};
@@ -385,7 +385,9 @@ async function flush(quiet){
 
 // ── Rendering ───────────────────────────────────────────────────────────────
 const opt=(v,l,sel)=>`<option value="${esc(v)}"${sel?' selected':''}>${esc(l)}</option>`;
-const kpi=(label,val,sub,cls='',ic='chart',tone='blue',chip='')=>`<div class="pl-kpi pl-t-${tone} ${cls}">${icon(ic,tone)}<div class="pl-kpi-b"><span>${esc(label)}</span><b>${val}</b><small>${sub}</small></div>${chip?`<em class="pl-chip">${esc(chip)}</em>`:''}</div>`;
+const KPI_ACT={'Available':'all','Planned ABL':'abl','Planned BTL':'btl','Total planned':'all','Headroom (ABL)':'abl','Over capacity':'abl','Time off & on-call':'off','Over-allocated':'over','Unassigned effort':'unassigned','Incomplete epics':'incomplete','Pending GUS save':'pending'};
+const KPI_HINT={all:'Show every epic',abl:'Show above-the-line work',btl:'Show below-the-line work',off:'Show epics worked by engineers with time off or on-call',over:'Show epics of over-allocated engineers',unassigned:'Show epics with workstreams that have days but no engineer',incomplete:'Show epics missing an owner or an estimate',pending:'Show ABL epics not yet saved to GUS'};
+const kpi=(label,val,sub,cls='',ic='chart',tone='blue',chip='')=>{const a=KPI_ACT[label]||'';return `<div class="pl-kpi pl-t-${tone} ${cls}${a&&P.view.kpi===a?' pl-kpi-on':''}"${a?` data-kpi="${a}" role="button" tabindex="0" title="${KPI_HINT[a]} in the grid" aria-pressed="${P.view.kpi===a}"`:''}>${icon(ic,tone)}<div class="pl-kpi-b"><span>${esc(label)}</span><b>${val}</b><small>${sub}</small></div>${chip?`<em class="pl-chip">${esc(chip)}</em>`:''}</div>`;};
 /** Rich hover card for an engineer's allocation: section chips, then their themes and epics. */
 function engTipHtml(x){
   const av=x.avail,pc=d=>av?Math.round(d/av*100):0,pa=pc(x.abl),pb=pc(x.btl),pf=Math.max(0,100-pa-pb);
@@ -417,6 +419,21 @@ const extraKpis=m=>{const cap=m.rows.filter(x=>x.cap),sum=k=>r2(cap.reduce((a,x)
    +kpi('Incomplete epics',String(inc.length)+'<i> of '+P.plan.epics.length+'</i>',inc.length?'Missing an owner or an estimate':'All epics have an owner and an estimate',inc.length?'warn':'ok','scope',inc.length?'amber':'green',inc.length?'Fix':'Complete')
    +(()=>{const abl=P.plan.epics.filter(e=>e.line==='ABL'),pend=abl.filter(e=>!e.gusId).length;
      return kpi('Pending GUS save',String(pend)+'<i> of '+abl.length+' ABL</i>',!abl.length?'No above-the-line epics yet':pend?`${pend} ABL epic${pend===1?'':'s'} not yet created in GUS`:'All ABL epics are saved in GUS',pend?'warn':'ok','database',pend?'amber':'green',!abl.length?'Plan':pend?'Review & save':'In sync');})();};
+/** A summary tile filters the grid below to the data behind it; clicking the active tile again clears the filter. */
+function applyKpi(a){
+  const V=P.view,cap=(P.engRows||[]).filter(x=>x.cap);
+  if(V.kpi===a){Object.assign(V,{q:'',release:[],line:[],eng:[],theme:[]});saveFilters();}
+  else{
+    let eng=[];
+    if(a==='over')eng=cap.filter(x=>x.abl+x.btl>x.avail+0.001).map(x=>x.id);
+    if(a==='off')eng=cap.filter(x=>(x.leave||0)+(x.holiday||0)+(x.oncall||0)>0).map(x=>x.id);
+    if((a==='over'||a==='off')&&!eng.length){window.toast?.(a==='over'?'No engineers are over-allocated.':'No engineer has time off or on-call.',false);return;}
+    Object.assign(V,{q:'',release:[],line:a==='abl'?['ABL']:a==='btl'?['BTL']:[],eng,theme:[]});saveFilters();
+    V.flag=['unassigned','incomplete','pending'].includes(a)?a:'';V.kpi=a;
+  }
+  drawSummary();drawTools();drawPlanner();wire();
+  const g=P.el.querySelector('#pl-planner');if(g&&P.tab!=='rps')g.scrollIntoView({block:'nearest',behavior:'smooth'});
+}
 function drawSummary(){
   if(P.tab==='rps')drawRps();
   const el=P.el&&P.el.querySelector('#pl-sum');if(!el)return;
@@ -431,13 +448,15 @@ function drawPlanner(){
   const el=P.el.querySelector('#pl-planner'),pl=P.plan,rel=P.refs.releases;
   const projOpts=sel=>pl.projects.map(p=>opt(p.id,p.name||'(unnamed project)',p.id===sel)).join('');
   const engOpts=sel=>'<option value="">Unassigned</option>'+P.members.filter(m=>H.leaderRank(m.name)<0).map(m=>opt(m.id,m.name,m.id===sel)).join('');
-  const V=P.view,prj=new Map(pl.projects.map(p=>[p.id,p])),q=V.q.trim().toLowerCase(),filtering=!!(q||MF.some(k=>V[k].length));
+  const V=P.view,prj=new Map(pl.projects.map(p=>[p.id,p])),q=V.q.trim().toLowerCase(),filtering=!!(q||V.flag||MF.some(k=>V[k].length));
+  const FLAG={unassigned:e=>e.workstreams.some(w=>(w.days||0)>0&&!wsEngs(w).length),incomplete:e=>!(e.owners&&e.owners.length)||!e.workstreams.some(w=>(w.days||0)>0),pending:e=>e.line==='ABL'&&!e.gusId};
   const match=e=>{const p=prj.get(e.projectId);
+    if(V.flag&&FLAG[V.flag]&&!FLAG[V.flag](e))return false;
     if(V.release.length&&!V.release.includes(e.releaseId))return false;if(V.line.length&&!(e.workstreams.length?e.workstreams.some(w=>V.line.includes(wl(e,w))):V.line.includes(e.line)))return false;
     if(V.eng.length&&!e.workstreams.some(w=>wsEngs(w).some(i=>V.eng.includes(i))))return false;if(V.theme.length&&!V.theme.includes(epicTheme(e)))return false;
     if(q&&!((e.name||'')+' '+(p&&p.name||'')+' '+e.workstreams.map(w=>w.name).join(' ')).toLowerCase().includes(q))return false;return true;};
   const shown=pl.epics.filter(match);
-  const cnt=P.el.querySelector('#pl-count');if(cnt)cnt.textContent=filtering?`${shown.length} of ${pl.epics.length} epics`:`${pl.epics.length} epic${pl.epics.length===1?'':'s'}`;
+  const cnt=P.el.querySelector('#pl-count');if(cnt)cnt.textContent=filtering?`${shown.length} of ${pl.epics.length} epics${V.flag?' · '+({unassigned:'unassigned effort',incomplete:'incomplete',pending:'pending GUS save'})[V.flag]:''}`:`${pl.epics.length} epic${pl.epics.length===1?'':'s'}`;
   const gsum=es=>{const d=l=>fmt(es.filter(e=>e.line===l).reduce((a,e)=>a+epicDays(e),0));return `<span class="pl-gsum">${es.length} epic${es.length===1?'':'s'} · ABL ${d('ABL')}d · BTL ${d('BTL')}d</span>`;};
   const groupKey={release:e=>e.releaseName||(P.refs.releases.find(r=>r.id===e.releaseId)||{}).name||'No planned release',line:e=>e.line==='ABL'?'Above the line (ABL)':'Below the line (BTL)',theme:e=>epicTheme(e)}[V.group];
   const cols=gridCols();
@@ -526,6 +545,7 @@ document.addEventListener('click',e=>{if(!e.target.closest('.ms'))closeMs();
   const w=e.target.closest('.pl-grid .cs.open,.pl-grid .ms.open');if(w){const b=w.querySelector('.cs-btn'),m=w.querySelector('.cs-menu'),r=b.getBoundingClientRect();m.style.position='fixed';m.style.left=Math.min(r.left,innerWidth-m.offsetWidth-8)+'px';m.style.right='auto';m.style.top=(r.bottom+4>innerHeight-200?Math.max(8,r.top-m.offsetHeight-4):r.bottom+4)+'px';}});
 addEventListener('scroll',ev=>{if(ev.target.closest&&ev.target.closest('.cs-menu,.pl-mspop'))return;closeMsPop();document.querySelectorAll('.pl-grid .cs.open').forEach(w=>{w.classList.remove('open');});closeMs();},true);
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMs();});
+document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches&&e.target.matches('.pl-kpi[data-kpi]')){e.preventDefault();applyKpi(e.target.dataset.kpi);}});
 // ── Edits ───────────────────────────────────────────────────────────────────
 const findE=id=>P.plan.epics.find(e=>e.id===id),findP=id=>P.plan.projects.find(p=>p.id===id);
 function closeMsPop(){document.querySelectorAll('.pl-mspop').forEach(x=>x.remove());}
@@ -606,6 +626,7 @@ function onClick(ev){
   const fd=t.closest('[data-fold]')||(t.closest('.pl-card>h3>small')?.parentElement.querySelector('[data-fold]'));if(fd){P.open[fd.dataset.fold]=!P.open[fd.dataset.fold];drawSummary();return;}
   if(t.closest('[data-grid-add-epic]')){newEpicAt(t.closest('[data-grid-add-epic]'));return;}
   if(t.closest('[data-proj-toggle]')){P.projOpen=!P.projOpen;drawPlanner();wire();return;}
+  const kp=t.closest('[data-kpi]');if(kp){applyKpi(kp.dataset.kpi);return;}
   if(t.closest('[data-clear-view]')){P.view=Object.assign(P.view,{q:'',release:[],line:[],eng:[],theme:[]});saveFilters();drawTools();drawPlanner();wire();return;}
   if(t.closest('#pl-save')){const b=t.closest('#pl-save');b.disabled=true;P.state='dirty';flush().then(()=>{b.disabled=false;if(P.state==='saved')window.toast?.('Plan saved to GUS Apps for the whole team.');else window.toast?.('Could not save the plan.',true);},()=>{b.disabled=false;});return;}
   if(t.closest('#pl-leaves'))return openLeaves();
