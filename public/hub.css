@@ -923,3 +923,10 @@ body[data-ready] #hub-boot{display:flex}
 .pl-alloc em.f{color:#5a6f82}.pl-alloc-h i.f{background:#eceff3;border:1px solid #c5cdd6}
 .pl-eng-tot{font-weight:700;background:#f4f8fb;border-top:2px solid #d6e6f2}
 .pl-alloc-h small{white-space:normal!important;line-height:1.5}.pl-eng-h>.pl-alloc-h{text-align:center!important}
+
+/* plan93: Leaves and On-call columns after Available */
+.pl-eng-h,.pl-eng-r{grid-template-columns:minmax(130px,1.2fr) 62px 52px 58px 86px 100px minmax(170px,1.5fr)}
+
+.pl-eng-h,.pl-eng-r{grid-template-columns:minmax(100px,1fr) 54px 46px 52px 66px 78px minmax(150px,1.5fr);gap:6px}
+.pl-alloc b{font-size:10.5px}.pl-eng-h{font-size:11.5px}
+.pl-eng-h>span:nth-child(5),.pl-eng-h>span:nth-child(6){white-space:normal;line-height:1.15}

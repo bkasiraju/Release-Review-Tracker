@@ -1,3 +1,7 @@
+## Unreleased on top of 4.0.0-GA (plan94) — Leaves and On-call columns
+
+- Engineer bandwidth gains Leaves and On-call columns right after Available, with each engineer's days as the team provided them (and a Team total row). The small "x d leave · y d holiday · z d on-call" line under each engineer name is removed. (plan93 was folded into this entry.)
+
 ## Unreleased on top of 4.0.0-GA (plan92) — Un-allocated share and restricted Save to GUS
 
 - Allocation per engineer now reads "Planned + Un-planned + Un-allocated = 100%" (un-allocated is the free remainder, 0 once over capacity, where the total shows above 100%). A "Team total" row sums available days, planned and un-planned days and the same three shares.

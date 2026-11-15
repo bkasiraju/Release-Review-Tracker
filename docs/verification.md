@@ -1016,3 +1016,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan91: stacked allocation bar screenshotted on the local harness with one hand-injected row (58% + 27%); no real planned data in the harness; not verified on live.
 
 - plan92: un-allocated column and team total screenshotted on the local harness; commit gating verified as denied only (harness identity is not one of the two allowed users); allowed path not exercised; not verified on live.
+
+- plan94: new columns screenshotted on the local harness (Leaves 10 for one engineer, others 0); holiday days remain in Available but have no column; not verified on live.
