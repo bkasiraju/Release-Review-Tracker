@@ -281,6 +281,8 @@ function model(){
   const themes=new Map();let ablT=0,btlT=0;
   for(const e of pl.epics){
     const slices=e.workstreams.filter(w=>(w.days||0)>0).map(w=>({ids:wsWho(e,w),d:w.days,nm:w.engName,k:wl(e,w)==='ABL'?'abl':'btl'}));
+    // An epic with an estimate but no workstream days is carried by its owners, split equally.
+    if(!slices.length&&(e.estimate||0)>0)slices.push({ids:[...new Set(e.owners||[])],d:e.estimate,nm:'',k:e.line==='ABL'?'abl':'btl'});
     for(const {ids,d,nm,k} of slices){const share=d/(ids.length||1),t=epicTheme(e);
       for(const id of ids.length?ids:['']){const x=id?row(id,memName(id)||nm||'Engineer'):row('none','Unassigned');if(!id)x.cap=false;x[k]+=share;
         const tm=x.th.get(t)||x.th.set(t,{abl:0,btl:0,ep:new Map()}).get(t),ep=tm.ep.get(e.id)||tm.ep.set(e.id,{name:e.name||'Untitled epic',abl:0,btl:0}).get(e.id);tm[k]+=share;ep[k]+=share;}

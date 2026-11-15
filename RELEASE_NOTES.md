@@ -56,7 +56,8 @@ Designated by the user as the best working state and rollback baseline (previous
 - Release Planning: added a "Pending GUS save" KPI tile (above-the-line epics not yet created in GUS, out of all ABL epics) to fill the free slot in the summary row.
 - Release Planning: the summary KPI tiles are clickable and filter the Projects & epics grid - Planned ABL / Headroom to above-the-line work, Planned BTL to below-the-line work, Over-allocated and Time off & on-call to the engineers concerned, Unassigned effort / Incomplete epics / Pending GUS save to the matching epics, Available and Total planned to everything. Click the active tile again (or Clear filters) to reset.
 - Release Planning allocation: a workstream with no engineer of its own is now carried by the epic's owners, split equally (two epic owners = half of the days each) in the engineer allocation, over-allocation, time-off and unassigned-effort calculations. Workstreams that name engineers still split among those engineers.
-- Folded into the same version at the user's request (revision 20261115-54); the first 5.0.0-GA snapshot is kept at `releases/5.0.0-GA-original/` and tag `GOLDEN-BUILD-5.0.0-GA-original`.
+- Release Planning allocation: the equal split applies at both levels - a workstream with several engineers divides its days by the number of engineers (unchanged), and an epic that has an Epic Est but no workstream days is now counted too, divided equally among its owners. Epics with workstream days are not double counted.
+- Folded into the same version at the user's request (revision 20261115-55); the first 5.0.0-GA snapshot is kept at `releases/5.0.0-GA-original/` and tag `GOLDEN-BUILD-5.0.0-GA-original`.
 - Rollback: `releases/5.0.0-GA/` ZIP (SHA-256 in `build.json`), tag `GOLDEN-BUILD-5.0.0-GA`.
 - Verification: unit tests 225 pass / 38 fail (same as baseline); UI changes not render-verified in a signed-in browser.
 
