@@ -1,6 +1,6 @@
 ## Unreleased on top of 4.0.0-GA (plan139) — MQ Chronicle enabled for MQ only
 
-- The MQ Chronicle side-bar icon links out only when the MQ team is selected; for every other team (and All) it is greyed out and not clickable, with a hover note that it is MQ-only.
+- The MQ Chronicle side-bar icon links out only when the MQ team is selected; for every other team (and All) it is greyed out and not clickable,.
 
 ## Unreleased on top of 4.0.0-GA (plan139) — MQ Chronicle in the side bar, header logo
 
