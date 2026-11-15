@@ -1369,3 +1369,5 @@ main>.dashboard-footer>*:not(:first-child)::before{content:'·';position:absolut
 /* plan141: one step per second, each stage in its own colour, with a smooth cross-fade */
 .ri-dims span{transition:background-color .35s ease,color .35s ease,transform .35s ease,box-shadow .35s ease,border-color .35s ease}
 .ri-dims span.on{background:#176b91}.ri-dims span[data-d="0"].on{background:#176b91}.ri-dims span[data-d="1"].on{background:#7c3aed}.ri-dims span[data-d="2"].on{background:#d97706}.ri-dims span[data-d="3"].on{background:#16a34a}
+
+.heading-actions .sp-dates{margin-left:auto;order:99}

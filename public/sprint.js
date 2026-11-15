@@ -54,7 +54,7 @@ function renderDates(){const el=$('sp-dates');if(!el)return;const sp=S.sprint,a=
    item=(ic,lab,sub,tip)=>`<div class="sp-di" title="${esc(tip)}">${ic}<div><b>${esc(lab)}</b><small>${esc(sub)}</small></div></div>`;
   el.innerHTML=item(calIcon('s',MON[a.getMonth()],a.getDate(),'green'),'Start',full(a),'Sprint start date from GUS: '+full(a))
    +item(calIcon('e',MON[b.getMonth()],b.getDate(),'rose'),'End',full(b),'Sprint end date from GUS: '+full(b))
-   +item(calIcon('d',dlTop,dlBig,tone),over?'Sprint ended':!started?'Days to start':left===0?'Last day':'Days left',over?'completed':left===1?'1 day to go':left+' days to go',`${over?'The sprint has ended.':left+' calendar day'+(left===1?'':'s')+' until the sprint ends (updates daily).'}${gl!=null&&gl!==''?' GUS reports '+gl+' working day'+(String(gl)==='1'?'':'s')+' remaining.':''}`);
+   +item(calIcon('d',dlTop,dlBig,tone),over?'Sprint ended':!started?'Days to start':left===0?'Last day':'Days left',over?'completed':left===0?'ends today':left===1?'1 day to go':left+' days to go',`${over?'The sprint has ended.':left+' calendar day'+(left===1?'':'s')+' until the sprint ends (updates daily).'}${gl!=null&&gl!==''?' GUS reports '+gl+' working day'+(String(gl)==='1'?'':'s')+' remaining.':''}`);
   el.classList.remove('hidden');}
 // Re-evaluate at local midnight and when the tab regains focus, so "days left" follows the calendar without a reload.
 let datesTimer=0;function scheduleDates(){clearTimeout(datesTimer);const n=new Date(),next=new Date(n.getFullYear(),n.getMonth(),n.getDate()+1,0,0,5)-n;datesTimer=setTimeout(()=>{renderDates();scheduleDates();},Math.min(next,2147483000));}
