@@ -1069,3 +1069,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan118: incomplete-epics check uses workstream days; syntax check only, not re-run against the six-epic plan from the report.
 
 - plan119: harness — all six summary sections collapsed on first open, board expands on click; loader chip timing changed, not timed on a real slow load.
+
+- plan120: harness — standup opens with 0 active pills and a hint; clicking a pill selects one; type chips single-select (1 on). Live not checked.

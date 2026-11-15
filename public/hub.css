@@ -1135,3 +1135,6 @@ body[data-hub=plan] .pl-kpi .pl-chip{background:color-mix(in srgb,var(--k) 12%,#
 .pl-br-d{font-weight:700;color:#16324a}.pl-br-d i{font-style:normal;font-weight:500;color:#5b6b7c;margin-left:1px}
 .pl-ring{--p:0;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(#2e844a calc(var(--p)*1%),#e3e9ef 0)}.pl-ring b{width:26px;height:26px;border-radius:50%;background:#fff;display:grid;place-items:center;font-size:9px;color:#16324a}
 @media(max-width:1100px){.pl-bh{display:none}.pl-br{grid-template-columns:18px 64px 1fr 92px;row-gap:2px;padding:6px 10px}.pl-br-r,.pl-br-d,.pl-br-o,.pl-br-j,.pl-ring{display:none}}
+
+/* plan120 */
+.su-hint0{margin:18px 20px;padding:18px;border:1px dashed #cfd8e0;border-radius:12px;color:#6b7280;text-align:center;font-size:13px}

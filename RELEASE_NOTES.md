@@ -1,3 +1,8 @@
+## Unreleased on top of 4.0.0-GA (plan120) — Standup starts with no engineer selected; type chips are independent
+
+- Sprints → Standup: no engineer is selected on first view. Pick an engineer (pill, dot, Next or arrow key) and that engineer is highlighted and their epics and work items appear below. Shuffle also returns to the unselected state.
+- Work-item type chips (All / User Story / Bug / …) no longer accumulate: each chip selects only its own type, and All clears the filter.
+
 ## Unreleased on top of 4.0.0-GA (plan119) — Summary sections collapsed by default; loader chips start at once
 
 - Planned Release Summary: every section (theme distribution, priority breakdown, planning health, priority board, executive summary, saved epics) now opens collapsed. Click a heading to expand; the choice is kept while you stay on the page.
