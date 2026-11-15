@@ -347,7 +347,7 @@ async function show(){
 function setSubview(v){
   S.view=v;syncHash(v);$('sp-pulse').classList.toggle('hidden',v!=='pulse');$('sp-standup').classList.toggle('hidden',v!=='standup');
   document.querySelectorAll('[data-sp-view]').forEach(x=>{const on=x.dataset.spView===v;x.classList.toggle('selected',on);x.setAttribute('aria-pressed',String(on));});
-  const ba=$('sp-bar-actions');if(ba&&v!=='standup')ba.innerHTML='';const se=$('sp-end');if(se&&v!=='standup')se.innerHTML='';const shf=$('sp-shuffle');if(shf&&v!=='standup')shf.remove();const sbd=$('sp-bar-dates');if(sbd&&v!=='standup')sbd.innerHTML='';document.body.dataset.spView=v;const sh=document.querySelector('#sp-sprintbar h2');if(sh)sh.textContent=v==='standup'?'Sprint':'Current Sprint Summary';
+  const ba=$('sp-bar-actions');if(ba&&v!=='standup')ba.innerHTML='';const se=$('sp-end');if(se&&v!=='standup')se.innerHTML='';const shf=$('sp-shuffle');if(shf&&v!=='standup')shf.remove();const sbd=$('sp-bar-dates');if(sbd&&v!=='standup')sbd.innerHTML='';document.body.dataset.spView=v;const sd=document.querySelector('.executive-heading:has(#sp-end) > div:first-child p');if(sd)sd.textContent=v==='standup'?'Daily standup for the selected team. Pick an engineer to walk through their epics and work items; update status and points inline — changes save to GUS immediately.':'Commitment, say-do and delivery for the selected team. Edit status and points inline; changes save to GUS immediately.';const sh=document.querySelector('#sp-sprintbar h2');if(sh)sh.textContent=v==='standup'?'Sprint':'Current Sprint Summary';
   const bar=$('sp-sprintbar');if(bar){if(v==='standup'){$('sp-status').before(bar);}else $('sp-metrics').before(bar);}
   if(v==='standup')renderStandup();
 }
