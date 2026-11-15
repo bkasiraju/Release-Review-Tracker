@@ -16,3 +16,16 @@ test('saves, lists and resolves action items for team members only',async()=>{
   const re=await actions.resolve(store,MQ,{id:r.item.id,resolved:false});assert.equal(re.items[0].status,'open');
   assert.equal((await actions.list(store,MQ)).items.length,1);
 });
+
+test('retention: items older than 30 days are dropped on list and save, history is purged only when safe',async()=>{
+  const store=mem();const sfx=sf;
+  const old=new Date(Date.now()-31*864e5).toISOString(),young=new Date(Date.now()-29*864e5).toISOString();
+  await store.put('actions',MQ,{items:[{id:'a',createdAt:old,status:'open'},{id:'b',createdAt:young,status:'open'}]},null);
+  const l=await actions.list(store,MQ);assert.deepEqual(l.items.map(x=>x.id),['b']);assert.equal(l.retentionDays,30);
+  assert.deepEqual((await store.get()).items.map(x=>x.id),['b']);assert.equal((await store.get()).snapshot,true);
+  await assert.rejects(()=>actions.save(store,sfx,MQ,{...base,eta:'2027-06-01'}),/within 30 days/);
+  let purged=0;const s2={...mem(),async list(){return [{teamId:MQ,items:[],snapshot:false}];},async put(){return {teamId:MQ,items:[]};},async purgeOlderThan(){purged++;return {purged:1,failed:0};}};
+  assert.match((await actions.sweep(s2,true)).skipped,/not converted/);assert.equal(purged,0);
+  const s3={async list(){return [{teamId:MQ,items:[],snapshot:true}];},async purgeOlderThan(t,d){purged++;assert.equal(t,'actions');assert.equal(d,30);return {purged:1,failed:0};}};
+  assert.equal((await actions.sweep(s3,true)).purged,1);assert.equal(purged,1);
+});

@@ -78,6 +78,31 @@ class ContentStore{
     for(let i=0;i<titles.length;i+=4){const docs=await Promise.all(titles.slice(i,i+4).map(title=>this.get(type,title.slice(prefix.length))));result.push(...docs.filter(Boolean));}
     return result;
   }
+  /** Write a full snapshot (no journal diff), so superseded history can be deleted without breaking replay. Used by the retention-bound action log. */
+  async putSnapshot(type,id,value,expected){
+    const title=this.title(type,id),current=await this.get(type,id);
+    if(expected!==undefined&&(current?.revision??null)!==expected)throw Error('This record changed. Reload and try again.');
+    const revision=randomUUID(),doc={...value,revision,updatedAt:new Date().toISOString()};
+    const encoded=gzipSync(Buffer.from(JSON.stringify(doc))).toString('base64'),parts=encoded.match(/.{1,850}/g)||[];
+    if(parts.length>500)throw Error('Saved record is too large.');
+    for(let i=0;i<parts.length;i+=4){
+      const written=await Promise.allSettled(parts.slice(i,i+4).map((part,j)=>this.createVersion({Title:title,PathOnClient:`${title}-${i+j}.txt`,VersionData:Buffer.from(part).toString('base64'),Description:`cfs1:${revision}:${i+j}:${parts.length}:${part}`})));
+      const failed=written.find(r=>r.status==='rejected');if(failed)throw failed.reason;
+    }
+    const committed=await this.createVersion({Title:title,PathOnClient:`${title}-commit.txt`,VersionData:Buffer.from(revision).toString('base64'),Description:this.shared?`cfs-pending:${revision}`:`cfsc1:${revision}`});
+    if(this.shared)success(await this.sf.update('ContentVersion',committed.id||committed.Id,{Description:`cfsc1:${revision}`}),'The shared update could not be committed. Retry after reloading.');
+    const check=await this.get(type,id);if(check?.revision!==revision)throw Error('Saved state could not be verified. Reload before retrying.');return check;
+  }
+  /** Permanently delete saved files of `type` created more than `days` days ago (commit markers first, so a half-deleted set is ignored on read). Best effort: returns what was deleted and what could not be. */
+  async purgeOlderThan(type,days){
+    const prefix=this.title(type,'x').slice(0,-1).replace(/_/g,'\\_'),n=Math.max(1,Math.floor(days));
+    const rows=(await this.sf.query(`SELECT Id, ContentDocumentId, Description FROM ContentVersion WHERE Title LIKE '${prefix}%' AND CreatedDate < LAST_N_DAYS:${n} ORDER BY CreatedDate ASC LIMIT 400`)).records||[];
+    const rank=r=>/^(cfsc1|cfs-pending):/.test(String(r.Description||''))?0:1;
+    const del=async doc=>{if(typeof this.sf.delete==='function')return this.sf.delete('ContentDocument',doc);if(typeof this.sf.request==='function')return this.sf.request({method:'DELETE',url:'/services/data/v62.0/sobjects/ContentDocument/'+doc});throw Error('GUS Apps cannot delete saved files from this session.');};
+    let purged=0,failed=0,error='';
+    for(const r of [...rows].sort((a,b)=>rank(a)-rank(b))){if(!/^[a-zA-Z0-9]{15,18}$/.test(String(r.ContentDocumentId||'')))continue;try{await del(r.ContentDocumentId);purged++;}catch(e){failed++;error=error||e.message;}}
+    return {purged,failed,error,more:rows.length>=400};
+  }
   async createVersion(values){
     const result=success(await this.sf.create('ContentVersion',values),'Could not save dashboard state to GUS Apps. Check ContentVersion create/read access.');
     if(this.shared){this.orgPromise||=organization(this.sf);await shareVersion(this.sf,result.id||result.Id,await this.orgPromise);}

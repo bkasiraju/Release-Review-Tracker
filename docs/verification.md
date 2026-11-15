@@ -1075,3 +1075,4 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan121: harness — action modal saved an item, badge 1, log table 1 row, summary header/reply generated, Slack follow-up icon present; plan header merged into one row (screenshot). tests/actions.test.js added. Live store write and Slack follow-up not checked.
 
 - plan122: harness screenshot of the expanded rail with magnified icon; live feel of the animation not checked.
+- plan123: unit tests for 30-day pruning, snapshot-gated purge and ETA bound pass on the local harness; physical file deletion in GUS Apps not verified live.

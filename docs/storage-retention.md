@@ -18,3 +18,7 @@ An administrator can then use a verified full-state checkpoint as the new active
 Automatic pruning/checkpoint rotation is intentionally not performed by this version; this document describes the safe maintenance policy. The implemented read limits stop growth from causing unbounded application reads, and errors preserve existing records. Introducing automatic rotation requires an atomic checkpoint/active-generation mechanism on the GUS host; a timestamp filter alone is unsafe for this change journal.
 
 Salesforce documents the aggregate-query pagination restriction in its [GROUP BY considerations](https://developer.salesforce.com/docs/platform/salesforce-soql-sosl/guide/sforce-api-calls-soql-select-group-by-considerations.html).
+
+## Sprint Action Log exception (30 days)
+
+Action-log items (`actions` records, one per team) are kept for at most 30 days from creation. Reads and writes drop expired items and store a full snapshot (no diff journal). A throttled sweep then deletes `actions` ContentDocuments older than 30 days, only after all team records are snapshots. Release and epic journals are not pruned.

@@ -1,3 +1,11 @@
+## Unreleased on top of 4.0.0-GA (plan123) — 30-day retention for the Sprint Action Log; Standup Full-Screen button restored
+
+- Action items are kept for at most 30 days (by creation date) for every team. Expired items are dropped on every list, save and resolve, and each team's record is rewritten as a full snapshot so earlier diffs no longer carry the expired data.
+- A throttled (6-hourly) sweep converts all team records to snapshots and then permanently deletes `actions` files older than 30 days. It deletes only after every record is a snapshot, so no live record depends on a deleted event. If the GUS Apps session cannot delete files, the failure is returned and the app-level cutoff still applies.
+- ETA can be at most 30 days out. The log states the 30-day retention.
+- Standup: the Full-Screen button is shown again when no engineer is selected (it opens the first engineer).
+- Release journals are unchanged; the 30-day rule applies only to the action log (see docs/storage-retention.md).
+
 ## Unreleased on top of 4.0.0-GA (plan122) — Dock-style side bar
 
 - The left side bar now expands on hover or keyboard focus to show a short label under each icon, floats over the page (content does not shift) and shrinks again when the pointer leaves. Icons magnify toward the pointer like the macOS Dock, with a smooth width, label and shadow animation. Reduced-motion users get no animation. The native hover tooltips are replaced by the labels (accessible names are unchanged).
