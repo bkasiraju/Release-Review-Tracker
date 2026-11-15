@@ -79,10 +79,14 @@ const GUS_LINKS={
   rotations:[['Work items',glist('ADM_Work__c')]]
 };
 /** Keep the "Open in GUS" bar directly below the page heading (pages re-render their own markup). */
+let gusEl=null; // keep a handle: the planner re-renders its markup and would otherwise orphan the bar
 function placeGus(){
-  const el=$('gus-links'),hp=$('hub-panel');if(!el||!hp)return;
+  const el=gusEl||$('gus-links'),hp=$('hub-panel');if(!el||!hp)return;
   const vis=x=>!x.closest('.hidden')&&x.getClientRects().length,h=[...document.querySelectorAll('main .executive-heading')].find(vis);
   const sum=$('selected-release-summary');let row=$('ctl-row');
+  /* Release Planning: the Open-in-GUS chips sit inline, directly before the planner's Full screen / Export template / Import controls */
+  const pb=document.body.dataset.hub==='plan'?[...document.querySelectorAll('.pl-planner-btns')].find(vis):null;
+  if(pb){if(el.parentNode!==pb||pb.firstElementChild!==el)pb.prepend(el);if(sum&&sum.parentNode===row)$('dashboard-controls').after(sum);if(row&&!row.children.length)row.remove();return;}
   if(h){if(h.nextElementSibling!==el)h.after(el);if(sum&&sum.parentNode===row)$('dashboard-controls').after(sum);if(row&&!row.children.length)row.remove();}
   else{/* one line: "Open in GUS" links on the left, selected release chips on the right */
     if(!row){row=document.createElement('div');row.id='ctl-row';}
@@ -92,8 +96,8 @@ function placeGus(){
 }
 let gusObs;function watchGus(){if(gusObs)return;const m=document.querySelector('main')||document.body;gusObs=new MutationObserver(placeGus);gusObs.observe(m,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});}
 function renderGusLinks(id){
-  let el=$('gus-links');
-  if(!el){el=document.createElement('nav');el.id='gus-links';el.className='gus-links';el.setAttribute('aria-label','Open in GUS');$('hub-panel').before(el);watchGus();}
+  let el=gusEl||$('gus-links');
+  if(!el){el=document.createElement('nav');el.id='gus-links';el.className='gus-links';el.setAttribute('aria-label','Open in GUS');$('hub-panel').before(el);watchGus();}gusEl=el;
   el.hidden=id==='home';
   const l=GUS_LINKS[id]||GUS_LINKS.home;
   el.innerHTML='<span class="gus-links-label">Open in GUS</span>'+l.map(([t,u,primary])=>`<a class="gus-link${primary?' primary':''}" href="${u}" target="_blank" rel="noopener noreferrer">${t}<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M8 4H4v12h12v-4M11 4h5v5M16 4l-7 7"/></svg></a>`).join('');
