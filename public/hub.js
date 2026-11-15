@@ -53,9 +53,14 @@ H.register=page=>{H.pages.set(page.id,page);};
 const NAV=['home','sprints','tds','tests','rotations','bugs','hourglass','epics','plan','status'];
 /** Breadcrumb follows the team dropdown and the active page: <Team> / <Page>. */
 function setCrumb(){const c=document.querySelector('.page-heading .breadcrumb'),p=H.pages.get(H.current);if(!c||!p||!H.team)return;c.innerHTML=`${esc(H.team.short||H.team.Name)} <span aria-hidden="true">/</span> <strong>${esc(p.label)}</strong>`;const t=document.querySelector('#hub-nav .hub-tab-label');if(t)t.textContent=`${H.team.short||H.team.Name} - ${p.label}`;}
+/** Team-scoped GUS destination for the active tab: the team's related list in GUS (Sprints, Epics, Team Dependencies, Work...). */
+const TEAM_REL={home:'',sprints:'Sprints__r',tds:'Our_Dependencies__r',tests:'Work__r',rotations:'Scrum_Team_Members__r',bugs:'Work__r',hourglass:'Work__r',epics:'Epics__r',plan:'Epics__r',status:'Epics__r'};
+const TEAM_LBL={home:'team',sprints:'Sprints',tds:'Team Dependencies',tests:'work items',rotations:'team members',bugs:'work items',hourglass:'work items',epics:'Epics',plan:'Epics',status:'Epics'};
+H.gusTabUrl=id=>{const t=H.team;if(t&&t.Id&&t.Id!=='all'&&/^[a-zA-Z0-9]{15,18}$/.test(t.Id)){const rel=TEAM_REL[id];return `${H.GUS}ADM_Scrum_Team__c/${t.Id}/${rel?'related/'+rel+'/view':'view'}`;}
+  const l=(GUS_LINKS[id]||GUS_LINKS.home).find(x=>!/^New/.test(x[0]))||(GUS_LINKS.home)[2];return l?l[1]:GL+'ADM_Epic__c/list?filterName=Recent';};
 function renderNav(){setCrumb(); // only the active tab shows; the left rail switches pages
   $('hub-nav').innerHTML=NAV.filter(id=>H.pages.has(id)&&id===H.current) .map(id=>{const p=H.pages.get(id),on=id===H.current;
-    return `<button data-page="${id}" class="${on?'selected':''}" aria-pressed="${on}" ${on?'aria-current="page"':''}>${icon(p.icon,p.tone)} <span class="hub-tab-label">${esc(H.team?(H.team.short||H.team.Name)+' - ':'')}${esc(p.label)}</span></button>`;}).join('');
+    return `<button data-page="${id}" class="${on?'selected':''}" aria-pressed="${on}" ${on?'aria-current="page"':''}>${icon(p.icon,p.tone)} <span class="hub-tab-label">${esc(H.team?(H.team.short||H.team.Name)+' - ':'')}${esc(p.label)}</span></button>${on?`<a class="hub-tab-gus" href="${H.gusTabUrl(id)}" target="_blank" rel="noopener noreferrer" title="Open ${esc(TEAM_LBL[id]||'team')} for ${esc(H.team?(H.team.short||H.team.Name):'the team')} in GUS" aria-label="Open ${esc(TEAM_LBL[id]||'team')} for ${esc(H.team?(H.team.short||H.team.Name):'the team')} in GUS (opens a new tab)"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M8 4H4v12h12v-4M11 4h5v5M16 4l-7 7"/></svg><span>GUS</span></a>`:''}`;}).join('');
   document.querySelectorAll('.rail-button[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===H.current));
 }
 function legacy(view){const b=document.querySelector(`[data-view="${view}"]`);if(b)b.click();}

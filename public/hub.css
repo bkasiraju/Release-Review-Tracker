@@ -1619,3 +1619,8 @@ body[data-settled] main>*:not(#hub-boot){animation:none!important;transform:none
 .sp-modal.sp-swap .sp-modal-top,.sp-modal.sp-swap .sp-modal-body{animation:none!important}
 main{min-height:100vh}
 .pl-grid-wrap,.table-scroll{scrollbar-gutter:stable}
+/* plan184: GUS shortcut at the right edge of the active tab */
+.dashboard-bar .hub-nav{align-items:flex-end}
+.hub-nav .hub-tab-gus{display:inline-flex;align-items:center;gap:5px;margin:0 0 -1px 2px;padding:6px 11px;border:1px solid #b9d3e6;border-radius:8px 8px 0 0;background:#f3f8fc;color:#0b5a8a;font-size:12px;font-weight:700;text-decoration:none;line-height:1}
+.hub-nav .hub-tab-gus:hover{background:#e3f1fb;border-color:#0b6fa8}.hub-nav .hub-tab-gus:focus-visible{outline:2px solid #0b6fa8;outline-offset:1px}
+.hub-nav .hub-tab-gus svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
