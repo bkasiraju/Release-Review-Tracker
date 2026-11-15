@@ -1059,3 +1059,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan113: compact Release Planning — harness screenshot at 2000 px wide; table rows 45px to 33px; not compared against live data.
 
 - plan114: smaller planner table fonts and controls — harness screenshot checked.
+
+- plan115: planning header layout and nine summary tiles — harness screenshots at 2000 and 1300 px checked; tile values read from the harness plan only.

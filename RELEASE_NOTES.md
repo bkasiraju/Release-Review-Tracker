@@ -1,3 +1,9 @@
+## Unreleased on top of 4.0.0-GA (plan115) — Balanced planning header, subtler tiles, four risk tiles
+
+- Release Planning header: description, save status, Team, Leaves, Save and Review buttons share one aligned row at one height; tabs and the planning window share the next row with even spacing.
+- Summary tiles are subtler (thin border, light tint, no lift on hover; the 3D icons are unchanged).
+- Four new tiles for planning risk: Time off & on-call (days of capacity lost), Over-allocated (engineers planned beyond availability, with names), Unassigned effort (days with no engineer) and Incomplete epics (no owner or no estimate). They turn amber or rose when something needs attention.
+
 ## Unreleased on top of 4.0.0-GA (plan114) — Smaller planner table
 
 - Release Planner table: smaller text (11px, headers 10px), smaller days boxes, ABL/BTL toggle, estimate cells and action icons, and tighter cell padding.

@@ -1091,3 +1091,31 @@ body[data-hub=plan] .pl-grid .pl-ib svg{width:14px!important;height:14px!importa
 body[data-hub=plan] .pl-grid td{padding:0 5px!important}
 body[data-hub=plan] .pl-grid .cs-btn,body[data-hub=plan] .pl-grid .cs-btn span,body[data-hub=plan] .pl-grid .sp-select,body[data-hub=plan] .pl-grid select.pl-g{font-size:11px!important;min-height:22px!important;height:22px!important;padding-top:0!important;padding-bottom:0!important;line-height:20px!important}
 body[data-hub=plan] .pl-grid .cs-btn svg{width:12px!important;height:12px!important}
+
+/* plan115: balanced planning header (description + actions, tabs + planning window) */
+body[data-hub=plan] .executive-heading{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:8px 16px!important;flex-wrap:wrap!important;margin:6px 0 10px!important}
+body[data-hub=plan] .executive-heading>div:first-child{flex:1 1 360px!important}
+body[data-hub=plan] .executive-heading p{font-size:12px!important;line-height:1.4!important;color:#44546a!important}
+body[data-hub=plan] .executive-heading .heading-actions{display:flex!important;align-items:center!important;gap:8px!important;flex-wrap:wrap!important;justify-content:flex-end!important;margin:0!important;flex:0 1 auto!important}
+body[data-hub=plan] .heading-actions .pl-state{font-size:12px!important;white-space:nowrap;line-height:32px;margin-right:4px}
+body[data-hub=plan] .heading-actions .pl-team{display:inline-flex!important;align-items:center;gap:6px;font-size:12px!important;font-weight:600;margin:0 4px 0 0;line-height:1}
+body[data-hub=plan] .heading-actions .button,body[data-hub=plan] .heading-actions select{height:32px!important;min-height:32px!important;padding:0 14px!important;font-size:12px!important;display:inline-flex;align-items:center;gap:6px;box-sizing:border-box}
+body[data-hub=plan] .heading-actions select{padding:0 26px 0 10px!important;min-width:90px}
+body[data-hub=plan] .heading-actions .pl-hb svg{width:15px!important;height:15px!important}
+body[data-hub=plan] .pl-tabs{display:flex!important;align-items:center!important;flex-wrap:wrap;gap:8px 10px!important;margin:0 0 12px!important;padding:0 0 10px!important}
+body[data-hub=plan] .pl-tabs button[data-tab]{padding:6px 14px!important;font-size:12px!important;line-height:1.3!important}
+body[data-hub=plan] .pl-tabs .pl-dates{margin-left:auto!important;padding:0!important;gap:8px!important;font-size:12px!important}
+body[data-hub=plan] .pl-tabs .pl-dates label{font-size:12px!important;gap:8px!important}
+body[data-hub=plan] .pl-tabs .pl-dates input[type=date]{height:30px!important;min-height:30px!important;font-size:12px!important;padding:0 8px!important}
+
+/* plan115: subtler summary tiles, up to eight per plan */
+body[data-hub=plan] .pl-kpis{grid-template-columns:repeat(5,minmax(0,1fr))!important}
+@media(max-width:1500px){body[data-hub=plan] .pl-kpis{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
+body[data-hub=plan] .pl-kpi{border:1px solid #e3e9ef!important;border-top:2px solid color-mix(in srgb,var(--k) 55%,#fff)!important;border-radius:10px!important;background:linear-gradient(160deg,color-mix(in srgb,var(--k2) 45%,#fff),#fff 75%)!important;box-shadow:none!important;padding:8px 12px!important}
+body[data-hub=plan] .pl-kpi:hover{transform:none!important;box-shadow:0 2px 8px rgba(22,50,74,.08)!important}
+body[data-hub=plan] .pl-kpi .cfs-icon{width:38px!important;height:38px!important;border-radius:12px!important}
+body[data-hub=plan] .pl-kpi-b span{font-size:10px!important;font-weight:600!important;letter-spacing:.05em}
+body[data-hub=plan] .pl-kpi b{font-size:19px!important}
+body[data-hub=plan] .pl-kpi-b small{color:#5b6b7c!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body[data-hub=plan] .pl-kpi .pl-chip{background:color-mix(in srgb,var(--k) 12%,#fff)!important;color:var(--k)!important;border:1px solid color-mix(in srgb,var(--k) 30%,#fff);font-weight:600}
+@media(max-width:900px){body[data-hub=plan] .pl-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
