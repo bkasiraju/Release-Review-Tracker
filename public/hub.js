@@ -412,17 +412,19 @@ function settle(){
 function loadOrbit(){
   const host=document.querySelector('#hub-boot .ri-track');if(!host)return;const seen=new Map(),N=28;
   // Fixed slots in two identical halves (seamless marquee). People fill placeholder slots in place, so the strip never re-renders or restarts.
-  const slot='<span class="ri-av ri-ph"><b></b></span>';host.innerHTML=slot.repeat(N*2);
-  const fill=(i,p)=>{[host.children[i],host.children[i+N]].forEach(el=>{if(!el)return;
+  const pre=host.dataset.pre==='1',slot='<span class="ri-av ri-ph"><b></b></span>';if(!pre)host.innerHTML=slot.repeat(N*2);
+  const fill=(i,p)=>{if(pre)return;[host.children[i],host.children[i+N]].forEach(el=>{if(!el)return;
     el.className='ri-av';el.innerHTML=`<b><i>${esc(initials(p.name))}</i></b>`;
     if(p.avatar){const im=new Image();im.decoding='async';im.alt='';im.onload=()=>{const b=el.firstChild;if(b){im.className='ri-img';b.appendChild(im);requestAnimationFrame(()=>im.classList.add('in'));}};im.src=p.avatar;}});};
   let used=0;
   const add=d=>{if(!d||!d.people)return;d.people.forEach(p=>{if(p.name&&H.leaderRank(p.name)<0&&!seen.has(p.name)){seen.set(p.name,p);if(used<N)fill(used++,p);}});};
   const groups=['maps','mq','vegacache','vegastore','caching'];
-  groups.forEach(g=>{try{const c=JSON.parse(localStorage.getItem('hub-people2-'+g)||'null');if(c&&c.d)add(c.d);}catch(_){}});
+  // remember the strip so the next load can paint it (with its images already fetching) before any script runs
+  const save=()=>{const l=[...seen.values()].filter(p=>p.avatar).slice(0,N).map(p=>({n:p.name,a:p.avatar}));if(l.length)try{localStorage.setItem('hub-boot-strip',JSON.stringify(l));}catch(_){}};
+  groups.forEach(g=>{try{const c=JSON.parse(localStorage.getItem('hub-people2-'+g)||'null');if(c&&c.d)add(c.d);}catch(_){}});save();
   // Few people known yet (first visit): repeat them over the remaining slots so the strip is never mostly empty.
   const cycle=()=>{const l=[...seen.values()];if(!l.length)return;for(let i=used;i<N;i++)fill(i,l[i%l.length]);};
-  Promise.allSettled(groups.map(g=>loadPeople(g).then(add,()=>{}))).then(()=>{if(used<N)cycle();});
+  Promise.allSettled(groups.map(g=>loadPeople(g).then(add,()=>{}))).then(()=>{if(used<N)cycle();save();});
   const msgs=['Planning: reading projects and epics…','Executing: syncing sprints and builds…','Reviewing: checking release health…','Iterating: lining up every team…'],dims=document.querySelectorAll('#hub-boot .ri-dims span');let k=0;
   const show=()=>{const m=document.getElementById('ri-msg');if(m)m.textContent=msgs[k%msgs.length];dims.forEach(d=>d.classList.toggle('on',+d.dataset.d===k%msgs.length));};show();
   const t=setInterval(()=>{if(!document.getElementById('ri-msg')||document.body.dataset.settled){clearInterval(t);return;}k++;show();},900);

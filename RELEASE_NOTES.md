@@ -1,3 +1,8 @@
+## Unreleased on top of 4.0.0-GA (plan137) — loader avatars paint immediately
+
+- The loading screen's avatar strip is now drawn by a small inline script right after the loader markup, so the circles and their photos start fetching during HTML parse instead of after the app scripts and the roster call finish. It uses the last roster the app saw (`hub-boot-strip`, refreshed on every load), or a built-in list of team members on a first visit. Leaders are excluded as before. Added a preconnect to the Slack avatar host.
+- The deferred loader code no longer rebuilds the strip when it was pre-painted, so the animation does not restart; it only refreshes the saved list for the next load.
+
 ## Unreleased on top of 4.0.0-GA (plan136) — Hourglass executive summary as bullets
 
 - The Executive Summary paragraph is now a one-line verdict plus two bullet panels: Accomplished (targets met, PRs merged and work-item coverage, improvement versus the previous sprint, fast first review) and Growth areas (targets missed, slowdown versus the previous sprint, top root cause with hours lost, slow first-review share, large PRs, slowest PR). Rule-based from the existing metrics; no AI.

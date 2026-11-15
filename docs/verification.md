@@ -1093,3 +1093,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan135: standup rows realigned (SAL button moved into the Work cell). Verified by unit tests and code inspection of the 8-column grid only; no live or rendered check because the local harness has no sprint data.
 
 - plan136: Hourglass executive summary as Accomplished / Growth bullets. Verified by unit tests and a local headless render only; not live-verified.
+
+- plan137: loader avatars pre-painted by an inline script. Verified by unit tests and a local headless render only; the real cold-load timing against Slack's image host was not measured.
