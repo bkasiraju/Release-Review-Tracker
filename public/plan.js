@@ -243,6 +243,8 @@ const newEpic=pid=>({id:uid('e'),projectId:pid,name:'',line:'BTL',priority:0,...
 const prj0=e=>P.plan.projects.find(p=>p.id===e.projectId)||null;
 const memName=id=>(P.members.find(m=>m.id===id)||{}).name||'';
 const wsEngs=w=>w.engIds&&w.engIds.length?w.engIds:(w.engId?[w.engId]:[]);
+/** Who carries a workstream's days: its own engineers, else the epic's owners (two owners = half each). */
+const wsWho=(e,w)=>{const a=wsEngs(w);return a.length?a:[...new Set(e.owners||[])];};
 const wsNames=w=>wsEngs(w).map(id=>memName(id)||(id===w.engId?w.engName:'')||'Engineer');
 const shortProj=n=>{n=n||'';if(/^[^:]{1,30}:/.test(n))return n.split(':')[0].trim();const m=n.match(/^(?:[A-Za-z]{2,6}\s+)?[A-Za-z]?\d+(?:\.\d+)+/);return m?m[0]:(n||'(unnamed project)');};
 const msLabel=(ids,empty)=>{const n=ids.map(memName).filter(Boolean);return n.length?(n.length>1?`${n[0].split(' ')[0]} +${n.length-1}`:n[0]):empty;};
@@ -278,7 +280,7 @@ function model(){
   for(const m of P.members)if(H.leaderRank(m.name)<0){const x=row(m.id,m.name),pp=pl.people[m.id]||{};x.leave=pp.leave||0;x.holiday=pp.holiday||0;x.oncall=pp.oncall||0;x.total=pp.total!=null?pp.total:wd;x.avail=Math.max(0,x.total-x.leave-x.holiday-x.oncall);}
   const themes=new Map();let ablT=0,btlT=0;
   for(const e of pl.epics){
-    const slices=e.workstreams.filter(w=>(w.days||0)>0).map(w=>({ids:wsEngs(w),d:w.days,nm:w.engName,k:wl(e,w)==='ABL'?'abl':'btl'}));
+    const slices=e.workstreams.filter(w=>(w.days||0)>0).map(w=>({ids:wsWho(e,w),d:w.days,nm:w.engName,k:wl(e,w)==='ABL'?'abl':'btl'}));
     for(const {ids,d,nm,k} of slices){const share=d/(ids.length||1),t=epicTheme(e);
       for(const id of ids.length?ids:['']){const x=id?row(id,memName(id)||nm||'Engineer'):row('none','Unassigned');if(!id)x.cap=false;x[k]+=share;
         const tm=x.th.get(t)||x.th.set(t,{abl:0,btl:0,ep:new Map()}).get(t),ep=tm.ep.get(e.id)||tm.ep.set(e.id,{name:e.name||'Untitled epic',abl:0,btl:0}).get(e.id);tm[k]+=share;ep[k]+=share;}
@@ -449,11 +451,11 @@ function drawPlanner(){
   const projOpts=sel=>pl.projects.map(p=>opt(p.id,p.name||'(unnamed project)',p.id===sel)).join('');
   const engOpts=sel=>'<option value="">Unassigned</option>'+P.members.filter(m=>H.leaderRank(m.name)<0).map(m=>opt(m.id,m.name,m.id===sel)).join('');
   const V=P.view,prj=new Map(pl.projects.map(p=>[p.id,p])),q=V.q.trim().toLowerCase(),filtering=!!(q||V.flag||MF.some(k=>V[k].length));
-  const FLAG={unassigned:e=>e.workstreams.some(w=>(w.days||0)>0&&!wsEngs(w).length),incomplete:e=>!(e.owners&&e.owners.length)||!e.workstreams.some(w=>(w.days||0)>0),pending:e=>e.line==='ABL'&&!e.gusId};
+  const FLAG={unassigned:e=>e.workstreams.some(w=>(w.days||0)>0&&!wsWho(e,w).length),incomplete:e=>!(e.owners&&e.owners.length)||!e.workstreams.some(w=>(w.days||0)>0),pending:e=>e.line==='ABL'&&!e.gusId};
   const match=e=>{const p=prj.get(e.projectId);
     if(V.flag&&FLAG[V.flag]&&!FLAG[V.flag](e))return false;
     if(V.release.length&&!V.release.includes(e.releaseId))return false;if(V.line.length&&!(e.workstreams.length?e.workstreams.some(w=>V.line.includes(wl(e,w))):V.line.includes(e.line)))return false;
-    if(V.eng.length&&!e.workstreams.some(w=>wsEngs(w).some(i=>V.eng.includes(i))))return false;if(V.theme.length&&!V.theme.includes(epicTheme(e)))return false;
+    if(V.eng.length&&!e.workstreams.some(w=>wsWho(e,w).some(i=>V.eng.includes(i))))return false;if(V.theme.length&&!V.theme.includes(epicTheme(e)))return false;
     if(q&&!((e.name||'')+' '+(p&&p.name||'')+' '+e.workstreams.map(w=>w.name).join(' ')).toLowerCase().includes(q))return false;return true;};
   const shown=pl.epics.filter(match);
   const cnt=P.el.querySelector('#pl-count');if(cnt)cnt.textContent=filtering?`${shown.length} of ${pl.epics.length} epics${V.flag?' · '+({unassigned:'unassigned effort',incomplete:'incomplete',pending:'pending GUS save'})[V.flag]:''}`:`${pl.epics.length} epic${pl.epics.length===1?'':'s'}`;
