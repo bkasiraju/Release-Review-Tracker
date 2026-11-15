@@ -1065,3 +1065,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan116: priority board — harness: renders both groups, priority selector updates the epic and redraws; drag-and-drop was not exercised in a real browser.
 
 - plan117: chip text renamed to RoB/KTLO; syntax check only.
+
+- plan118: incomplete-epics check uses workstream days; syntax check only, not re-run against the six-epic plan from the report.

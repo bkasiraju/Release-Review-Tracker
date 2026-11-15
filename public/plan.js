@@ -405,7 +405,7 @@ function showTip(host){
 /** Extra planning-risk tiles: capacity lost to time off, engineers planned beyond availability, effort with no engineer, epics missing an owner or estimate. */
 const extraKpis=m=>{const cap=m.rows.filter(x=>x.cap),sum=k=>r2(cap.reduce((a,x)=>a+(x[k]||0),0)),lost=r2(sum('leave')+sum('holiday')+sum('oncall')),
   over=cap.filter(x=>x.abl+x.btl>x.avail+0.001),un=m.rows.find(x=>!x.cap),unD=un?r2(un.abl+un.btl):0,
-  inc=P.plan.epics.filter(e=>!(e.owners&&e.owners.length)||!(epicDays(e)>0)),short=a=>a.slice(0,2).map(x=>esc(x.name.split(' ')[0])).join(', ')+(a.length>2?` +${a.length-2}`:'');
+  inc=P.plan.epics.filter(e=>!(e.owners&&e.owners.length)||!e.workstreams.some(w=>(w.days||0)>0)),short=a=>a.slice(0,2).map(x=>esc(x.name.split(' ')[0])).join(', ')+(a.length>2?` +${a.length-2}`:'');
   return kpi('Time off & on-call',fmt(lost)+'<i>d</i>',`${fmt(sum('leave'))} leave · ${fmt(sum('holiday'))} holidays · ${fmt(sum('oncall'))} on-call`,'','calendar','amber','RoB/KTLO')
    +kpi('Over-allocated',String(over.length)+'<i> eng</i>',over.length?`Planned beyond availability: ${short(over)}`:'Everyone is within availability',over.length?'over':'ok','users',over.length?'rose':'green',over.length?'Review':'Balanced')
    +kpi('Unassigned effort',fmt(unD)+'<i>d</i>',unD?'Workstreams with days but no engineer':'Every workstream has an engineer',unD?'warn':'ok','risk',unD?'amber':'green',unD?'Assign':'Covered')

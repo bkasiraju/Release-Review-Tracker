@@ -1,3 +1,7 @@
+## Unreleased on top of 4.0.0-GA (plan118) — Incomplete epics tile counted below-the-line epics wrongly
+
+- Fix: the "Incomplete epics" tile treated an epic as having no estimate when its epic estimate was 0, but below-the-line (BTL) epics always show 0 there because only above-the-line effort counts. It now checks the workstream days instead, so a BTL epic with effort entered is no longer flagged.
+
 ## Unreleased on top of 4.0.0-GA (plan117) — RoB/KTLO chip
 
 - The "Capacity lost" chip on the Time off & on-call tile in Release Planning now reads "RoB/KTLO".
