@@ -284,7 +284,8 @@ function renderStandup(){
   const pills=ms.map((x,k)=>{const a=activeItems(x);return `<button class="su-pill${k===S.standupIdx?' active':''}" data-su="${k}" aria-pressed="${k===S.standupIdx}">${avImg(x)}<span>${esc(x.name)}</span><small class="pill-chips"><i class="mchip pl">${fmt(planOf(a))}</i><i class="mchip ac">${fmt(a.reduce((n,i)=>n+spOf(i),0))}</i><span>${a.length} WI</span></small></button>`;}).join('');
   const end=$('sp-end');if(end){const t=m||ms[0];end.innerHTML=(t?`<button class="button small${m?' sp-fs-flash':''}" data-open-member="${esc(t.name)}" title="${m?'Open this engineer full-screen':'Open the first engineer full-screen'}">Full-Screen ⤢</button>`:'');}
   const bd=$('sp-bar-dates');if(bd)bd.innerHTML=datesHtml()?`<div class="sp-dates">${datesHtml()}</div>`:'';
-  const acts=$('sp-bar-actions');if(acts)acts.innerHTML=`<button class="button small" data-su-step="-1" aria-label="Previous member"${S.standupIdx<=0?' disabled':''}>‹ Prev</button><button class="button small" data-su-step="1" aria-label="Next member"${S.standupIdx===ms.length-1?' disabled':''}>Next ›</button><button class="button small" data-shuffle title="Randomise the order of engineers for standup">🔀 Shuffle</button>`;
+  const acts=$('sp-bar-actions');if(acts)acts.innerHTML='';
+  if(!$('sp-shuffle')){const rf=$('sp-refresh');if(rf)rf.insertAdjacentHTML('beforebegin','<button class="button" id="sp-shuffle" data-shuffle title="Randomise the order of engineers for standup">🔀 Shuffle</button>');}
   host.innerHTML=`<section class="table-card su-card"><div class="su-pills" role="group" aria-label="Team members">${pills}</div>
   <div class="su-carousel"><div class="su-nav"><div class="su-nav-c"><span class="su-count">${m?`${S.standupIdx+1} of ${ms.length}`:`${ms.length} engineers`}</span><div class="su-dots" role="tablist">${ms.map((x,k)=>`<button class="su-dot${k===S.standupIdx?' active':''}" data-su="${k}" role="tab" aria-selected="${k===S.standupIdx}" aria-label="${esc(x.name)}"></button>`).join('')}</div></div></div>
   ${m?`<div class="su-member"><div class="su-member-head">${avImg(m,1)}<div><h3>${esc(m.name)}</h3><p>${S.standupIdx+1} of ${ms.length}</p><div class="mchips su-groups">${statChips(items)}</div>${memberChips(m)}</div><span class="sp-bar su-bar"><i style="width:${Math.min(100,pct(doneSp,sp))}%;background:#2e844a"></i></span></div>
@@ -335,7 +336,7 @@ async function show(){
 function setSubview(v){
   S.view=v;$('sp-pulse').classList.toggle('hidden',v!=='pulse');$('sp-standup').classList.toggle('hidden',v!=='standup');
   document.querySelectorAll('[data-sp-view]').forEach(x=>{const on=x.dataset.spView===v;x.classList.toggle('selected',on);x.setAttribute('aria-pressed',String(on));});
-  const ba=$('sp-bar-actions');if(ba&&v!=='standup')ba.innerHTML='';const se=$('sp-end');if(se&&v!=='standup')se.innerHTML='';const sbd=$('sp-bar-dates');if(sbd&&v!=='standup')sbd.innerHTML='';document.body.dataset.spView=v;const sh=document.querySelector('#sp-sprintbar h2');if(sh)sh.textContent=v==='standup'?'Sprint':'Current Sprint Summary';
+  const ba=$('sp-bar-actions');if(ba&&v!=='standup')ba.innerHTML='';const se=$('sp-end');if(se&&v!=='standup')se.innerHTML='';const shf=$('sp-shuffle');if(shf&&v!=='standup')shf.remove();const sbd=$('sp-bar-dates');if(sbd&&v!=='standup')sbd.innerHTML='';document.body.dataset.spView=v;const sh=document.querySelector('#sp-sprintbar h2');if(sh)sh.textContent=v==='standup'?'Sprint':'Current Sprint Summary';
   const bar=$('sp-sprintbar');if(bar){if(v==='standup'){$('sp-status').before(bar);}else $('sp-metrics').before(bar);}
   if(v==='standup')renderStandup();
 }
