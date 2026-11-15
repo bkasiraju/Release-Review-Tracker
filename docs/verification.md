@@ -1051,3 +1051,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan109: project colour bars, top-bar right alignment — harness screenshots only.
 
 - plan110: avatar lookup across rosters — harness Sprints page showed 8 of 13 avatar slots with photos (others have no photo in the harness data); not seen on live MAPS data.
+
+- plan111: shared avatar helper on Plan engineer table and Review lead column — harness Plan page: 9 avatars, 6 with photos (others have no photo in harness data); Release Review column not rendered in harness.

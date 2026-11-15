@@ -207,6 +207,11 @@ function loadPeople(g){
 H.personAvatar=(id,name)=>{const n=String(name||'').toLowerCase(),find=d=>d&&d.people.find(p=>(id&&p.id===id)||(n&&p.name.toLowerCase()===n));const g=groupKey(H.team);
   // This team's roster first, then any other roster already loaded (QA engineers and assignees can sit on another team).
   let hit=g&&find(rosterOf(g));if(hit)return hit;for(const k of ['maps','mq','vegacache','vegastore','caching']){if(k!==g&&(hit=find(rosterOf(k))))return hit;}return null;};
+/** Round avatar (photo when known, initials otherwise) for any page; falls back to the GUS photo, then to initials if an image fails. */
+H.avatarHtml=(id,name,size)=>{const pr=H.personAvatar(id,name),ini=String(name||'?').split(/\s+/).filter(Boolean).map(w=>w[0]).slice(0,2).join('').toUpperCase();
+  if(!pr)H.peopleReady();return `<span class="hub-pa" data-i="${esc(ini)}" data-pid="${esc(id||'')}" data-pn="${esc(name||'')}"${size?` style="--s:${size}px"`:''}>${pr&&pr.avatar?`<img src="${esc(pr.avatar)}" alt="" decoding="async" ${pr.alt&&pr.alt!==pr.avatar?`data-alt="${esc(pr.alt)}"`:''} onerror="var a=this.dataset.alt;if(a){this.removeAttribute('data-alt');this.src=a;}else this.remove()">`:''}</span>`;};
+/** When a roster arrives, add photos to avatars already on screen (no page re-render needed). */
+document.addEventListener('hub-people',()=>{document.querySelectorAll('.hub-pa:not(:has(img))').forEach(el=>{const pr=H.personAvatar(el.dataset.pid||null,el.dataset.pn);if(pr&&pr.avatar){const i=new Image();i.alt='';i.decoding='async';i.src=pr.avatar;if(pr.alt&&pr.alt!==pr.avatar)i.dataset.alt=pr.alt;i.onerror=()=>{const a=i.dataset.alt;if(a){delete i.dataset.alt;i.src=a;}else i.remove();};el.appendChild(i);}});});
 /** Resolves once this team's roster is loaded; retries a failed load twice so a transient error does not leave the page without avatars. */
 H.peopleReady=async()=>{const g=groupKey(H.team);if(!g)return null;for(let i=0;i<3;i++){try{return await loadPeople(g);}catch(_){await new Promise(r=>setTimeout(r,1500*(i+1)));}}return null;};
 /** Shared table column sizing. Every table gets a <colgroup>: short columns (status, priority, ids, numbers) take just the width their

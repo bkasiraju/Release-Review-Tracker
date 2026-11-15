@@ -1,3 +1,9 @@
+## Unreleased on top of 4.0.0-GA (plan111) — Avatars on Release Planning and Release Review
+
+- The engineer table on Release Planning and the Development Lead / Owner column on Release Review now show each person's photo before their name (initials until the photo is known or when none exists).
+- One shared avatar helper (`Hub.avatarHtml`) is used for these; when a team roster finishes loading, photos are added to avatars already on screen, so no page needs a re-render and any page that uses the helper loads its roster by itself.
+- Live check: the `hub-people` action returns Slack photo URLs for the MAPS and MQ rosters, so the data is there.
+
 ## Unreleased on top of 4.0.0-GA (plan110) — Avatars always load
 
 - Fix: avatars on Sprints could be missing. The loader pre-fetches all five team rosters, and the avatar lookup only trusted the last roster loaded, so it often missed the current team's people. Rosters are now kept per team, a lookup checks the current team first and then every other loaded roster (assignees and QA can sit on another team), and rosters read from the browser cache when not yet fetched.
