@@ -849,3 +849,9 @@ body[data-ready] #hub-boot{display:flex}
 .pl-kpi .cfs-icon::before,.pl-card h3 .cfs-icon::before,.pl-planner-h h3 .cfs-icon::before{content:"";position:absolute;left:8%;right:8%;top:5%;height:42%;border-radius:14px 14px 40% 40%/14px 14px 100% 100%;background:linear-gradient(#fffc,#fff0);pointer-events:none}
 .pl-kpi .cfs-icon svg,.pl-card h3 .cfs-icon svg,.pl-planner-h h3 .cfs-icon svg{position:relative;width:60%;height:60%;stroke-width:2;filter:drop-shadow(0 2px 1.5px color-mix(in srgb,var(--icon-edge) 80%,transparent))}
 .pl-kpi:hover .cfs-icon{transform:translateY(-2px) scale(1.04)}
+.pl-prev{margin:6px 0}.pl-prev summary{cursor:pointer;font-weight:700;color:#176b91}.pl-prev .pl-iss ul{margin:2px 0 4px;padding-left:16px;font-size:12px;color:#444}.pl-prev small{color:#667}
+
+/* plan85: Full-Screen button in Sprints flashes its border so it is easy to spot */
+.sp-fs-flash{border:2px solid #176b91!important;font-weight:700;color:#176b91;animation:spFsFlash 1.2s ease-in-out infinite}
+@keyframes spFsFlash{0%,100%{border-color:#176b91;box-shadow:0 0 0 0 rgba(23,107,145,.45)}50%{border-color:#e8590c;box-shadow:0 0 0 5px rgba(232,89,12,.18)}}
+@media(prefers-reduced-motion:reduce){.sp-fs-flash{animation:none;border-color:#e8590c!important}}

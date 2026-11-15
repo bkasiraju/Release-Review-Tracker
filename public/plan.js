@@ -121,21 +121,32 @@ function exportTemplate(){
 function checkImport(sheet){
   const pl=P.plan,issues=[],add=(sev,row,msg)=>issues.push({sev,row,msg});
   const norm=x=>String(x==null?'':x).replace(/\s+/g,' ').trim().toLowerCase();
-  const head=(sheet[0]||[]).map(norm),idx=i=>head.findIndex(h=>h.startsWith(norm(IO_COLS[i]).split(' (')[0].toLowerCase()));
-  const ci={proj:0,pname:1,epic:2,ws:3,eo:4,wo:5,days:6,line:7,sprint:8,pri:9};
-  for(const k of Object.keys(ci)){const j=idx(ci[k]);ci[k]=j;}
-  if(ci.epic<0||ci.proj<0&&ci.pname<0){add('error',1,'Header row not recognised. Use “Export template” and keep its column headers (Project, Epic Name, … ).');return {issues,epics:[],stats:{}};}
+  const strip=x=>norm(x).replace(/\s*\(.*?\)\s*/g,' ').replace(/\s+/g,' ').trim();
+  const ALIAS={proj:['project short form','project','short form'],pname:['measure name','measure','project name'],epic:['epic name','epic'],ws:['workstream','workstream name','feature'],eo:['epic owner','epic owners'],wo:['workstream owner','workstream owners','ws owner','ws owners'],days:['ws est','ws days','days','ws effort'],line:['atl/btl','abl/btl','atl btl','line'],sprint:['sprint'],pri:['priority']};
+  // The header row is the first row (within the top 15) that has an Epic Name column; rows above it (titles, notes) are ignored.
+  let hr=0;for(let i=0;i<Math.min(sheet.length,15);i++){if((sheet[i]||[]).some(c=>ALIAS.epic.includes(strip(c)))){hr=i;break;}}
+  const head=(sheet[hr]||[]).map(strip);
+  const ci={};for(const k of Object.keys(ALIAS))ci[k]=head.findIndex(h=>ALIAS[k].includes(h));
+  if(ci.epic<0||ci.proj<0&&ci.pname<0){add('error',hr+1,'Header row not recognised. Use “Export template” and keep its column headers (Project, Epic Name, … ).');return {issues,epics:[],stats:{}};}
   const get=(r,k)=>ci[k]<0?'':String(r[ci[k]]==null?'':r[ci[k]]).trim();
   const projBy=new Map(),projects=[...pl.projects];
   const findProj=(sh,nm)=>projects.find(p=>(sh&&norm(projShort(p))===norm(sh))||(nm&&norm(p.name)===norm(nm)))||null;
   const members=P.members.filter(m=>H.leaderRank(m.name)<0),byName=new Map(members.map(m=>[norm(m.name),m]));
-  const names=(txt,row,what)=>{const ids=[],nm=[];for(const part of String(txt||'').split(/[,;\n]/).map(x=>x.trim()).filter(Boolean)){const m=byName.get(norm(part));if(m){if(!ids.includes(m.id)){ids.push(m.id);nm.push(m.name);}}else add('error',row,`${what}: “${part}” is not an engineer on this team.`);}return {ids,nm};};
+  const names=(txt,row,what)=>{const ids=[],nm=[];for(const part of String(txt||'').split(/[,;\n]/).map(x=>x.trim()).filter(Boolean)){let m=byName.get(norm(part));if(!m){const q=norm(part),hits=members.filter(x=>norm(x.name).startsWith(q));if(q&&hits.length===1){m=hits[0];add('warn',row,`${what}: “${part}” was matched to ${m.name}.`);}}if(m){if(!ids.includes(m.id)){ids.push(m.id);nm.push(m.name);}}else add('error',row,`${what}: “${part}” is not an engineer on this team${(()=>{const q=norm(part).split(' ')[0]||'~',h=members.filter(x=>norm(x.name).includes(q));return h.length&&h.length<4?' (did you mean '+h.map(x=>x.name).join(' / ')+'?)':'';})()}.`);}return {ids,nm};};
   const groups=new Map(),newProj=new Map();
-  for(let i=1;i<sheet.length;i++){
+  let last=null,carried=0;
+  for(let i=hr+1;i<sheet.length;i++){
     const r=sheet[i]||[],row=i+1;if(!r.some(c=>String(c==null?'':c).trim()))continue;
-    const sh=get(r,'proj'),pn=get(r,'pname'),en=get(r,'epic');
-    if(!en){add('error',row,'Epic Name is required.');continue;}
-    if(!sh&&!pn){add('error',row,'Project is required (short form or measure name).');continue;}
+    let sh=get(r,'proj'),pn=get(r,'pname'),en=get(r,'epic');
+    // Merged cells / blank repeats: a blank Epic Name or Project continues the epic above, so its workstream rows stay grouped.
+    if(!en){
+      const hasWs=get(r,'ws')||get(r,'days')||get(r,'wo')||get(r,'sprint');
+      if(last&&hasWs&&((!sh&&!pn)||(sh&&sh===last.sh)||(pn&&pn===last.pn))){en=last.en;sh=last.sh;pn=last.pn;carried++;}
+      else{add('error',row,last&&hasWs?'Epic Name is blank and the Project differs from the epic above; fill the Epic Name.':'Epic Name is required.');continue;}
+    }else if(!sh&&!pn){
+      if(last){sh=last.sh;pn=last.pn;carried++;}else{add('error',row,'Project is required (short form or measure name).');continue;}
+    }
+    last={sh,pn,en};
     let pr=findProj(sh,pn),pkey;
     if(pr)pkey=pr.id;else{
       const gh=P.refs.projects.find(x=>norm(x.name)===norm(pn));
@@ -151,15 +162,15 @@ function checkImport(sheet){
     if(!g){g={pr,name:en,row,line:'',pri:null,status:'',rel:null,eo:null,ws:[]};groups.set(key,g);}
     const take=(f,v)=>{if(v===''||v==null)return;if(g[f]===''||g[f]==null)g[f]=v;else if(String(g[f])!==String(v))add('warn',row,`Epic “${en}”: ${f==='eo'?'Epic Owner':f==='rel'?'Planned Release':f==='pri'?'Priority':f==='line'?'ATL/BTL':'Status'} differs between rows; the first value (${f==='eo'?g.eo.nm.join(', '):f==='rel'?g.rel.name:f==='pri'?'P'+g.pri:g[f]}) is used.`);};
     const ln=get(r,'line').toUpperCase();let rowLine='';if(ln){if(ln==='ABL'||ln==='ATL')rowLine='ABL';else if(ln==='BTL')rowLine='BTL';else add('error',row,`ATL/BTL: “${get(r,'line')}” is not valid (use ABL or BTL).`);if(rowLine&&!g.line)g.line=rowLine;}
-    const pv=get(r,'pri');if(pv){const m=/^p?\s*(\d{1,4})$/i.exec(pv);if(m)take('pri',Number(m[1]));else add('error',row,`Priority: “${pv}” is not valid (use P0 to P5).`);}
-    const eo=get(r,'eo');if(eo){const o=names(eo,row,'Epic Owner(s)');if(o.ids.length)take('eo',{ids:o.ids,nm:o.nm});}
+    let rowPri=null;const pv=get(r,'pri');if(pv){const m=/^p?\s*(\d{1,4})$/i.exec(pv);if(m){rowPri=Number(m[1]);g.pri=g.pri==null?rowPri:Math.min(g.pri,rowPri);}else add('error',row,`Priority: “${pv}” is not valid (use P0 to P5).`);}
+    const eo=get(r,'eo');if(eo){const o=names(eo,row,'Epic Owner(s)');if(o.ids.length){if(!g.eo)g.eo={ids:[],nm:[]};o.ids.forEach((id,k)=>{if(!g.eo.ids.includes(id)){g.eo.ids.push(id);g.eo.nm.push(o.nm[k]);}});}}
     const wn=get(r,'ws'),wd=get(r,'days'),wo=get(r,'wo'),sp=get(r,'sprint');
     if(wn||wd||wo||sp){
-      let d=0;if(wd!==''){d=Number(String(wd).replace(',','.'));if(!isFinite(d)||d<0||d>5000){add('error',row,`WS Est: “${wd}” must be a number of days between 0 and 5000.`);d=0;}}
+      let d=0;if(wd!==''){d=Number(String(wd).replace(',','.').replace(/\s*d(ays?)?$/i,''));if(!isFinite(d)||d<0||d>5000){add('error',row,`WS Est: “${wd}” must be a number of days between 0 and 5000.`);d=0;}}
       if(!wn)add('warn',row,'Row has effort or owners but no Workstream name; it is imported as an unnamed workstream.');
       if(g.ws.some(x=>wn&&norm(x.name)===norm(wn)))add('warn',row,`Workstream “${wn}” appears twice in epic “${en}”.`);
       const o=names(wo,row,'Workstream Owner(s)');
-      g.ws.push({name:wn,days:d,line:rowLine,sprint:sp,ids:o.ids,nm:o.nm});
+      g.ws.push({name:wn,days:d,pri:rowPri,line:rowLine,sprint:sp,ids:o.ids,nm:o.nm});
     }
   }
   const epics=[...groups.values()];
@@ -169,30 +180,37 @@ function checkImport(sheet){
   if(pl.epics.length+epics.filter(g=>!pl.epics.some(e=>e.projectId===g.pr.id&&norm(e.name)===norm(g.name))).length>300)add('error',1,'The plan would exceed 300 epics.');
   if(epics.some(g=>g.ws.length>40))add('error',1,'An epic has more than 40 workstreams.');
   const isNew=g=>!pl.epics.some(e=>e.projectId===g.pr.id&&norm(e.name)===norm(g.name));
-  return {issues,epics,newProj,stats:{epics:epics.length,created:epics.filter(isNew).length,updated:epics.filter(g=>!isNew(g)).length,ws:epics.reduce((a,g)=>a+g.ws.length,0),projects:newProj.size}};
+  return {issues,epics,newProj,stats:{epics:epics.length,created:epics.filter(isNew).length,updated:epics.filter(g=>!isNew(g)).length,ws:epics.reduce((a,g)=>a+g.ws.length,0),projects:newProj.size,carried,removed:pl.epics.filter(e=>!epics.some(g=>g.pr.id===e.projectId&&norm(g.name)===norm(e.name))).length,removedGus:pl.epics.filter(e=>e.gusId&&!epics.some(g=>g.pr.id===e.projectId&&norm(g.name)===norm(e.name))).length}};
 }
 function applyImport(res){
-  const pl=P.plan,norm=x=>String(x==null?'':x).trim().toLowerCase();
+  // Clean import: the file is the source of truth. Epics not in the file are removed from the plan (epics already saved in GUS stay in GUS);
+  // epics that match by project + name keep their GUS link, release and status; order follows the file.
+  const pl=P.plan,norm=x=>String(x==null?'':x).replace(/\s+/g,' ').trim().toLowerCase(),prev=pl.epics.slice(),out=[];
   for(const p of res.newProj.values())pl.projects.push(p);
   for(const g of res.epics){
-    let e=pl.epics.find(x=>x.projectId===g.pr.id&&norm(x.name)===norm(g.name));
-    if(!e){e=newEpic(g.pr.id);e.name=g.name;e.workstreams=[];pl.epics.push(e);}
+    let e=prev.find(x=>x.projectId===g.pr.id&&norm(x.name)===norm(g.name)&&!out.includes(x));
+    if(!e){e=newEpic(g.pr.id);e.name=g.name;e.workstreams=[];}
     if(g.pri!=null)e.priority=g.pri;
-    if(g.eo){e.owners=g.eo.ids;e.ownerNames=g.eo.nm;}
-    const old=e.workstreams;
-    e.workstreams=g.ws.map(x=>{const o=old.find(w=>x.name&&norm(w.name)===norm(x.name));return Object.assign({},o||{},{id:o?o.id:uid('w'),name:x.name,priority:o?o.priority:0,days:x.days,line:x.line||o&&o.line||(g.line||e.line),sprint:x.sprint,engIds:x.ids,engNames:x.nm,engId:x.ids[0]||'',engName:x.nm[0]||''});});
-    deriveLine(e);
+    e.owners=g.eo?g.eo.ids:[];e.ownerNames=g.eo?g.eo.nm:[];
+    const base=g.line||e.line,old=e.workstreams;
+    e.workstreams=g.ws.map(x=>{const o=old.find(w=>x.name&&norm(w.name)===norm(x.name));return Object.assign({},o||{},{id:o?o.id:uid('w'),name:x.name,priority:x.pri!=null?x.pri:(o?o.priority:0),days:x.days,line:x.line||base,sprint:x.sprint,engIds:x.ids,engNames:x.nm,engId:x.ids[0]||'',engName:x.nm[0]||''});});
+    e.line=base;deriveLine(e);out.push(e);
   }
+  pl.epics=out;
   draw();queueSave();
+  // Self-check: the plan must equal what the file said (workstream count and total days per epic).
+  const bad=[];res.epics.forEach((g,i)=>{const e=out[i],sum=a=>Math.round(a.reduce((t,d)=>t+d,0)*100);if(!e||e.workstreams.length!==g.ws.length||sum(e.workstreams.map(w=>w.days))!==sum(g.ws.map(w=>w.days)))bad.push(g.name);});
+  return bad;
 }
 function openImport(file,opener){
   PlanIO.read(file).then(book=>{
     const name=Object.keys(book).find(n=>/^plan$/i.test(n))||Object.keys(book)[0],res=checkImport(book[name]||[]);
     const errs=res.issues.filter(x=>x.sev==='error'),warns=res.issues.filter(x=>x.sev==='warn'),st=res.stats;
     const list=(a,t)=>a.length?`<h4>${t} (${a.length})</h4><ul class="pl-iss">${a.slice(0,80).map(x=>`<li><b>Row ${x.row}</b> ${esc(x.msg)}</li>`).join('')}${a.length>80?`<li>… and ${a.length-80} more</li>`:''}</ul>`:'';
-    const sum=st.epics?`<p class="note">${st.epics} epic(s) in the file: ${st.created} new, ${st.updated} to update (their workstreams are replaced by the rows in the file) · ${st.ws} workstream(s)${st.projects?` · ${st.projects} new project(s)`:''}. Epics not in the file are left alone.</p>`:'';
-    const el=openModal('Import release plan',`${sum}${errs.length?`<p class="pl-iss-bad">Fix ${errs.length} error(s) in the file and import again. Nothing was changed.</p>`:`<p class="pl-iss-ok">No errors found.${warns.length?' Review the warnings below, then import.':''}</p>`}${list(errs,'Errors')}${list(warns,'Warnings')}<div class="pl-iss-btns"><button type="button" class="button" data-close>${errs.length?'Close':'Cancel'}</button>${errs.length?'':'<button type="button" class="button primary" data-do-import>Import into plan</button>'}</div>`,opener);
-    const go=el.querySelector('[data-do-import]');if(go)go.onclick=()=>{applyImport(res);closeModal();window.toast?.(`Imported ${st.epics} epic(s). Review the plan, then save to GUS when ready.`);};
+    const sum=st.epics?`<p class="note">${st.epics} epic(s) and ${st.ws} workstream(s) in the file (${st.created} new, ${st.updated} matched to existing epics)${st.projects?` · ${st.projects} new project(s)`:''}${st.carried?` · ${st.carried} row(s) grouped under the epic above (blank Epic/Project cell)`:''}.</p><p class="pl-iss-bad">This is a clean import: ${st.removed} epic(s) currently in the plan that are not in the file will be removed${st.removedGus?` (${st.removedGus} already in GUS stay there; they are only dropped from this plan)`:''}.</p>`:'';
+    const prev=res.epics.length?`<details class="pl-prev"><summary>Preview grouping (${res.epics.length} epics)</summary><ul class="pl-iss">${res.epics.slice(0,150).map(g=>`<li><b>${esc(projShort(g.pr))}</b> · ${esc(g.name)} <small>${g.line||'—'}${g.pri!=null?' · P'+g.pri:''}</small><ul>${g.ws.map(w=>`<li>${esc(w.name||'(unnamed)')} — ${fmt(w.days)}d${w.nm.length?' · '+esc(w.nm.join(', ')):''}${w.sprint?' · '+esc(w.sprint):''}</li>`).join('')||'<li>(no workstreams)</li>'}</ul></li>`).join('')}</ul></details>`:'';
+    const el=openModal('Import release plan',`${sum}${errs.length?`<p class="pl-iss-bad">Fix ${errs.length} error(s) in the file and import again. Nothing was changed.</p>`:`<p class="pl-iss-ok">No errors found.${warns.length?' Review the warnings below, then import.':''}</p>`}${list(errs,'Errors')}${list(warns,'Warnings')}${prev}<div class="pl-iss-btns"><button type="button" class="button" data-close>${errs.length?'Close':'Cancel'}</button>${errs.length?'':'<button type="button" class="button primary" data-do-import>Replace plan with this file</button>'}</div>`,opener);
+    const go=el.querySelector('[data-do-import]');if(go)go.onclick=()=>{const bad=applyImport(res);closeModal();window.toast?.(bad.length?`Imported with ${bad.length} mismatch(es): ${bad.slice(0,3).join(', ')}. Check these epics.`:`Imported ${st.epics} epic(s) and ${st.ws} workstream(s); the plan now matches the file. Review it, then save to GUS when ready.`);};
   }).catch(err=>openModal('Import release plan',`<p class="pl-iss-bad">${esc(err&&err.message||'The file could not be read.')}</p><div class="pl-iss-btns"><button type="button" class="button" data-close>Close</button></div>`,opener));
 }
 // Inline confirmation popover, shown just above the button that was clicked.
@@ -232,7 +250,7 @@ function workdays(start,end){
 }
 const themeOf=pr=>(pr&&(pr.theme||(/^[^:]{1,30}:/.test(pr.name||'')?pr.name.split(':')[0].trim():'')))||'Unthemed';
 const wl=(e,w)=>e.line==='BTL'?'BTL':(w&&w.line)||e.line;
-const deriveLine=e=>{e.line=e.workstreams.some(w=>wl(e,w)==='ABL')?'ABL':'BTL';};
+const deriveLine=e=>{e.line=e.workstreams.some(w=>(w.line||e.line)==='ABL')?'ABL':'BTL';};
 const epicDays=e=>r2(e.workstreams.filter(w=>wl(e,w)==='ABL').reduce((a,w)=>a+(w.days||0),0));
 const epicTheme=e=>e.theme||themeOf((P.plan.projects.find(p=>p.id===e.projectId))||null);
 const STAT=['Planned','In Progress','Completed','On Hold'];
@@ -559,7 +577,7 @@ async function load(el){
   try{
     const id=H.team.Id,[g,refs,members]=await Promise.all([call('plan-get',{teamId:id}),call('plan-refs',{teamId:id}).catch(e=>({releases:[],programs:[],projects:[],sprints:[],warnings:[e.message]})),H.members().catch(()=>[])]);
     if(my!==P.seq)return;
-    P.plan=g.plan.window.start?g.plan:{...g.plan,window:emptyPlan().window};P.rev=g.revision;P.refs=refs;P.members=members;
+    P.plan=g.plan.window.start?g.plan:{...g.plan,window:emptyPlan().window};P.rev=g.revision;P.plan.epics.forEach(deriveLine);P.refs=refs;P.members=members;
     const w=refs.warnings||[];el.querySelector('#pl-warn').innerHTML=w.length?`<p class="note pl-warn">Some GUS lists did not load (${esc(w.join('; '))}). Pickers may be incomplete.</p>`:'';
     el.querySelector('#pl-start').value=P.plan.window.start;el.querySelector('#pl-end').value=P.plan.window.end;
     el.querySelector('#pl-last').textContent=P.plan.lastCommit&&P.plan.lastCommit.at?`Last saved to GUS ${new Date(P.plan.lastCommit.at).toLocaleString()} (${P.plan.lastCommit.created} created, ${P.plan.lastCommit.updated} updated)`:'';

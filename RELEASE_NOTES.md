@@ -1,3 +1,12 @@
+## Unreleased on top of 4.0.0-GA (plan85) — Clean, correctly grouped import; ATL/BTL editable after import; Sprints Full-Screen button
+
+- **Bug fix (introduced in plan72):** an epic's ATL/BTL was derived from values that were forced to BTL while the epic itself was BTL, so imported epics (which start as BTL) stayed BTL and the toggle could not change them. The derivation now reads each workstream's own value; saved plans are re-derived on load so already-imported epics become editable.
+- **Clean import:** the file is the source of truth. Epics not in the file are removed from the plan (epics already in GUS stay in GUS); epics matched by project + name keep their GUS link, release and status; order follows the file. The popup states how many epics will be removed, previews the epic → workstream grouping, and the button reads "Replace plan with this file". After applying, a self-check compares workstream counts and total days per epic with the file.
+- **Grouping:** blank Project or Epic Name cells continue the epic above (merged cells). The header row is found by name (title rows above are ignored) with aliases. Workstream Est accepts "5d".
+- **Priority and owners:** each row's Priority is kept on its workstream; the epic takes the highest priority (lowest P-number) of its rows. Epic Owner values from all rows of an epic are combined, so nothing is dropped and no "differs between rows" warnings are raised.
+- **Engineer names:** a unique partial match (for example a first name) is accepted with a note; unknown names stay errors and suggest close matches.
+- **Sprints:** the standup "Open" button is now "Full-Screen" with a flashing border (steady border with reduced-motion).
+
 ## Unreleased on top of 4.0.0-GA (plan83) — Slimmer Google Sheet / Excel template
 
 - The export template and import no longer have Epic Est (calculated by the dashboard), Status, or Planned Release columns. The sheet is now: Project, Measure name, Epic Name, Workstream, Epic Owner(s), Workstream Owner(s), WS Est, ATL/BTL, Sprint, Priority.
