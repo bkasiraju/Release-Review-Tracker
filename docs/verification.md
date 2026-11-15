@@ -1006,3 +1006,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan86: orbit loader screenshotted on the local harness with cached avatars; type-chip reset on member change not exercised in a browser; not verified on live.
 
 - plan87: header rename + widths; not screenshotted; not verified on live.
+
+- plan88: chart animation screenshotted on the local harness; avatar strip not seen populated in a screenshot; not verified on live.

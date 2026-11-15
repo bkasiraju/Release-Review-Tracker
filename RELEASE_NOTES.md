@@ -1,3 +1,7 @@
+## Unreleased on top of 4.0.0-GA (plan88) — Dashboard-building loader
+
+- The loading screen replaces the avatar ring with a dashboard assembling (bars rising, an amber trend line drawing), rotating status lines, a progress sweep, and a scrolling strip of every team member across MAPS, MQ, VegaCache, VegaStore and Caching Services.
+
 ## Unreleased on top of 4.0.0-GA (plan87) — One-line bandwidth headers
 
 - Engineer bandwidth headers are single-line: Engineer, Available, Planned (ABL), Un-planned (BTL), Allocation % (was Load).

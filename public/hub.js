@@ -389,15 +389,17 @@ function settle(){
   const obs=new MutationObserver(arm),cap=setTimeout(done,8000);
   obs.observe($('hub-page'),{childList:true,subtree:true,characterData:true});arm();
 }
-/** Loading screen: every team member from all teams orbits the product mark. Cached rosters paint at once; the rest fill in as they load. */
+/** Loading screen: a dashboard assembling above a marquee of every team member from all teams. Cached rosters paint at once; the rest fill in as they load. */
 function loadOrbit(){
-  const host=document.querySelector('#hub-boot .ri-orbit-spin');if(!host)return;const seen=new Map();
-  const draw=()=>{const list=[...seen.values()].slice(0,18),n=list.length;
-    host.innerHTML=list.map((p,i)=>`<span class="ri-av" style="--a:${Math.round(i*360/n)}deg"><b><i>${esc(initials(p.name))}</i>${p.avatar?`<img src="${esc(p.avatar)}" alt="" decoding="async" onerror="this.remove()">`:''}</b></span>`).join('');};
+  const host=document.querySelector('#hub-boot .ri-track');if(!host)return;const seen=new Map();
+  const av=p=>`<span class="ri-av"><b><i>${esc(initials(p.name))}</i>${p.avatar?`<img src="${esc(p.avatar)}" alt="" decoding="async" onerror="this.remove()">`:''}</b></span>`;
+  const draw=()=>{const html=[...seen.values()].map(av).join('');const n=seen.size||1;host.innerHTML=html.repeat(2*Math.ceil(10/n));};
   const add=d=>{if(!d||!d.people)return;d.people.forEach(p=>{if(p.name&&!seen.has(p.name))seen.set(p.name,p);});draw();};
   const groups=['maps','mq','vegacache','vegastore','caching'];
   groups.forEach(g=>{try{const c=JSON.parse(localStorage.getItem('hub-people2-'+g)||'null');if(c&&c.d)c.d.people.forEach(p=>{if(p.name&&!seen.has(p.name))seen.set(p.name,p);});}catch(_){}});
   draw();groups.forEach(g=>loadPeople(g).then(add,()=>{}));
+  const msgs=['Connecting to GUS…','Reading sprints and epics…','Checking release health…','Lining up your team…'];let k=0;
+  const t=setInterval(()=>{const m=document.getElementById('ri-msg');if(!m||document.body.dataset.settled){clearInterval(t);return;}m.textContent=msgs[++k%msgs.length];},1400);
 }
 async function boot(){
   installCache();loadOrbit();
