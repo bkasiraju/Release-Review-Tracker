@@ -399,11 +399,11 @@ function soon(id,label,ic,tone,desc){
 // ── Boot ────────────────────────────────────────────────────────────────────
 function route(){const id=(location.hash.match(/^#\/([a-z]+)/)||[])[1];H.go(id||'home',{silent:true});}
 /** Keep the loading screen up until the first page has stopped changing, so sections do not appear and then jump. */
-const LOAD_T0=performance.now(),MIN_LOAD_MS=3000;
+const LOAD_T0=performance.now(),MIN_LOAD_MS=0;
 function settle(){
   const b=document.body,done=()=>{obs.disconnect();clearTimeout(quiet);clearTimeout(cap);
-    // Keep the loading animation up for at least MIN_LOAD_MS, even when the page is ready sooner.
-    const wait=Math.max(0,MIN_LOAD_MS-(performance.now()-LOAD_T0));setTimeout(()=>{b.dataset.settled='1';},wait);};
+    // No artificial wait: the loading screen goes away as soon as the page has settled.
+    b.dataset.settled='1';};
   let quiet;const arm=()=>{clearTimeout(quiet);quiet=setTimeout(()=>{if(document.querySelector('#hub-page .hub-loading,#hub-page .executive-spinner,#hub-page [aria-busy=true]'))arm();else done();},350);};
   const obs=new MutationObserver(arm),cap=setTimeout(done,8000);
   obs.observe($('hub-page'),{childList:true,subtree:true,characterData:true});arm();
@@ -427,7 +427,7 @@ function loadOrbit(){
   Promise.allSettled(groups.map(g=>loadPeople(g).then(add,()=>{}))).then(()=>{if(used<N)cycle();save();});
   const msgs=['Planning: reading projects and epics…','Executing: syncing sprints and builds…','Reviewing: checking release health…','Iterating: lining up every team…'],dims=document.querySelectorAll('#hub-boot .ri-dims span');let k=0;
   const show=()=>{const m=document.getElementById('ri-msg');if(m)m.textContent=msgs[k%msgs.length];dims.forEach(d=>d.classList.toggle('on',+d.dataset.d===k%msgs.length));};show();
-  const t=setInterval(()=>{if(!document.getElementById('ri-msg')||document.body.dataset.settled){clearInterval(t);return;}k++;show();},900);
+  const t=setInterval(()=>{if(!document.getElementById('ri-msg')||document.body.dataset.settled){clearInterval(t);return;}k++;show();},1000);
 }
 async function boot(){
   installCache();loadOrbit();

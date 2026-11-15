@@ -1017,7 +1017,6 @@ body[data-ready]:not([data-settled]) main{pointer-events:none;user-select:none}
 
 /* plan106: Plan / Execute / Review / Iterate chips on one line */
 .ri-dims{flex-wrap:nowrap;gap:6px}.ri-dims span{white-space:nowrap;padding:4px 9px}
-.ri-dims span[data-d="1"].on{background:linear-gradient(135deg,#176b91,#1e8e6a)}.ri-dims span[data-d="2"].on{background:linear-gradient(135deg,#176b91,#1e8e6a)}.ri-dims span[data-d="3"].on{background:linear-gradient(135deg,#176b91,#1e8e6a)}
 /* plan108: never let the page scroll sideways. Toolbars wrap instead of pushing past the viewport; wide content scrolls in its own container. */
 .workspace,main{min-width:0;max-width:100%}
 main{overflow-x:clip}
@@ -1366,3 +1365,7 @@ main>.dashboard-footer>*:not(:first-child)::before{content:'·';position:absolut
 .sp-di{display:flex;align-items:center;gap:8px;cursor:help}.sp-di b{display:block;font-size:12px;color:#16325c}.sp-di small{display:block;font-size:11px;color:#556b82;white-space:nowrap}
 .sp-cal{width:40px;height:40px;flex:none;filter:drop-shadow(0 2px 2px rgba(10,40,80,.18))}
 @media(max-width:760px){.sp-dates{flex-wrap:wrap}}
+
+/* plan141: one step per second, each stage in its own colour, with a smooth cross-fade */
+.ri-dims span{transition:background-color .35s ease,color .35s ease,transform .35s ease,box-shadow .35s ease,border-color .35s ease}
+.ri-dims span.on{background:#176b91}.ri-dims span[data-d="0"].on{background:#176b91}.ri-dims span[data-d="1"].on{background:#7c3aed}.ri-dims span[data-d="2"].on{background:#d97706}.ri-dims span[data-d="3"].on{background:#16a34a}
