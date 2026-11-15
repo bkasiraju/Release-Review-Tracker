@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 5.8.0-GA (15 November 2026)
+
+Sidebar open/close is slower and smoother (~0.5s ease, staggered label fade, 450ms close delay).
+
 ## 5.7.0-GA (15 November 2026)
 
 Side-menu tab now has a continuous subtle bounce and glow (stops on hover/open, off under reduced-motion) so the hidden sidebar is discoverable.

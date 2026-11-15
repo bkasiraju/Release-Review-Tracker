@@ -1642,3 +1642,9 @@ body[data-hub=status] #gus-links{display:none!important}
 .rail-tab svg{animation:railChev 2.2s ease-in-out 1s infinite}
 .rail-edge:hover .rail-tab,.rail-edge.gone .rail-tab{animation:none!important}
 @media(prefers-reduced-motion:reduce){.rail-tab,.rail-tab svg{animation:none!important}}
+/* plan188: slower, seamless sidebar slide in/out */
+.rail{transition:transform .55s cubic-bezier(.22,.9,.3,1),width .5s cubic-bezier(.22,.9,.3,1),box-shadow .5s ease,opacity .4s ease!important}
+.rail-label{transition:max-height .45s cubic-bezier(.22,.9,.3,1),opacity .4s ease .08s,transform .45s cubic-bezier(.22,.9,.3,1),margin .45s!important}
+.rail-button{transition:background .25s ease,width .5s cubic-bezier(.22,.9,.3,1),margin .4s!important}
+.rail-tab{transition:width .35s ease,opacity .45s ease,transform .55s cubic-bezier(.22,.9,.3,1)!important}
+@media(prefers-reduced-motion:reduce){.rail,.rail-button,.rail-label,.rail-tab{transition:none!important}}
