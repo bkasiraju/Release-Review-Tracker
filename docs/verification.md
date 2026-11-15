@@ -1039,3 +1039,5 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan103: engineer allocation hover card — harness screenshot only.
 
 - plan104: smoother loader avatar strip — harness screenshots only; frame rate not measured.
+
+- plan105: keyset paging fallback for saved history — unit-tested with a fake connection (tests/store-keyset.test.js); not exercised against live GUS Apps.

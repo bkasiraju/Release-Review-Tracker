@@ -1,3 +1,7 @@
+## Unreleased on top of 4.0.0-GA (plan105) — Saved history loads without queryMore()
+
+- Fix: "GUS Apps must expose queryMore() to read the complete saved history." The saved-history reader now falls back to keyset paging (CreatedDate, Id) when GUS Apps provides neither queryMore() nor request(), so a long history loads in full. It still uses queryMore()/request() when available, and still fails with the same message only if no continuation is possible. Work-item reads in `backend/gus.js` keep the old behaviour.
+
 ## Unreleased on top of 4.0.0-GA (plan104) — Smoother loader
 
 - Avatars now fill fixed slots in place and fade in, instead of the whole strip being rebuilt each time a team's roster arrives (which restarted the marquee and looked choppy). Cached rosters fill the strip immediately; on a first visit the remaining slots are filled once the rosters arrive.

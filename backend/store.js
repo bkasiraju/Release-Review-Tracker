@@ -35,10 +35,18 @@ function applyChanges(doc,event){
 class ContentStore{
   constructor(sf,options={}){this.sf=sf;this.shared=options.shared===true;}
   title(type,id){if(!['release','epic','settings'].includes(type)||!/^[a-zA-Z0-9-]{1,60}$/.test(id))throw Error('Invalid saved record key.');return PREFIX+type+'_'+id;}
-  async query(q){let page=await this.sf.query(q);const rows=[...(page.records||[])];let n=0;
-    while(page.done===false){if(++n>100)throw Error('Saved dashboard history is too large to load.');if(!page.nextRecordsUrl)throw Error('Incomplete dashboard storage response.');
-      if(typeof this.sf.queryMore==='function')page=await this.sf.queryMore(page.nextRecordsUrl);else if(typeof this.sf.request==='function')page=await this.sf.request(page.nextRecordsUrl);else throw Error('GUS Apps must expose queryMore() to read the complete saved history.');rows.push(...(page.records||[]));}return rows;
+  /** Read every row. Uses queryMore()/request() when GUS Apps provides them; otherwise pages by keyset (CreatedDate, Id) with the caller's `next(lastRow)` query builder. */
+  async query(q,next){let page=await this.sf.query(q);const rows=[...(page.records||[])];let n=0;
+    while(page.done===false){if(++n>100)throw Error('Saved dashboard history is too large to load.');
+      if(typeof this.sf.queryMore==='function'&&page.nextRecordsUrl)page=await this.sf.queryMore(page.nextRecordsUrl);
+      else if(typeof this.sf.request==='function'&&page.nextRecordsUrl)page=await this.sf.request(page.nextRecordsUrl);
+      else if(next&&rows.length)page=await this.sf.query(next(rows[rows.length-1]));
+      else throw Error('GUS Apps must expose queryMore() to read the complete saved history.');
+      const got=page.records||[];if(!got.length&&page.done===false)throw Error('Incomplete dashboard storage response.');rows.push(...got);if(rows.length>10000)break;}return rows;
   }
+  /** Keyset continuation: rows strictly after `last` in CreatedDate DESC, Id DESC order. */
+  after(where,last){const d=String(last.CreatedDate||''),i=String(last.Id||'');if(!/^\d{4}-\d\d-\d\dT[\d:.]+(Z|[+-]\d{2}:?\d{2})$/.test(d)||!/^[a-zA-Z0-9]{15,18}$/.test(i))throw Error('Incomplete dashboard storage response.');
+    return `SELECT Id, Title, Description, CreatedDate FROM ContentVersion WHERE ${where} AND (CreatedDate < ${d} OR (CreatedDate = ${d} AND Id < '${i}')) ORDER BY CreatedDate DESC, Id DESC LIMIT 10001`;}
   decode(rows){
     const sets=new Map();const commits=new Map();let rank=0;
     for(const row of rows){rank++;const commit=String(row.Description||'').match(/^cfsc1:([a-f0-9-]+)$/);if(commit){commits.set(row.Title+'|'+commit[1],rank);continue;}const m=String(row.Description||'').match(/^cfs1:([a-f0-9-]+):(\d+):(\d+):(.+)$/s);if(!m)continue;
@@ -54,10 +62,10 @@ class ContentStore{
     for(const doc of docs.values())validateDoc(doc);
     return docs;
   }
-  async get(type,id){const title=this.title(type,id);const rows=await this.query(`SELECT Id, Title, Description, CreatedDate FROM ContentVersion WHERE Title = '${title}' ORDER BY CreatedDate DESC, Id DESC LIMIT 10001`);if(rows.length>10000)throw Error('Saved history needs archive maintenance before it can be loaded safely. No revisions were discarded.');return this.decode(rows).get(title)||null;}
+  async get(type,id){const title=this.title(type,id);const where=`Title = '${title}'`,rows=await this.query(`SELECT Id, Title, Description, CreatedDate FROM ContentVersion WHERE ${where} ORDER BY CreatedDate DESC, Id DESC LIMIT 10001`,l=>this.after(where,l));if(rows.length>10000)throw Error('Saved history needs archive maintenance before it can be loaded safely. No revisions were discarded.');return this.decode(rows).get(title)||null;}
   async getMany(type,ids){
     if(!Array.isArray(ids)||ids.length>100)throw Error('Read up to 100 saved records at a time.');if(!ids.length)return new Map();
-    const titles=ids.map(id=>this.title(type,id)),rows=await this.query(`SELECT Id, Title, Description, CreatedDate FROM ContentVersion WHERE Title IN (${titles.map(t=>"'"+t+"'").join(',')}) ORDER BY CreatedDate DESC, Id DESC LIMIT 10001`);
+    const titles=ids.map(id=>this.title(type,id)),where=`Title IN (${titles.map(t=>"'"+t+"'").join(',')})`,rows=await this.query(`SELECT Id, Title, Description, CreatedDate FROM ContentVersion WHERE ${where} ORDER BY CreatedDate DESC, Id DESC LIMIT 10001`,l=>this.after(where,l));
     if(rows.length>10000)throw Error('Saved history needs archive maintenance. No records were truncated.');const docs=this.decode(rows);return new Map(ids.map((id,i)=>[id,docs.get(titles[i])||null]));
   }
   async list(type){
