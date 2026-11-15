@@ -1,3 +1,8 @@
+## Unreleased on top of 4.0.0-GA (plan112) — Release Review controls on two lines
+
+- Release Review and Release Status: the page tab and the release / review month / Lists / Refresh controls share one line, with the controls on the right. "Open in GUS" links and the selected-release chips share the next line (links left, chips right), instead of three separate rows.
+- On narrow windows the controls wrap below the tab and stay right-aligned.
+
 ## Unreleased on top of 4.0.0-GA (plan111) — Avatars on Release Planning and Release Review
 
 - The engineer table on Release Planning and the Development Lead / Owner column on Release Review now show each person's photo before their name (initials until the photo is known or when none exists).

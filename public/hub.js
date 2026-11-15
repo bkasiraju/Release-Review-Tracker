@@ -82,7 +82,13 @@ const GUS_LINKS={
 function placeGus(){
   const el=$('gus-links'),hp=$('hub-panel');if(!el||!hp)return;
   const vis=x=>!x.closest('.hidden')&&x.getClientRects().length,h=[...document.querySelectorAll('main .executive-heading')].find(vis);
-  if(h){if(h.nextElementSibling!==el)h.after(el);}else if(el.nextElementSibling!==hp)hp.before(el);
+  const sum=$('selected-release-summary');let row=$('ctl-row');
+  if(h){if(h.nextElementSibling!==el)h.after(el);if(sum&&sum.parentNode===row)$('dashboard-controls').after(sum);if(row&&!row.children.length)row.remove();}
+  else{/* one line: "Open in GUS" links on the left, selected release chips on the right */
+    if(!row){row=document.createElement('div');row.id='ctl-row';}
+    if(row.nextElementSibling!==hp)hp.before(row);
+    if(el.parentNode!==row)row.prepend(el);
+    if(sum&&sum.parentNode!==row)row.append(sum);}
 }
 let gusObs;function watchGus(){if(gusObs)return;const m=document.querySelector('main')||document.body;gusObs=new MutationObserver(placeGus);gusObs.observe(m,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});}
 function renderGusLinks(id){

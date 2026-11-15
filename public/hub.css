@@ -1040,3 +1040,11 @@ main>*{min-width:0;max-width:100%}
 .hub-pa img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:50%}
 .pl-eng-n{display:flex;align-items:center;min-width:0}.pl-eng-n .hub-pa{margin-right:8px}
 .owner .hub-pa{margin-right:0}
+
+/* plan112: Release Review / Status controls on at most two lines, most controls on the right */
+.dashboard-bar .hub-nav{width:auto!important;flex:1 1 auto;align-self:flex-end}
+.dashboard-bar .release-toolbar{margin-left:auto!important;flex:0 0 auto;flex-wrap:nowrap;justify-content:flex-end}
+#ctl-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 14px;margin:0 0 10px}
+#ctl-row .gus-links{margin:0!important}
+#ctl-row .selected-release-summary{margin:0 0 0 auto;justify-content:flex-end}
+#ctl-row .selected-release-summary.hidden{display:none}
