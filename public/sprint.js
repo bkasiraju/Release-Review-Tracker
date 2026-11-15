@@ -38,6 +38,27 @@ function renderMetrics(){
     card('Days Left','sync','amber',dl==null?'—':esc(dl),dl&&/^\d+$/.test(dl)?'days':'','sprint time remaining',null)+
     card('Scope change','sync','amber',`+${t.added}`,`/ −${t.removed}`,'items added / removed',t.items?Math.min(100,pct(t.added+t.removed,t.items)):0,'churn','#b57b22');
 }
+
+// ── Sprint dates: 3D calendar icons (start, end, days left) driven by the GUS sprint record ──
+const MON=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+const ymd=d=>{const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(d||'');return m?new Date(+m[1],+m[2]-1,+m[3]):null;};
+function calIcon(kind,top,big,tone){const id='spc'+kind,t={green:['#74e0a8','#23a06c','#17724b'],rose:['#ff9a9a','#d03545','#942431'],amber:['#ffdc7a','#e6992a','#a86a14']}[tone];
+  return `<svg class="sp-cal" viewBox="0 0 56 56" role="img" aria-hidden="true" focusable="false"><defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${t[0]}"/><stop offset="1" stop-color="${t[1]}"/></linearGradient></defs><rect x="6" y="9" width="44" height="43" rx="9" fill="${t[2]}"/><rect x="6" y="6" width="44" height="43" rx="9" fill="#fff"/><path d="M6 15a9 9 0 0 1 9-9h26a9 9 0 0 1 9 9v7H6z" fill="url(#${id})"/><rect x="15" y="2" width="5" height="10" rx="2.500" fill="#e8eef5" stroke="${t[2]}" stroke-width="1"/><rect x="36" y="2" width="5" height="10" rx="2.500" fill="#e8eef5" stroke="${t[2]}" stroke-width="1"/><text x="28" y="19" text-anchor="middle" font-size="8.500" font-weight="800" fill="#fff" letter-spacing=".5">${esc(top)}</text><text x="28" y="42" text-anchor="middle" font-size="${String(big).length>2?15:19}" font-weight="800" fill="#16325c">${esc(big)}</text></svg>`;}
+function daysToEnd(end){const e=ymd(end);if(!e)return null;const n=new Date(),t=new Date(n.getFullYear(),n.getMonth(),n.getDate());return Math.round((e-t)/864e5);}
+function renderDates(){const el=$('sp-dates');if(!el)return;const sp=S.sprint,a=ymd(sp&&sp.Start_Date__c),b=ymd(sp&&sp.End_Date__c);
+  if(!a||!b){el.classList.add('hidden');el.innerHTML='';return;}
+  const left=daysToEnd(sp.End_Date__c),started=a<=new Date(),over=left<0,gl=sp.gus&&sp.gus.daysLeft,
+   dlTop=over?'ENDED':!started?'STARTS':'LEFT',dlBig=over?'0':!started?String(Math.max(0,Math.round((a-new Date(new Date().getFullYear(),new Date().getMonth(),new Date().getDate()))/864e5))):String(left),
+   tone=over?'rose':left<=2?'rose':left<=4?'amber':'green',
+   full=d=>d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'}),
+   item=(ic,lab,sub,tip)=>`<div class="sp-di" title="${esc(tip)}">${ic}<div><b>${esc(lab)}</b><small>${esc(sub)}</small></div></div>`;
+  el.innerHTML=item(calIcon('s',MON[a.getMonth()],a.getDate(),'green'),'Start',full(a),'Sprint start date from GUS: '+full(a))
+   +item(calIcon('e',MON[b.getMonth()],b.getDate(),'rose'),'End',full(b),'Sprint end date from GUS: '+full(b))
+   +item(calIcon('d',dlTop,dlBig,tone),over?'Sprint ended':!started?'Days to start':left===0?'Last day':'Days left',over?'completed':left===1?'1 day to go':left+' days to go',`${over?'The sprint has ended.':left+' calendar day'+(left===1?'':'s')+' until the sprint ends (updates daily).'}${gl!=null&&gl!==''?' GUS reports '+gl+' working day'+(String(gl)==='1'?'':'s')+' remaining.':''}`);
+  el.classList.remove('hidden');}
+// Re-evaluate at local midnight and when the tab regains focus, so "days left" follows the calendar without a reload.
+let datesTimer=0;function scheduleDates(){clearTimeout(datesTimer);const n=new Date(),next=new Date(n.getFullYear(),n.getMonth(),n.getDate()+1,0,0,5)-n;datesTimer=setTimeout(()=>{renderDates();scheduleDates();},Math.min(next,2147483000));}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)renderDates();});scheduleDates();
 function renderGoal(){
   const g=(S.sprint?.Goals__c||'').trim();
   $('sp-goal').classList.toggle('hidden',!g);$('sp-goal').textContent=g?'Sprint goal: '+g.replace(/\s+/g,' '):'';
@@ -281,14 +302,14 @@ async function loadHistory(){
   try{const r=await call('sprint-history',{teamId:S.teamId});if(my===S.seq){S.history=r;renderChart();}}
   catch(e){if(my===S.seq)$('sp-chart').innerHTML=`<div class="empty-state sp-empty"><h3>Trend unavailable</h3><p>${esc(e.message)}</p></div>`;}
 }
-function applyData(d){S.sprint=d.sprint;S.members=d.members||[];S.sprintId=d.sprint?.Id||S.sprintId;renderGoal();renderMetrics();renderMembers();renderModal();renderStandup();}
+function applyData(d){S.sprint=d.sprint;S.members=d.members||[];S.sprintId=d.sprint?.Id||S.sprintId;renderGoal();renderDates();renderMetrics();renderMembers();renderModal();renderStandup();}
 async function loadTeam(teamId){
   const my=++S.seq;S.teamId=teamId;S.history=null;S.members=[];S.open.clear();S.order=null;S.modal=null;renderModal();busy(true,'Loading sprint data from GUS…');
   $('sp-chart').innerHTML='<div class="sp-loading">Loading trend…</div>';
   try{
     const d=await call('sprint-initial',{teamId});if(my!==S.seq)return;
     fill($('sp-sprint'),d.sprints,d.defaultSprintId,s=>s.Name);S.sprintId=d.defaultSprintId||'';S.defaultSprintId=d.defaultSprintId||'';
-    if(d.sprint)applyData(d);else{S.sprint=null;renderGoal();renderMetrics();renderMembers();}
+    if(d.sprint)applyData(d);else{S.sprint=null;renderGoal();renderDates();renderMetrics();renderMembers();}
     busy(false);void loadHistory();window.SAL&&window.SAL.load();
   }catch(e){if(my!==S.seq)return;busy(false,'');window.toast?.('Sprint Insights: '+e.message,true);$('sp-members').innerHTML=`<div class="empty-state sp-empty"><h3>Could not load sprint data</h3><p>${esc(e.message)}</p></div>`;}
 }

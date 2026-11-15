@@ -1359,3 +1359,10 @@ main>.dashboard-footer>*:not(:first-child){position:relative;padding-left:14px;m
 main>.dashboard-footer>*:not(:first-child)::before{content:'·';position:absolute;left:-2px;top:50%;transform:translateY(-52%);color:#8aa0b6;font-weight:700}
 
 .footer-feedback a{margin-left:4px;font-weight:600;color:#0b5cab;text-decoration:none}.footer-feedback a:hover{text-decoration:underline}
+
+/* plan141: sprint dates widget */
+.sp-dates{display:flex;align-items:center;gap:14px;padding:6px 12px;border:1px solid #d3e1ee;border-radius:12px;background:#f6fafd}
+.sp-dates.hidden{display:none}
+.sp-di{display:flex;align-items:center;gap:8px;cursor:help}.sp-di b{display:block;font-size:12px;color:#16325c}.sp-di small{display:block;font-size:11px;color:#556b82;white-space:nowrap}
+.sp-cal{width:40px;height:40px;flex:none;filter:drop-shadow(0 2px 2px rgba(10,40,80,.18))}
+@media(max-width:760px){.sp-dates{flex-wrap:wrap}}

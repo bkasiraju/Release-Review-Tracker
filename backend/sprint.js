@@ -86,7 +86,7 @@ async function loadSprintData(sf, teamId, sprintId) {
   requireSprintId(sprintId);
   const [sprints, commitments, sprintWork] = await Promise.all([
     queryAll(sf,
-      `SELECT Id, Name, Goals__c, Completion_Committed_Story_Points__c, Committed_Points__c, Completed_Story_Points__c, Committed_Story_Points_Completed__c, ` +
+      `SELECT Id, Name, Start_Date__c, End_Date__c, Goals__c, Completion_Committed_Story_Points__c, Committed_Points__c, Completed_Story_Points__c, Committed_Story_Points_Completed__c, ` +
       `Committed_Items__c, Committed_Items_Completed__c, Completed_Items__c, Days_Remaining__c FROM ADM_Sprint__c ` +
       `WHERE Id = '${sprintId}' AND Scrum_Team__c = '${teamId}' LIMIT 1`),
     queryAll(sf,
@@ -139,6 +139,8 @@ async function loadSprintData(sf, teamId, sprintId) {
     sprint: {
       Id: sprint.Id,
       Name: sprint.Name,
+      Start_Date__c: sprint.Start_Date__c,
+      End_Date__c: sprint.End_Date__c,
       Goals__c: sprint.Goals__c,
       Completion_Committed_Story_Points__c: sprint.Completion_Committed_Story_Points__c,
       // Same figures as the GUS sprint wall header: Forecast Closed %, Forecast, Closed (velocity), Current, Days Left.
