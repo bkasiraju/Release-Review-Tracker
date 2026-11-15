@@ -1439,3 +1439,5 @@ body[data-sp-view=standup] #sp-bar-dates .sp-dates{margin:0}
 body[data-sp-view=standup] #sp-sprintbar{justify-content:center!important;margin-left:auto;margin-right:auto;width:100%}
 body[data-sp-view=standup] #sp-sprintbar>*{margin-left:0!important;margin-right:0!important}
 body[data-sp-view=standup] #sp-sprintbar .sp-bar-actions{margin-left:0!important}
+/* plan153: five controls in Standup (Shuffle added) */
+main .executive-heading:has(#sp-end) .heading-actions{grid-template-columns:repeat(5,auto)!important;grid-auto-columns:auto}
