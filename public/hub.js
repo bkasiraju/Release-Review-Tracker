@@ -106,7 +106,7 @@ H.go=(id,opts={})=>{
   if(p.legacy)legacy(p.legacy);
   if(id!=='plan')document.querySelectorAll('#pl-back').forEach(x=>x.remove());
   renderNav();renderCurrent();renderGusLinks(id);placeGus();
-  if(!opts.silent&&location.hash!=='#/'+id)history.pushState(null,'','#/'+id);
+  if(!opts.silent&&!new RegExp('^#/'+id+'(/|$)').test(location.hash))history.pushState(null,'','#/'+id);
   window.scrollTo(0,0);
 };
 

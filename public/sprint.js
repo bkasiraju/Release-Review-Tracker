@@ -331,7 +331,11 @@ async function loadSprint(sprintId){
   try{const d=await call('sprint-data',{teamId:S.teamId,sprintId});if(my!==S.seq)return;applyData(d);busy(false);if(!S.history)void loadHistory();else renderChart();}
   catch(e){if(my!==S.seq)return;busy(false,'');window.toast?.('Sprint Insights: '+e.message,true);}
 }
+/** Deep links: #/sprints/pulse and #/sprints/standup open that view directly. */
+const hashView=()=>(/^#\/sprints\/(pulse|standup)\b/.exec(location.hash)||[])[1]||null;
+function syncHash(v){if(document.body.dataset.hub==='sprints'&&hashView()!==v)history.replaceState(null,'','#/sprints/'+v);}
 async function show(){
+  const hv=hashView();if(hv&&hv!==S.view)setSubview(hv);else syncHash(S.view);
   const H=window.Hub;H.peopleReady().then(()=>{if(S.members.length){renderMembers();renderModal();renderStandup();}});
   if(!S.peopleWired){S.peopleWired=true;let tm;document.addEventListener('hub-people',()=>{clearTimeout(tm);tm=setTimeout(()=>{if(S.members.length&&document.querySelector('.su-av,.sp-member')){renderMembers();renderModal();renderStandup();}},60);});}
   H.members().then(m=>{S.mem=m;if(S.members.length){renderMembers();renderModal();renderStandup();}},()=>{});
@@ -341,7 +345,7 @@ async function show(){
   if(S.teamId!==H.team.Id)await loadTeam(H.team.Id);
 }
 function setSubview(v){
-  S.view=v;$('sp-pulse').classList.toggle('hidden',v!=='pulse');$('sp-standup').classList.toggle('hidden',v!=='standup');
+  S.view=v;syncHash(v);$('sp-pulse').classList.toggle('hidden',v!=='pulse');$('sp-standup').classList.toggle('hidden',v!=='standup');
   document.querySelectorAll('[data-sp-view]').forEach(x=>{const on=x.dataset.spView===v;x.classList.toggle('selected',on);x.setAttribute('aria-pressed',String(on));});
   const ba=$('sp-bar-actions');if(ba&&v!=='standup')ba.innerHTML='';const se=$('sp-end');if(se&&v!=='standup')se.innerHTML='';const shf=$('sp-shuffle');if(shf&&v!=='standup')shf.remove();const sbd=$('sp-bar-dates');if(sbd&&v!=='standup')sbd.innerHTML='';document.body.dataset.spView=v;const sh=document.querySelector('#sp-sprintbar h2');if(sh)sh.textContent=v==='standup'?'Sprint':'Current Sprint Summary';
   const bar=$('sp-sprintbar');if(bar){if(v==='standup'){$('sp-status').before(bar);}else $('sp-metrics').before(bar);}
@@ -359,6 +363,7 @@ function reassign(id,uid){
 function bind(){
   document.querySelectorAll('[data-sp-view]').forEach(b=>b.onclick=()=>setSubview(b.dataset.spView));
   window.Hub.onTeam(()=>{if(document.body.dataset.hub==='sprints')show();});
+  window.addEventListener('popstate',()=>{const hv=hashView();if(document.body.dataset.hub==='sprints'&&hv&&hv!==S.view)setSubview(hv);});
   window.Hub.bindEdit($('sp-panel-body'),(id,field,val)=>{
     if(field==='Assignee__c')reassign(id,val);
     for(const m of S.members)for(const i of m.items)if(i.id===id){if(field==='Status__c')i.status=val;else if(field==='Story_Points__c'){i.storyPoints=val;i.ptsChanged=i.itemStatus!=='Removed'&&i.forecastPts!=null&&val!=null&&i.forecastPts!==val;}}
