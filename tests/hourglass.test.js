@@ -1,9 +1,9 @@
 const test = require('node:test'), assert = require('node:assert'), fs = require('fs'), path = require('path');
 const d = JSON.parse(fs.readFileSync(path.join(__dirname, '../public/hourglass-data.json'), 'utf8'));
-test('hourglass data covers 30 teams with 10b/11a keyed by plain sprint id', () => {
-  assert.strictEqual(Object.keys(d.teams).length, 30);
+test('hourglass data covers MAPS, MQ and VegaCache with 10b/11a keyed by plain sprint id', () => {
+  assert.deepStrictEqual(Object.keys(d.teams).sort(), ["MAPS", "MQ", "VegaCache"]);
   for (const t of Object.values(d.teams)) for (const k of Object.keys(t.sprints)) assert.match(k, /^\d{4}\.\d+[a-z]$/);
-  assert.ok(Object.values(d.teams).filter(t => t.sprints['2026.10b']).length >= 20);
+  assert.ok(Object.values(d.teams).filter(t => t.sprints["2026.10b"]).length === 3);
 });
 test('hourglass sprint reports carry the sections the page renders', () => {
   for (const t of Object.values(d.teams)) for (const s of Object.values(t.sprints)) {

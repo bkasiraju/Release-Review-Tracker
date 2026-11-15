@@ -1,3 +1,8 @@
+## Unreleased on top of 4.0.0-GA (plan131) — Hourglass limited to MAPS, MQ, VegaCache; Release Window label
+
+- Hourglass data now covers only MAPS, MQ and VegaCache (VegaCache generated for 09a, 10a, 10b, 11a; it has no published Hourglass reports).
+- Release Planning: the "Window" date label is now "Release Window".
+
 ## Unreleased on top of 4.0.0-GA (plan130) — Loading animation shows team members only
 
 - The loading marquee skips the CFS leaders and shows only team members.
