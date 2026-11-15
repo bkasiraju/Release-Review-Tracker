@@ -1,3 +1,7 @@
+## Unreleased on top of 5.0.0-GA (plan140) — footer
+
+- Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
+
 ## 5.0.0-GA — GOLDEN BUILD (15 November 2026)
 
 Designated by the user as the best working state and rollback baseline (previous: 4.0.0-GA). Rolls up everything since 4.0.0-GA (plans 133–139):

@@ -1334,3 +1334,6 @@ a.rail-button.disabled{opacity:.38;filter:grayscale(.85);cursor:not-allowed;poin
 
 /* plan139: tooltips above the side bar */
 .ui-tooltip{z-index:5000}
+
+/* plan140: footer feedback line */
+.footer-feedback{margin-left:auto;font-size:inherit;color:inherit;white-space:nowrap}
