@@ -1519,3 +1519,6 @@ button.bt-p{font:inherit;border:0;cursor:pointer}button.bt-p:hover{filter:bright
 .hg-sec[role=button]{cursor:pointer;user-select:none}.hg-sec[role=button]::after{content:"";margin-left:auto;width:8px;height:8px;border-right:2px solid #5b6b7c;border-bottom:2px solid #5b6b7c;transform:rotate(225deg);transition:transform .15s}
 .hg-card.hg-closed .hg-sec[role=button]::after{transform:rotate(45deg)}
 .hg-card.hg-closed .hg-sec{margin-bottom:0}.hg-card.hg-closed>:not(.hg-sec):not(.hg-head){display:none}
+/* plan168: every field in the New project / New epic popup spans the full popup width */
+.pl-confirm.pl-newproj label{display:flex!important;flex-direction:column!important;align-items:stretch!important;width:100%!important;box-sizing:border-box}
+.pl-confirm.pl-newproj label>input,.pl-confirm.pl-newproj label>select,.pl-confirm.pl-newproj input.hub-inline,.pl-confirm.pl-newproj select.hub-inline{display:block!important;width:100%!important;min-width:0!important;max-width:none!important;flex:0 0 auto!important;box-sizing:border-box!important}
