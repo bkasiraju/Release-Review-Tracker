@@ -414,7 +414,9 @@ const extraKpis=m=>{const cap=m.rows.filter(x=>x.cap),sum=k=>r2(cap.reduce((a,x)
   return kpi('Time off & on-call',fmt(lost)+'<i>d</i>',`${fmt(sum('leave'))} leave · ${fmt(sum('holiday'))} holidays · ${fmt(sum('oncall'))} on-call`,'','calendar','amber','RoB/KTLO')
    +kpi('Over-allocated',String(over.length)+'<i> eng</i>',over.length?`Planned beyond availability: ${short(over)}`:'Everyone is within availability',over.length?'over':'ok','users',over.length?'rose':'green',over.length?'Review':'Balanced')
    +kpi('Unassigned effort',fmt(unD)+'<i>d</i>',unD?'Workstreams with days but no engineer':'Every workstream has an engineer',unD?'warn':'ok','risk',unD?'amber':'green',unD?'Assign':'Covered')
-   +kpi('Incomplete epics',String(inc.length)+'<i> of '+P.plan.epics.length+'</i>',inc.length?'Missing an owner or an estimate':'All epics have an owner and an estimate',inc.length?'warn':'ok','scope',inc.length?'amber':'green',inc.length?'Fix':'Complete');};
+   +kpi('Incomplete epics',String(inc.length)+'<i> of '+P.plan.epics.length+'</i>',inc.length?'Missing an owner or an estimate':'All epics have an owner and an estimate',inc.length?'warn':'ok','scope',inc.length?'amber':'green',inc.length?'Fix':'Complete')
+   +(()=>{const abl=P.plan.epics.filter(e=>e.line==='ABL'),pend=abl.filter(e=>!e.gusId).length;
+     return kpi('Pending GUS save',String(pend)+'<i> of '+abl.length+' ABL</i>',!abl.length?'No above-the-line epics yet':pend?`${pend} ABL epic${pend===1?'':'s'} not yet created in GUS`:'All ABL epics are saved in GUS',pend?'warn':'ok','database',pend?'amber':'green',!abl.length?'Plan':pend?'Review & save':'In sync');})();};
 function drawSummary(){
   if(P.tab==='rps')drawRps();
   const el=P.el&&P.el.querySelector('#pl-sum');if(!el)return;

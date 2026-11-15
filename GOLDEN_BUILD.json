@@ -1,7 +1,7 @@
 {
   "version": "5.0.0-GA",
   "label": "GOLDEN BUILD",
-  "revision": "20261115-51",
+  "revision": "20261115-52",
   "manifest": "releases/5.0.0-GA/build.json",
   "preferredRollbackTag": "GOLDEN-BUILD-5.0.0-GA",
   "immutable": true,
