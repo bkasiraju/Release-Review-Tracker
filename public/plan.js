@@ -271,8 +271,8 @@ const STAT=['Planned','In Progress','Completed','On Hold'];
 const statOpts=v=>`<option value="">Status</option>`+STAT.map(x=>`<option value="${x}"${x===v?' selected':''}>${x}</option>`).join('');
 const docOk=u=>/^https?:\/\//i.test(u||'');
 /** One distinct colour per project (by its order in the plan), used for the left bar of its rows. */
-const PROJ_PAL=['#e6194b','#3cb44b','#4363d8','#f58231','#911eb4','#00a6a6','#f032e6','#9a6324','#808000','#000075','#fabe0b','#008080','#7f3fbf','#ff6f91'];
-const projColor=id=>{const i=P.plan.projects.findIndex(p=>p.id===id);return i<0?'#a8b7c7':i<PROJ_PAL.length?PROJ_PAL[i]:`hsl(${Math.round(i*137.508)%360} 70% 42%)`;};
+const PROJ_PAL=['#1b73b3','#e8890c','#12a150','#9333ea','#e11d74','#0891b2','#c2410c','#4f46e5','#65a30d','#b91c1c','#0d9488','#a16207','#7c3aed','#be185d'];
+const projColor=id=>{const i=P.plan.projects.findIndex(p=>p.id===id);return i<0?'#a8b7c7':PROJ_PAL[i%PROJ_PAL.length];};
 function model(){
   const pl=P.plan,wd=workdays(pl.window.start,pl.window.end),prj=new Map(pl.projects.map(p=>[p.id,p]));
   const eng=new Map();
