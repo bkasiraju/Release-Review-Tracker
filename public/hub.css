@@ -5,7 +5,7 @@ body[data-hub]:not([data-hub=epics]):not([data-hub=status]) #selected-release-su
 body[data-hub=home] #table-card,
 body[data-hub=bugs] #overview-panel,body[data-hub=bugs] #table-card,body[data-hub=tds] #overview-panel,body[data-hub=tds] #table-card,
 body[data-hub=rotations] #overview-panel,body[data-hub=rotations] #table-card,body[data-hub=tests] #overview-panel,body[data-hub=tests] #table-card,
-body[data-hub=links] #overview-panel,body[data-hub=links] #table-card,body[data-hub=plan] #overview-panel,body[data-hub=plan] #table-card{display:none!important}
+body[data-hub=hourglass] #overview-panel,body[data-hub=hourglass] #table-card,body[data-hub=links] #overview-panel,body[data-hub=links] #table-card,body[data-hub=plan] #overview-panel,body[data-hub=plan] #table-card{display:none!important}
 .legacy-nav{display:none!important}
 .hub-nav{flex-wrap:wrap}
 .hub-team{display:inline-flex;align-items:center;gap:8px;margin-right:4px}
@@ -1246,3 +1246,26 @@ body.rail-peek .rail-edge{width:12px}
 .rail-edge.gone .rail-tab{opacity:0;transform:translateX(-100%)}
 @keyframes railHint{0%,100%{width:18px}50%{width:28px}}
 @media(prefers-reduced-motion:reduce){.rail-tab{animation:none}}
+
+/* plan129: Hourglass page */
+.hg-card{padding:14px 16px;margin-bottom:14px}.hg-card h3{margin:0 0 10px;font-size:14px}
+.hg-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}.hg-live{color:#b57b22}
+.hg-filter{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap}.hg-sub{color:var(--muted);font-size:12px}p.hg-sub,.hg-rec p{background:none;border:0;padding:0}
+.hg-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.hg-tile{border:1px solid var(--border);border-left:4px solid #94a3b8;border-radius:10px;padding:10px 12px;background:#fff}
+.hg-tile.ok{border-left-color:#249474}.hg-tile.warn{border-left-color:#b57b22}.hg-tile.bad{border-left-color:#d15b68}
+.hg-tl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}.hg-tv{font-size:24px;font-weight:700;margin:2px 0}.hg-ts{font-size:11px;color:var(--muted)}
+.hg-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:14px}@media(max-width:1000px){.hg-grid{grid-template-columns:1fr}}
+.hg-dist{display:flex;align-items:flex-end;gap:10px;height:170px;padding-top:6px}
+.hg-dist .hg-col{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%}
+.hg-fill{width:100%;border-radius:6px 6px 0 0;background:#0b6fa8}.hg-fill.c2{background:#b57b22}.hg-fill.c3,.hg-fill.c4{background:#d15b68}.hg-fill.c0,.hg-fill.c1{background:#249474}
+.hg-bn{font-size:12px;font-weight:600}.hg-bn span{font-weight:400;color:var(--muted)}.hg-bl{font-size:11px;color:var(--muted);margin-top:4px}
+.hg-trend{width:100%;height:auto}.hg-legend{display:flex;gap:14px;flex-wrap:wrap;align-items:center;font-size:12px}.hg-legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px}
+.hg-table{width:100%;border-collapse:collapse;font-size:12.5px}.hg-table th{text-align:left;color:var(--muted);font-weight:600;padding:6px 8px;border-bottom:1px solid var(--border)}.hg-table td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:top}
+.hg-sort th{cursor:pointer;user-select:none}.hg-sort th.sorted{color:var(--ink)}.hg-row{cursor:pointer}.hg-row:hover,.hg-row:focus{background:#f4f8fa;outline:none}
+.hg-ok{color:#249474;font-weight:600}.hg-warn{color:#b57b22;font-weight:600}.hg-bad{color:#d15b68;font-weight:600}
+.hg-rec{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}.hg-rec p{margin:2px 0}
+.hg-pri{height:22px;min-width:26px;display:grid;place-items:center;border-radius:6px;font-size:11px;font-weight:700;color:#fff;background:#0b6fa8}.hg-pri.P1{background:#d15b68}.hg-pri.P2{background:#b57b22}
+.hg-meter{display:inline-block;width:70px;height:6px;border-radius:3px;background:#e8eaf1;margin-right:6px;vertical-align:middle}.hg-meter i{display:block;height:100%;border-radius:3px;background:#d15b68}
+.hg-tag{display:inline-block;margin:0 4px 3px 0;padding:1px 7px;border-radius:10px;background:#eef2f7;font-size:11px}.hg-gaps{margin:0;padding-left:18px}
+body[data-hub=hourglass] #gus-links{display:none!important}

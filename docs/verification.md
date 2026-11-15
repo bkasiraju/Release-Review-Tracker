@@ -1081,3 +1081,4 @@ Automated: `node --test tests/plan.test.js` (5 pass; mocked sf/store). Manual on
 - plan126: CSS only; not visually checked at real widths.
 - plan127: unit test for weekly bucketing passes; trend card and rail behaviour not checked live.
 - plan128: CSS/JS only; not visually checked live.
+- plan129: hourglass data tests pass; page rendered in local headless Chrome; not verified live.

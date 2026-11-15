@@ -1,3 +1,10 @@
+## Unreleased on top of 4.0.0-GA (plan129) — Hourglass PR cycle-time page
+
+- New Hourglass tab and page: PR cycle time per team and sprint (median, P80, % merged under 24h, first-review time), distribution, trend 07a to 11a, rule-based root causes and recommendations, repositories, slowest PRs, visibility gaps, and an all-teams comparison against the Hourglass targets (8h, 16h, 90%).
+- Data is a static file (`public/hourglass-data.json`) built offline by `scripts/hourglass/` from GUS and git.soma. No AI or cost. Sprints 10b and 11a (in progress) are generated for 30 HRP teams; 07a to 09a headline numbers come from the published Hourglass reports.
+- Known limit: PRs are matched by the `@W-` number in the title and Core-on-Git change lists are not included, so counts are a lower bound (MAPS 09a check: median 4.7h matched, 38 PRs vs 49 published).
+- Refresh: run `collect.py`, `published.py`, `build.py`, bump the fetch suffix in `public/hourglass.js`, deploy.
+
 ## Unreleased on top of 4.0.0-GA (plan128) — Visible handle for the hidden side bar
 
 - A small blue tab with a chevron sits at the left edge, vertically centered, so the side bar is discoverable. It nudges three times on load, widens on hover, and hides while the side bar is open.

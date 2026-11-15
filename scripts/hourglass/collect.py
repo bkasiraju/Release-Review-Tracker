@@ -208,7 +208,7 @@ def main():
         sprints = gus(f"SELECT Id, Name, Start_Date__c, End_Date__c FROM ADM_Sprint__c WHERE Scrum_Team__c = '{tid}' AND ({cond})")
         t = out['teams'].setdefault(key, {'name': name, 'sprints': {}})
         for sp in sprints:
-            ver = sp['Name'].split()[0]
+            ver = re.match(r'\d{4}\.\d+[a-z]', sp['Name']).group(0)
             wis = gus(f"SELECT Id, Name, Subject__c, Status__c, RecordType.Name FROM ADM_Work__c WHERE Sprint__c = '{sp['Id']}'")
             win = (ts(sp['Start_Date__c'] + 'T00:00:00Z'), ts(sp['End_Date__c'] + 'T00:00:00Z'))
             m = analyze(name, ver, wis, win)
@@ -217,4 +217,5 @@ def main():
             s = m['summary']; print(f"{key:34s} {ver}  WI {s['work_items']:3d}  PR {s['merged']:3d}  med {s['median_h']}h  p80 {s['p80_h']}h  <24h {s['pct_under_24h']}%", flush=True)
         out['generated'] = datetime.now(timezone.utc).strftime('%Y-%m-%d')
         json.dump(out, open(a.out, 'w'))
-main()
+if __name__ == "__main__":
+    main()
