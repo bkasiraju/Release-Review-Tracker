@@ -1410,3 +1410,8 @@ main .executive-heading:has(#sp-end) .heading-actions>*{margin:0!important;grid-
 main .executive-heading:has(#sp-end) .heading-actions .sp-end{display:contents}
 main .executive-heading:has(#sp-end) .heading-actions .sp-end .sp-dates{grid-row:2;grid-column:1/-1;justify-self:end;order:0;margin:0!important}
 @media(max-width:1100px){main .executive-heading:has(#sp-end){grid-template-columns:1fr}main .executive-heading:has(#sp-end) .heading-actions{grid-column:1;grid-row:2;justify-content:start}}
+/* plan147: description shares the controls' baseline row (top-aligned, button height) */
+main .executive-heading:has(#sp-end)>div:first-child{align-self:start!important}
+main .executive-heading:has(#sp-end)>div:first-child p{line-height:36px!important;margin:0!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+main .executive-heading:has(#sp-end)>div:first-child h2{display:none}
+main .executive-heading:has(#sp-end) .heading-actions .button,main .executive-heading:has(#sp-end) .heading-actions .sp-tabs button{height:36px;box-sizing:border-box}
