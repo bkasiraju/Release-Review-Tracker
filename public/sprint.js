@@ -379,10 +379,10 @@ function bind(){
 window.SprintInsights={show,ctx:()=>({teamId:S.teamId,sprintId:S.sprintId,sprintName:sprintCtx().cur,mem:S.mem||[],members:S.members})};
 bind();bindStandup();bindModal();
 $('sp-standup').addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('[data-epic]')){e.preventDefault();e.target.click();}});
-// Escape peels one level per press: popup → epic filter → search → sort → expanded cards
+// Escape peels one level per press: epic filter → popup → search → sort → expanded cards
 window.Hub.onEsc('sprints',()=>{
+  if(S.epic){S.epic=null;renderStandup();renderModal();return true;} // first Esc only drops the epic filter, even in full-screen
   if(S.modal){S.modal=null;renderModal();return true;}
-  if(S.epic){S.epic=null;renderStandup();return true;}
   if(S.search){S.search='';$('sp-search').value='';renderMembers();return true;}
   if(S.sort.key){S.sort={key:'',dir:'asc'};renderMembers();return true;}
   if(S.open.size){S.open.clear();renderMembers();return true;}
