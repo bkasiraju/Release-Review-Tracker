@@ -374,6 +374,7 @@ window.Hub.onEsc('sprints',()=>{
   if(S.search){S.search='';$('sp-search').value='';renderMembers();return true;}
   if(S.sort.key){S.sort={key:'',dir:'asc'};renderMembers();return true;}
   if(S.open.size){S.open.clear();renderMembers();return true;}
+  if(S.view==='standup'&&S.standupIdx>=0){S.standupIdx=-1;S.types.clear();S.epic=null;renderStandup();return true;}
   return false;
 });
 // Page registry entry: the Sprint panel is an existing view, so the hub just switches to it.
