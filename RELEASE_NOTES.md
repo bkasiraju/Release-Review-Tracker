@@ -1,3 +1,8 @@
+## Unreleased on top of 4.0.0-GA (plan92) — Un-allocated share and restricted Save to GUS
+
+- Allocation per engineer now reads "Planned + Un-planned + Un-allocated = 100%" (un-allocated is the free remainder, 0 once over capacity, where the total shows above 100%). A "Team total" row sums available days, planned and un-planned days and the same three shares.
+- "Review & save to GUS" is limited to bkasiraju@salesforce.com and bkasiraju@gus.com. The backend rejects plan-commit (preview and confirm) for anyone else, matching the signed-in identity's username or email; the button is disabled with a tooltip for everyone else, and until the permission check returns. The connection action reports canCommit. Plan auto-save to the shared backend is not affected. If the host does not expose an identity, the check fails closed.
+
 ## Unreleased on top of 4.0.0-GA (plan91) — Allocation split into Planned vs Un-planned
 
 - Engineer bandwidth "Allocation %" is a two-colour stacked bar: solid blue = Planned (ABL), hatched amber = Un-planned (BTL), with a legend in the header. Each row's label reads "10% + 6% = 16%" (hover for the days). The total turns amber above 85% and red above 100%, and the bar gets a red outline when over capacity.

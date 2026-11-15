@@ -1,6 +1,13 @@
 'use strict';
 const {Gus,safeError,validId}=require('./gus');const {ContentStore}=require('./store');const {Service}=require('./service');const sprint=require('./sprint');const hub=require('./hub');const planner=require('./plan');
 const pref=require('./pref');const post=require('./post');
+// Only these users may review and save plans to GUS (epic create/update). Checked server-side; the UI just mirrors it.
+const COMMIT_USERS=['bkasiraju@salesforce.com','bkasiraju@gus.com'];
+async function canCommit(sf,ctx){
+  if(ctx.testMode)return true;
+  if(!sf||typeof sf.identity!=='function')return false;
+  try{const w=await sf.identity()||{};return [w.username,w.email,w.user_email,w.preferred_username].some(x=>x&&COMMIT_USERS.includes(String(x).trim().toLowerCase()));}catch{return false;}
+}
 function connection(ctx){
   const roots=[['ctx',ctx],['request',ctx.request],['invocation',ctx.invocation],['runtime',ctx.runtime],['context',ctx.context],['applet',ctx.applet],['auth',ctx.auth],['user',ctx.user],['salesforce',ctx.salesforce],['request.context',ctx.request?.context]].filter(([,r])=>r&&typeof r==='object');
   // Prefer delegated clients across every known host root before the generic facade.
@@ -23,7 +30,7 @@ async function handleRequest(ctx){
       case 'connection':{
         if(!ctx.gus)await sf.query('SELECT Id FROM ADM_Epic__c LIMIT 1');
         let who={};if(typeof sf?.identity==='function'){try{who=await sf.identity();}catch{/* Identity permission is optional. */}}
-        payload={connected:true,source,username:who.username||null,organizationId:who.organization_id||null,storage:store.shared?'Shared GUS ContentVersion':'GUS ContentVersion',sharedBackend:store.shared===true,demo:!!ctx.demo,testMode:!!ctx.testMode,conditionalWrites:typeof sf?.request==='function',methods:Object.keys(sf||{}).filter(k=>typeof sf[k]==='function'),version:'4.0.0-GA'};break;
+        payload={connected:true,source,username:who.username||null,organizationId:who.organization_id||null,storage:store.shared?'Shared GUS ContentVersion':'GUS ContentVersion',sharedBackend:store.shared===true,demo:!!ctx.demo,testMode:!!ctx.testMode,conditionalWrites:typeof sf?.request==='function',methods:Object.keys(sf||{}).filter(k=>typeof sf[k]==='function'),version:'4.0.0-GA',canCommit:await canCommit(sf,ctx)};break;
       }
       case 'state':payload=await service.state();break;
       case 'list-catalog':payload={lists:(gus.definitions||require('./list-definitions')).map(d=>({name:d.developerName,label:d.label,url:'https://gus.lightning.force.com/lightning/o/ADM_Epic__c/list?filterName='+encodeURIComponent(d.developerName),verifiedAt:d.verifiedAt}))};break;
@@ -71,7 +78,7 @@ async function handleRequest(ctx){
       case 'plan-get':payload=await planner.getPlan(store,b.teamId);break;
       case 'plan-save':payload=await planner.savePlan(store,b.teamId,b.plan,b.revision);break;
       case 'plan-refs':payload=await planner.getRefs(sf,b.teamId);break;
-      case 'plan-commit':payload=await planner.commitPlan(sf,store,b.teamId,b.confirm===true,b.includeBtl===true);break;
+      case 'plan-commit':if(!await canCommit(sf,ctx))throw Error('Saving the plan to GUS is restricted to the plan administrators.');payload=await planner.commitPlan(sf,store,b.teamId,b.confirm===true,b.includeBtl===true);break;
       case 'hub-tds':payload=await hub.getTds(sf,b.teamId);break;
       case 'hub-picklists':payload=await hub.getPicklists(sf);break;
       case 'hub-rotation':payload=await hub.getRotation(store,b.teamId);break;
