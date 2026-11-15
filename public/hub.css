@@ -1486,3 +1486,14 @@ body[data-hub=plan] .pl-kpi .pl-chip{top:8px!important;right:8px!important;font-
 body[data-hub=plan] .pl-kpi.warn .pl-chip{background:#fff4e1!important;color:#a85d0a!important;border-color:#f3d9a8!important}
 body[data-hub=plan] .pl-kpi.over{background:#fff!important}body[data-hub=plan] .pl-kpi.over .pl-chip{background:#ffeaee!important;color:#b0233d!important;border-color:#f3c0ca!important}
 body[data-hub=plan] .pl-kpi.over b{color:#ba0517!important}
+/* plan161: full-screen timeline — "Sprint <name>" header above the date tiles, compact sizes */
+.su-epics .sp-tl{flex:0 0 auto;margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.su-epics .sp-tl-head{display:flex;align-items:center;gap:8px;font-size:13px;color:#16325c}
+.su-epics .sp-tl-head svg{width:30px;height:30px;flex:none}
+.su-epics .sp-tl-head b{font-weight:700}
+.su-epics .sp-tl-head span{padding:3px 10px;border:1px solid #176b91;border-radius:8px;background:#fff;font-size:12px;font-weight:600;color:#16325c}
+.su-epics .sp-tl .sp-dates-epics{margin-left:0;flex:1 1 auto}
+.su-epics .sp-dates-epics .sp-di{padding:8px 12px;gap:10px;border-radius:10px}
+.su-epics .sp-dates-epics .sp-cal{width:40px!important;height:40px!important}
+.su-epics .sp-dates-epics .sp-di b{font-size:13px}.su-epics .sp-dates-epics .sp-di small{font-size:11px}
+@media(max-width:1100px){.su-epics .sp-tl{margin-left:0;align-items:flex-start}}
