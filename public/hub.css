@@ -1330,3 +1330,4 @@ body[data-hub=hourglass] #gus-links{display:none!important}
 
 /* plan139: external rail link */
 a.rail-button{display:flex;align-items:center;justify-content:center;text-decoration:none;color:inherit}
+a.rail-button.disabled{opacity:.38;filter:grayscale(.85);cursor:not-allowed;pointer-events:auto}a.rail-button.disabled:hover{transform:none}

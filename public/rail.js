@@ -15,4 +15,14 @@ edge.addEventListener('mouseenter',show);edge.addEventListener('click',show);doc
 rail.addEventListener('mousemove',e=>{magnify(e.clientY);});
 rail.addEventListener('focusin',show);
 rail.addEventListener('focusout',e=>{if(!rail.contains(e.relatedTarget))hide();});
+
+/* MQ Chronicle exists only for MQ: link it for that team, show it disabled for every other team. */
+const chron=rail.querySelector('a[data-label="MQ Chronicle"]');
+if(chron){const URL0=chron.getAttribute('href'),lab=chron.querySelector('.rail-label');
+  const sync=()=>{const t=window.Hub&&window.Hub.team,mq=!!t&&t.short==='MQ';
+    if(mq){chron.setAttribute('href',URL0);chron.removeAttribute('aria-disabled');chron.removeAttribute('tabindex');chron.title='MQ Chronicle (opens in a new tab)';chron.setAttribute('aria-label','MQ Chronicle, opens in a new tab');}
+    else{chron.removeAttribute('href');chron.setAttribute('aria-disabled','true');chron.tabIndex=-1;chron.title='MQ Chronicle is available for the MQ team only';chron.setAttribute('aria-label','MQ Chronicle, available for the MQ team only');}
+    chron.classList.toggle('disabled',!mq);if(lab)lab.textContent=mq?'MQ Chronicle':'MQ Chronicle (MQ only)';};
+  chron.addEventListener('click',e=>{if(chron.getAttribute('aria-disabled')==='true')e.preventDefault();});
+  window.addEventListener('hub:team',sync);sync();let n=0;const iv=setInterval(()=>{sync();if(window.Hub&&window.Hub.teams&&window.Hub.teams.length||++n>40)clearInterval(iv);},500);}
 })();

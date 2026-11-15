@@ -1,3 +1,7 @@
+## Unreleased on top of 4.0.0-GA (plan139) — MQ Chronicle enabled for MQ only
+
+- The MQ Chronicle side-bar icon links out only when the MQ team is selected; for every other team (and All) it is greyed out and not clickable, with a hover note that it is MQ-only.
+
 ## Unreleased on top of 4.0.0-GA (plan139) — MQ Chronicle in the side bar, header logo
 
 - New side-bar entry "MQ Chronicle" with a 3D timeline-ledger icon; it opens the MQ Chronicle page (git.soma Pages) in a new tab. The header title now starts with the product logo.
