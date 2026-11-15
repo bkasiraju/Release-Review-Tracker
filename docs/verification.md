@@ -1,3 +1,7 @@
+## 5.0.0-GA (15 November 2026)
+
+Golden designation of plans 133–139. Node suite 225 pass / 38 fail, identical to the pre-change baseline. Hourglass links, engineer column, guardrails, Daily Chronicle link and tooltip layering were verified by syntax checks and unit tests only; no signed-in browser render or live footer-version check was performed. Deploy reported "Update activated".
+
 ## 4.0.0-GA — GOLDEN BUILD (Release Intelligence team hub)
 
 User-designated GOLDEN BUILD and preferred rollback baseline (14 November 2026). Includes the Team Hub redesign (team first, leaders last in fixed order, aligned summary tiles), V2MOM Updates rename, new logo, shared column sizing, 25-row pagination, status colours, Open-in-GUS link bars, Test Failures filters, Bugs pagination, focus mode and custom team dropdown. Tags `v4.0.0-GA`, `GOLDEN-BUILD-4.0.0-GA`; archive `releases/4.0.0-GA/`. Previous baseline: `GOLDEN-BUILD-3.0.0-GA`. Verified on a stubbed harness only; node suite 207 pass / 38 fail, identical to the pre-change baseline. Private GOLDEN Dataset not re-captured for 4.0.0-GA (3.0.0-GA dataset remains the latest).

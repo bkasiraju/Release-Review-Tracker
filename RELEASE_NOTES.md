@@ -1,3 +1,13 @@
+## 5.0.0-GA — GOLDEN BUILD (15 November 2026)
+
+Designated by the user as the best working state and rollback baseline (previous: 4.0.0-GA). Rolls up everything since 4.0.0-GA (plans 133–139):
+
+- Hourglass: team-level trend, seven-section team view, clickable filters from tiles, donuts, bars and trend; links to PRs, repos and GUS work items; Engineer column; hover reasons; best-practice thresholds, guardrail strip and per-PR recommendations.
+- Dimensional 3D side-bar icons; Daily Chronicle side-bar link (MQ only); header logo; tooltips above the side bar.
+- Standup alignment, bullet-driven executive summary, instant loader avatars.
+- Rollback: `releases/5.0.0-GA/` ZIP (SHA-256 in `build.json`), tag `GOLDEN-BUILD-5.0.0-GA`.
+- Verification: unit tests 225 pass / 38 fail (same as baseline); UI changes not render-verified in a signed-in browser.
+
 ## Unreleased on top of 4.0.0-GA (plan139) — tooltips above the side bar
 
 - Tooltips no longer render behind the side bar; they sit above it, and tooltips for side-bar icons open to the right of the icon.

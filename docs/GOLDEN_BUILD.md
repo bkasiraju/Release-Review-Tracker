@@ -1,4 +1,8 @@
-# 4.0.0-GA · CURRENT GOLDEN BUILD
+# 5.0.0-GA · CURRENT GOLDEN BUILD
+
+Designated 15 November 2026 as the best working state. Tags `v5.0.0-GA`, `GOLDEN-BUILD-5.0.0-GA`; ZIP and SHA-256 in `releases/5.0.0-GA/`. To revert: deploy that exact ZIP (verify the checksum against `build.json`), then confirm footer `v5.0.0-GA`. Application rollback must preserve live GUS data. 4.0.0-GA (`GOLDEN-BUILD-4.0.0-GA`) remains immutable as the previous baseline. Includes the Hourglass PR cycle-time dashboard (filters, links, engineers, guardrails), dimensional side-bar icons, the Daily Chronicle side-bar link (MQ only), tooltips above the side bar and the header logo.
+
+# 4.0.0-GA · PREVIOUS GOLDEN BUILD
 
 Designated 14 November 2026. Tags `v4.0.0-GA`, `GOLDEN-BUILD-4.0.0-GA`; ZIP and SHA-256 in `releases/4.0.0-GA/`. To revert: deploy that exact ZIP (verify checksum), confirm footer `v4.0.0-GA`. Application rollback must preserve live GUS data. The older 3.0.0-GA procedure below remains valid for that baseline.
 
