@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 5.2.0-GA (15 November 2026)
+
+First minor version after the PLATINUM 5.1.1-GA (which, with GOLDEN 5.0.0-GA, stays untouched). The open-link icon on the Hourglass tab now opens the Hourglass site (https://git.soma.salesforce.com/pages/core-foundational-services/hourglass/) instead of a GUS page.
+
 ## 5.1.1-GA — PLATINUM BUILD (15 November 2026)
 
 Designated by the user as the master build and first rollback choice (revision 20261115-67); 5.0.0-GA stays as the GOLDEN BUILD second rollback baseline, frozen at revision 20261115-65. Same code as the final 5.0.0-GA revision with the version, footer (`v5.1.1-GA`) and asset suffix updated. Revision 20261115-67 also adds an open-link icon inside the right end of the active tab that opens the selected team's matching GUS related list (Sprints, Epics, Team Dependencies, Work items, team members, or the team record; object list view for All teams). Highlights since the first 5.0.0-GA snapshot: Release Planner allocation rules (workstream effort baseline, ABL only for ATL-tagged workstreams, split among assigned engineers, highlighted Unassigned row and filter), delta-only Save to GUS with reviewed summary, distinct project colour bars, WS Est before Epic Est, fixed Test Failures table widths, calmer page loads and faster planner reference loads.
