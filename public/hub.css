@@ -1633,3 +1633,5 @@ body[data-hub=epics] #gus-links{display:none!important}
 #ctl-row,#selected-release-summary{margin-top:14px!important}
 #ctl-row #selected-release-summary{margin-top:0!important}
 body[data-hub=status] #gus-links{display:none!important}
+/* plan187: label before the selected team/release chips */
+#selected-release-summary:not(.hidden)::before{content:"Selected Teams or Releases:";align-self:center;margin-right:8px;font-size:12px;font-weight:700;color:#33445a;white-space:nowrap}
