@@ -1774,3 +1774,7 @@ body[data-hub=status] #gus-links{display:none!important}
 .sal-table{border:1px dotted #9fb0c3!important;border-collapse:collapse!important}
 .sal-table th,.sal-table td{border:1px dotted #b8c4d2!important}
 .sal-table thead th{border-bottom:1px dotted #8ea0b5!important}
+
+/* Action Log: Assignee column removed; re-balanced widths */
+.sal-table col.c-wid{width:100px}.sal-table col.c-sub{width:27%}.sal-table col.c-own{width:17%}.sal-table col.c-det{width:auto}
+.sal-table col.c-eta{width:108px}.sal-table col.c-pri{width:100px}.sal-table col.c-act{width:176px}
