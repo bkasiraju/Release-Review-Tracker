@@ -1910,3 +1910,12 @@ html body .sp-items.sp-items .sal-btn{margin-left:3px}
 html body .sp-items.sp-items .sal-btn .cfs-icon{width:15px!important;height:15px!important;border-radius:4px}
 html body .sp-items.sp-items.who.who th:nth-child(1){width:112px!important}
 html body .sp-items.sp-items:not(.who):not(.who) th:nth-child(1){width:104px!important}
+/* Work cell never clips the Action Log icon: smaller type + icon, column sized to hold checkbox + W-ID + icon, cell never hides overflow */
+html body .sp-items.sp-items td:first-child{font-size:11px!important;overflow:visible!important;white-space:nowrap!important;letter-spacing:0}
+html body .sp-items.sp-items td:first-child>a{font-size:11px!important}
+html body .sp-items.sp-items input.sp-sel{width:12px!important;height:12px!important;margin:0 3px 0 0!important}
+html body .sp-items.sp-items .sal-btn{margin-left:2px!important}
+html body .sp-items.sp-items .sal-btn .cfs-icon{width:14px!important;height:14px!important}
+html body .sp-items.sp-items.who.who th:nth-child(1){width:124px!important}
+html body .sp-items.sp-items:not(.who):not(.who) th:nth-child(1){width:118px!important}
+html body .sp-items.sp-items th:first-child,html body .sp-items.sp-items td:first-child{padding-left:6px!important;padding-right:4px!important}
