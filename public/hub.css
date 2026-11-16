@@ -1919,3 +1919,21 @@ html body .sp-items.sp-items .sal-btn .cfs-icon{width:14px!important;height:14px
 html body .sp-items.sp-items.who.who th:nth-child(1){width:124px!important}
 html body .sp-items.sp-items:not(.who):not(.who) th:nth-child(1){width:118px!important}
 html body .sp-items.sp-items th:first-child,html body .sp-items.sp-items td:first-child{padding-left:6px!important;padding-right:4px!important}
+/* Type never wraps; Planned / Actual / Churn are compact */
+html body .sp-items.sp-items .sp-type,html body .sp-items.sp-items td.sp-type{white-space:nowrap!important;font-size:12px}
+html body .sp-items.sp-items td.num,html body .sp-items.sp-items th.num{font-size:11px!important;padding-left:4px!important;padding-right:6px!important}
+html body .sp-items.sp-items th.num .sp-sort{font-size:11px}
+html body .sp-items.sp-items input.hub-inline.num{width:42px!important;min-height:24px!important;height:24px!important;font-size:11px!important;padding:0 4px!important;text-align:center}
+html body .sp-items.sp-items td.num .sp-chip,html body .sp-items.sp-items td.num .count-pill,html body .sp-items.sp-items td.num span{font-size:10.5px!important;padding:1px 6px!important;min-width:0!important;min-height:0!important;line-height:1.4}
+html body .sp-items.sp-items td select.hub-inline,html body .sp-items.sp-items td .sp-status{font-size:11.5px!important}
+html body .sp-items.sp-items.who.who th:nth-child(4){width:100px!important}
+html body .sp-items.sp-items.who.who th:nth-child(5){width:150px!important}
+html body .sp-items.sp-items.who.who th:nth-child(6){width:140px!important}
+html body .sp-items.sp-items.who.who th:nth-child(7){width:56px!important}
+html body .sp-items.sp-items.who.who th:nth-child(8){width:62px!important}
+html body .sp-items.sp-items.who.who th:nth-child(9){width:58px!important}
+html body .sp-items.sp-items:not(.who):not(.who) th:nth-child(4){width:100px!important}
+html body .sp-items.sp-items:not(.who):not(.who) th:nth-child(5){width:140px!important}
+html body .sp-items.sp-items:not(.who):not(.who) th:nth-child(6){width:56px!important}
+html body .sp-items.sp-items:not(.who):not(.who) th:nth-child(7){width:62px!important}
+html body .sp-items.sp-items:not(.who):not(.who) th:nth-child(8){width:58px!important}
