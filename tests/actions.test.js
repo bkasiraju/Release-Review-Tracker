@@ -44,3 +44,11 @@ test('setEta updates only the ETA of an open action item and validates the date'
   await assert.rejects(()=>actions.setEta(store,MQ,{id:r.item.id,eta:new Date(Date.now()+60*864e5).toISOString().slice(0,10)}),/within/);
   await assert.rejects(()=>actions.setEta(store,MQ,{id:'nope',eta}),/not found/);
 });
+
+test('update edits details, owner, priority and ETA of an existing item without creating a duplicate',async()=>{
+  const store=mem(),eta=new Date(Date.now()+864e5).toISOString().slice(0,10),r=await actions.save(store,sf,MQ,{...base,eta});
+  const out=await actions.update(store,sf,MQ,{id:r.item.id,details:'New text',eta,priority:'Low',ownerId:'005000000000001AAA'});
+  assert.equal(out.items.length,1);assert.equal(out.items[0].details,'New text');assert.equal(out.items[0].priority,'Low');assert.equal(out.items[0].owner,'Ann');assert.equal(out.items[0].workName,'W-12345678');
+  await assert.rejects(()=>actions.update(store,sf,MQ,{id:r.item.id,details:'',eta,priority:'Low',ownerId:'005000000000001AAA'}),/Describe/);
+  await assert.rejects(()=>actions.update(store,sf,MQ,{id:r.item.id,details:'x',eta,priority:'Low',ownerId:'005000000000009AAA'}),/member/);
+});

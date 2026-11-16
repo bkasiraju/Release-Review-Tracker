@@ -75,6 +75,7 @@ async function handleRequest(ctx){
       case 'sal-list':payload=await require('./actions').list(store,b.teamId);break;
       case 'sal-save':payload=await require('./actions').save(store,sf,b.teamId,b);break;
       case 'sal-resolve':payload=await require('./actions').resolve(store,b.teamId,b);break;
+      case 'sal-edit':payload=await require('./actions').update(store,sf,b.teamId,b);break;
       case 'sal-eta':payload=await require('./actions').setEta(store,b.teamId,b);break;
       case 'sal-delete':payload=await require('./actions').remove(store,b.teamId,b);break;
       case 'hub-members':payload=await hub.getMembers(sf,b.teamId);break;

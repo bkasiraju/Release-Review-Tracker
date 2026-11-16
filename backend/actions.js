@@ -67,6 +67,16 @@ async function resolve(store,teamId,b){
   await bounded(sweep(store,false));
   return {items:r.items,found};
 }
+async function update(store,sf,teamId,b){
+  hub.requireTeam(teamId);
+  const id=text(b.id,40),details=text(b.details,1000);if(!details)throw Error('Describe the action item.');
+  const eta=text(b.eta,10);if(!/^\d{4}-\d\d-\d\d$/.test(eta)||Number.isNaN(Date.parse(eta)))throw Error('Pick a valid ETA date.');
+  if(Date.parse(eta)>Date.now()+RETENTION_DAYS*DAY)throw Error(`ETA must be within ${RETENTION_DAYS} days — action items are kept for ${RETENTION_DAYS} days.`);
+  const priority=PRIORITIES.includes(b.priority)?b.priority:null;if(!priority)throw Error('Pick a priority.');
+  const owner=(await hub.getMembers(sf,teamId)).members.find(m=>m.id===b.ownerId);if(!owner)throw Error('The owner must be a member of this team.');
+  const r=await write(store,teamId,items=>{const it=items.find(x=>x.id===id);if(!it)throw Error('Action item not found.');Object.assign(it,{details,eta,priority,ownerId:owner.id,owner:owner.name,updatedAt:new Date().toISOString()});});
+  return {items:r.items};
+}
 async function setEta(store,teamId,b){
   const id=text(b.id,40),eta=text(b.eta,10);
   if(!/^\d{4}-\d\d-\d\d$/.test(eta)||Number.isNaN(Date.parse(eta)))throw Error('Pick a valid ETA date.');
@@ -79,4 +89,4 @@ async function remove(store,teamId,b){
   const r=await write(store,teamId,items=>{const i=items.findIndex(x=>x.id===id);if(i<0)throw Error('Action item not found.');items.splice(i,1);});
   return {items:r.items};
 }
-module.exports={list,save,resolve,setEta,remove,sweep,prune,PRIORITIES,RETENTION_DAYS};
+module.exports={list,save,resolve,update,setEta,remove,sweep,prune,PRIORITIES,RETENTION_DAYS};
