@@ -1797,3 +1797,12 @@ body[data-hub=status] #gus-links{display:none!important}
 .heading-actions #pl-commit:hover:not(:disabled){background:#175b88;border-color:#175b88}
 .heading-actions #pl-commit:disabled{background:#c9d6e2;border-color:#c9d6e2;color:#fff;box-shadow:none;cursor:not-allowed}
 .heading-actions .pl-hb:focus-visible,.heading-actions #pl-commit:focus-visible{outline:3px solid #95caef;outline-offset:2px}
+
+/* Action Log: owner shown as avatar only; compact type; all four actions on one line */
+.sal-table{font-size:12px!important}.sal-table th{font-size:12px!important}.sal-table td{font-size:12px!important;line-height:1.45}
+.sal-table td .sal-who{display:inline-flex;align-items:center}
+.sal-table col.c-wid{width:92px}.sal-table col.c-sub{width:28%}.sal-table col.c-own{width:64px}.sal-table col.c-det{width:auto}
+.sal-table col.c-eta{width:96px}.sal-table col.c-pri{width:88px}.sal-table col.c-act{width:152px}
+.sal-table th:last-child,.sal-table td.sal-acts{width:152px!important;max-width:152px!important;padding:8px 8px!important}
+.sal-actbox{display:flex!important;flex-wrap:nowrap;gap:4px;grid-template-columns:none}
+.sal-table td.sal-acts .sal-ic{width:28px;height:28px;flex:none}.sal-table td.sal-acts .sal-ic svg{width:15px;height:15px}
