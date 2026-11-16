@@ -1677,3 +1677,7 @@ body[data-hub=status] #gus-links{display:none!important}
 .sal-table .sal-acts,.sal-table th:last-child{min-width:176px!important;width:176px!important}
 .sal-acts{display:table-cell}.sal-acts .sal-ic{margin-right:6px}.sal-table .sal-ic:last-child{margin-right:0}
 .sal-subj{max-width:170px!important}.sal-det{min-width:180px!important}
+/* work items table: give the Subject column the room, keep Epic compact */
+.sp-items:not(.who) th:nth-child(3),.sp-modal-body .sp-items.who th:nth-child(3),.sp-items.who th:nth-child(3){width:20%!important}
+.sp-items th:nth-child(2){width:auto!important}
+.sp-items td.sp-epic-cell,.sp-items td.sp-epic-cell a{font-size:12px!important;line-height:1.35}
