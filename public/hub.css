@@ -1755,3 +1755,11 @@ body[data-hub=status] #gus-links{display:none!important}
 .nc-save{grid-area:save;height:40px;padding:0 20px}
 .nc-st{grid-area:st;min-height:0;font-size:12px;margin:0}.nc-st:empty{display:none}
 .nc-st.ok::before{content:"✓ ";font-weight:700}
+
+/* Nudge dialog: channel picker */
+.nd-chan{margin:16px 0 4px}.nd-chanrow{display:flex;gap:10px;align-items:center;flex-wrap:nowrap}
+.nd-chwrap{flex:1;min-width:0;display:flex;align-items:center;gap:8px;padding:0 12px;border:1px solid #cfd8e3;border-radius:10px;background:#fff;height:44px}
+.nd-chwrap:focus-within{border-color:#8cc3ea;box-shadow:0 0 0 3px #e6f2fb}
+.nd-chhash{color:#7a8aa0;font-weight:700}
+.nd-chwrap .nd-chsel{flex:1;min-width:0;border:0;outline:0;background:transparent;padding:0;font-size:14px;height:100%;cursor:pointer}
+.nd-chcfg{height:44px;padding:0 16px;white-space:nowrap}
