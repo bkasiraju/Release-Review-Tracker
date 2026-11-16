@@ -84,11 +84,13 @@ function newEpicAt(btn){
   document.addEventListener('mousedown',away,true);document.addEventListener('keydown',key,true);n.focus();
 }
 // ── Export template / import (xlsx) ────────────────────────────────────────
+// Engineers for planning/allocation: non-leaders plus leaders the backend flags (Ram/Jayant on MQ & MAPS, Jayant on VegaCache).
+const isEng=m=>H.leaderRank(m.name)<0||m.alloc;
 const IO_COLS=['Method Name (V2MOM Field in Project)','Measure Name (project in GUS)','Project (short form)','Epic Name','Workstream','Epic Owner','Workstream Owner(s)','WS Est (days)','ATL/BTL','Priority','Sprint','Planned Release'];
 const IO_ROWS=300;
 const projShort=p=>p.short||shortProj(p.name);
 function ioLists(){
-  const pl=P.plan,eng=P.members.filter(m=>H.leaderRank(m.name)<0).map(m=>m.name).sort();
+  const pl=P.plan,eng=P.members.filter(isEng).map(m=>m.name).sort();
   return {methods:[...new Set(pl.projects.map(p=>(p.method||'').trim()).filter(Boolean))].sort(),projects:pl.projects.map(projShort),releases:P.refs.releases.map(r=>r.name),eng,line:['ABL','BTL'],pri:[0,1,2,3,4,5].map(n=>'P'+n),status:STAT};
 }
 function exportTemplate(){
@@ -138,7 +140,7 @@ function checkImport(sheet){
   const get=(r,k)=>ci[k]<0?'':String(r[ci[k]]==null?'':r[ci[k]]).trim();
   const projBy=new Map(),projects=[...pl.projects];
   const findProj=(sh,nm)=>projects.find(p=>(sh&&norm(projShort(p))===norm(sh))||(nm&&norm(p.name)===norm(nm)))||null;
-  const members=P.members.filter(m=>H.leaderRank(m.name)<0),byName=new Map(members.map(m=>[norm(m.name),m]));
+  const members=P.members.filter(isEng),byName=new Map(members.map(m=>[norm(m.name),m]));
   const names=(txt,row,what)=>{const ids=[],nm=[];for(const part of String(txt||'').split(/[,;\n]/).map(x=>x.trim()).filter(Boolean)){let m=byName.get(norm(part));if(!m){const q=norm(part),hits=members.filter(x=>norm(x.name).startsWith(q));if(q&&hits.length===1){m=hits[0];add('warn',row,`${what}: “${part}” was matched to ${m.name}.`);}}if(m){if(!ids.includes(m.id)){ids.push(m.id);nm.push(m.name);}}else add('error',row,`${what}: “${part}” is not an engineer on this team${(()=>{const q=norm(part).split(' ')[0]||'~',h=members.filter(x=>norm(x.name).includes(q));return h.length&&h.length<4?' (did you mean '+h.map(x=>x.name).join(' / ')+'?)':'';})()}.`);}return {ids,nm};};
   const groups=new Map(),newProj=new Map(),methods=new Map();
   let last=null,carried=0;
@@ -250,7 +252,7 @@ const wsEngs=w=>w.engIds&&w.engIds.length?w.engIds:(w.engId?[w.engId]:[]);
 const wsNames=w=>wsEngs(w).map(id=>memName(id)||(id===w.engId?w.engName:'')||'Engineer');
 const shortProj=n=>{n=n||'';if(/^[^:]{1,30}:/.test(n))return n.split(':')[0].trim();const m=n.match(/^(?:[A-Za-z]{2,6}\s+)?[A-Za-z]?\d+(?:\.\d+)+/);return m?m[0]:(n||'(unnamed project)');};
 const msLabel=(ids,empty)=>{const n=ids.map(memName).filter(Boolean);return n.length?(n.length>1?`${n[0].split(' ')[0]} +${n.length-1}`:n[0]):empty;};
-const msel=(f,ids,label,empty)=>{const mem=P.members.filter(m=>H.leaderRank(m.name)<0);
+const msel=(f,ids,label,empty)=>{const mem=P.members.filter(isEng);
   return `<div class="cs ms" data-ms="${f}"><button type="button" class="cs-btn" aria-haspopup="listbox" aria-expanded="false" aria-label="${label}" title="${esc(ids.map(memName).join(', '))}"><span>${esc(msLabel(ids,empty))}</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 8l5 5 5-5"/></svg></button></div>`;};
 const uid=p=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 const r2=n=>Math.round(n*100)/100,fmt=n=>String(r2(Number(n)||0));
@@ -280,7 +282,7 @@ function model(){
   const pl=P.plan,wd=workdays(pl.window.start,pl.window.end),prj=new Map(pl.projects.map(p=>[p.id,p]));
   const eng=new Map();
   const row=(id,name)=>{if(!eng.has(id))eng.set(id,{id,name,total:0,leave:0,holiday:0,oncall:0,avail:0,abl:0,btl:0,cap:true,th:new Map()});return eng.get(id);};
-  for(const m of P.members)if(H.leaderRank(m.name)<0){const x=row(m.id,m.name),pp=pl.people[m.id]||{};x.leave=pp.leave||0;x.holiday=pp.holiday||0;x.oncall=pp.oncall||0;x.total=pp.total!=null?pp.total:wd;x.avail=Math.max(0,x.total-x.leave-x.holiday-x.oncall);}
+  for(const m of P.members)if(isEng(m)){const x=row(m.id,m.name),pp=pl.people[m.id]||{};x.leave=pp.leave||0;x.holiday=pp.holiday||0;x.oncall=pp.oncall||0;x.total=pp.total!=null?pp.total:wd;x.avail=Math.max(0,x.total-x.leave-x.holiday-x.oncall);}
   const themes=new Map();let ablT=0,btlT=0;
   for(const e of pl.epics){
     const slices=e.workstreams.filter(w=>(w.days||0)>0).map(w=>({ids:wsEngs(w),d:w.days,nm:w.engName,k:wl(e,w)==='ABL'?'abl':'btl'}));
@@ -452,7 +454,7 @@ function drawSummary(){
 function drawPlanner(){
   const el=P.el.querySelector('#pl-planner'),pl=P.plan,rel=P.refs.releases;
   const projOpts=sel=>pl.projects.map(p=>opt(p.id,p.name||'(unnamed project)',p.id===sel)).join('');
-  const engOpts=sel=>'<option value="">Unassigned</option>'+P.members.filter(m=>H.leaderRank(m.name)<0).map(m=>opt(m.id,m.name,m.id===sel)).join('');
+  const engOpts=sel=>'<option value="">Unassigned</option>'+P.members.filter(isEng).map(m=>opt(m.id,m.name,m.id===sel)).join('');
   const V=P.view,prj=new Map(pl.projects.map(p=>[p.id,p])),q=V.q.trim().toLowerCase(),filtering=!!(q||V.flag||MF.some(k=>V[k].length));
   const FLAG={unassigned:e=>e.workstreams.some(w=>(w.days||0)>0&&!wsEngs(w).length),incomplete:e=>!(e.owners&&e.owners.length)||!e.workstreams.some(w=>(w.days||0)>0),pending:e=>e.line==='ABL'&&!e.gusId};
   const match=e=>{const p=prj.get(e.projectId);
@@ -520,7 +522,7 @@ function hoistTools(){
 const wire=()=>P.el.querySelectorAll('#pl-planner select').forEach(s=>H.customSelect(s));
 function drawTools(){
   const box=P.el.querySelector('#pl-tools'),pl=P.plan;if(!box||!pl)return;const V=P.view;
-  const themes=[...new Set(pl.epics.map(epicTheme))].sort(),engs=P.members.filter(m=>H.leaderRank(m.name)<0);
+  const themes=[...new Set(pl.epics.map(epicTheme))].sort(),engs=P.members.filter(isEng);
   restoreFilters();
   const mfLabel=(k,list)=>{const sel=V[k];if(!sel.length)return 'All';const nm=v=>(list.find(x=>x[0]===v)||[v,v])[1];return sel.length===1?nm(sel[0]):sel.length+' selected';};
   const sel=(k,label,list)=>`<div class="pl-tf pl-mf${V[k].length?' on':''}" data-mf="${k}"><span>${label}</span><button type="button" class="pl-mf-btn" aria-haspopup="true" aria-expanded="false" aria-label="${label} filter"><b>${esc(mfLabel(k,list))}</b><i aria-hidden="true">▾</i></button><div class="pl-mf-pop" hidden><input type="search" class="hub-inline" placeholder="Search ${label.toLowerCase()}…" aria-label="Search ${label}"><div class="pl-mf-acts"><button type="button" data-mf-all>Select all</button><button type="button" data-mf-none>Clear</button></div><ul>${list.map(([v,l])=>`<li data-t="${esc(String(l).toLowerCase())}"><label><input type="checkbox" value="${esc(v)}"${V[k].includes(v)?' checked':''}> <span>${esc(l)}</span></label></li>`).join('')||'<li class="note">Nothing to filter yet</li>'}</ul></div></div>`;
@@ -558,7 +560,7 @@ function closeMsPop(){document.querySelectorAll('.pl-mspop').forEach(x=>x.remove
 function openMsPop(btn,c){
   closeMsPop();const wd=btn.closest('.ms'),f=wd.dataset.ms;let cur;
   if(c.w){const e=findE(c.e),w=e&&e.workstreams.find(x=>x.id===c.w);if(!w)return;cur=wsEngs(w);}else if(c.e){const e=findE(c.e);if(!e)return;cur=e.owners||[];}else return;
-  const mem=P.members.filter(m=>H.leaderRank(m.name)<0),pop=document.createElement('div');pop.className='pl-mspop';pop.setAttribute('role','dialog');pop.setAttribute('aria-label',f==='owners'?'Epic owners':'Workstream owners');
+  const mem=P.members.filter(isEng),pop=document.createElement('div');pop.className='pl-mspop';pop.setAttribute('role','dialog');pop.setAttribute('aria-label',f==='owners'?'Epic owners':'Workstream owners');
   pop.innerHTML=`<b>${f==='owners'?'Epic owners':'Workstream owners'}</b><div class="pl-ms-l">${mem.map(m=>`<label><input type="checkbox" value="${esc(m.id)}"${cur.includes(m.id)?' checked':''}> ${esc(m.name)}</label>`).join('')||'<p class="note">No team members</p>'}</div><div class="pl-ms-a"><button type="button" class="button" data-x>Cancel</button><button type="button" class="button primary" data-ok>Save</button></div>`;
   document.body.appendChild(pop);
   const r=btn.getBoundingClientRect(),h=pop.offsetHeight,w=pop.offsetWidth;
@@ -657,7 +659,7 @@ function openModal(title,body,opener){
   (el.querySelector('input,button.primary')||el.querySelector('[data-close]')).focus();return el;
 }
 function openLeaves(){
-  const m=P.members.filter(x=>H.leaderRank(x.name)<0),wd=workdays(P.plan.window.start,P.plan.window.end);
+  const m=P.members.filter(isEng),wd=workdays(P.plan.window.start,P.plan.window.end);
   const el=openModal('Leaves, holidays & on-call',`<p class="note">Days off for each engineer inside the planning window (${esc(P.plan.window.start)} → ${esc(P.plan.window.end)}, ${wd} working days). On-call is the effort each engineer spends on rotation (not available for planned work). Total days default to the weekdays in the window and can be edited per engineer. Available days = total − leave − holidays − on-call.</p>
   <div class="pl-leaves"><div class="pl-leaves-h"><span>Engineer</span><span><b>Total (days)</b></span><span>Leave (days)</span><span>Holidays (days)</span><span>On-call (days)</span><span><b>Available</b></span></div>${m.map(x=>{const p=P.plan.people[x.id]||{};return `<div class="pl-leaves-r" data-id="${esc(x.id)}"><span>${esc(x.name)}</span><input class="hub-inline pl-total" type="number" min="0" max="366" step="0.5" inputmode="decimal" aria-label="Total days for ${esc(x.name)}" data-k="total" title="Weekdays in the planning window; edit if this engineer joins or leaves part-way" value="${fmt(p.total!=null?p.total:wd)}"><input class="hub-inline" type="number" min="0" max="${wd}" step="0.5" inputmode="decimal" aria-label="Leave days for ${esc(x.name)}" data-k="leave" value="${p.leave?fmt(p.leave):''}"><input class="hub-inline" type="number" min="0" max="${wd}" step="0.5" inputmode="decimal" aria-label="Holiday days for ${esc(x.name)}" data-k="holiday" value="${p.holiday?fmt(p.holiday):''}"><input class="hub-inline" type="number" min="0" max="${wd}" step="0.5" inputmode="decimal" aria-label="On-call days for ${esc(x.name)}" data-k="oncall" value="${p.oncall?fmt(p.oncall):''}"><b data-av>${fmt(Math.max(0,(p.total!=null?p.total:wd)-(p.leave||0)-(p.holiday||0)-(p.oncall||0)))}</b></div>`;}).join('')||'<p class="note">No team members loaded.</p>'}</div>
   <div class="nd-actions"><button type="button" class="button" data-close>Cancel</button><button type="button" class="button primary" id="pl-leaves-save">Save</button></div>`,document.getElementById('pl-leaves'));

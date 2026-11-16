@@ -45,7 +45,20 @@ async function getTeams(sf) {
 async function getMembers(sf, teamId) {
   requireTeam(teamId);
   const rows = (await sf.query(`SELECT Member_Name__c, Member_Name__r.Name, Role__c FROM ADM_Scrum_Team_Member__c WHERE Scrum_Team__c = '${teamId}' ORDER BY Member_Name__r.Name LIMIT 200`)).records || [];
-  const members = rows.filter(r => r.Member_Name__r).map(r => ({ id: r.Member_Name__c, name: r.Member_Name__r.Name, role: r.Role__c || '' }));
+  let members = rows.filter(r => r.Member_Name__r).map(r => ({ id: r.Member_Name__c, name: r.Member_Name__r.Name, role: r.Role__c || '' }));
+  // MQ's GUS roster also lists MAPS engineers: they are neither shown nor counted in MQ allocation (leadership stays).
+  const team = ((await sf.query(`SELECT Name FROM ADM_Scrum_Team__c WHERE Id = '${teamId}' LIMIT 1`)).records || [])[0];
+  if (team && /message queue/i.test(team.Name)) {
+    const maps = new Set(((await sf.query(`SELECT Member_Name__c FROM ADM_Scrum_Team_Member__c WHERE Scrum_Team__r.Active__c = true AND Scrum_Team__r.${TEAM_LIKE['Managed Async Processing Team']} LIMIT 200`)).records || []).map(r => r.Member_Name__c));
+    members = members.filter(m => !maps.has(m.id) || leaderRank(m.id) >= 0);
+  }
+  // Allocation always includes named leaders per team: Ram + Jayant on MQ and MAPS, Jayant on VegaCache.
+  const must = !team ? [] : /message queue/i.test(team.Name) || /managed async|maps/i.test(team.Name) ? [RAM, JAYANT] : /^vegacache/i.test(team.Name) ? [JAYANT] : [];
+  for (const id of must.filter(id => !members.some(m => m.id === id))) {
+    const u = ((await sf.query(`SELECT Id, Name FROM User WHERE Id = '${id}' LIMIT 1`)).records || [])[0];
+    if (u) members.push({ id: u.Id, name: u.Name, role: 'Leader', alloc: true });
+  }
+  for (const m of members) if (must.includes(m.id)) m.alloc = true;
   return { members: [...members.filter(m => leaderRank(m.id) < 0), ...members.filter(m => leaderRank(m.id) >= 0).sort((a, b) => leaderRank(a.id) - leaderRank(b.id))] };
 }
 

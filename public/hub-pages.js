@@ -48,6 +48,7 @@ const DSORT={},DKEY=(st,cls)=>st&&st.key,SLA_RANK={breached:0,risk:1,warn:2,ok:3
 const dget={
   queue:{sla:b=>SLA_RANK[b.state],priority:b=>b.priority,status:b=>b.status,name:b=>b.name,subject:b=>b.subject,assignee:b=>b.assignee,age:b=>b.age,remaining:b=>b.remaining,urgency:b=>b.urgency},
   bugs:{name:b=>b.name,subject:b=>b.subject,priority:b=>b.priority,status:b=>b.status,assignee:b=>b.assignee,points:b=>b.points,build:b=>b.build,age:b=>b.created?-Date.parse(b.created):null},
+  tds:{name:t=>t.name,deliverable:t=>t.deliverable,other:t=>t._o,status:t=>t.status,due:t=>t.deliverBy,build:t=>{const n=parseFloat(t.build);return isNaN(n)?t.build:n;},stories:t=>t.dependentStory||t.providerStory},
   tf:{name:r=>r.name,subject:r=>r.subject,assignee:r=>r.assignee||'',found:r=>r.found,scheduled:r=>r.scheduled,age:r=>r.age,status:r=>r.status}
 };
 const dsort=(rows,id,kind)=>{const st=DSORT[id];if(!st)return rows;const g=dget[kind][st.key];if(!g)return rows;const d=st.dir==='desc'?-1:1;
@@ -58,6 +59,7 @@ document.addEventListener('click',e=>dToggle(e));document.addEventListener('keyd
 function dToggle(e){
   const th=e.target.closest&&e.target.closest('th[data-hk]');if(!th)return;e.preventDefault();
   const [id,key]=th.dataset.hk.split(':'),cur=DSORT[id];DSORT[id]={key,dir:cur&&cur.key===key&&cur.dir==='asc'?'desc':'asc'};
+  if(id==='tds'){if(T.data)drawTds(document);return;}
   if(id==='patch'||id==='main'){TF.pg[id]=1;if(TF.data)drawTests(document);}else{B.pg=1;if(document.querySelector('#bug-queue'))drawQueue(document);}
 }
 function drawQueue(el){
@@ -165,16 +167,40 @@ H.register({id:'bugs',label:'Bugs',icon:'bug',tone:'rose',desc:'SLA board and op
   }});
 
 // ── Team dependencies ───────────────────────────────────────────────────────
-const T={dir:'outgoing',data:null,pick:null,seq:0};
+const T={dir:'outgoing',data:null,pick:null,seq:0,q:'',status:'',team:'',build:'',due:'',group:'',shut:new Set()};
+const TD_GROUPS={'':'No grouping',other:'Other team',status:'Status',build:'Target build',due:'Deliver by'};
+const todayIso=()=>new Date().toISOString().slice(0,10);
+const dueBucket=t=>{if(!t.deliverBy)return 'No date';const d=todayIso();if(t.deliverBy<d)return 'Overdue';const in30=new Date(Date.now()+30*864e5).toISOString().slice(0,10);return t.deliverBy<=in30?'Next 30 days':'Later';};
+const tdKey=(t,g)=>g==='other'?(t._o||'—'):g==='status'?(t.status||'—'):g==='build'?(t.build||'No build'):dueBucket(t);
 function drawTds(el){
-  const list=T.data[T.dir],other=T.dir==='outgoing'?'providerTeam':'dependentTeam',st=T.pick?T.pick.tdStatus:[];
+  const all=T.data[T.dir].map(t=>Object.assign({},t,{_o:t[T.dir==='outgoing'?'providerTeam':'dependentTeam']||''})),st=T.pick?T.pick.tdStatus:[];
+  const q=T.q.trim().toLowerCase(),d0=todayIso(),in30=new Date(Date.now()+30*864e5).toISOString().slice(0,10);
+  const uniq=f=>[...new Set(all.map(f).filter(Boolean))].sort((a,b)=>String(a).localeCompare(String(b),undefined,{numeric:true}));
+  const teams=uniq(t=>t._o),builds=uniq(t=>t.build).reverse(),stats=uniq(t=>t.status);
+  if(T.team&&!teams.includes(T.team))T.team='';if(T.build&&!builds.includes(T.build))T.build='';if(T.status&&!stats.includes(T.status))T.status='';
+  let list=all.filter(t=>(!q||[t.name,t.deliverable,t._o,t.dependentStory,t.providerStory,t.status,t.build].join(' ').toLowerCase().includes(q))&&(!T.status||t.status===T.status)&&(!T.team||t._o===T.team)&&(!T.build||t.build===T.build)&&(!T.due||(T.due==='overdue'?t.deliverBy&&t.deliverBy<d0:T.due==='soon'?t.deliverBy&&t.deliverBy>=d0&&t.deliverBy<=in30:!t.deliverBy)));
+  const other=T.dir==='outgoing'?'providerTeam':'dependentTeam';
   el.querySelector('#td-tabs').innerHTML=['outgoing','incoming'].map(d=>`<button data-dir="${d}" class="${d===T.dir?'selected':''}" aria-pressed="${d===T.dir}">${d==='outgoing'?'Outgoing':'Incoming'} <span class="count-pill">${T.data[d].length}</span></button>`).join('');
   el.querySelector('#td-hint').textContent=T.dir==='outgoing'?`${H.team.short} depends on these teams to deliver.`:`These teams depend on ${H.team.short} to deliver.`;
-  el.querySelector('#td-body').innerHTML=list.length?list.map(t=>{const late=t.deliverBy&&t.deliverBy<new Date().toISOString().slice(0,10);return `<tr><td><a href="${H.GUS}ADM_Team_Dependency__c/${esc(t.id)}/view" target="_blank" rel="noopener noreferrer">${esc(t.name)}</a></td><td class="sp-subject" title="${esc(t.deliverable)}">${esc(t.deliverable.slice(0,160))}</td><td>${esc(t[other])}</td>
+  const opt=(arr,cur,all0)=>`<option value="">${all0}</option>`+arr.map(v=>`<option value="${esc(v)}"${v===cur?' selected':''}>${esc(v)}</option>`).join('');
+  const fb=el.querySelector('#td-filters');
+  if(fb){const act=document.activeElement&&document.activeElement.id==='td-q';
+    fb.innerHTML=`<input id="td-q" class="hub-inline" type="search" placeholder="Search TD, deliverable, team, story" aria-label="Search dependencies" value="${esc(T.q)}"><select id="td-fs" class="hub-inline" aria-label="Status">${opt(stats,T.status,'All statuses')}</select><select id="td-ft" class="hub-inline" aria-label="${T.dir==='outgoing'?'Provider':'Dependent'} team">${opt(teams,T.team,T.dir==='outgoing'?'All provider teams':'All dependent teams')}</select><select id="td-fb" class="hub-inline" aria-label="Target build">${opt(builds,T.build,'All builds')}</select><span class="hub-chips" aria-label="Deliver by">${[['overdue','Overdue'],['soon','Next 30 days'],['none','No date']].map(([k,l])=>`<button type="button" class="sp-chip${T.due===k?' on':''}" data-td-due="${k}" aria-pressed="${T.due===k}">${l}</button>`).join('')}</span><label class="td-grp-l">Group by <select id="td-grp" class="hub-inline" aria-label="Group by">${Object.entries(TD_GROUPS).map(([k,l])=>`<option value="${k}"${k===T.group?' selected':''}>${l}</option>`).join('')}</select></label><span class="toolbar-spacer"></span><span class="note" id="td-count">${list.length} of ${all.length}</span>${(T.q||T.status||T.team||T.build||T.due)?'<button type="button" class="button small" data-td-clear>Clear filters</button>':''}`;
+    if(act){const i=fb.querySelector('#td-q');i.focus();i.setSelectionRange(i.value.length,i.value.length);}}
+  const sk=DSORT.tds;if(sk)list=dsort(list,'tds','tds');
+  const g=T.group;if(g){const keyed=new Map();list.forEach(t=>{const k=tdKey(t,g);(keyed.get(k)||keyed.set(k,[]).get(k)).push(t);});
+    const order=[...keyed.keys()].sort((a,b)=>{if(g==='due'){const o=['Overdue','Next 30 days','Later','No date'];return o.indexOf(a)-o.indexOf(b);}const e=x=>x==='—'||x==='No build';if(e(a)||e(b))return e(a)-e(b);return g==='build'?String(b).localeCompare(String(a),undefined,{numeric:true}):String(a).localeCompare(String(b),undefined,{numeric:true});});
+    list=order.map(k=>({k,rows:keyed.get(k)}));}
+  const head=el.querySelector('#td-head');if(head)head.innerHTML=`<tr>${dth('tds','name','TD')}${dth('tds','deliverable','Deliverable')}${dth('tds','other',T.dir==='outgoing'?'Provider team':'Other team')}${dth('tds','status','Status')}${dth('tds','due','Deliver by')}${dth('tds','build','Target build')}${dth('tds','stories','Stories')}</tr>`;
+  const tbl=el.querySelector('#td-body').closest('table');tbl.classList.toggle('nopage',!!g);
+  if(g){const bar=tbl.closest('.table-scroll')&&tbl.closest('.table-scroll').nextElementSibling;if(bar&&bar.classList.contains('dom-pager'))bar.remove();}
+  const row=t=>{const late=t.deliverBy&&t.deliverBy<d0;return `<tr><td><a href="${H.GUS}ADM_Team_Dependency__c/${esc(t.id)}/view" target="_blank" rel="noopener noreferrer">${esc(t.name)}</a></td><td class="sp-subject" title="${esc(t.deliverable)}">${esc(t.deliverable.slice(0,160))}</td><td>${esc(t[other])}</td>
   <td><select class="hub-inline" data-edit="ADM_Team_Dependency__c" data-id="${esc(t.id)}" data-field="Dependency_Status__c" data-prev="${esc(t.status)}" data-label="${esc(t.name)} status" aria-label="Status of ${esc(t.name)}">${H.options(st,t.status)}</select></td>
   <td><input class="hub-inline${late?' late':''}" type="date" data-edit="ADM_Team_Dependency__c" data-type="date" data-id="${esc(t.id)}" data-field="Deliver_By__c" data-prev="${esc(t.deliverBy||'')}" data-label="${esc(t.name)} deliver-by" aria-label="Deliver by for ${esc(t.name)}" value="${esc(t.deliverBy||'')}"></td>
   <td>${esc(t.build)}</td>
-  <td>${[[t.dependentStory,t.dependentStoryId],[t.providerStory,t.providerStoryId]].filter(x=>x[0]).map(([n,id])=>id?`<a href="${H.GUS}ADM_Work__c/${esc(id)}/view" target="_blank" rel="noopener noreferrer">${esc(n)}</a>`:esc(n)).join(' → ')}</td></tr>`;}).join(''):`<tr><td colspan="7"><div class="empty-state hub-empty"><h3>No open ${T.dir} dependencies</h3><p>Nothing outstanding for ${esc(H.team.short)}.</p></div></td></tr>`;
+  <td>${[[t.dependentStory,t.dependentStoryId],[t.providerStory,t.providerStoryId]].filter(x=>x[0]).map(([n,id])=>id?`<a href="${H.GUS}ADM_Work__c/${esc(id)}/view" target="_blank" rel="noopener noreferrer">${esc(n)}</a>`:esc(n)).join(' → ')}</td></tr>`;};
+  const none=T.data[T.dir].length?'No dependencies match':`No open ${T.dir} dependencies`,why=T.data[T.dir].length?'Try clearing the filters or search.':`Nothing outstanding for ${esc(H.team.short)}.`;
+  el.querySelector('#td-body').innerHTML=(g?list.length:list.length)?(g?list.map(x=>{const shut=T.shut.has(g+':'+x.k);return `<tr class="td-grp-row"><td colspan="7"><button type="button" class="td-grp-b" data-td-grp="${esc(g+':'+x.k)}" aria-expanded="${!shut}"><span aria-hidden="true">${shut?'▸':'▾'}</span> <b>${esc(x.k)}</b> <span class="count-pill">${x.rows.length}</span></button></td></tr>${shut?'':x.rows.map(row).join('')}`;}).join(''):list.map(row).join('')):`<tr><td colspan="7"><div class="empty-state hub-empty"><h3>${none}</h3><p>${why}</p></div></td></tr>`;
 }
 async function loadTds(el){
   const my=++T.seq;el.querySelector('#td-body').innerHTML='<tr><td colspan="7" class="hub-loading">Loading dependencies from GUS…</td></tr>';
@@ -185,9 +211,14 @@ H.register({id:'tds',label:'Team Dependencies',icon:'td',tone:'amber',desc:'Inco
   stat:home=>home?{big:home.tds.incoming+home.tds.outgoing,text:'open team dependencies',chips:`<span class="sp-chip add">In ${home.tds.incoming}</span><span class="sp-chip warn">Out ${home.tds.outgoing}</span>`}:{text:'Incoming and outgoing team dependencies'},
   render(el){
     el.innerHTML=heading('td','amber','Team Dependencies',`Open TDs for ${H.team.Name}. Edit status and deliver-by date inline; changes save to GUS immediately.`,refreshBtn)+
-    `<section class="table-card"><div class="filterbar"><div class="epic-toolbar-title"><h2>Dependencies</h2></div><nav class="sp-tabs" id="td-tabs" aria-label="Direction"></nav><span id="td-hint" class="note"></span></div><div class="table-scroll"><table><thead><tr><th>TD</th><th>Deliverable</th><th>Other team</th><th>Status</th><th>Deliver by</th><th>Target build</th><th>Stories</th></tr></thead><tbody id="td-body"></tbody></table></div><div class="table-footer"><span>Source: GUS · ADM_Team_Dependency__c · ${esc(H.team.Name)}</span></div></section>`;
+    `<section class="table-card"><div class="filterbar"><div class="epic-toolbar-title"><h2>Dependencies</h2></div><nav class="sp-tabs" id="td-tabs" aria-label="Direction"></nav><span id="td-hint" class="note"></span></div><div class="filterbar td-filters" id="td-filters"></div><div class="table-scroll"><table><thead id="td-head"><tr><th>TD</th><th>Deliverable</th><th>Other team</th><th>Status</th><th>Deliver by</th><th>Target build</th><th>Stories</th></tr></thead><tbody id="td-body"></tbody></table></div><div class="table-footer"><span>Source: GUS · ADM_Team_Dependency__c · ${esc(H.team.Name)}</span></div></section>`;
     withIcons(el);
-    el.onclick=e=>{const b=e.target.closest('[data-dir]');if(b&&T.data){T.dir=b.dataset.dir;drawTds(el);}if(e.target.closest('[data-refresh]'))loadTds(el);};
+    el.onclick=e=>{const b=e.target.closest('[data-dir]');if(b&&T.data){T.dir=b.dataset.dir;T.team='';T.status='';T.build='';drawTds(el);}if(e.target.closest('[data-refresh]'))loadTds(el);
+      const du=e.target.closest('[data-td-due]');if(du&&T.data){T.due=T.due===du.dataset.tdDue?'':du.dataset.tdDue;drawTds(el);}
+      if(e.target.closest('[data-td-clear]')&&T.data){T.q=T.status=T.team=T.build=T.due='';drawTds(el);}
+      const gb=e.target.closest('[data-td-grp]');if(gb&&T.data){const k=gb.dataset.tdGrp;T.shut.has(k)?T.shut.delete(k):T.shut.add(k);drawTds(el);}};
+    el.oninput=e=>{if(e.target.id==='td-q'&&T.data){T.q=e.target.value;drawTds(el);}};
+    el.onchange=e=>{const id=e.target.id;if(!T.data)return;if(id==='td-fs')T.status=e.target.value;else if(id==='td-ft')T.team=e.target.value;else if(id==='td-fb')T.build=e.target.value;else if(id==='td-grp')T.group=e.target.value;else return;drawTds(el);};
     bindPage(el,(id,field,val)=>{const t=[...(T.data?.outgoing||[]),...(T.data?.incoming||[])].find(x=>x.id===id);if(!t)return;if(field==='Dependency_Status__c')t.status=val;else if(field==='Deliver_By__c')t.deliverBy=val;});
     loadTds(el);
   }});
