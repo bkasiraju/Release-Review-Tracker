@@ -1740,3 +1740,18 @@ body[data-hub=status] #gus-links{display:none!important}
 .sal-table td.sal-det{min-width:0!important;white-space:pre-wrap}
 .sal-table td.sal-acts,.sal-table th:last-child{position:static!important;width:176px!important;min-width:0!important;padding:10px 12px!important;box-shadow:none!important;white-space:nowrap;overflow:visible}
 .sal-table td.sal-acts .sal-ic{width:32px;height:32px;margin:0 6px 0 0}.sal-table td.sal-acts .sal-ic:last-child{margin-right:0}
+
+/* Slack channels dialog: clean card-style rows */
+.nd-cfg{width:min(700px,94vw);max-width:none;max-height:88vh;display:flex;flex-direction:column;overflow:hidden}
+.nd-cfg .nd-head{flex:none;padding:22px 28px 16px}.nd-cfg .nd-ttl p{margin-top:6px;line-height:1.5;white-space:normal;overflow:visible;text-overflow:clip}
+#nc-body{flex:1;overflow:auto;padding:6px 28px 26px}
+.nc-list{display:flex;flex-direction:column;gap:12px}
+.nc-row{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"name name" "field save" "st st";gap:6px 10px;align-items:center;padding:14px 16px;border:1px solid #e3e8ee;border-radius:12px;background:#fbfcfd}
+.nc-row:focus-within{border-color:#8cc3ea;box-shadow:0 0 0 3px #e6f2fb}
+.nc-name{grid-area:name;font-size:13px;font-weight:650;color:#1f2d3d}
+.nc-field{grid-area:field;display:flex;align-items:center;gap:8px;min-width:0;padding:0 12px;border:1px solid #cfd8e3;border-radius:9px;background:#fff}
+.nc-hash{color:#7a8aa0;font-weight:700}
+.nc-field input{flex:1;min-width:0;border:0!important;outline:0!important;box-shadow:none!important;padding:10px 0!important;background:transparent;font-size:13px}
+.nc-save{grid-area:save;height:40px;padding:0 20px}
+.nc-st{grid-area:st;min-height:0;font-size:12px;margin:0}.nc-st:empty{display:none}
+.nc-st.ok::before{content:"✓ ";font-weight:700}

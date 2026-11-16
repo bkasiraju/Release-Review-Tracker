@@ -90,7 +90,7 @@ async function openChannels(){
     catch(err){st.className='nc-st err';st.textContent=err.message;}finally{b.disabled=false;}
   });
   try{const r=await call('slack-channels');
-    ov.querySelector('#nc-body').innerHTML=`<table class="nc-tab"><tbody>${r.teams.map(t=>`<tr data-nteam="${esc(t.teamId)}"><th scope="row">${esc(t.name)}</th><td><input type="text" value="${esc(t.channel?t.channel.id:'')}" placeholder="https://…slack.com/archives/C0123ABCD" aria-label="Slack channel for ${esc(t.name)}" autocomplete="off"><div class="nc-st" role="status">${t.channel&&t.channel.name?esc(t.channel.name):''}</div></td><td><button type="button" class="button" data-nsave>Save</button></td></tr>`).join('')}</tbody></table>`;
+    ov.querySelector('#nc-body').innerHTML=`<div class="nc-list">${r.teams.map(t=>`<div class="nc-row" data-nteam="${esc(t.teamId)}"><label class="nc-name" for="nc-in-${esc(t.teamId)}">${esc(t.name)}</label><div class="nc-field"><span class="nc-hash" aria-hidden="true">#</span><input id="nc-in-${esc(t.teamId)}" type="text" value="${esc(t.channel?t.channel.id:'')}" placeholder="Paste channel link or ID" aria-label="Slack channel for ${esc(t.name)}" autocomplete="off"></div><button type="button" class="button primary nc-save" data-nsave>Save</button><div class="nc-st${t.channel&&t.channel.name?' ok':''}" role="status">${t.channel&&t.channel.name?esc(t.channel.name):''}</div></div>`).join('')}</div>`;
     ov.querySelector('input')&&ov.querySelector('input').focus();}
   catch(e){ov.querySelector('#nc-body').innerHTML=`<p class="nd-msg err">Could not load teams: ${esc(e.message)}</p>`;}
 }
