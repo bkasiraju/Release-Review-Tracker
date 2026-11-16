@@ -1898,3 +1898,7 @@ html body .sp-items.sp-items:not(.who):not(.who) th:nth-child(5){width:146px!imp
 html body .sp-items.sp-items:not(.who):not(.who) th:nth-child(6){width:64px!important}
 html body .sp-items.sp-items:not(.who):not(.who) th:nth-child(7){width:74px!important}
 html body .sp-items.sp-items:not(.who):not(.who) th:nth-child(8){width:66px!important}
+/* H.fitTable's px colgroup would override the th widths above; these tables size by CSS only */
+html body .sp-items.sp-items table>colgroup{display:none!important}
+html body .sp-items.sp-items table{max-width:100%!important}
+html body .sp-items.sp-items td.num,html body .sp-items.sp-items th.num{padding-right:10px!important}
