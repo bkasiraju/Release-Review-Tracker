@@ -1819,3 +1819,8 @@ body[data-hub=status] #gus-links{display:none!important}
 .sal-gc.sal-acts{padding:7px 8px;overflow:visible;white-space:nowrap}
 .sal-gc .sal-actbox{display:flex;flex-wrap:nowrap;gap:4px}
 .sal-gc .sal-ic{width:28px;height:28px;margin:0;flex:none}.sal-gc .sal-ic svg{width:15px;height:15px}
+
+/* Action Log: W-ID reads as a hyperlink */
+.sal-gc a{color:#0b5cab;font-weight:600;text-decoration:underline;text-underline-offset:2px}
+.sal-gc a:hover{color:#08427b;text-decoration-thickness:2px}
+.sal-gc a:visited{color:#5a3fa0}
