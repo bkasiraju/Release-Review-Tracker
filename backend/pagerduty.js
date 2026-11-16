@@ -21,9 +21,13 @@ function parseAlert(m, channel) {
   if (!link) return null;
   const field = k => { const r = new RegExp(`\\*${k}:\\*\\s*(?:<([^|>]+)\\|([^>]*)>|([^\\n]*))`).exec(t); return r ? clean(r[2] || r[3] || '') : ''; };
   const title = clean(link[3]);
+  const mm = /What does this mean\s+(.*?)(?:\s+Action Items\s+(.*))?$/i.exec(title);
+  const name = clean(title.replace(/\s*What does this mean[\s\S]*$/i, '').replace(/\bCritical\s*-\s*/i, '').replace(/\s*(Priority\s*-|scope\s*-|Affected Client\s*-)[\s\S]*$/i, ''));
+  const cut = (v, n) => v && v.length > n ? v.slice(0, n - 1) + '…' : v || '';
   const ts = String(m.ts), sevM = /:p([0-4])-/i.exec(link[3]) || /\bP([0-4])\b/.exec(title), sev = sevM ? 'P' + sevM[1] : '';
   return {
-    id: link[2], url: link[1], title: title.length > 160 ? title.slice(0, 157) + '…' : title,
+    id: link[2], url: link[1], title: cut(title, 400), name: cut(name, 160),
+    meaning: cut(mm && mm[1] || '', 200), actions: cut(mm && mm[2] || '', 300),
     kind: /availability/i.test(title) ? 'Availability' : /DeleteMessage|latency|MS\b/i.test(title) ? 'Latency' : /RDS|Disk|CPU|Memory/i.test(title) ? 'Infrastructure' : /Sev\d|incident/i.test(title) ? 'Incident' : 'Alert',
     severity: sev,
     urgency: field('Urgency'), service: field('Service'),
