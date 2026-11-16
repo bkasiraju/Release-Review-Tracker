@@ -279,14 +279,14 @@ function drawPd(el){
     const dt=iso=>{const d=new Date(iso);return d.toLocaleDateString([],{month:'short',day:'numeric'})+' '+d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});};
     body.innerHTML=A.length?`<div class="table-scroll"><table class="pd-table"><thead><tr>${PDCOLS.map(([k,l])=>pdTh(k,l)).join('')}<th>Links</th></tr></thead><tbody>${A.map(a=>{const dash='<span class="muted">—</span>',lk=(h,t)=>h?`<a href="${esc(h)}" target="_blank" rel="noopener noreferrer">${t}</a>`:'';return `<tr><td class="pd-when" title="${esc(new Date(a.at).toLocaleString())}">${esc(dt(a.at))}<span class="muted">${pdAge(a.at)}</span></td><td class="pd-title"><a href="${esc(a.url)}" target="_blank" rel="noopener noreferrer" title="${esc(a.title)}">${esc(a.name||a.title)}</a></td><td>${esc(a.kind)}</td><td>${a.severity?`<span class="pd-sev ${esc(a.severity.toLowerCase())}">${esc(a.severity)}</span>`:dash}</td><td>${esc(a.urgency)||dash}</td><td class="pd-scope">${esc(a.scope)||dash}</td><td class="pd-scope">${esc(a.client)||dash}</td><td class="pd-txt">${esc(a.meaning)||dash}</td><td class="pd-txt">${esc(a.actions)||dash}</td><td class="pd-svc">${esc((a.service||'').replace(/^GUS:\s*/,''))||dash}</td><td>${lk(a.slack,a.replies?a.replies+' repl'+(a.replies>1?'ies':'y'):'Open')}${a.reviewStarted?' <span class="pd-pir" title="Post-incident review already started">PIR</span>':''}</td><td class="pd-links">${lk(a.url,'PagerDuty')}${a.argus?' · '+lk(a.argus,'Argus'):''}</td></tr>`;}).join('')}</tbody></table></div>`:`<div class="empty-state hub-empty"><p>No PagerDuty alerts in the last ${r.days} days.</p></div>`;
 }
-async function loadPd(el){
+async function loadPd(el,fresh,quiet){
   const body=el.querySelector('#pd-body'),sub=el.querySelector('#pd-sub');if(!body)return;{const sm=el.querySelector('#pd-sum');if(sm)sm.innerHTML='';}PD.team=H.team.Id;
   try{
-    const r=await call('hub-pd-alerts',{teamId:PD.team});if(PD.team!==H.team.Id)return;
+    const r=await call('hub-pd-alerts',fresh?{teamId:PD.team,fresh:true}:{teamId:PD.team});if(PD.team!==H.team.Id)return;
     if(!r.configured){body.innerHTML='<div class="empty-state hub-empty"><p>No PagerDuty channel is linked to this team yet.</p></div>';sub.textContent='';return;}
-    sub.innerHTML=`Last ${r.days} days · <a href="${esc(r.channel.url)}" target="_blank" rel="noopener noreferrer">${esc(r.channel.name)}</a>`;
+    sub.innerHTML=`Updated ${new Date(r.fetchedAt||Date.now()).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})} · auto-refreshes every 3 min · Last ${r.days} days · <a href="${esc(r.channel.url)}" target="_blank" rel="noopener noreferrer">${esc(r.channel.name)}</a>`;
     PD.r=r;drawPd(el);
-  }catch(e){sub.textContent='';body.innerHTML=`<div class="empty-state hub-empty"><p>PagerDuty alerts are unavailable: ${esc(e.message)}</p></div>`;}
+  }catch(e){if(quiet&&PD.r)return;sub.textContent='';body.innerHTML=`<div class="empty-state hub-empty"><p>PagerDuty alerts are unavailable: ${esc(e.message)}</p></div>`;}
 }
 H.register({id:'rotations',label:'Trust Champion',icon:'rotation',tone:'violet',desc:'PD on-call and Trust Hero rota',needsTeam:true,
   stat:(home,x)=>({big:x&&x.pd?x.pd.name.split(' ')[0]:'—',text:x&&x.th?`PD on-call · Trust Hero ${x.th.name.split(' ')[0]}`:'PD on-call and Trust Hero rota'}),
@@ -294,8 +294,9 @@ H.register({id:'rotations',label:'Trust Champion',icon:'rotation',tone:'violet',
     el.innerHTML=heading('rotation','violet','Trust Champion — PagerDuty alerts',`PagerDuty alerts for ${H.team.Name}, read from its PagerDuty Slack channel.`,refreshBtn)+
     `<section class="table-card pd-alerts" id="pd-alerts"><div class="filterbar"><div class="epic-toolbar-title"><h2>PagerDuty alerts</h2></div><span class="pd-sub" id="pd-sub"></span></div><div id="pd-sum" class="pd-sum"></div><div id="pd-body" class="pd-body"><div class="hub-loading" role="status"><span class="executive-spinner"></span> Loading alerts…</div></div></section>`;
     withIcons(el);
-    el.onclick=e=>{if(e.target.closest('[data-refresh]'))return loadPd(el);const t=e.target.closest('[data-pdsort]');if(t){const k=t.dataset.pdsort;PD.sort=PD.sort.key===k?{key:k,dir:PD.sort.dir==='asc'?'desc':'asc'}:{key:k,dir:k==='at'||k==='replies'?'desc':'asc'};drawPd(el);}};
+    el.onclick=e=>{if(e.target.closest('[data-refresh]'))return loadPd(el,true);const t=e.target.closest('[data-pdsort]');if(t){const k=t.dataset.pdsort;PD.sort=PD.sort.key===k?{key:k,dir:PD.sort.dir==='asc'?'desc':'asc'}:{key:k,dir:k==='at'||k==='replies'?'desc':'asc'};drawPd(el);}};
     loadPd(el);
+    clearInterval(PD.timer);PD.timer=setInterval(()=>{if(!el.isConnected){clearInterval(PD.timer);return;}if(!document.hidden&&H.team&&H.team.Id===PD.team)loadPd(el,true,true);},180000);
   }});
 H.__parseRota=parseRota;
 })();

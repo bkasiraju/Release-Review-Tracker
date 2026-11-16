@@ -62,13 +62,13 @@ async function readChannel(sf, slack, ch, oldest) {
   }
 }
 
-async function getAlerts(sf, slack, teamId) {
+async function getAlerts(sf, slack, teamId, fresh) {
   if (!SF_ID.test(String(teamId || ''))) throw new Error('Invalid team.');
   const [t] = (await sf.query(`SELECT Id, Name FROM ADM_Scrum_Team__c WHERE Id = '${teamId}' LIMIT 1`)).records || [];
   const ch = t && CHANNELS.find(c => c.like.test(t.Name));
   if (!ch) return { configured: false, alerts: [] };
   const hit = cache.get(ch.id);
-  if (hit && Date.now() - hit.at < TTL) return hit.data;
+  if (!fresh && hit && Date.now() - hit.at < TTL) return hit.data;
   const msgs = await readChannel(sf, slack, ch, Math.floor(Date.now() / 1000) - DAYS * 86400);
   const alerts = msgs.map(m => parseAlert(m, ch)).filter(Boolean).sort((a, b) => b.at.localeCompare(a.at));
   const data = { configured: true, channel: { id: ch.id, name: ch.name, url: `${WORKSPACE}/archives/${ch.id}` }, days: DAYS, alerts, fetchedAt: Date.now() };
