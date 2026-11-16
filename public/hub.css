@@ -1937,3 +1937,10 @@ html body .sp-items.sp-items:not(.who):not(.who) th:nth-child(5){width:140px!imp
 html body .sp-items.sp-items:not(.who):not(.who) th:nth-child(6){width:56px!important}
 html body .sp-items.sp-items:not(.who):not(.who) th:nth-child(7){width:62px!important}
 html body .sp-items.sp-items:not(.who):not(.who) th:nth-child(8){width:58px!important}
+/* QA column: avatar only (name stays available to screen readers and on hover) */
+html body .sp-items.sp-items .sp-qa-n{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+html body .sp-items.sp-items td.sp-qa-cell{text-align:center}
+html body .sp-items.sp-items td.sp-qa-cell .sp-qa{justify-content:center;gap:0}
+html body .sp-items.sp-items.who.who th:nth-child(5){width:52px!important;text-align:center}
+html body .sp-items.sp-items.who.who th:nth-child(6){width:150px!important}
+html body .sp-items.sp-items.who.who th:nth-child(3){width:20%!important}

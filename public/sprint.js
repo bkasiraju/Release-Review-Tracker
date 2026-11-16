@@ -194,7 +194,7 @@ let rz=null;if(window.ResizeObserver)new ResizeObserver(()=>{clearTimeout(rz);rz
 const spOf=i=>i.storyPoints==null?0:i.storyPoints;
 const avatarOf=(id,name,big)=>{const pr=window.Hub.personAvatar&&window.Hub.personAvatar(id,name);
   return `<span class="su-av${big?' big':''}" data-i="${esc(initials(name))}">${pr&&pr.avatar?`<img src="${esc(pr.avatar)}" alt="" decoding="async" ${pr.alt&&pr.alt!==pr.avatar?`data-alt="${esc(pr.alt)}"`:''} onerror="var a=this.dataset.alt;if(a){this.removeAttribute('data-alt');this.src=a;}else this.remove()">`:''}</span>`;};
-const qaCell=i=>i.qa?`<span class="sp-qa" title="QA engineer: ${esc(i.qa)}">${avatarOf(i.qaId,i.qa)}<span>${esc(i.qa)}</span></span>`:'<span class="muted" title="No QA engineer set in GUS">—</span>';
+const qaCell=i=>i.qa?`<span class="sp-qa" title="QA engineer: "><span class="sp-qa-n"></span></span>`:'<span class="muted" title="No QA engineer set in GUS">—</span>';
 const isSpill=i=>i.itemStatus==='Forecasted'&&!isClosed(i);
 const sprintCtx=()=>{const sel=$('sp-sprint');if(!sel)return {cur:'this sprint',next:'the next sprint'};const o=[...sel.options],k=o.findIndex(x=>x.value===S.sprintId);return {cur:k>=0?o[k].textContent:'this sprint',next:k>0?o[k-1].textContent:'the next sprint / backlog'};};
 const itemTip=i=>{const c=sprintCtx(),fc=i.forecastPts==null?'—':fmt(i.forecastPts),sp=fmt(spOf(i));return {
