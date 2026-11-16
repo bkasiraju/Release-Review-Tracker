@@ -87,6 +87,7 @@ async function handleRequest(ctx){
       case 'hub-bug-trend':payload=await hub.getBugTrend(sf,b.teamId);break;
       case 'hub-bug-trend-items':payload=await hub.getBugTrendItems(sf,b.teamId,b);break;
       case 'hub-sla':payload=await hub.getSla(sf,b.teamId);break;
+      case 'hub-pd-alerts':payload=await require('./pagerduty').getAlerts(sf,b.teamId);break;
       case 'hub-champion':payload=await hub.getChampion(store,b.teamId);break;
       case 'hub-champion-save':payload=await hub.saveChampion(store,b.teamId,b.champion,b.revision);break;
       case 'pref-get':payload=await pref.getPref(sf,store);break;

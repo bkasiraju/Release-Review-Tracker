@@ -74,4 +74,12 @@ async function sendDm(sf, slackUserId, text) {
   let permalink = null; try { const p = await slackPost(token, 'chat.getPermalink', {channel: post.channel || channel, message_ts: post.ts}); if (p.ok) permalink = p.permalink; } catch (_) { /* optional */ }
   return {ok: true, ts: post.ts, channel: post.channel || channel, permalink};
 }
-module.exports = {available, sendDm, stitch, tokenFrom};
+/** Read recent top-level messages of a channel the bot belongs to (needs channels:history / groups:history). */
+async function history(sf, channel, oldest, limit = 100) {
+  const token = await getToken(sf); if (!token) throw Error('The Slack bot is not configured for this app.');
+  if (!/^C[A-Z0-9]{8,}$/.test(channel || '')) throw Error('Invalid channel.');
+  const r = await slackPost(token, 'conversations.history', {channel, oldest: String(oldest), limit: String(limit)});
+  if (!r.ok) throw Error(r.error === 'not_in_channel' || r.error === 'channel_not_found' ? 'The Slack bot is not a member of the PagerDuty channel. Add it there to enable alerts.' : r.error === 'missing_scope' ? 'The Slack bot lacks the channels:history permission.' : (WHY[r.error] || `Slack could not read the channel (${r.error}).`));
+  return r.messages || [];
+}
+module.exports = {available, sendDm, history, stitch, tokenFrom};

@@ -1692,3 +1692,8 @@ body[data-hub=status] #gus-links{display:none!important}
 #sp-movebar .sp-move-btn:disabled{opacity:.6;cursor:wait}
 #sp-movebar .sp-move-btn svg{width:16px;height:16px}
 #sp-movebar .sp-move-clear{background:none;border:0;color:#5d6b7e;cursor:pointer;text-decoration:underline;font-size:13px}
+/* PagerDuty alerts (Trust Champion) */
+.pd-alerts{margin-top:16px}.pd-sub{font-size:12px;color:#5d6b7e;margin-left:auto}
+.pd-title{max-width:520px}.pd-title a{font-weight:600}.pd-scope{font-size:12px;word-break:break-all}
+.pd-sev{display:inline-block;padding:1px 7px;border-radius:10px;font:700 11px/1.5 inherit;background:#eef1f5;color:#44546a}
+.pd-sev.p0,.pd-sev.p1{background:#fde7e7;color:#b3261e}.pd-sev.p2{background:#fff0d9;color:#9a5b00}

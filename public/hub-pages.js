@@ -262,21 +262,33 @@ async function loadRota(el){
   try{const [r,ms]=await Promise.all([call('hub-rotation',{teamId:R.team}),H.members().catch(()=>[])]);if(R.team!==H.team.Id)return;R.rota=r.rota;R.revision=r.revision;R.members=ms;drawRota(el);}
   catch(e){failed(el.querySelector('#rota-cards'),e);}
 }
+const PD={team:''};
+const pdAge=iso=>{const d=Math.floor((Date.now()-new Date(iso))/864e5);return d<1?'today':d===1?'yesterday':d+'d ago';};
+async function loadPd(el){
+  const body=el.querySelector('#pd-body'),sub=el.querySelector('#pd-sub');if(!body)return;PD.team=H.team.Id;
+  try{
+    const r=await call('hub-pd-alerts',{teamId:PD.team});if(PD.team!==H.team.Id)return;
+    if(!r.configured){body.innerHTML='<div class="empty-state hub-empty"><p>No PagerDuty channel is linked to this team yet.</p></div>';sub.textContent='';return;}
+    sub.innerHTML=`Last ${r.days} days · <a href="${esc(r.channel.url)}" target="_blank" rel="noopener noreferrer">${esc(r.channel.name)}</a>`;
+    body.innerHTML=r.alerts.length?`<div class="table-scroll"><table><thead><tr><th>Alert</th><th>Type</th><th>Sev</th><th>Scope</th><th>When</th><th>Thread</th></tr></thead><tbody>${r.alerts.map(a=>`<tr><td class="pd-title"><a href="${esc(a.url)}" target="_blank" rel="noopener noreferrer" title="${esc(a.title)}">${esc(a.title.replace(/\s+(What does this mean|Action Items)\b.*$/i,''))}</a>${a.client?`<span class="muted"> · ${esc(a.client)}</span>`:''}</td><td>${esc(a.kind)}</td><td>${a.severity?`<span class="pd-sev ${esc(a.severity.toLowerCase())}">${esc(a.severity)}</span>`:'<span class="muted">—</span>'}</td><td class="pd-scope">${esc(a.scope)||'<span class="muted">—</span>'}</td><td title="${esc(new Date(a.at).toLocaleString())}">${pdAge(a.at)}</td><td><a href="${esc(a.slack)}" target="_blank" rel="noopener noreferrer">${a.replies?a.replies+' repl'+(a.replies>1?'ies':'y'):'Open'}</a>${a.argus?` · <a href="${esc(a.argus)}" target="_blank" rel="noopener noreferrer">Argus</a>`:''}${a.reviewStarted?' · <span class="muted" title="Post-incident review already started">PIR</span>':''}</td></tr>`).join('')}</tbody></table></div>`:`<div class="empty-state hub-empty"><p>No PagerDuty alerts in the last ${r.days} days.</p></div>`;
+  }catch(e){sub.textContent='';body.innerHTML=`<div class="empty-state hub-empty"><p>PagerDuty alerts are unavailable: ${esc(e.message)}</p></div>`;}
+}
 H.register({id:'rotations',label:'Trust Champion',icon:'rotation',tone:'violet',desc:'PD on-call and Trust Hero rota',needsTeam:true,
   stat:(home,x)=>({big:x&&x.pd?x.pd.name.split(' ')[0]:'—',text:x&&x.th?`PD on-call · Trust Hero ${x.th.name.split(' ')[0]}`:'PD on-call and Trust Hero rota'}),
   render(el){
     el.innerHTML=heading('rotation','violet','Trust Champion — Rotations',`PD on-call and Trust Hero rota for ${H.team.Name}, saved in GUS Apps and shared with the team.`,refreshBtn)+
     `<datalist id="rota-names"></datalist><div id="rota-cards" class="rota-grid"></div>
+    <section class="table-card pd-alerts" id="pd-alerts"><div class="filterbar"><div class="epic-toolbar-title"><h2>PagerDuty alerts</h2></div><span class="pd-sub" id="pd-sub"></span></div><div id="pd-body" class="pd-body"><div class="hub-loading" role="status"><span class="executive-spinner"></span> Loading alerts…</div></div></section>
     <section class="table-card rota-import"><div class="filterbar"><div class="epic-toolbar-title"><h2>Import from Slack</h2></div></div><div class="rota-import-body"><p class="note">The dashboard cannot read Slack history, so copy the rota message from the team channel (#mq-team or the MAPS channel) and paste it here. One shift per line, e.g. <code>Nov 10 - Nov 16: Jane Doe</code> or <code>2026-11-10 to 2026-11-16 Jane Doe</code>. A single date means a one-week shift.</p><div class="rota-import-row"><select id="rota-kind" class="sp-select" aria-label="Rotation type">${KINDS.map(([k,l])=>`<option value="${k}">${l}</option>`).join('')}</select><button class="button primary" id="rota-import">Import shifts</button></div><textarea id="rota-text" rows="5" placeholder="Paste the rota message here…" aria-label="Rota text"></textarea></div></section>`;
     withIcons(el);
     el.onclick=e=>{
-      if(e.target.closest('[data-refresh]'))return loadRota(el);
+      if(e.target.closest('[data-refresh]')){loadPd(el);return loadRota(el);}
       const add=e.target.closest('[data-radd]');if(add){const k=add.dataset.radd,last=R.rota[k].at(-1),start=last?iso(new Date(new Date(last.end+'T00:00:00Z').getTime()+864e5)):iso(new Date());R.rota[k].push({name:'New shift',start,end:iso(new Date(new Date(start+'T00:00:00Z').getTime()+6*864e5)),backup:''});saveRota(el,true);return;}
       const del=e.target.closest('[data-rdel]');if(del){const [k,i]=del.dataset.rdel.split(':');R.rota[k].splice(+i,1);saveRota(el,true);return;}
       if(e.target.closest('#rota-import')){const k=el.querySelector('#rota-kind').value,rows=parseRota(el.querySelector('#rota-text').value);if(!rows.length)return window.toast?.('No shifts found. Use lines like "Nov 10 - Nov 16: Jane Doe".',true);R.rota[k]=R.rota[k].concat(rows);saveRota(el);el.querySelector('#rota-text').value='';}
     };
     el.onchange=e=>{const f=e.target.closest('[data-rk]');if(!f)return;const row=R.rota[f.dataset.rk][+f.dataset.i];if(!row)return;row[f.dataset.f]=f.value;if(row.start>row.end&&f.dataset.f==='start')row.end=row.start;saveRota(el,true);};
-    loadRota(el);
+    loadRota(el);loadPd(el);
   }});
 H.__parseRota=parseRota;
 })();
