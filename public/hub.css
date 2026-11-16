@@ -1681,3 +1681,6 @@ body[data-hub=status] #gus-links{display:none!important}
 .sp-items:not(.who) th:nth-child(3),.sp-modal-body .sp-items.who th:nth-child(3),.sp-items.who th:nth-child(3){width:20%!important}
 .sp-items th:nth-child(2){width:auto!important}
 .sp-items td.sp-epic-cell,.sp-items td.sp-epic-cell a{font-size:12px!important;line-height:1.35}
+/* work item values: slightly smaller type so more fits per row */
+.sp-items td:first-child,.sp-items td:first-child a{font-size:12.5px!important}
+.sp-items td.sp-subject,.sp-items td.sp-subject .sp-clip{font-size:13px!important;line-height:1.35}
