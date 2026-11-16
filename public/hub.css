@@ -1778,3 +1778,10 @@ body[data-hub=status] #gus-links{display:none!important}
 /* Action Log: Assignee column removed; re-balanced widths */
 .sal-table col.c-wid{width:100px}.sal-table col.c-sub{width:27%}.sal-table col.c-own{width:17%}.sal-table col.c-det{width:auto}
 .sal-table col.c-eta{width:108px}.sal-table col.c-pri{width:100px}.sal-table col.c-act{width:176px}
+
+/* Action Log: the four buttons sit in a compact 2x2 grid inside the last column, so they can never be clipped */
+.sal-table col.c-act{width:96px}
+.sal-table th:last-child,.sal-table td.sal-acts{width:96px!important;max-width:96px!important;min-width:0!important;padding:10px 8px!important;overflow:visible!important}
+.sal-actbox{display:grid!important;grid-template-columns:repeat(2,32px);gap:6px;justify-content:start;align-items:center}
+.sal-table td.sal-acts .sal-ic{width:32px;height:32px}
+.sal-table col.c-sub{width:30%}.sal-table col.c-own{width:17%}
