@@ -67,9 +67,16 @@ async function resolve(store,teamId,b){
   await bounded(sweep(store,false));
   return {items:r.items,found};
 }
+async function setEta(store,teamId,b){
+  const id=text(b.id,40),eta=text(b.eta,10);
+  if(!/^\d{4}-\d\d-\d\d$/.test(eta)||Number.isNaN(Date.parse(eta)))throw Error('Pick a valid ETA date.');
+  if(Date.parse(eta)>Date.now()+RETENTION_DAYS*DAY)throw Error(`ETA must be within ${RETENTION_DAYS} days — action items are kept for ${RETENTION_DAYS} days.`);
+  const r=await write(store,teamId,items=>{const it=items.find(x=>x.id===id);if(!it)throw Error('Action item not found.');it.eta=eta;});
+  return {items:r.items};
+}
 async function remove(store,teamId,b){
   const id=text(b.id,40);
   const r=await write(store,teamId,items=>{const i=items.findIndex(x=>x.id===id);if(i<0)throw Error('Action item not found.');items.splice(i,1);});
   return {items:r.items};
 }
-module.exports={list,save,resolve,remove,sweep,prune,PRIORITIES,RETENTION_DAYS};
+module.exports={list,save,resolve,setEta,remove,sweep,prune,PRIORITIES,RETENTION_DAYS};

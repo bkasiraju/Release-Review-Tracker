@@ -2,7 +2,7 @@
 
 ## 6.0.0-GA · GOLDEN BUILD (15 November 2026)
 
-Designated GOLDEN BUILD by the user. Contains everything through 5.8.0-GA (selected-teams label, animated and smoother sidebar). Also restyled the sprint picker on the standup page as a blue pill with calendar icon and chevron. Renamed the applet and dashboard header from Release Intelligence to ReleaseIQ (manifest title, page title, header, nav labels, logo aria-labels, Slack nudge signature, docs); slug unchanged. Header now shows "ReleaseIQ - <tagline>" on one line. Header tagline reworded to describe the dashboard's purpose. Home tab, sidebar tooltip and back-links now say "Team Hub" (not ReleaseIQ). Immutable rollback baseline; 5.1.1-GA remains PLATINUM.
+Designated GOLDEN BUILD by the user. Contains everything through 5.8.0-GA (selected-teams label, animated and smoother sidebar). Also restyled the sprint picker on the standup page as a blue pill with calendar icon and chevron. Renamed the applet and dashboard header from Release Intelligence to ReleaseIQ (manifest title, page title, header, nav labels, logo aria-labels, Slack nudge signature, docs); slug unchanged. Header now shows "ReleaseIQ - <tagline>" on one line. Header tagline reworded to describe the dashboard's purpose. Home tab, sidebar tooltip and back-links now say "Team Hub" (not ReleaseIQ). Standup action log: work items with open action items show a distinct rose, pulsing icon (with count when more than one); hovering opens a card listing each open item (details, priority, status, owner) with Resolve and ETA update (new `sal-eta` backend action). Immutable rollback baseline; 5.1.1-GA remains PLATINUM.
 
 ## 5.8.0-GA (15 November 2026)
 

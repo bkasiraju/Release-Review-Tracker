@@ -35,3 +35,12 @@ test('deletes an action item',async()=>{
   await assert.rejects(()=>actions.remove(store,MQ,{id:'nope'}),/not found/);
   assert.equal((await actions.remove(store,MQ,{id:r.item.id})).items.length,0);
 });
+
+test('setEta updates only the ETA of an open action item and validates the date',async()=>{
+  const store=mem(),r=await actions.save(store,sf,MQ,{...base,eta:new Date(Date.now()+864e5).toISOString().slice(0,10)});
+  const eta=new Date(Date.now()+3*864e5).toISOString().slice(0,10);
+  const out=await actions.setEta(store,MQ,{id:r.item.id,eta});assert.equal(out.items[0].eta,eta);assert.equal(out.items[0].details,'Fix it');assert.equal(out.items[0].status,'open');
+  await assert.rejects(()=>actions.setEta(store,MQ,{id:r.item.id,eta:'bad'}),/ETA/);
+  await assert.rejects(()=>actions.setEta(store,MQ,{id:r.item.id,eta:new Date(Date.now()+60*864e5).toISOString().slice(0,10)}),/within/);
+  await assert.rejects(()=>actions.setEta(store,MQ,{id:'nope',eta}),/not found/);
+});

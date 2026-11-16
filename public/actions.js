@@ -14,12 +14,45 @@ const overdue=x=>x.status==='open'&&x.eta<todayIso();
 const order=(a,b)=>PRI.indexOf(a.priority)-PRI.indexOf(b.priority)||a.eta.localeCompare(b.eta);
 const icon=()=>window.ReviewIcons?window.ReviewIcons.icon('notepad','amber'):'📝';
 
-A.btn=i=>`<button type="button" class="sal-btn${openFor(i.id)?' has':''}" data-sal-add="${esc(i.id)}" title="${openFor(i.id)?openFor(i.id)+' open action item(s) · ':''}Add to Sprint Action Log" aria-label="Add action item for ${esc(i.name)}">${icon()}</button>`;
+const iconOpen=()=>window.ReviewIcons?window.ReviewIcons.icon('notepad','rose'):'📝';
+const btnLabel=i=>openFor(i.id)?`${openFor(i.id)} open action item(s) — hover to review`:'Add to Sprint Action Log';
+A.btn=i=>{const n=openFor(i.id);return `<button type="button" class="sal-btn${n?' has':''}" data-sal-add="${esc(i.id)}" data-n="${n}"${n?'':' title="Add to Sprint Action Log"'} aria-label="${n?esc(n+' open action item(s) for '+i.name+' — click to add another'):'Add action item for '+esc(i.name)}">${n?iconOpen():icon()}${n>1?`<b class="sal-n">${n}</b>`:''}</button>`;};
 function paint(){
-  document.querySelectorAll('[data-sal-add]').forEach(b=>b.classList.toggle('has',openFor(b.dataset.salAdd)>0));
+  document.querySelectorAll('[data-sal-add]').forEach(b=>{const n=openFor(b.dataset.salAdd);
+    if((b.dataset.n|0)!==n){b.classList.toggle('has',n>0);b.dataset.n=n;b.innerHTML=(n?iconOpen():icon())+(n>1?`<b class="sal-n">${n}</b>`:'');if(n)b.removeAttribute('title');else b.title='Add to Sprint Action Log';}});
+  if(tip.el)drawTip();
   const n=A.items.filter(x=>x.status==='open').length,c=$('sal-count');if(c){c.textContent=n;c.hidden=!n;}
   if(A.full)drawFull();
 }
+// ── Hover card: open action items for a work item, with Resolve and ETA update ──
+const tip={el:null,btn:null,t:0};
+const openItems=id=>A.items.filter(x=>x.workId===id&&x.status==='open').sort(order);
+function hideTip(now){clearTimeout(tip.t);const go=()=>{if(tip.el){tip.el.remove();tip.el=null;tip.btn=null;}};if(now)go();else tip.t=setTimeout(go,260);}
+function drawTip(){
+  if(!tip.el||!tip.btn||!tip.btn.isConnected)return hideTip(true);
+  const list=openItems(tip.btn.dataset.salAdd);if(!list.length)return hideTip(true);
+  tip.el.innerHTML=`<div class="sal-tip-h">${icon()} ${list.length} open action item${list.length>1?'s':''}<small>${esc(list[0].workName)}</small></div>`+list.map(x=>`<div class="sal-tip-i" data-id="${esc(x.id)}"><p class="sal-tip-d">${esc(x.details)}</p>
+  <div class="sal-tip-m"><span class="sal-pri p-${x.priority.toLowerCase()}">${DOT[x.priority]} ${x.priority}</span><span class="sal-st${overdue(x)?' late':''}">${overdue(x)?'Open · overdue':'Open'}</span><span class="sal-tip-o">${esc(x.owner)}</span></div>
+  <div class="sal-tip-a"><label>ETA <input type="date" class="hub-inline" data-tip-eta="${esc(x.id)}" value="${esc(x.eta)}" min="${todayIso()}" max="${addDays(30)}"></label><button type="button" class="button small primary" data-tip-res="${esc(x.id)}">Resolve</button></div></div>`).join('')+'<div class="sal-tip-msg" role="status"></div>';
+  place();
+}
+function place(){const b=tip.btn.getBoundingClientRect(),e=tip.el,w=e.offsetWidth,h=e.offsetHeight;let l=Math.min(Math.max(8,b.left+b.width/2-w/2),innerWidth-w-8),t=b.bottom+6;if(t+h>innerHeight-8)t=Math.max(8,b.top-h-6);e.style.left=l+'px';e.style.top=t+'px';}
+function showTip(btn){
+  clearTimeout(tip.t);if(tip.btn===btn&&tip.el)return;if(!openItems(btn.dataset.salAdd).length)return;hideTip(true);
+  const el=document.createElement('div');el.className='sal-tip';el.setAttribute('role','dialog');el.setAttribute('aria-label','Open action items');document.body.appendChild(el);tip.el=el;tip.btn=btn;
+  el.addEventListener('mouseenter',()=>clearTimeout(tip.t));el.addEventListener('mouseleave',()=>hideTip());
+  el.addEventListener('click',async e=>{const b=e.target.closest('[data-tip-res]');if(!b)return;b.disabled=true;
+    try{const r=await call('sal-resolve',{teamId:ctx().teamId,id:b.dataset.tipRes,resolved:true});A.items=r.items;paint();window.toast?.('Action item resolved.');}catch(err){b.disabled=false;msg('Not resolved: '+err.message,true);}});
+  el.addEventListener('change',async e=>{const i=e.target.closest('[data-tip-eta]');if(!i)return;const id=i.dataset.tipEta,v=i.value;if(!v)return;i.disabled=true;
+    try{const r=await call('sal-eta',{teamId:ctx().teamId,id,eta:v});A.items=r.items;paint();msg('ETA updated to '+fmtD(v)+'.');}catch(err){i.disabled=false;msg('ETA not updated: '+err.message,true);}});
+  drawTip();
+}
+function msg(t,err){if(!tip.el)return;const m=tip.el.querySelector('.sal-tip-msg');if(m){m.textContent=t;m.className='sal-tip-msg'+(err?' err':'');}}
+document.addEventListener('mouseover',e=>{const b=e.target.closest&&e.target.closest('.sal-btn.has');if(b)showTip(b);});
+document.addEventListener('mouseout',e=>{const b=e.target.closest&&e.target.closest('.sal-btn.has');if(b&&!(e.relatedTarget&&tip.el&&tip.el.contains(e.relatedTarget)))hideTip();});
+document.addEventListener('focusin',e=>{const b=e.target.closest&&e.target.closest('.sal-btn.has');if(b)showTip(b);});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')hideTip(true);});
+addEventListener('scroll',()=>hideTip(true),true);
 A.load=async()=>{const c=ctx();if(!c.teamId)return;try{const r=await call('sal-list',{teamId:c.teamId});if(ctx().teamId===c.teamId){A.items=r.items||[];A.teamId=c.teamId;A.loaded=true;paint();}}catch(e){A.loaded=false;}};
 
 // ── Small modal: add an action item ──
