@@ -1863,7 +1863,10 @@ th.hs:focus-visible,.sal-lg .hs:focus-visible{outline:2px solid #0b6fa8;outline-
 
 /* Team Dependencies uses the full page: every row shown (no pager, no inner scroll box), columns share the full width */
 .td-scroll{max-height:none!important;min-height:0!important;overflow:visible!important;width:100%}
-.td-t{width:100%!important;min-width:0!important;table-layout:auto}
+.td-t{width:100%!important;min-width:0!important;table-layout:fixed}
 .td-t>colgroup{display:none}
 .td-t td,.td-t th{white-space:normal}
-.td-t td:nth-child(2){width:46%}
+.td-t th:nth-child(1){width:112px}.td-t th:nth-child(3){width:210px}.td-t th:nth-child(4){width:150px}.td-t th:nth-child(5){width:150px}.td-t th:nth-child(6){width:104px}.td-t th:nth-child(7){width:130px}
+.td-t td{vertical-align:middle;padding-top:8px;padding-bottom:8px;overflow-wrap:anywhere}
+.td-t td:nth-child(2){line-height:1.35}
+.td-t td:nth-child(4),.td-t td:nth-child(5),.td-t td:nth-child(6){white-space:nowrap!important}
