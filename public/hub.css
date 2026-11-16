@@ -1902,3 +1902,11 @@ html body .sp-items.sp-items:not(.who):not(.who) th:nth-child(8){width:66px!impo
 html body .sp-items.sp-items table>colgroup{display:none!important}
 html body .sp-items.sp-items table{max-width:100%!important}
 html body .sp-items.sp-items td.num,html body .sp-items.sp-items th.num{padding-right:10px!important}
+/* Compact Work cell: smaller checkbox, W-ID and Salesforce-icon button */
+html body .sp-items.sp-items input.sp-sel{width:13px!important;height:13px!important;margin:0 4px 0 0!important;vertical-align:middle}
+html body .sp-items.sp-items td:first-child{font-size:12px}
+html body .sp-items.sp-items td:first-child>a{font-size:12px}
+html body .sp-items.sp-items .sal-btn{margin-left:3px}
+html body .sp-items.sp-items .sal-btn .cfs-icon{width:15px!important;height:15px!important;border-radius:4px}
+html body .sp-items.sp-items.who.who th:nth-child(1){width:112px!important}
+html body .sp-items.sp-items:not(.who):not(.who) th:nth-child(1){width:104px!important}
