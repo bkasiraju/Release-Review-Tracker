@@ -1860,3 +1860,10 @@ th.hs:focus-visible,.sal-lg .hs:focus-visible{outline:2px solid #0b6fa8;outline-
 .td-grp-row>td{background:var(--surface-2,#f3f6fa);padding:4px 12px!important;border-top:1px solid var(--border,#d8dde6)}
 .td-grp-b{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:8px;font-size:13px;padding:2px 4px;border-radius:6px}
 .td-grp-b:focus-visible{outline:2px solid var(--brand,#0b5cab);outline-offset:2px}
+
+/* Team Dependencies uses the full page: every row shown (no pager, no inner scroll box), columns share the full width */
+.td-scroll{max-height:none!important;min-height:0!important;overflow:visible!important;width:100%}
+.td-t{width:100%!important;min-width:0!important;table-layout:auto}
+.td-t>colgroup{display:none}
+.td-t td,.td-t th{white-space:normal}
+.td-t td:nth-child(2){width:46%}
