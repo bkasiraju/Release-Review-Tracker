@@ -1785,3 +1785,15 @@ body[data-hub=status] #gus-links{display:none!important}
 .sal-actbox{display:grid!important;grid-template-columns:repeat(2,32px);gap:6px;justify-content:start;align-items:center}
 .sal-table td.sal-acts .sal-ic{width:32px;height:32px}
 .sal-table col.c-sub{width:30%}.sal-table col.c-own{width:17%}
+
+/* Release Planning header buttons: one height/radius, clear primary / secondary / disabled states */
+.heading-actions .pl-hb,.heading-actions #pl-commit{height:40px;padding:0 16px;border-radius:10px;font-size:13px;font-weight:600;gap:8px;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;transition:background .15s,border-color .15s,box-shadow .15s}
+.heading-actions .pl-hb svg{width:16px;height:16px}
+.heading-actions .pl-hb-leaves,.heading-actions .pl-hb-save{background:#fff;color:#1d4f73;border:1px solid #b9cfe0;box-shadow:0 1px 2px rgba(16,42,67,.06)}
+.heading-actions .pl-hb-leaves:hover:not(:disabled),.heading-actions .pl-hb-save:hover:not(:disabled){background:#eef5fa;border-color:#7fb0d3}
+.heading-actions .pl-hb-save:disabled,.heading-actions .pl-hb-save[disabled]{background:#f3f6f9;color:#8a9bad;border:1px dashed #cdd8e3;box-shadow:none;cursor:not-allowed;opacity:1}
+.heading-actions .pl-hb-save:disabled svg{opacity:.6}
+.heading-actions #pl-commit{background:#1d6fa5;border:1px solid #1d6fa5;color:#fff;box-shadow:0 2px 6px rgba(29,111,165,.28)}
+.heading-actions #pl-commit:hover:not(:disabled){background:#175b88;border-color:#175b88}
+.heading-actions #pl-commit:disabled{background:#c9d6e2;border-color:#c9d6e2;color:#fff;box-shadow:none;cursor:not-allowed}
+.heading-actions .pl-hb:focus-visible,.heading-actions #pl-commit:focus-visible{outline:3px solid #95caef;outline-offset:2px}
