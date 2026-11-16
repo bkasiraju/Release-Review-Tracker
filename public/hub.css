@@ -1849,3 +1849,6 @@ th.hs-on[aria-sort=descending]::after,.sal-lg .hs-on[aria-sort=descending]::afte
 th.hs:focus-visible,.sal-lg .hs:focus-visible{outline:2px solid #0b6fa8;outline-offset:-2px}
 .sal-lg .sal-gc.sal-subj{max-width:none!important;width:auto!important;overflow:visible!important;white-space:normal!important}
 .sal-lg .sal-gc.sal-det{min-width:0!important;max-width:none!important}
+/* Release Planning: project-level V2MOM method (input in Projects menu, optional grid column) */
+.pl-pmenu .pl-pmeth{flex:1 1 100%;min-width:0}
+.pl-pm{display:block;white-space:normal;font-size:12px;line-height:1.35;max-width:240px}

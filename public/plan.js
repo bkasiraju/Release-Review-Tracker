@@ -14,8 +14,8 @@ const memFilters={};
 function restoreFilters(){const t=H.team&&H.team.Id;if(!t||P.view._team===t)return;P.view._team=t;let v=memFilters[t];if(!v){try{v=JSON.parse(localStorage.getItem(FKEY+t));}catch(_){}}MF.forEach(k=>{P.view[k]=v&&Array.isArray(v[k])?v[k].slice():[];});}
 function saveFilters(){P.view.flag='';P.view.kpi='';const t=H.team&&H.team.Id;if(!t)return;const v={};MF.forEach(k=>{v[k]=P.view[k].slice();});memFilters[t]=v;try{localStorage.setItem(FKEY+t,JSON.stringify(v));}catch(_){}}
 // Grid columns: chooser order = default order; the first GDEF are shown until the user picks their own (saved in this browser).
-const GCOL={project:'Project',name:'Epic Name',ws:'Workstream',owners:'Epic Owner',engs:'Workstream Owner(s)',estimate:'Epic Est',days:'WS Est',line:'ATL/BTL',sprint:'Sprint',priority:'Priority',status:'Status',release:'Release',theme:'Theme',wstatus:'WS status',doc:'Doc',gus:'GUS',hrp:'HRP V2MOM method',v2mom:'CFS V2MOM'};
-const GW={project:112,name:230,ws:200,owners:120,priority:84,estimate:84,status:116,engs:170,days:72,sprint:120,release:150,line:104,theme:130,wstatus:116,doc:150,gus:84,hrp:130,v2mom:130,act:92};
+const GCOL={project:'Project',name:'Epic Name',ws:'Workstream',owners:'Epic Owner',engs:'Workstream Owner(s)',estimate:'Epic Est',days:'WS Est',line:'ATL/BTL',sprint:'Sprint',priority:'Priority',status:'Status',release:'Release',theme:'Theme',wstatus:'WS status',doc:'Doc',gus:'GUS',hrp:'HRP V2MOM method',v2mom:'CFS V2MOM',pmethod:'V2MOM method (project)'};
+const GW={project:112,name:230,ws:200,owners:120,priority:84,estimate:84,status:116,engs:170,days:72,sprint:120,release:150,line:104,theme:130,wstatus:116,doc:150,gus:84,hrp:130,v2mom:130,pmethod:240,act:92};
 const GDEF=['project','name','ws','owners','engs','days','estimate','line','sprint'],GKEY='pl-grid-cols';
 let memCols; // in-memory source of truth: localStorage can be blocked inside the GUS Apps frame, so the session always works and storage is best-effort persistence
 const gridCols=()=>{let v=memCols;if(v===undefined){try{v=JSON.parse(localStorage.getItem(GKEY));}catch(_){}}const keep=Array.isArray(v)?v.filter(k=>GCOL[k]):null;if(!keep||!keep.length)return GDEF.slice();const o=[...new Set(keep)],i=o.indexOf('estimate');if(i>=0&&o[i+1]==='days'){o[i]='days';o[i+1]='estimate';}return o;};
@@ -84,7 +84,7 @@ function newEpicAt(btn){
   document.addEventListener('mousedown',away,true);document.addEventListener('keydown',key,true);n.focus();
 }
 // ── Export template / import (xlsx) ────────────────────────────────────────
-const IO_COLS=['Project (short form)','Measure name (project in GUS)','Epic Name','Workstream','Epic Owner(s)','Workstream Owner(s)','WS Est (days)','ATL/BTL','Sprint','Priority','Epic Est (days, calculated - ignored)','Epic Status','Planned Release','Theme','WS Status','Doc link','GUS epic (reference only)','HRP V2MOM method','CFS V2MOM'];
+const IO_COLS=['Method Name (V2MOM Field in Project)','Measure Name (project in GUS)','Project (short form)','Epic Name','Workstream','Epic Owner','Workstream Owner(s)','WS Est (days)','ATL/BTL','Priority','Sprint','Planned Release'];
 const IO_ROWS=300;
 const projShort=p=>p.short||shortProj(p.name);
 function ioLists(){
@@ -98,26 +98,26 @@ function exportTemplate(){
     const p=prj.get(e.projectId)||{},names=(e.ownerNames&&e.ownerNames.length?e.ownerNames:(e.owners||[]).map(memName)).filter(Boolean);
     const ws=e.workstreams.length?e.workstreams:[null];
     ws.forEach((w,j)=>{const f=j===0,wn=w?(w.engNames&&w.engNames.length?w.engNames:wsEngs(w).map(memName)).filter(Boolean):[];
-      rows.push([projShort(p),p.name||'',e.name||'',w?w.name:'',f?names.join(', '):'',wn.join(', '),w&&w.days?w.days:'',w?wl(e,w):(f?e.line:''),w?w.sprint:'',f?'P'+(e.priority==null?0:e.priority):'',f?epicDays(e):'',f?(e.status||''):'',f?(e.releaseName||(P.refs.releases.find(r=>r.id===e.releaseId)||{}).name||''):'',f?(e.theme||''):'',w?(w.status||''):'',f?(e.doc||''):'',f?(e.gusId||''):'',f?(e.hrp||''):'',f?(e.v2mom||''):'']);});
+      rows.push([f?(p.method||''):'',f?(p.name||''):'',projShort(p),e.name||'',w?w.name:'',f?names.join(', '):'',wn.join(', '),w&&w.days?w.days:'',w?wl(e,w):(f?e.line:''),f?'P'+(e.priority==null?0:e.priority):'',w?w.sprint:'',f?(e.releaseName||(P.refs.releases.find(r=>r.id===e.releaseId)||{}).name||''):'']);});
   }
   const lcols=[['Projects',L.projects],['Engineers',L.eng],['ATL/BTL',L.line],['Priority',L.pri],['Status',L.status],['Releases',L.releases]];
   const lrows=[lcols.map(c=>c[0])],lh=Math.max(...lcols.map(c=>c[1].length));
   for(let i=0;i<lh;i++)lrows.push(lcols.map(c=>c[1][i]==null?'':c[1][i]));
   const rng=(c,n)=>`Lists!$${c}$2:$${c}$${Math.max(2,n+1)}`,last=Math.max(rows.length+IO_ROWS,IO_ROWS);
   const V=(col,c,n,o)=>Object.assign({sqref:`${col}2:${col}${last}`,formula:rng(c,n)},o);
-  const help=[['Release Planning template'],[''],['One row per workstream. Rows with the same Project + Epic Name belong to the same epic.'],['Epic-level columns (Epic Owner, ATL/BTL, Priority) are read from the first row that has a value for that epic.'],[''],
+  const help=[['Release Planning template'],[''],['One row per workstream. Rows with the same Project + Epic Name belong to the same epic.'],['Epic-level columns (Epic Owner, ATL/BTL, Priority, Planned Release) are read from the first row that has a value for that epic. Method Name and Measure Name are read once per project.'],[''],
     ['Column','Expected value'],
-    [IO_COLS[0],'Short form such as HRP M1.1.3. Pick from the list, or type a new one (then also fill Measure name).'],[IO_COLS[1],'Full measure / project name as in GUS. Required only for a new project.'],[IO_COLS[2],'Required.'],[IO_COLS[3],'Workstream / feature name. Leave empty for an epic without workstreams.'],
-    [IO_COLS[4],'Engineer names exactly as on the Engineers list; separate several with commas.'],[IO_COLS[5],'Same as Epic Owner(s).'],[IO_COLS[6],'Days, a number of 0 or more. Epic Est is calculated by the dashboard from these, so it is not in the sheet (and is ignored if you add it).'],
-    [IO_COLS[7],'ABL (above the line, also accepted as ATL) or BTL. A BTL epic makes all its workstreams BTL. Only ABL work counts toward capacity and is saved to GUS.'],[IO_COLS[8],'Free text, e.g. a sprint name.'],[IO_COLS[9],'P0 to P5 (a plain number also works).'],[IO_COLS[10],'Calculated by the dashboard from the WS Est values; shown for reference and ignored on import.'],[IO_COLS[11],'Optional: Planned, In Progress, Completed or On Hold. Blank keeps the current status.'],[IO_COLS[12],'Optional: a planned release name from the Releases list. Blank keeps the current release (new epics get the default).'],[IO_COLS[13],'Optional epic theme. Blank keeps the current one.'],[IO_COLS[14],'Optional workstream status (same values as Epic Status).'],[IO_COLS[15],'Optional link starting with http(s)://.'],[IO_COLS[16],'Reference only: the GUS epic this plan row is linked to. Ignored on import.'],[IO_COLS[17],'Optional free text.'],[IO_COLS[18],'Optional free text.'],
-    [''],['All optional columns can be left blank. Blank cells never overwrite what the plan already has for an existing epic.'],
+    [IO_COLS[0],'The V2MOM method this project supports. Saved on the project (V2MOM Method field in GUS). Fill it once per project.'],[IO_COLS[1],'Full measure / project name as in GUS. Required only for a new project.'],[IO_COLS[2],'Short form such as HRP M1.1.3. Pick from the list, or type a new one (then also fill Measure Name).'],[IO_COLS[3],'Required.'],[IO_COLS[4],'Workstream / feature name. Leave empty for an epic without workstreams.'],
+    [IO_COLS[5],'Engineer names exactly as on the Engineers list; separate several with commas.'],[IO_COLS[6],'Same as Epic Owner.'],[IO_COLS[7],'Days, a number of 0 or more. The epic effort is calculated by the dashboard as the sum of its ATL (ABL) workstreams and saved to GUS as the epic Planned Effort; there is no epic effort column.'],
+    [IO_COLS[8],'ABL (above the line, also accepted as ATL) or BTL. A BTL epic makes all its workstreams BTL. Only ABL work counts toward capacity and is saved to GUS.'],[IO_COLS[9],'P0 to P5 (a plain number also works).'],[IO_COLS[10],'Free text, e.g. a sprint name.'],[IO_COLS[11],'Optional: a planned release name from the Releases list. Blank keeps the current release (new epics get the default).'],
+    [''],['Blank cells never overwrite what the plan already has for an existing epic or project. Older templates (with Epic Status, Theme, WS Status, Doc link, HRP/CFS V2MOM columns) can still be imported.'],
     [''],['Importing merges into the plan: an epic that already exists (same project and name) has its fields updated and its workstreams replaced by the rows in the file; epics that are not in the file are left alone.']];
   const bytes=PlanIO.write({sheets:[
-    {name:'Plan',header:true,freeze:true,rows,widths:[16,34,34,30,28,28,12,10,16,10,16,14,16,16,14,30,22,18,18],validations:[
-      V('A','A',L.projects.length,{title:'Project',prompt:'Pick a project short form, or type a new one.',error:'Not an existing project. A new project will be created if you also fill Measure name.',warn:true}),
-      V('E','B',L.eng.length,{title:'Owners',prompt:'Engineer name; separate several with commas.',error:'Use engineer names from the Engineers list (comma-separated for several).',warn:true}),
+    {name:'Plan',header:true,freeze:true,wrap:[0,1],rows,widths:[44,34,16,34,30,28,28,12,10,10,16,16],validations:[
+      V('C','A',L.projects.length,{title:'Project',prompt:'Pick a project short form, or type a new one.',error:'Not an existing project. A new project will be created if you also fill Measure Name.',warn:true}),
       V('F','B',L.eng.length,{title:'Owners',prompt:'Engineer name; separate several with commas.',error:'Use engineer names from the Engineers list (comma-separated for several).',warn:true}),
-      V('H','C',2,{error:'Use ABL or BTL.'}),V('J','D',6,{error:'Use P0 to P5.'}),V('L','E',L.status.length,{warn:true,error:'Use Planned, In Progress, Completed or On Hold.'}),V('M','F',L.releases.length,{warn:true,error:'Not a known release name.'}),V('O','E',L.status.length,{warn:true,error:'Use Planned, In Progress, Completed or On Hold.'})]},
+      V('G','B',L.eng.length,{title:'Owners',prompt:'Engineer name; separate several with commas.',error:'Use engineer names from the Engineers list (comma-separated for several).',warn:true}),
+      V('I','C',2,{error:'Use ABL or BTL.'}),V('J','D',6,{error:'Use P0 to P5.'}),V('L','F',L.releases.length,{warn:true,error:'Not a known release name.'})]},
     {name:'Lists',header:true,rows:lrows,widths:[28,28,10,10,14,24]},
     {name:'Instructions',header:true,rows:help,widths:[40,110],wrap:[1]}]});
   const a=document.createElement('a'),url=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
@@ -128,7 +128,7 @@ function checkImport(sheet){
   const pl=P.plan,issues=[],add=(sev,row,msg)=>issues.push({sev,row,msg});
   const norm=x=>String(x==null?'':x).replace(/\s+/g,' ').trim().toLowerCase();
   const strip=x=>norm(x).replace(/\s*\(.*?\)\s*/g,' ').replace(/\s+/g,' ').trim();
-  const ALIAS={proj:['project short form','project','short form'],pname:['measure name','measure','project name'],epic:['epic name','epic'],ws:['workstream','workstream name','feature'],eo:['epic owner','epic owners'],wo:['workstream owner','workstream owners','ws owner','ws owners'],days:['ws est','ws days','days','ws effort'],line:['atl/btl','abl/btl','atl btl','line'],sprint:['sprint'],pri:['priority'],stat:['epic status','status'],rel:['planned release','release'],theme:['theme'],wst:['ws status','workstream status'],doc:['doc link','doc'],hrp:['hrp v2mom method'],v2m:['cfs v2mom']};
+  const ALIAS={proj:['project short form','project','short form'],pname:['measure name','measure','project name'],epic:['epic name','epic'],ws:['workstream','workstream name','feature'],eo:['epic owner','epic owners'],wo:['workstream owner','workstream owners','ws owner','ws owners'],days:['ws est','ws days','days','ws effort'],line:['atl/btl','abl/btl','atl btl','line'],sprint:['sprint'],pri:['priority'],stat:['epic status','status'],rel:['planned release','release'],theme:['theme'],wst:['ws status','workstream status'],doc:['doc link','doc'],hrp:['hrp v2mom method'],v2m:['cfs v2mom'],method:['method name','v2mom method','v2mom field in project','method']};
   // The header row is the first row (within the top 15) that has an Epic Name column; rows above it (titles, notes) are ignored.
   let hr=0;for(let i=0;i<Math.min(sheet.length,15);i++){if((sheet[i]||[]).some(c=>ALIAS.epic.includes(strip(c)))){hr=i;break;}}
   const head=(sheet[hr]||[]).map(strip);
@@ -139,7 +139,7 @@ function checkImport(sheet){
   const findProj=(sh,nm)=>projects.find(p=>(sh&&norm(projShort(p))===norm(sh))||(nm&&norm(p.name)===norm(nm)))||null;
   const members=P.members.filter(m=>H.leaderRank(m.name)<0),byName=new Map(members.map(m=>[norm(m.name),m]));
   const names=(txt,row,what)=>{const ids=[],nm=[];for(const part of String(txt||'').split(/[,;\n]/).map(x=>x.trim()).filter(Boolean)){let m=byName.get(norm(part));if(!m){const q=norm(part),hits=members.filter(x=>norm(x.name).startsWith(q));if(q&&hits.length===1){m=hits[0];add('warn',row,`${what}: “${part}” was matched to ${m.name}.`);}}if(m){if(!ids.includes(m.id)){ids.push(m.id);nm.push(m.name);}}else add('error',row,`${what}: “${part}” is not an engineer on this team${(()=>{const q=norm(part).split(' ')[0]||'~',h=members.filter(x=>norm(x.name).includes(q));return h.length&&h.length<4?' (did you mean '+h.map(x=>x.name).join(' / ')+'?)':'';})()}.`);}return {ids,nm};};
-  const groups=new Map(),newProj=new Map();
+  const groups=new Map(),newProj=new Map(),methods=new Map();
   let last=null,carried=0;
   for(let i=hr+1;i<sheet.length;i++){
     const r=sheet[i]||[],row=i+1;if(!r.some(c=>String(c==null?'':c).trim()))continue;
@@ -164,6 +164,7 @@ function checkImport(sheet){
       if(!newProj.has(pkey))continue;
       pr=newProj.get(pkey);
     }
+    const mv=get(r,'method');if(mv&&!methods.has(pr.id))methods.set(pr.id,mv.slice(0,1000));
     const key=pkey+'|'+norm(en);let g=groups.get(key);
     if(!g){g={pr,name:en,row,line:'',pri:null,status:'',rel:null,eo:null,ws:[]};groups.set(key,g);}
     const take=(f,v)=>{if(v===''||v==null)return;if(g[f]===''||g[f]==null)g[f]=v;else if(String(g[f])!==String(v))add('warn',row,`Epic “${en}”: ${f==='eo'?'Epic Owner':f==='rel'?'Planned Release':f==='pri'?'Priority':f==='line'?'ATL/BTL':'Status'} differs between rows; the first value (${f==='eo'?g.eo.nm.join(', '):f==='rel'?g.rel.name:f==='pri'?'P'+g.pri:g[f]}) is used.`);};
@@ -191,13 +192,14 @@ function checkImport(sheet){
   if(pl.epics.length+epics.filter(g=>!pl.epics.some(e=>e.projectId===g.pr.id&&norm(e.name)===norm(g.name))).length>300)add('error',1,'The plan would exceed 300 epics.');
   if(epics.some(g=>g.ws.length>40))add('error',1,'An epic has more than 40 workstreams.');
   const isNew=g=>!pl.epics.some(e=>e.projectId===g.pr.id&&norm(e.name)===norm(g.name));
-  return {issues,epics,newProj,stats:{epics:epics.length,created:epics.filter(isNew).length,updated:epics.filter(g=>!isNew(g)).length,ws:epics.reduce((a,g)=>a+g.ws.length,0),projects:newProj.size,carried,removed:pl.epics.filter(e=>!epics.some(g=>g.pr.id===e.projectId&&norm(g.name)===norm(e.name))).length,removedGus:pl.epics.filter(e=>e.gusId&&!epics.some(g=>g.pr.id===e.projectId&&norm(g.name)===norm(e.name))).length}};
+  return {issues,epics,newProj,methods,stats:{epics:epics.length,created:epics.filter(isNew).length,updated:epics.filter(g=>!isNew(g)).length,ws:epics.reduce((a,g)=>a+g.ws.length,0),projects:newProj.size,carried,removed:pl.epics.filter(e=>!epics.some(g=>g.pr.id===e.projectId&&norm(g.name)===norm(e.name))).length,removedGus:pl.epics.filter(e=>e.gusId&&!epics.some(g=>g.pr.id===e.projectId&&norm(g.name)===norm(e.name))).length}};
 }
 function applyImport(res){
   // Clean import: the file is the source of truth. Epics not in the file are removed from the plan (epics already saved in GUS stay in GUS);
   // epics that match by project + name keep their GUS link, release and status; order follows the file.
   const pl=P.plan,norm=x=>String(x==null?'':x).replace(/\s+/g,' ').trim().toLowerCase(),prev=pl.epics.slice(),out=[];
   for(const p of res.newProj.values())pl.projects.push(p);
+  for(const [id,m] of res.methods||[]){const p=pl.projects.find(x=>x.id===id);if(p)p.method=m;}
   for(const g of res.epics){
     let e=prev.find(x=>x.projectId===g.pr.id&&norm(x.name)===norm(g.name)&&!out.includes(x));
     if(!e){e=newEpic(g.pr.id);e.name=g.name;e.workstreams=[];}
@@ -492,7 +494,8 @@ function drawPlanner(){
           doc:()=>tdE('doc',txt('doc',e.doc,'Doc link',300,120)+(docOk(e.doc)?` <a href="${esc(e.doc)}" target="_blank" rel="noopener" aria-label="Open doc">↗</a>`:'')),
           gus:()=>tdE('gus',e.gusId?`<a class="pl-gus" href="${H.GUS}ADM_Epic__c/${esc(e.gusId)}/view" target="_blank" rel="noopener">GUS ↗</a>`:'<em class="pl-draft">Draft</em>'),
           hrp:()=>tdE('hrp',txt('hrp',e.hrp,'HRP method',80,90)),
-          v2mom:()=>tdE('v2mom',txt('v2mom',e.v2mom,'CFS V2MOM',80,80))
+          v2mom:()=>tdE('v2mom',txt('v2mom',e.v2mom,'CFS V2MOM',80,80)),
+          pmethod:()=>{const m=(prj0(e)||{}).method||'';return tdE('pmethod',`<span class="pl-pm" title="${esc(m)}">${esc(m||'—')}</span>`);}
         };
         const ep=cols.map(k=>C[k]()).join(''),wc='';
         const ico=d=>`<svg viewBox="0 0 20 20" aria-hidden="true">${d}</svg>`,ib=(cls,attr,lbl,d,on)=>`<button type="button" class="pl-ib ${cls}${on?'':' pl-ib-off'}" ${on?attr:'tabindex="-1" disabled'} aria-label="${lbl}" title="${lbl}">${ico(d)}</button>`;
@@ -500,7 +503,7 @@ function drawPlanner(){
         rows.push(`<tr data-e="${esc(e.id)}"${w?` data-wr="${esc(w.id)}"`:''} style="--pc:${projColor(e.projectId)}" class="${wl(e,w)==='ABL'?'abl':'btl'}${first?' pl-g-first':''}">${ep}${wc}${act}</tr>`);
       });
     });
-    const pmenu=P.projOpen?`<div class="pl-pmenu" role="dialog" aria-label="Projects"><b>Projects</b>${pl.projects.map(p=>`<span class="pl-pchip" data-p="${esc(p.id)}"><input class="hub-inline pl-pname" type="text" list="pl-projects" placeholder="Project name (type to link a GUS project)" aria-label="Project name" data-f="name" value="${esc(p.name)}" maxlength="120"><input class="hub-inline pl-pshort" type="text" placeholder="Short form" aria-label="Short form, for example HRP M1.1.3" data-f="short" value="${esc(p.short||'')}" maxlength="30">${p.gusId?`<a class="pl-gus" href="${H.GUS}PPM_Project__c/${esc(p.gusId)}/view" target="_blank" rel="noopener">GUS ↗</a>`:'<em class="pl-draft">New</em>'}<button type="button" class="pl-x" data-add-epic aria-label="Add epic to this project" title="Add epic to this project">+</button><button type="button" class="pl-x" data-del-proj aria-label="Delete project" title="Delete project">×</button></span>`).join('')}<p class="note">Rename a project, edit its short form, or delete it. Use + Project to add one.</p></div>`:'';
+    const pmenu=P.projOpen?`<div class="pl-pmenu" role="dialog" aria-label="Projects"><b>Projects</b>${pl.projects.map(p=>`<span class="pl-pchip" data-p="${esc(p.id)}"><input class="hub-inline pl-pname" type="text" list="pl-projects" placeholder="Project name (type to link a GUS project)" aria-label="Project name" data-f="name" value="${esc(p.name)}" maxlength="120"><input class="hub-inline pl-pshort" type="text" placeholder="Short form" aria-label="Short form, for example HRP M1.1.3" data-f="short" value="${esc(p.short||'')}" maxlength="30"><input class="hub-inline pl-pmeth" type="text" placeholder="V2MOM method (saved on the project)" aria-label="V2MOM method for this project" data-f="method" value="${esc(p.method||'')}" maxlength="1000">${p.gusId?`<a class="pl-gus" href="${H.GUS}PPM_Project__c/${esc(p.gusId)}/view" target="_blank" rel="noopener">GUS ↗</a>`:'<em class="pl-draft">New</em>'}<button type="button" class="pl-x" data-add-epic aria-label="Add epic to this project" title="Add epic to this project">+</button><button type="button" class="pl-x" data-del-proj aria-label="Delete project" title="Delete project">×</button></span>`).join('')}<p class="note">Rename a project, edit its short form, or delete it. Use + Project to add one.</p></div>`:'';
 
     return `<div class="pl-grid-tools"><span class="pl-tl"><button type="button" class="button" data-grid-add-epic>+ Epic</button><button type="button" class="button" id="pl-add-proj">+ Project</button><span class="pl-pwrap"><button type="button" class="button" data-proj-toggle aria-haspopup="true" aria-expanded="${P.projOpen?'true':'false'}">Projects ▾</button>${pmenu}</span></span><span class="pl-cols"><button type="button" class="button" data-cols-toggle aria-haspopup="true" aria-expanded="${P.colsOpen?'true':'false'}">Columns ▾</button>${P.colsOpen?`<div class="pl-cols-menu" role="menu">${[...cols,...Object.keys(GCOL).filter(k=>!cols.includes(k))].map(k=>{const on=cols.includes(k),i=cols.indexOf(k);return `<div class="pl-colrow" data-colrow="${k}"${on?' draggable="true"':''}><span class="pl-colgrip" aria-hidden="true">${on?'⠿':''}</span><label><input type="checkbox" data-col="${k}"${on?' checked':''}> ${esc(GCOL[k])}</label>${on?`<button type="button" class="pl-colmv" data-colmv="${k}" data-d="-1" aria-label="Move ${esc(GCOL[k])} left"${i===0?' disabled':''}>▲</button><button type="button" class="pl-colmv" data-colmv="${k}" data-d="1" aria-label="Move ${esc(GCOL[k])} right"${i===cols.length-1?' disabled':''}>▼</button>`:''}</div>`;}).join('')}<div class="pl-cols-foot"><button type="button" class="pl-cols-reset" data-cols-reset>Reset to default</button><button type="button" class="button primary" data-cols-done>Done</button></div></div>`:''}</span></div><div class="pl-grid-wrap"><table class="pl-grid"><colgroup>${cols.map(k=>`<col class="${k==='name'||k==='ws'?'w-grow':'w-fit'}">`).join('')}<col class="w-fit"></colgroup><thead><tr>${cols.map(k=>`<th class="c-${k}">${esc(GCOL[k])}</th>`).join('')}<th class="c-actions">Actions</th></tr></thead><tbody>${rows.join('')||'<tr><td colspan="${cols.length+1}" class="note">No epics match the filters.</td></tr>'}</tbody></table></div>`;};
   el.innerHTML=`<datalist id="pl-projects">${P.refs.projects.map(p=>`<option value="${esc(p.name)}"></option>`).join('')}</datalist><datalist id="pl-sprints">${P.refs.sprints.map(s=>`<option value="${esc(s.name)}"></option>`).join('')}</datalist>`+

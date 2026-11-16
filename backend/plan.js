@@ -50,7 +50,7 @@ function cleanPlan(input) {
   const p = input && typeof input === 'object' ? input : {};
   const w = p.window || {};
   const projects = (Array.isArray(p.projects) ? p.projects : []).slice(0, MAX.projects).map((x, i) => ({
-    id: lid(x.id, i, 'p'), name: text(x.name, 120), programId: gid(x.programId), programName: text(x.programName, 120), theme: text(x.theme, 80), short: text(x.short, 30), gusId: gid(x.gusId)
+    id: lid(x.id, i, 'p'), name: text(x.name, 120), programId: gid(x.programId), programName: text(x.programName, 120), theme: text(x.theme, 80), short: text(x.short, 30), method: text(x.method, 1000), gusId: gid(x.gusId)
   }));
   const epics = (Array.isArray(p.epics) ? p.epics : []).slice(0, MAX.epics).map((x, i) => ({
     id: lid(x.id, i, 'e'), projectId: lid(x.projectId, 0, ''), name: text(x.name, 255), line: x.line === 'ABL' ? 'ABL' : 'BTL',
@@ -223,11 +223,12 @@ async function commitRun(sf, store, teamId, confirm, includeBtl, acknowledged) {
         const hit = ((await sf.query(`SELECT Id FROM PPM_Project__c WHERE Name = '${soql(project.name)}' AND Program__c = '${program.id}' LIMIT 1`)).records || [])[0];
         if (hit) { projectId = hit.Id; r.project = 'linked existing project'; }
         else {
-          const c = await sf.create('PPM_Project__c', { Name: project.name, Program__c: program.id });
+          const c = await sf.create('PPM_Project__c', { Name: project.name, Program__c: program.id, ...(project.method ? { V2MOM_Method__c: project.method } : {}) });
           if (!ok(c) || !newId(c)) throw new Error('GUS rejected the project: ' + ((c && c.errors) || []).join(', '));
           projectId = newId(c); r.project = 'created project';
         }
         done.projects.set(project.id, projectId);
+        if (project.method && r.project !== 'created project') { try { await sf.update('PPM_Project__c', projectId, { V2MOM_Method__c: project.method }); } catch (_) { r.project += ' (V2MOM method not saved)'; } }
       }
       const effort = effortOf(e, includeBtl === true);
       const fields = { Project__c: projectId, Planned_Release__c: e.releaseId, Planned_Story_Points__c: effort };
