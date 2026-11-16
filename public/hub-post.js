@@ -2,12 +2,13 @@
 (function(){
 'use strict';
 const H=window.Hub,{esc,call}=H;
-const rec=o=>`data-nudge="${esc(o.id)}" data-name="${esc(o.name||'')}" data-subject="${esc((o.subject||'').slice(0,200))}" data-who="${esc(o.assignee||'')}"`;
+const rec=o=>`data-nudge="${esc(o.id)}" data-name="${esc(o.name||'')}" data-subject="${esc((o.subject||'').slice(0,300))}" data-who="${esc(o.assignee||'')}"`;
 H.nudgeBtn=o=>o&&o.id?`<button type="button" class="nudge-btn" ${rec(o)} title="Nudge ${esc(o.assignee||'someone')} about ${esc(o.name||'this item')} on Slack or GUS Chatter" aria-label="Nudge about ${esc(o.name||'this item')}">Nudge</button>`:'';
 let S=null;
-const link=id=>`${H.GUS}${/^a3Q|^a0/.test(id)?'ADM_Epic__c':'ADM_Work__c'}/${id}/view`;
+const link=id=>`${H.GUS}${/^a3Q/.test(id)?'ADM_Epic__c':'ADM_Work__c'}/${id}/view`;
 const KINDS={update:['Status update','Could you share an update?'],eta:['ETA check','Could you confirm the ETA?'],block:['Blocked?','Is anything blocking this, and how can I help?']};
-const draft=(s,u,k)=>`Hi ${(u?u.name:s.who||'there').split(' ')[0]}, quick nudge on ${s.name}${s.subject&&s.subject!==s.name?' — '+s.subject:''}. ${KINDS[k||s.kind||'update'][1]}\n${link(s.id)}`;
+const one=t=>String(t||'').replace(/\s+/g,' ').trim();
+const draft=(s,u,k)=>`Hi ${(u?u.name:s.who||'there').split(' ')[0]},\n\nQuick nudge on ${s.name}${s.subject&&s.subject!==s.name?' — '+one(s.subject):''}.\n${KINDS[k||s.kind||'update'][1]}\n\n${link(s.id)}`;
 const ICO={slack:'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 3 7 21M17 3l-2 18M4 8h17M3 16h17"/></svg>',chatter:'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12Z"/></svg>',copy:'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg>',send:'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-11 11M22 2l-7 20-4-9-9-4z"/></svg>',bell:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg>',info:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>'};
 function close(){if(S){S.el.remove();document.removeEventListener('keydown',S.key);S.opener&&S.opener.focus&&S.opener.focus();S=null;}}
 function msg(t,kind){const n=S.el.querySelector('#nd-msg');n.className='nd-msg '+(kind||'');n.textContent=t||'';}
@@ -57,7 +58,7 @@ function open(btn){
     else if(t.dataset.tab){S.tab=t.dataset.tab;msg('');draw();}
     else if(t.dataset.user){choose(S.users.find(u=>u.id===t.dataset.user));}
     else if('clear' in t.dataset){S.user=null;S.slack=null;draw();}
-    else if('copy' in t.dataset){const txt=el.querySelector('#nd-text').value;try{await navigator.clipboard.writeText(`<@${S.slack&&S.slack.slackUserId||S.user.name}> ${txt}`.replace(/^<@([^>]*)>/,(m,x)=>S.slack&&S.slack.slackUserId?m:'@'+x));msg('Copied. Paste it into the Slack DM.','ok');}catch(_){msg('Copy failed — select the message text and copy it manually.','err');}}
+    else if('copy' in t.dataset){const txt=el.querySelector('#nd-text').value;try{await navigator.clipboard.writeText(txt);msg('Copied. Paste it into the Slack DM.','ok');}catch(_){msg('Copy failed — select the message text and copy it manually.','err');}}
     else if('send' in t.dataset){const text=el.querySelector('#nd-text').value,s=S;s.busy=true;msg('');draw();
       try{const r=await call('post-chatter',{recordId:s.id,userId:s.user.id,text});if(S===s){s.busy=false;draw();msg('Posted to GUS Chatter'+(r.id?' ('+r.id+')':'')+'.','ok');}}
       catch(err){if(S===s){s.busy=false;draw();msg('Not posted: '+err.message,'err');}}}
