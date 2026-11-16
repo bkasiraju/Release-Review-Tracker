@@ -19,5 +19,10 @@
         "thinking": false
       }
     }
+  },
+  "slack": {
+    "channels": {
+      "pagerduty": "C09ALBDFVCY"
+    }
   }
 }

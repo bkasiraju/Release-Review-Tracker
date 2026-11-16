@@ -30,19 +30,38 @@ function parseAlert(m, channel) {
     scope: (/scope\s*-\s*([\w.-]+)/i.exec(title) || [])[1] || '', client: (/Affected Client\s*-\s*([\w$.{}-]+)/i.exec(title) || [])[1] || '',
     argus: (/<(https:\/\/[^|>]*argus[^|>]*)\|/.exec(t) || [])[1] || '',
     reviewStarted: /Open Post-Incident Review/i.test(t),
-    replies: m.reply_count || 0, at: new Date(Number(ts.split('.')[0]) * 1000).toISOString(),
+    replies: m.reply_count || m.replyCount || (Array.isArray(m.replies) ? m.replies.length : 0) || 0, at: new Date(Number(ts.split('.')[0]) * 1000).toISOString(),
     slack: `${WORKSPACE}/archives/${channel.id}/p${ts.replace('.', '')}`
   };
 }
 
-async function getAlerts(sf, teamId) {
+/** Read through the GUS MIYO platform helper (channel declared in manifest.json → slack.channels, bot invited); fall back to the shared bot token. */
+async function readChannel(sf, slack, ch, oldest) {
+  const asList = r => Array.isArray(r) ? r : (r && Array.isArray(r.messages)) ? r.messages : null;
+  let miyoErr = null;
+  if (slack && typeof slack.getMessages === 'function') {
+    try { const l = asList(await slack.getMessages({ channel: ch.id, limit: 200, includeThreads: false })); if (l) return l.filter(m => Number(m.ts) >= oldest); }
+    catch (e) { miyoErr = e; }
+  }
+  if (slack && typeof slack.apiCall === 'function') {
+    try { const r = await slack.apiCall('conversations.history', { channel: ch.id, oldest: String(oldest), limit: 200 }); if (r && r.ok === false) throw new Error(r.error || 'slack_api_failed'); const l = asList(r); if (l) return l; }
+    catch (e) { miyoErr = miyoErr || e; }
+  }
+  try { return await direct.history(sf, ch.id, oldest); }
+  catch (e) {
+    if (miyoErr) throw new Error(`GUS MIYO could not read ${ch.name}: ${String(miyoErr.message || miyoErr).slice(0, 160)}. Make sure @GUS MIYO is invited to the channel.`);
+    throw new Error(slack ? `GUS MIYO could not read ${ch.name}. Make sure @GUS MIYO is invited to the channel.` : 'The platform Slack helper is not available in this runtime.');
+  }
+}
+
+async function getAlerts(sf, slack, teamId) {
   if (!SF_ID.test(String(teamId || ''))) throw new Error('Invalid team.');
   const [t] = (await sf.query(`SELECT Id, Name FROM ADM_Scrum_Team__c WHERE Id = '${teamId}' LIMIT 1`)).records || [];
   const ch = t && CHANNELS.find(c => c.like.test(t.Name));
   if (!ch) return { configured: false, alerts: [] };
   const hit = cache.get(ch.id);
   if (hit && Date.now() - hit.at < TTL) return hit.data;
-  const msgs = await direct.history(sf, ch.id, Math.floor(Date.now() / 1000) - DAYS * 86400);
+  const msgs = await readChannel(sf, slack, ch, Math.floor(Date.now() / 1000) - DAYS * 86400);
   const alerts = msgs.map(m => parseAlert(m, ch)).filter(Boolean).sort((a, b) => b.at.localeCompare(a.at));
   const data = { configured: true, channel: { id: ch.id, name: ch.name, url: `${WORKSPACE}/archives/${ch.id}` }, days: DAYS, alerts, fetchedAt: Date.now() };
   cache.set(ch.id, { at: Date.now(), data });
