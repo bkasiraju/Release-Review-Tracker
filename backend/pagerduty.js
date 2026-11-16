@@ -6,7 +6,10 @@
 const direct = require('./slack-direct');
 const SF_ID = /^[a-zA-Z0-9]{15,18}$/;
 const WORKSPACE = 'https://salesforce.enterprise.slack.com';
-const CHANNELS = [{ like: /^Managed Async Processing/i, id: 'C09ALBDFVCY', name: '#maps-pagerduty' }];
+const CHANNELS = [
+  { like: /^Managed Async Processing/i, id: 'C09ALBDFVCY', name: '#maps-pagerduty' },
+  { like: /^Message Queue$/i, id: 'C025AEPQJQ1', name: '#mq-pagerduty' }
+];
 const DAYS = 45, TTL = 2 * 60e3;
 const cache = new Map();
 
@@ -22,16 +25,17 @@ function parseAlert(m, channel) {
   const field = k => { const r = new RegExp(`\\*${k}:\\*\\s*(?:<([^|>]+)\\|([^>]*)>|([^\\n]*))`).exec(t); return r ? clean(r[2] || r[3] || '') : ''; };
   const title = clean(link[3]);
   const mm = /What does this mean\s+(.*?)(?:\s+Action Items\s+(.*))?$/i.exec(title);
-  const name = clean(title.replace(/\s*What does this mean[\s\S]*$/i, '').replace(/\bCritical\s*-\s*/i, '').replace(/\s*(Priority\s*-|scope\s*-|Affected Client\s*-)[\s\S]*$/i, ''));
+  const name = clean(title.replace(/\s*What does this mean[\s\S]*$/i, '').replace(/\s*Remediation action:[\s\S]*$/i, '').replace(/\bCritical\s*-\s*/i, '').replace(/\s*(Priority\s*-|scope\s*-|Affected Client\s*-)[\s\S]*$/i, ''));
+  const rem = /Remediation action:\s*([\s\S]*)$/i.exec(title), pod = /\b((?:NA|EU|AP|CS|UM|GS|IA|CA|AU|JP|IN)\d{1,4})\b/i.exec(title);
   const cut = (v, n) => v && v.length > n ? v.slice(0, n - 1) + '…' : v || '';
   const ts = String(m.ts), sevM = /:p([0-4])-/i.exec(link[3]) || /\bP([0-4])\b/.exec(title), sev = sevM ? 'P' + sevM[1] : '';
   return {
     id: link[2], url: link[1], title: cut(title, 400), name: cut(name, 160),
-    meaning: cut(mm && mm[1] || '', 200), actions: cut(mm && mm[2] || '', 300),
-    kind: /availability/i.test(title) ? 'Availability' : /DeleteMessage|latency|MS\b/i.test(title) ? 'Latency' : /RDS|Disk|CPU|Memory/i.test(title) ? 'Infrastructure' : /Sev\d|incident/i.test(title) ? 'Incident' : 'Alert',
+    meaning: cut(mm && mm[1] || '', 200), actions: cut(mm && mm[2] || (rem && rem[1]) || '', 300),
+    kind: /stuck|remediation action/i.test(title) ? 'Remediation' : /availability/i.test(title) ? 'Availability' : /DeleteMessage|latency|MS\b/i.test(title) ? 'Latency' : /RDS|Disk|CPU|Memory/i.test(title) ? 'Infrastructure' : /Sev\d|incident/i.test(title) ? 'Incident' : 'Alert',
     severity: sev,
     urgency: field('Urgency'), service: field('Service'),
-    scope: (/scope\s*-\s*([\w.-]+)/i.exec(title) || [])[1] || '', client: (/Affected Client\s*-\s*([\w$.{}-]+)/i.exec(title) || [])[1] || '',
+    scope: (/scope\s*-\s*([\w.-]+)/i.exec(title) || [])[1] || (pod ? pod[1].toUpperCase() : ''), client: (/Affected Client\s*-\s*([\w$.{}-]+)/i.exec(title) || [])[1] || '',
     argus: (/<(https:\/\/[^|>]*argus[^|>]*)\|/.exec(t) || [])[1] || '',
     reviewStarted: /Open Post-Incident Review/i.test(t),
     replies: m.reply_count || m.replyCount || (Array.isArray(m.replies) ? m.replies.length : 0) || 0, at: new Date(Number(ts.split('.')[0]) * 1000).toISOString(),

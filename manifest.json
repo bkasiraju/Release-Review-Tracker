@@ -22,7 +22,8 @@
   },
   "slack": {
     "channels": {
-      "pagerduty": "C09ALBDFVCY"
+      "pagerduty": "C09ALBDFVCY",
+      "mqPagerduty": "C025AEPQJQ1"
     }
   }
 }
