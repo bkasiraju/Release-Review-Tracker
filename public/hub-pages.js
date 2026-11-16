@@ -262,7 +262,7 @@ async function loadRota(el){
   try{const [r,ms]=await Promise.all([call('hub-rotation',{teamId:R.team}),H.members().catch(()=>[])]);if(R.team!==H.team.Id)return;R.rota=r.rota;R.revision=r.revision;R.members=ms;drawRota(el);}
   catch(e){failed(el.querySelector('#rota-cards'),e);}
 }
-const PD={team:''};
+const PD={team:'',open:new Set(),threads:new Map(),sums:new Map()};
 const pdAge=iso=>{const d=Math.floor((Date.now()-new Date(iso))/864e5);return d<1?'today':d===1?'yesterday':d+'d ago';};
 const PDCOLS=[['at','Triggered'],['name','Alert'],['kind','Type'],['severity','Sev'],['urgency','Urgency'],['scope','Scope / DC'],['client','Affected client'],['meaning','What it means'],['actions','Action items'],['service','Service'],['replies','Thread']];
 PD.sort={key:'at',dir:'desc'};
@@ -272,15 +272,48 @@ function sortPd(list){
   return [...list].sort((x,y)=>{if(none(x)!==none(y))return none(x)?1:-1;const p=v(x),q=v(y);return (typeof p==='number'?p-q:p.localeCompare(q,undefined,{numeric:true}))*d;});
 }
 const pdTh=(k,l)=>{const on=PD.sort.key===k;return `<th aria-sort="${on?(PD.sort.dir==='asc'?'ascending':'descending'):'none'}"><button type="button" class="sp-sort${on?' on':''}" data-pdsort="${k}" title="Sort by ${esc(l)}">${esc(l)}</button></th>`;};
+const pdWhen=iso=>{const d=new Date(iso);return d.toLocaleDateString([],{month:'short',day:'numeric'})+' '+d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});};
+const pdLinkify=t=>esc(t).replace(/(https?:\/\/[^\s<)]+)/g,'<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
+function threadRow(ts){
+  const t=PD.threads.get(ts);let h;
+  if(!t)h='<span class="muted">Loading conversation…</span>';
+  else if(t.error)h=`<span class="pd-err">Could not load the thread: ${esc(t.error)}</span>`;
+  else h=(t.messages.length?t.messages.map(m=>`<li><div class="pd-m-h"><b>${esc(m.who)}</b>${m.bot?' <span class="pd-bot">app</span>':''}<span class="muted"> · ${esc(pdWhen(m.at))}</span></div><div class="pd-m-t">${pdLinkify(m.text)}</div></li>`).join(''):'<li class="muted">No replies.</li>')+`</ul><a class="pd-open" href="${esc(t.url)}" target="_blank" rel="noopener noreferrer">Open thread in Slack ↗</a>`;
+  return `<tr class="pd-thread"><td colspan="12">${t&&!t.error?'<ul class="pd-convo">':'<div>'}${h}${t&&!t.error?'':'</div>'}</td></tr>`;
+}
+async function loadThread(el,ts){
+  try{const r=await call('hub-pd-thread',{teamId:PD.team,ts});PD.threads.set(ts,r);}catch(e){PD.threads.set(ts,{error:e.message});}
+  if(PD.open.has(ts))drawPd(el);
+}
+// Hover card: overall summary and next steps of an alert's thread.
+let pdTipEl=null,pdTipTimer=0,pdTipFor='';
+const pdTipHide=()=>{clearTimeout(pdTipTimer);pdTipFor='';if(pdTipEl){pdTipEl.remove();pdTipEl=null;}};
+function pdTipDraw(row,ts){
+  if(pdTipFor!==ts||!row.isConnected)return;
+  const r=PD.sums.get(ts),el=pdTipEl||(pdTipEl=Object.assign(document.createElement('div'),{className:'pd-tip',role:'tooltip'}));
+  let h;
+  if(!r)h='<div class="pd-tip-h">Thread summary</div><p class="muted">Summarizing the thread…</p>';
+  else if(r.error)h=`<div class="pd-tip-h">Thread summary</div><p class="pd-err">${esc(r.error)}</p>`;
+  else h=`<div class="pd-tip-h">Thread summary<span class="muted"> · ${r.replies} repl${r.replies===1?'y':'ies'}${r.lastAt?', last '+esc(pdWhen(r.lastAt))+(r.lastBy?' by '+esc(r.lastBy):''):''}</span></div>${r.summary?`<p>${esc(r.summary)}</p>`:`<p class="muted">${esc(r.note||'No summary available.')}</p>`}${r.next&&r.next.length?`<div class="pd-tip-h">Next steps</div><ol>${r.next.map(x=>`<li>${esc(x)}</li>`).join('')}</ol>`:''}<div class="pd-tip-f">${r.ai?'AI-generated from the Slack thread. ':''}Click the replies to read the full conversation.</div>`;
+  el.innerHTML=h;if(!el.isConnected)document.body.appendChild(el);
+  const b=row.getBoundingClientRect(),w=Math.min(420,innerWidth-24);el.style.width=w+'px';
+  const x=Math.max(12,Math.min(innerWidth-w-12,b.left+80)),hh=el.offsetHeight;let y=b.bottom+6;if(y+hh>innerHeight-12)y=Math.max(12,b.top-hh-6);
+  el.style.left=x+'px';el.style.top=y+'px';
+}
+async function pdTipShow(el,row){
+  const ts=row.dataset.pdts;if(!ts||pdTipFor===ts)return;pdTipFor=ts;pdTipDraw(row,ts);
+  if(!PD.sums.has(ts)){try{PD.sums.set(ts,await call('hub-pd-summary',{teamId:PD.team,ts}));}catch(e){PD.sums.set(ts,{error:e.message});}}
+  pdTipDraw(row,ts);
+}
 function drawPd(el){
   const r=PD.r,body=el.querySelector('#pd-body');if(!r||!body)return;
     const A=sortPd(r.alerts),by=k=>A.filter(a=>a.kind===k).length,p1=A.filter(a=>/^P[01]$/.test(a.severity)).length,sum=el.querySelector('#pd-sum');
     sum.innerHTML=A.length?`<span class="mchip"><b>${A.length}</b> alerts</span>${p1?`<span class="mchip bk"><b>${p1}</b> P0/P1</span>`:''}${['Availability','Latency','Remediation','Infrastructure','Incident','Alert'].filter(by).map(k=>`<span class="mchip">${k} <b>${by(k)}</b></span>`).join('')}`:'';
-    const dt=iso=>{const d=new Date(iso);return d.toLocaleDateString([],{month:'short',day:'numeric'})+' '+d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});};
-    body.innerHTML=A.length?`<div class="table-scroll"><table class="pd-table"><thead><tr>${PDCOLS.map(([k,l])=>pdTh(k,l)).join('')}<th>Links</th></tr></thead><tbody>${A.map(a=>{const dash='<span class="muted">—</span>',lk=(h,t)=>h?`<a href="${esc(h)}" target="_blank" rel="noopener noreferrer">${t}</a>`:'';return `<tr><td class="pd-when" title="${esc(new Date(a.at).toLocaleString())}">${esc(dt(a.at))}<span class="muted">${pdAge(a.at)}</span></td><td class="pd-title"><a href="${esc(a.url)}" target="_blank" rel="noopener noreferrer" title="${esc(a.title)}">${esc(a.name||a.title)}</a></td><td>${esc(a.kind)}</td><td>${a.severity?`<span class="pd-sev ${esc(a.severity.toLowerCase())}">${esc(a.severity)}</span>`:dash}</td><td>${esc(a.urgency)||dash}</td><td class="pd-scope">${esc(a.scope)||dash}</td><td class="pd-scope">${esc(a.client)||dash}</td><td class="pd-txt">${esc(a.meaning)||dash}</td><td class="pd-txt">${esc(a.actions)||dash}</td><td class="pd-svc">${esc((a.service||'').replace(/^GUS:\s*/,''))||dash}</td><td>${lk(a.slack,a.replies?a.replies+' repl'+(a.replies>1?'ies':'y'):'Open')}${a.reviewStarted?' <span class="pd-pir" title="Post-incident review already started">PIR</span>':''}</td><td class="pd-links">${lk(a.url,'PagerDuty')}${a.argus?' · '+lk(a.argus,'Argus'):''}</td></tr>`;}).join('')}</tbody></table></div>`:`<div class="empty-state hub-empty"><p>No PagerDuty alerts in the last ${r.days} days.</p></div>`;
+    const dt=pdWhen;
+    body.innerHTML=A.length?`<div class="table-scroll"><table class="pd-table"><thead><tr>${PDCOLS.map(([k,l])=>pdTh(k,l)).join('')}<th>Links</th></tr></thead><tbody>${A.map(a=>{const dash='<span class="muted">—</span>',lk=(h,t)=>h?`<a href="${esc(h)}" target="_blank" rel="noopener noreferrer">${t}</a>`:'';return `<tr data-pdts="${esc(a.ts)}" data-pdrep="${a.replies||0}"><td class="pd-when" title="${esc(new Date(a.at).toLocaleString())}">${esc(dt(a.at))}<span class="muted">${pdAge(a.at)}</span></td><td class="pd-title"><a href="${esc(a.url)}" target="_blank" rel="noopener noreferrer" title="${esc(a.title)}">${esc(a.name||a.title)}</a></td><td>${esc(a.kind)}</td><td>${a.severity?`<span class="pd-sev ${esc(a.severity.toLowerCase())}">${esc(a.severity)}</span>`:dash}</td><td>${esc(a.urgency)||dash}</td><td class="pd-scope">${esc(a.scope)||dash}</td><td class="pd-scope">${esc(a.client)||dash}</td><td class="pd-txt">${esc(a.meaning)||dash}</td><td class="pd-txt">${esc(a.actions)||dash}</td><td class="pd-svc">${esc((a.service||'').replace(/^GUS:\s*/,''))||dash}</td><td class="pd-thcell">${a.replies?`<button type="button" class="pd-thr-btn" data-pdthr="${esc(a.ts)}" aria-expanded="${PD.open.has(a.ts)}">${a.replies} repl${a.replies>1?'ies':'y'} ${PD.open.has(a.ts)?'▴':'▾'}</button>`:'<span class="muted">No replies</span>'} ${lk(a.slack,'↗')}${a.reviewStarted?' <span class="pd-pir" title="Post-incident review already started">PIR</span>':''}</td><td class="pd-links">${lk(a.url,'PagerDuty')}${a.argus?' · '+lk(a.argus,'Argus'):''}</td></tr>${PD.open.has(a.ts)?threadRow(a.ts):''}`;}).join('')}</tbody></table></div>`:`<div class="empty-state hub-empty"><p>No PagerDuty alerts in the last ${r.days} days.</p></div>`;
 }
 async function loadPd(el,fresh,quiet){
-  const body=el.querySelector('#pd-body'),sub=el.querySelector('#pd-sub');if(!body)return;{const sm=el.querySelector('#pd-sum');if(sm)sm.innerHTML='';}PD.team=H.team.Id;
+  const body=el.querySelector('#pd-body'),sub=el.querySelector('#pd-sub');if(!body)return;if(fresh)PD.sums.clear();{const sm=el.querySelector('#pd-sum');if(sm)sm.innerHTML='';}if(PD.team!==H.team.Id){PD.open.clear();PD.threads.clear();PD.sums.clear();}PD.team=H.team.Id;
   try{
     const r=await call('hub-pd-alerts',fresh?{teamId:PD.team,fresh:true}:{teamId:PD.team});if(PD.team!==H.team.Id)return;
     if(!r.configured){body.innerHTML='<div class="empty-state hub-empty"><p>No PagerDuty channel is linked to this team yet.</p></div>';sub.textContent='';return;}
@@ -294,7 +327,11 @@ H.register({id:'rotations',label:'Trust Champion',icon:'rotation',tone:'violet',
     el.innerHTML=heading('rotation','violet','Trust Champion — PagerDuty alerts',`PagerDuty alerts for ${H.team.Name}, read from its PagerDuty Slack channel.`,refreshBtn)+
     `<section class="table-card pd-alerts" id="pd-alerts"><div class="filterbar"><div class="epic-toolbar-title"><h2>PagerDuty alerts</h2></div><span class="pd-sub" id="pd-sub"></span></div><div id="pd-sum" class="pd-sum"></div><div id="pd-body" class="pd-body"><div class="hub-loading" role="status"><span class="executive-spinner"></span> Loading alerts…</div></div></section>`;
     withIcons(el);
-    el.onclick=e=>{if(e.target.closest('[data-refresh]'))return loadPd(el,true);const t=e.target.closest('[data-pdsort]');if(t){const k=t.dataset.pdsort;PD.sort=PD.sort.key===k?{key:k,dir:PD.sort.dir==='asc'?'desc':'asc'}:{key:k,dir:k==='at'||k==='replies'?'desc':'asc'};drawPd(el);}};
+    el.onmouseover=e=>{const row=e.target.closest&&e.target.closest('tr[data-pdts]');if(!row||+row.dataset.pdrep<1||(e.relatedTarget&&row.contains(e.relatedTarget)))return;clearTimeout(pdTipTimer);pdTipTimer=setTimeout(()=>pdTipShow(el,row),350);};
+    el.onmouseout=e=>{const row=e.target.closest&&e.target.closest('tr[data-pdts]');if(!row||(e.relatedTarget&&row.contains(e.relatedTarget)))return;pdTipHide();};
+    window.addEventListener('scroll',pdTipHide,{capture:true,passive:true});
+    el.onclick=e=>{if(e.target.closest('[data-refresh]')){PD.threads.clear();PD.sums.clear();PD.open.forEach(ts=>loadThread(el,ts));return loadPd(el,true);}
+      const th=e.target.closest('[data-pdthr]');if(th){pdTipHide();const ts=th.dataset.pdthr;if(PD.open.has(ts)){PD.open.delete(ts);drawPd(el);}else{PD.open.add(ts);drawPd(el);if(!PD.threads.has(ts))loadThread(el,ts);}return;}const t=e.target.closest('[data-pdsort]');if(t){const k=t.dataset.pdsort;PD.sort=PD.sort.key===k?{key:k,dir:PD.sort.dir==='asc'?'desc':'asc'}:{key:k,dir:k==='at'||k==='replies'?'desc':'asc'};drawPd(el);}};
     loadPd(el);
     clearInterval(PD.timer);PD.timer=setInterval(()=>{if(!el.isConnected){clearInterval(PD.timer);return;}if(!document.hidden&&H.team&&H.team.Id===PD.team)loadPd(el,true,true);},180000);
   }});

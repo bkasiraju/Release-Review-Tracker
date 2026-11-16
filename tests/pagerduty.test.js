@@ -15,3 +15,14 @@ test('parses an MQ Warden AIOps alert', () => {
   const l = parseAlert({ ts: '1.1', text: '*<https://salesforce.pagerduty.com/incidents/Q2X88P5RG0U2D2|(Warden AIOps) MQ latency detected on NA236 for MQ_SYNTHETIC_T1>*' }, { id: 'C025AEPQJQ1' });
   assert.equal(l.kind, 'Latency'); assert.equal(l.scope, 'NA236');
 });
+test('thread summary asks AI with thread text and returns parsed result', async () => {
+  const { summarize } = require('../backend/pagerduty');
+  let prompt = '';
+  const sf = { query: async () => ({ records: [{ Name: 'Message Queue' }] }), einsteinPromptGeneration: async p => { prompt = p; return { generations: [{ text: '{"summary":"Router job restarted; resolved.","next":["Close the incident"]}' }] }; } };
+  const slack = { getReplies: async () => [{ ts: '1794113637.063459', text: 'parent alert' }, { ts: '1794113700.000100', user: 'U0ABCDEFGH', text: 'restarted the host' }], getUser: async () => ({ user: { real_name: 'Pat Doe' } }) };
+  const r = await summarize(sf, slack, '0Z1000000000001', '1794113637.063459');
+  assert.equal(r.summary, 'Router job restarted; resolved.'); assert.deepEqual(r.next, ['Close the incident']); assert.equal(r.replies, 1);
+  assert.match(prompt, /Pat Doe: restarted the host/);
+  const none = await summarize(sf, { getReplies: async () => [{ ts: '1794113637.063459', text: 'p' }] }, '0Z1000000000001', '1794113637.063459');
+  assert.equal(none.replies, 0); assert.match(none.note, /No one has replied/);
+});
