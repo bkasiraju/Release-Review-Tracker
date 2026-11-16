@@ -1826,3 +1826,15 @@ body[data-hub=status] #gus-links{display:none!important}
 .sal-gc a:visited{color:#5a3fa0}
 .sal-lg .sal-gc[role=columnheader]{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sal-lg{--cols:96px minmax(0,1.4fr) 64px minmax(0,1.7fr) 104px 92px 140px}
+
+/* Release Planning: modest, even spacing between the header row, view tabs, KPI cards and planner sections */
+body[data-hub=plan] #hub-page .executive-heading,body[data-hub=plan] .executive-heading{margin-top:0;padding:10px 14px 0}
+body[data-hub=plan] .pl-tabs{margin:10px 14px 0!important}
+body[data-hub=plan] #pl-warn:not(:empty){margin:10px 14px 0}
+body[data-hub=plan] #pl-main{padding:0 14px 16px}
+body[data-hub=plan] #pl-sum{margin-top:14px}
+body[data-hub=plan] #pl-sum>*+*{margin-top:12px}
+body[data-hub=plan] #pl-sum .pl-kpis,body[data-hub=plan] #pl-sum [class*="pl-kpi-grid"],body[data-hub=plan] #pl-sum .pl-kpi-row{gap:12px!important;margin-bottom:12px}
+body[data-hub=plan] #pl-main>section,body[data-hub=plan] #pl-main>.pl-fs{margin-top:14px}
+body[data-hub=plan] .pl-kpis{gap:12px!important;margin:0 0 12px!important}
+body[data-hub=plan] .pl-kpis+*{margin-top:12px}
