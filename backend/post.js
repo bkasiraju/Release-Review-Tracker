@@ -51,14 +51,20 @@ async function postChatter(sf, { recordId, userId, text }) {
   if (!id) throw new Error('GUS did not confirm the Chatter post.');
   return { posted: true, id };
 }
-/** Send the nudge as a DM from the shared Slack bot. The recipient is resolved server-side from the GUS user, never taken from the browser. */
-async function sendSlack(sf, slack, { userId, text }) {
-  const direct = require('./slack-direct'), body = cleanText(text);
-  if (!body) throw new Error('Write a message first.');
+/** Post the nudge to the team's configured Slack channel through GUS MIYO, @mentioning the engineer. Recipient and channel are resolved server-side. */
+async function sendSlack(sf, slack, store, { userId, teamId, text }) {
+  const body = cleanText(text);
+  if (!slack || (typeof slack.postMessage !== 'function' && typeof slack.apiCall !== 'function')) throw new Error('The GUS MIYO Slack helper is not available in this runtime.');
+  const ch = await require('./slack-channels').forTeam(store, teamId);
+  if (!ch) throw new Error('No Slack channel is set for this team. Use "Slack channels" to add one.');
   const t = await slackTarget(sf, slack, userId);
   if (!t.slackUserId) throw new Error(t.notice);
-  let from = ''; try { if (!SF_ID.test(String(sf.userId || ''))) throw 0; const me = ((await sf.query(`SELECT Name FROM User WHERE Id = '${q(sf.userId)}' LIMIT 1`)).records || [])[0]; from = me && me.Name || ''; } catch (_) { /* attribution is optional */ }
-  const r = await direct.sendDm(sf, t.slackUserId, from ? `${body}\n\n_Sent by ${from} via ReleaseIQ_` : body);
-  return { ok: true, to: t.name, permalink: r.permalink };
+  let from = ''; try { if (!SF_ID.test(String(sf.userId || ''))) throw 0; const me = ((await sf.query(`SELECT Name FROM User WHERE Id = '${q(sf.userId)}' LIMIT 1`)).records || [])[0]; from = me && me.Name || ''; } catch (_) { /* signature is optional */ }
+  const text2 = `<@${t.slackUserId}>\n${body}${from ? `\n\n_Sent by ${from} via ReleaseIQ_` : ''}`;
+  let r;
+  try { r = typeof slack.postMessage === 'function' ? await slack.postMessage({ channel: ch.id, text: text2 }) : await slack.apiCall('chat.postMessage', { channel: ch.id, text: text2, unfurl_links: false }); }
+  catch (e) { throw new Error(`GUS MIYO could not post to ${ch.name || 'the channel'}: ${String((e && e.message) || e).slice(0, 160)}. Check that @GUS MIYO is invited there.`); }
+  if (r && r.ok === false) throw new Error(`Slack did not accept the message (${r.error || 'unknown'}). Check that @GUS MIYO is invited to ${ch.name || 'the channel'}.`);
+  return { ok: true, to: t.name, channel: ch.name || ch.id };
 }
 module.exports = { searchUsers, slackTarget, postChatter, sendSlack, cleanText };
