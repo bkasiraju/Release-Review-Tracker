@@ -2,7 +2,7 @@
 /* Release Planning: engineers' draft plan (projects, epics, workstreams, leaves) lives in GUS Apps storage per team.
  * Only epics above the line (ABL) are written to GUS, on an explicit confirm: project (+ program) -> epic with planned release, priority, effort. */
 const SF_ID = /^[a-zA-Z0-9]{15,18}$/, ISO = /^\d{4}-\d{2}-\d{2}$/, LOCAL = /^[A-Za-z0-9_-]{1,40}$/;
-const MAX = { projects: 80, epics: 300, workstreams: 40, people: 200 };
+const MAX = { projects: 300, epics: 300, workstreams: 40, people: 200 };
 const planKey = teamId => { if (!SF_ID.test(String(teamId || ''))) throw new Error('Unknown team'); return 'plan-' + teamId; };
 const text = (v, n) => String(v == null ? '' : v).trim().slice(0, n);
 const wsLine = (e, w) => (e.line === 'BTL' ? 'BTL' : (w.line || e.line));
@@ -75,13 +75,40 @@ function cleanPlan(input) {
 // Programs are per team and release, named "<Team> - <release>" in GUS
 const PROGRAM_RELEASE = '268';
 
+// Projects (and their V2MOM method) are shared by every team: one catalog in storage, merged into each team's plan on read.
+// Each team's saved plan still lists the projects its epics use; the catalog is authoritative for the project fields.
+const CATALOG_KEY = 'plan-projects';
+const PFIELDS = ['name', 'short', 'method', 'theme', 'gusId', 'programId', 'programName'];
+const sameProject = (a, b) => !!a && !!b && PFIELDS.every(k => (a[k] || '') === (b[k] || ''));
+async function getCatalog(store) {
+  const doc = await store.get('settings', CATALOG_KEY);
+  const list = doc && Array.isArray(doc.projects) ? doc.projects : [];
+  return cleanPlan({ projects: list }).projects;
+}
+function mergeCatalog(plan, catalog) {
+  const byId = new Map(catalog.map(c => [c.id, c]));
+  const projects = plan.projects.map(p => byId.has(p.id) ? { ...p, ...Object.fromEntries(PFIELDS.map(k => [k, byId.get(p.id)[k]])) } : p);
+  const have = new Set(projects.map(p => p.id));
+  for (const c of catalog) if (!have.has(c.id) && projects.length < MAX.projects) projects.push(c);
+  return { ...plan, projects };
+}
 async function getPlan(store, teamId) {
-  const doc = await store.get('settings', planKey(teamId));
-  return { plan: cleanPlan(doc && doc.plan), revision: (doc && doc.revision) || null, updatedAt: (doc && doc.updatedAt) || null };
+  const [doc, catalog] = await Promise.all([store.get('settings', planKey(teamId)), getCatalog(store).catch(() => [])]);
+  return { plan: mergeCatalog(cleanPlan(doc && doc.plan), catalog), revision: (doc && doc.revision) || null, updatedAt: (doc && doc.updatedAt) || null };
 }
 async function savePlan(store, teamId, plan, expected) {
-  const saved = await store.put('settings', planKey(teamId), { plan: cleanPlan(plan) }, expected === undefined ? undefined : expected);
-  return { plan: cleanPlan(saved.plan), revision: saved.revision, updatedAt: saved.updatedAt };
+  const key = planKey(teamId), next = cleanPlan(plan);
+  const prevDoc = await store.get('settings', key), prev = new Map(cleanPlan(prevDoc && prevDoc.plan).projects.map(p => [p.id, p]));
+  const saved = await store.put('settings', key, { plan: next }, expected === undefined ? undefined : expected);
+  // Publish what this save changed (added, edited, removed projects) to the shared catalog so other teams see it.
+  try {
+    const cat = new Map((await getCatalog(store)).map(c => [c.id, c]));
+    let dirty = false;
+    for (const p of next.projects) if (!sameProject(prev.get(p.id), p) && !sameProject(cat.get(p.id), p)) { cat.set(p.id, p); dirty = true; }
+    for (const id of prev.keys()) if (!next.projects.some(p => p.id === id) && cat.delete(id)) dirty = true;
+    if (dirty) await store.put('settings', CATALOG_KEY, { projects: [...cat.values()].slice(0, 300) });
+  } catch (_) { /* the team plan is saved; the catalog catches up on the next save */ }
+  return { plan: mergeCatalog(cleanPlan(saved.plan), await getCatalog(store).catch(() => [])), revision: saved.revision, updatedAt: saved.updatedAt };
 }
 
 // Reference data for the pickers. Each lookup fails soft so the planner still opens.
