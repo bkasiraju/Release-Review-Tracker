@@ -1806,3 +1806,16 @@ body[data-hub=status] #gus-links{display:none!important}
 .sal-table th:last-child,.sal-table td.sal-acts{width:152px!important;max-width:152px!important;padding:8px 8px!important}
 .sal-actbox{display:flex!important;flex-wrap:nowrap;gap:4px;grid-template-columns:none}
 .sal-table td.sal-acts .sal-ic{width:28px;height:28px;flex:none}.sal-table td.sal-acts .sal-ic svg{width:15px;height:15px}
+
+/* Action Log: CSS-grid layout (replaces the table). Fixed track sizes guarantee the Actions track always fits all four buttons. */
+.sal-grid{--cols:96px minmax(0,1.4fr) 56px minmax(0,1.7fr) 104px 92px 140px;width:100%;border:1px dotted #9fb0c3;font-size:12px}
+.sal-gh,.sal-gr{display:grid;grid-template-columns:var(--cols);align-items:start}
+.sal-gh{background:#f7f9fc;font-weight:650;color:#1f2d3d;border-bottom:1px dotted #8ea0b5}
+.sal-gr{border-bottom:1px dotted #b8c4d2}.sal-gr:last-child{border-bottom:0}.sal-gr:hover{background:#fbfdff}
+.sal-gc{min-width:0;padding:10px 10px;line-height:1.45;overflow-wrap:anywhere;border-right:1px dotted #d3dbe5;font-size:12px}
+.sal-gc:last-child{border-right:0}
+.sal-gc.sal-subj{white-space:normal;overflow:visible;text-overflow:clip;max-width:none}
+.sal-gc.sal-det{min-width:0;white-space:pre-wrap}
+.sal-gc.sal-acts{padding:7px 8px;overflow:visible;white-space:nowrap}
+.sal-gc .sal-actbox{display:flex;flex-wrap:nowrap;gap:4px}
+.sal-gc .sal-ic{width:28px;height:28px;margin:0;flex:none}.sal-gc .sal-ic svg{width:15px;height:15px}
