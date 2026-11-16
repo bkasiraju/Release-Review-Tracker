@@ -496,3 +496,15 @@ document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,0));
 
 // Clicking the product title returns to the Team Hub for the team that is currently selected.
 document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('#ri-home');if(!a)return;e.preventDefault();window.Hub.go('home');});
+
+/** In-app confirmation dialog (replaces the browser's native confirm): H.confirm({title,message,ok,cancel,danger}) → Promise<boolean>. Esc / backdrop / Cancel resolve false. */
+H.confirm=o=>new Promise(res=>{
+  o=typeof o==='string'?{message:o}:(o||{});
+  const prev=document.activeElement,esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const ov=document.createElement('div');ov.className='hub-confirm-ov';
+  ov.innerHTML=`<div class="hub-confirm" role="alertdialog" aria-modal="true" aria-labelledby="hc-t" aria-describedby="hc-m"><h2 id="hc-t">${esc(o.title||'Please confirm')}</h2><div id="hc-m" class="hub-confirm-m">${String(o.message||'').split(/\n\n+/).map(p=>`<p>${esc(p)}</p>`).join('')}</div><div class="hub-confirm-b"><button type="button" class="button" data-hc="0">${esc(o.cancel||'Cancel')}</button><button type="button" class="button primary${o.danger?' danger':''}" data-hc="1">${esc(o.ok||'Confirm')}</button></div></div>`;
+  const done=v=>{document.removeEventListener('keydown',key,true);ov.remove();try{prev&&prev.focus&&prev.focus();}catch(_){}res(v);};
+  const key=e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();done(false);}else if(e.key==='Tab'){const b=[...ov.querySelectorAll('button')],i=b.indexOf(document.activeElement);e.preventDefault();b[(i+(e.shiftKey?-1:1)+b.length)%b.length].focus();}};
+  ov.addEventListener('click',e=>{const b=e.target.closest('[data-hc]');if(b)done(b.dataset.hc==='1');else if(e.target===ov)done(false);});
+  document.addEventListener('keydown',key,true);document.body.appendChild(ov);ov.querySelector('[data-hc="1"]').focus();
+});

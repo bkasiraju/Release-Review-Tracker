@@ -65,7 +65,7 @@ function open(btn){
     else if('clear' in t.dataset){S.user=null;S.slack=null;draw();}
     else if('copy' in t.dataset){const txt=el.querySelector('#nd-text').value;try{await navigator.clipboard.writeText(txt);msg('Copied. Paste it into the Slack DM.','ok');}catch(_){msg('Copy failed — select the message text and copy it manually.','err');}}
     else if('slackSend' in t.dataset){const text=el.querySelector('#nd-text').value,s=S;s.busy=true;msg('');draw();
-      try{const cc=(s.slack.channels||[]).find(c=>c.teamId===s.chanTeam);if(!cc||!confirm(`Post this message in ${cc.name} (${cc.team}) and @mention ${s.user.name}?`)){s.busy=false;draw();return;}const r=await call('post-slack-send',{userId:s.user.id,teamId:s.chanTeam,text});if(S===s){s.busy=false;draw();msg('Posted in '+(r.channel||'the channel')+' and mentioned '+(r.to||'the recipient')+'.','ok');}}
+      try{const cc=(s.slack.channels||[]).find(c=>c.teamId===s.chanTeam);if(!cc||!await H.confirm({title:'Post to Slack?',message:`Post this message in ${cc.name} (${cc.team}) and @mention ${s.user.name}?`,ok:'Post'})){s.busy=false;draw();return;}const r=await call('post-slack-send',{userId:s.user.id,teamId:s.chanTeam,text});if(S===s){s.busy=false;draw();msg('Posted in '+(r.channel||'the channel')+' and mentioned '+(r.to||'the recipient')+'.','ok');}}
       catch(err){if(S===s){s.busy=false;draw();msg('Not sent: '+err.message+' You can still copy the message.','err');}}}
     else if('send' in t.dataset){const text=el.querySelector('#nd-text').value,s=S;s.busy=true;msg('');draw();
       try{const r=await call('post-chatter',{recordId:s.id,userId:s.user.id,text});if(S===s){s.busy=false;draw();msg('Posted to GUS Chatter'+(r.id?' ('+r.id+')':'')+'.','ok');}}
