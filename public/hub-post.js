@@ -21,9 +21,9 @@ function draw(){
   s.el.querySelector('#nd-count').textContent=s.el.querySelector('#nd-text').value.length+' / 4000';
   const act=s.el.querySelector('#nd-actions'),cancel='<button type="button" class="button nd-cancel" data-close>Cancel</button>';
   if(tab==='chatter')act.innerHTML=`${cancel}<button type="button" class="button primary nd-go" data-send ${u&&!s.busy?'':'disabled'}>${ICO.send}${s.busy?'Posting…':'Post to Chatter'}</button>`;
-  else act.innerHTML=`${cancel}${s.slack&&s.slack.dmUrl?`<a class="button" href="${esc(s.slack.dmUrl)}">Open Slack DM</a>`:''}<button type="button" class="button primary nd-go" data-copy ${u?'':'disabled'}>${ICO.copy}Copy message</button>`;
-  const hint=tab==='chatter'?`Posts on the record's Chatter feed in GUS and @mentions ${u?u.name:'the user'}.`:(s.slack?s.slack.notice:'Pick a user to look up their Slack account.');
-  const h=s.el.querySelector('#nd-hint');h.innerHTML=hint?`${ICO.info}<span>${esc(hint)}</span>`:'';h.className='nd-hint'+(tab==='slack'&&s.slack&&!s.slack.dmUrl&&u?' warn':'');
+  else{const can=!!(s.slack&&s.slack.canSend);act.innerHTML=`${cancel}${s.slack&&s.slack.dmUrl?`<a class="button" href="${esc(s.slack.dmUrl)}">Open Slack DM</a>`:''}<button type="button" class="button${can?'':' primary nd-go'}" data-copy ${u?'':'disabled'}>${ICO.copy}Copy message</button>${can?`<button type="button" class="button primary nd-go" data-slack-send ${u&&!s.busy?'':'disabled'}>${ICO.send}${s.busy?'Sending…':'Send on Slack'}</button>`:''}`;}
+  const hint=tab==='chatter'?`Posts on the record's Chatter feed in GUS and @mentions ${u?u.name:'the user'}.`:(s.slack?(s.slack.canSend?`${u.name} matched in Slack. Send the message directly from here, or copy it.`:s.slack.notice):'Pick a user to look up their Slack account.');
+  const h=s.el.querySelector('#nd-hint');h.innerHTML=hint?`${ICO.info}<span>${esc(hint)}</span>`:'';h.className='nd-hint'+(tab==='slack'&&s.slack&&!s.slack.dmUrl&&!s.slack.canSend&&u?' warn':'');
 }
 async function pickSlack(){const s=S;s.slack=null;draw();if(!s.user)return;const id=s.user.id;try{const r=await call('post-slack',{userId:id});if(S===s&&s.user&&s.user.id===id){s.slack=r;draw();}}catch(e){if(S===s){s.slack={notice:'Slack lookup failed: '+e.message};draw();}}}
 function choose(u){S.user=u;S.el.querySelector('#nd-q').value='';S.el.querySelector('#nd-list').innerHTML='';const t=S.el.querySelector('#nd-text');if(!S.edited)t.value=draft(S,u);msg('');draw();pickSlack();}
@@ -59,6 +59,9 @@ function open(btn){
     else if(t.dataset.user){choose(S.users.find(u=>u.id===t.dataset.user));}
     else if('clear' in t.dataset){S.user=null;S.slack=null;draw();}
     else if('copy' in t.dataset){const txt=el.querySelector('#nd-text').value;try{await navigator.clipboard.writeText(txt);msg('Copied. Paste it into the Slack DM.','ok');}catch(_){msg('Copy failed — select the message text and copy it manually.','err');}}
+    else if('slackSend' in t.dataset){const text=el.querySelector('#nd-text').value,s=S;s.busy=true;msg('');draw();
+      try{const r=await call('post-slack-send',{userId:s.user.id,text});if(S===s){s.busy=false;draw();msg('Sent to '+(r.to||'the recipient')+' on Slack.','ok');if(r.permalink){const m=el.querySelector('#nd-msg');m.append(' ');const a=document.createElement('a');a.href=r.permalink;a.target='_blank';a.rel='noopener noreferrer';a.textContent='View message';m.append(a);}}}
+      catch(err){if(S===s){s.busy=false;draw();msg('Not sent: '+err.message+' You can still copy the message.','err');}}}
     else if('send' in t.dataset){const text=el.querySelector('#nd-text').value,s=S;s.busy=true;msg('');draw();
       try{const r=await call('post-chatter',{recordId:s.id,userId:s.user.id,text});if(S===s){s.busy=false;draw();msg('Posted to GUS Chatter'+(r.id?' ('+r.id+')':'')+'.','ok');}}
       catch(err){if(S===s){s.busy=false;draw();msg('Not posted: '+err.message,'err');}}}

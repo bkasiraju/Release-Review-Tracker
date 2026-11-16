@@ -51,4 +51,14 @@ async function postChatter(sf, { recordId, userId, text }) {
   if (!id) throw new Error('GUS did not confirm the Chatter post.');
   return { posted: true, id };
 }
-module.exports = { searchUsers, slackTarget, postChatter, cleanText };
+/** Send the nudge as a DM from the shared Slack bot. The recipient is resolved server-side from the GUS user, never taken from the browser. */
+async function sendSlack(sf, slack, { userId, text }) {
+  const direct = require('./slack-direct'), body = cleanText(text);
+  if (!body) throw new Error('Write a message first.');
+  const t = await slackTarget(sf, slack, userId);
+  if (!t.slackUserId) throw new Error(t.notice);
+  let from = ''; try { if (!SF_ID.test(String(sf.userId || ''))) throw 0; const me = ((await sf.query(`SELECT Name FROM User WHERE Id = '${q(sf.userId)}' LIMIT 1`)).records || [])[0]; from = me && me.Name || ''; } catch (_) { /* attribution is optional */ }
+  const r = await direct.sendDm(sf, t.slackUserId, from ? `${body}\n\n_Sent by ${from} via ReleaseIQ_` : body);
+  return { ok: true, to: t.name, permalink: r.permalink };
+}
+module.exports = { searchUsers, slackTarget, postChatter, sendSlack, cleanText };

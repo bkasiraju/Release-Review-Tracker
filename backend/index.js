@@ -69,7 +69,8 @@ async function handleRequest(ctx){
       case 'hub-people':payload=await hub.getPeople(sf,ctx.slack,String(b.group||''));break;
       case 'hub-tests':payload=await hub.getTests(sf,b.teamId);break;
       case 'post-users':payload=await post.searchUsers(sf,b.q);break;
-      case 'post-slack':payload=await post.slackTarget(sf,ctx.slack,b.userId);break;
+      case 'post-slack':payload=await post.slackTarget(sf,ctx.slack,b.userId);payload.canSend=!!payload.slackUserId&&await require('./slack-direct').available(sf);break;
+      case 'post-slack-send':payload=await post.sendSlack(sf,ctx.slack,b);break;
       case 'post-chatter':payload=await post.postChatter(sf,b);break;
       case 'hub-teams':payload=await hub.getTeams(sf);break;
       case 'sal-list':payload=await require('./actions').list(store,b.teamId);break;
