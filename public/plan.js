@@ -89,7 +89,7 @@ const IO_ROWS=300;
 const projShort=p=>p.short||shortProj(p.name);
 function ioLists(){
   const pl=P.plan,eng=P.members.filter(m=>H.leaderRank(m.name)<0).map(m=>m.name).sort();
-  return {projects:pl.projects.map(projShort),releases:P.refs.releases.map(r=>r.name),eng,line:['ABL','BTL'],pri:[0,1,2,3,4,5].map(n=>'P'+n),status:STAT};
+  return {methods:[...new Set(pl.projects.map(p=>(p.method||'').trim()).filter(Boolean))].sort(),projects:pl.projects.map(projShort),releases:P.refs.releases.map(r=>r.name),eng,line:['ABL','BTL'],pri:[0,1,2,3,4,5].map(n=>'P'+n),status:STAT};
 }
 function exportTemplate(){
   const pl=P.plan,L=ioLists(),prj=new Map(pl.projects.map(p=>[p.id,p]));
@@ -100,25 +100,26 @@ function exportTemplate(){
     ws.forEach((w,j)=>{const f=j===0,wn=w?(w.engNames&&w.engNames.length?w.engNames:wsEngs(w).map(memName)).filter(Boolean):[];
       rows.push([f?(p.method||''):'',f?(p.name||''):'',projShort(p),e.name||'',w?w.name:'',f?names.join(', '):'',wn.join(', '),w&&w.days?w.days:'',w?wl(e,w):(f?e.line:''),f?'P'+(e.priority==null?0:e.priority):'',w?w.sprint:'',f?(e.releaseName||(P.refs.releases.find(r=>r.id===e.releaseId)||{}).name||''):'']);});
   }
-  const lcols=[['Projects',L.projects],['Engineers',L.eng],['ATL/BTL',L.line],['Priority',L.pri],['Status',L.status],['Releases',L.releases]];
+  const lcols=[['V2MOM Methods',L.methods],['Projects',L.projects],['Planned releases',L.releases],['Engineers',L.eng],['ATL/BTL',L.line],['Priority',L.pri]];
   const lrows=[lcols.map(c=>c[0])],lh=Math.max(...lcols.map(c=>c[1].length));
   for(let i=0;i<lh;i++)lrows.push(lcols.map(c=>c[1][i]==null?'':c[1][i]));
   const rng=(c,n)=>`Lists!$${c}$2:$${c}$${Math.max(2,n+1)}`,last=Math.max(rows.length+IO_ROWS,IO_ROWS);
   const V=(col,c,n,o)=>Object.assign({sqref:`${col}2:${col}${last}`,formula:rng(c,n)},o);
   const help=[['Release Planning template'],[''],['One row per workstream. Rows with the same Project + Epic Name belong to the same epic.'],['Epic-level columns (Epic Owner, ATL/BTL, Priority, Planned Release) are read from the first row that has a value for that epic. Method Name and Measure Name are read once per project.'],[''],
     ['Column','Expected value'],
-    [IO_COLS[0],'The V2MOM method this project supports. Saved on the project (V2MOM Method field in GUS). Fill it once per project.'],[IO_COLS[1],'Full measure / project name as in GUS. Required only for a new project.'],[IO_COLS[2],'Short form such as HRP M1.1.3. Pick from the list, or type a new one (then also fill Measure Name).'],[IO_COLS[3],'Required.'],[IO_COLS[4],'Workstream / feature name. Leave empty for an epic without workstreams.'],
+    [IO_COLS[0],'The V2MOM method this project supports. Pick from the V2MOM Methods list or type a new one. Saved on the project (V2MOM Method field in GUS). Fill it once per project.'],[IO_COLS[1],'Full measure / project name as in GUS. Required only for a new project.'],[IO_COLS[2],'Short form such as HRP M1.1.3. Pick from the Lists sheet, or type a new one (then also fill Measure Name).'],[IO_COLS[3],'Required.'],[IO_COLS[4],'Workstream / feature name. Leave empty for an epic without workstreams.'],
     [IO_COLS[5],'Engineer names exactly as on the Engineers list; separate several with commas.'],[IO_COLS[6],'Same as Epic Owner.'],[IO_COLS[7],'Days, a number of 0 or more. The epic effort is calculated by the dashboard as the sum of its ATL (ABL) workstreams and saved to GUS as the epic Planned Effort; there is no epic effort column.'],
     [IO_COLS[8],'ABL (above the line, also accepted as ATL) or BTL. A BTL epic makes all its workstreams BTL. Only ABL work counts toward capacity and is saved to GUS.'],[IO_COLS[9],'P0 to P5 (a plain number also works).'],[IO_COLS[10],'Free text, e.g. a sprint name.'],[IO_COLS[11],'Optional: a planned release name from the Releases list. Blank keeps the current release (new epics get the default).'],
     [''],['Blank cells never overwrite what the plan already has for an existing epic or project. Older templates (with Epic Status, Theme, WS Status, Doc link, HRP/CFS V2MOM columns) can still be imported.'],
     [''],['Importing merges into the plan: an epic that already exists (same project and name) has its fields updated and its workstreams replaced by the rows in the file; epics that are not in the file are left alone.']];
   const bytes=PlanIO.write({sheets:[
     {name:'Plan',header:true,freeze:true,wrap:[0,1],rows,widths:[44,34,16,34,30,28,28,12,10,10,16,16],validations:[
-      V('C','A',L.projects.length,{title:'Project',prompt:'Pick a project short form, or type a new one.',error:'Not an existing project. A new project will be created if you also fill Measure Name.',warn:true}),
-      V('F','B',L.eng.length,{title:'Owners',prompt:'Engineer name; separate several with commas.',error:'Use engineer names from the Engineers list (comma-separated for several).',warn:true}),
-      V('G','B',L.eng.length,{title:'Owners',prompt:'Engineer name; separate several with commas.',error:'Use engineer names from the Engineers list (comma-separated for several).',warn:true}),
-      V('I','C',2,{error:'Use ABL or BTL.'}),V('J','D',6,{error:'Use P0 to P5.'}),V('L','F',L.releases.length,{warn:true,error:'Not a known release name.'})]},
-    {name:'Lists',header:true,rows:lrows,widths:[28,28,10,10,14,24]},
+      V('A','A',L.methods.length,{title:'V2MOM method',prompt:'Pick a V2MOM method, or type a new one. Saved on the project.',error:'Not in the V2MOM Methods list; it will be saved as typed.',warn:true}),
+      V('C','B',L.projects.length,{title:'Project',prompt:'Pick a project short form, or type a new one.',error:'Not an existing project. A new project will be created if you also fill Measure Name.',warn:true}),
+      V('F','D',L.eng.length,{title:'Owners',prompt:'Engineer name; separate several with commas.',error:'Use engineer names from the Engineers list (comma-separated for several).',warn:true}),
+      V('G','D',L.eng.length,{title:'Owners',prompt:'Engineer name; separate several with commas.',error:'Use engineer names from the Engineers list (comma-separated for several).',warn:true}),
+      V('I','E',2,{error:'Use ABL or BTL.'}),V('J','F',6,{error:'Use P0 to P5.'}),V('L','C',L.releases.length,{warn:true,error:'Not a known release name.'})]},
+    {name:'Lists',header:true,rows:lrows,widths:[50,28,24,28,10,10]},
     {name:'Instructions',header:true,rows:help,widths:[40,110],wrap:[1]}]});
   const a=document.createElement('a'),url=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
   a.href=url;a.download=`release-plan-${(H.team.short||H.team.Name||'team').replace(/[^\w.-]+/g,'-')}-${new Date().toISOString().slice(0,10)}.xlsx`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);
