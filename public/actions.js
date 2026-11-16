@@ -33,7 +33,7 @@ function drawTip(){
   const list=openItems(tip.btn.dataset.salAdd);if(!list.length)return hideTip(true);
   tip.el.innerHTML=`<div class="sal-tip-h">${icon()} ${list.length} open action item${list.length>1?'s':''}<small>${esc(list[0].workName)}</small></div>`+list.map(x=>`<div class="sal-tip-i" data-id="${esc(x.id)}"><p class="sal-tip-d">${esc(x.details)}</p>
   <div class="sal-tip-m"><span class="sal-pri p-${x.priority.toLowerCase()}">${DOT[x.priority]} ${x.priority}</span><span class="sal-st${overdue(x)?' late':''}">${overdue(x)?'Open · overdue':'Open'}</span><span class="sal-tip-o">${esc(x.owner)}</span></div>
-  <div class="sal-tip-a"><label>ETA <input type="date" class="hub-inline" data-tip-eta="${esc(x.id)}" value="${esc(x.eta)}" min="${todayIso()}" max="${addDays(30)}"></label><button type="button" class="button small primary" data-tip-res="${esc(x.id)}">Resolve</button></div></div>`).join('')+'<div class="sal-tip-msg" role="status"></div>';
+  ${x.pending?'<div class="sal-tip-a"><span class="sal-st">Saving…</span><span>ETA '+esc(fmtD(x.eta))+'</span>':`<div class="sal-tip-a"><label>ETA <input type="date" class="hub-inline" data-tip-eta="${esc(x.id)}" value="${esc(x.eta)}" min="${todayIso()}" max="${addDays(30)}"></label><button type="button" class="button small primary" data-tip-res="${esc(x.id)}">Resolve</button>`}</div></div>`).join('')+'<div class="sal-tip-msg" role="status"></div>';
   place();
 }
 function place(){const b=tip.btn.getBoundingClientRect(),e=tip.el,w=e.offsetWidth,h=e.offsetHeight;let l=Math.min(Math.max(8,b.left+b.width/2-w/2),innerWidth-w-8),t=b.bottom+6;if(t+h>innerHeight-8)t=Math.max(8,b.top-h-6);e.style.left=l+'px';e.style.top=t+'px';}
@@ -50,13 +50,14 @@ function showTip(btn){
 function msg(t,err){if(!tip.el)return;const m=tip.el.querySelector('.sal-tip-msg');if(m){m.textContent=t;m.className='sal-tip-msg'+(err?' err':'');}}
 document.addEventListener('mouseover',e=>{const b=e.target.closest&&e.target.closest('.sal-btn.has');if(b)showTip(b);});
 document.addEventListener('mouseout',e=>{const b=e.target.closest&&e.target.closest('.sal-btn.has');if(b&&!(e.relatedTarget&&tip.el&&tip.el.contains(e.relatedTarget)))hideTip();});
-document.addEventListener('focusin',e=>{const b=e.target.closest&&e.target.closest('.sal-btn.has');if(b)showTip(b);});
+document.addEventListener('focusin',e=>{const b=e.target.closest&&e.target.closest('.sal-btn.has');if(b&&!tip.mute&&b.matches(':focus-visible'))showTip(b);});
+document.addEventListener('focusout',e=>{if(e.target.closest&&e.target.closest('.sal-btn')&&!(e.relatedTarget&&tip.el&&tip.el.contains(e.relatedTarget)))hideTip();});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')hideTip(true);});
 addEventListener('scroll',()=>hideTip(true),true);
 A.load=async()=>{const c=ctx();if(!c.teamId)return;try{const r=await call('sal-list',{teamId:c.teamId});if(ctx().teamId===c.teamId){A.items=r.items||[];A.teamId=c.teamId;A.loaded=true;paint();}}catch(e){A.loaded=false;}};
 
 // ── Small modal: add an action item ──
-function closeModal(){if(A.modal){A.modal.el.remove();document.removeEventListener('keydown',A.modal.key);A.modal.opener&&A.modal.opener.focus&&A.modal.opener.focus();A.modal=null;}}
+function closeModal(){if(A.modal){A.modal.el.remove();document.removeEventListener('keydown',A.modal.key);if(A.modal.opener&&A.modal.opener.focus){tip.mute=true;A.modal.opener.focus({preventScroll:true});setTimeout(()=>{tip.mute=false;},0);}A.modal=null;}}
 function openAdd(btn){
   const f=findItem(btn.dataset.salAdd);if(!f)return;closeModal();
   const c=ctx(),mem=c.mem||[],i=f.item,owner=mem.find(m=>m.id===i.assigneeId);
@@ -77,10 +78,12 @@ function openAdd(btn){
     if(!e.target.closest('[data-save]'))return;
     const msg=el.querySelector('#sal-msg'),det=el.querySelector('#sal-det').value.trim(),btn2=e.target.closest('[data-save]');
     if(!det){msg.className='nd-msg err';msg.textContent='Describe the action item.';return;}
-    btn2.disabled=true;msg.className='nd-msg';msg.textContent='Saving…';
-    try{const r=await call('sal-save',{teamId:c.teamId,workId:i.id,workName:i.name,subject:i.subject,assignee:f.assignee,assigneeId:i.assigneeId,ownerId:el.querySelector('#sal-own').value,details:det,eta:el.querySelector('#sal-eta').value,priority:el.querySelector('#sal-pri').value,sprintId:c.sprintId,sprintName:c.sprintName});
-      A.items=r.items;paint();closeModal();window.toast?.('Action item added to the Sprint Action Log.');}
-    catch(err){btn2.disabled=false;msg.className='nd-msg err';msg.textContent='Not saved: '+err.message;}
+    const own=mem.find(m=>m.id===el.querySelector('#sal-own').value),payload={teamId:c.teamId,workId:i.id,workName:i.name,subject:i.subject,assignee:f.assignee,assigneeId:i.assigneeId,ownerId:el.querySelector('#sal-own').value,details:det,eta:el.querySelector('#sal-eta').value,priority:el.querySelector('#sal-pri').value,sprintId:c.sprintId,sprintName:c.sprintName};
+    // Save in the background: show the item at once, close the popup, and roll back with a message if the save fails.
+    const temp={id:'tmp-'+Date.now(),workId:i.id,workName:i.name,subject:i.subject,assignee:f.assignee,assigneeId:i.assigneeId,ownerId:payload.ownerId,owner:own?own.name:'',details:det,eta:payload.eta,priority:payload.priority,status:'open',createdAt:new Date().toISOString(),resolvedAt:null,pending:true};
+    A.items=[...A.items,temp];paint();closeModal();window.toast?.('Saving action item…');
+    call('sal-save',payload).then(r=>{A.items=r.items;paint();window.toast?.('Action item added to the Sprint Action Log.');})
+      .catch(err=>{A.items=A.items.filter(x=>x.id!==temp.id);paint();window.toast?.('Action item not saved: '+err.message,true);});
   });
 }
 
