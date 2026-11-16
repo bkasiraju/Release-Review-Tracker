@@ -1808,7 +1808,7 @@ body[data-hub=status] #gus-links{display:none!important}
 .sal-table td.sal-acts .sal-ic{width:28px;height:28px;flex:none}.sal-table td.sal-acts .sal-ic svg{width:15px;height:15px}
 
 /* Action Log: CSS-grid layout (replaces the table). Fixed track sizes guarantee the Actions track always fits all four buttons. */
-.sal-grid{--cols:96px minmax(0,1.4fr) 56px minmax(0,1.7fr) 104px 92px 140px;width:100%;border:1px dotted #9fb0c3;font-size:12px}
+.sal-lg{display:block;--cols:96px minmax(0,1.4fr) 56px minmax(0,1.7fr) 104px 92px 140px;width:100%;border:1px dotted #9fb0c3;font-size:12px}
 .sal-gh,.sal-gr{display:grid;grid-template-columns:var(--cols);align-items:start}
 .sal-gh{background:#f7f9fc;font-weight:650;color:#1f2d3d;border-bottom:1px dotted #8ea0b5}
 .sal-gr{border-bottom:1px dotted #b8c4d2}.sal-gr:last-child{border-bottom:0}.sal-gr:hover{background:#fbfdff}
@@ -1824,3 +1824,5 @@ body[data-hub=status] #gus-links{display:none!important}
 .sal-gc a{color:#0b5cab;font-weight:600;text-decoration:underline;text-underline-offset:2px}
 .sal-gc a:hover{color:#08427b;text-decoration-thickness:2px}
 .sal-gc a:visited{color:#5a3fa0}
+.sal-lg .sal-gc[role=columnheader]{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sal-lg{--cols:96px minmax(0,1.4fr) 64px minmax(0,1.7fr) 104px 92px 140px}
