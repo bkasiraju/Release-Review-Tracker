@@ -243,6 +243,14 @@ const WRITABLE = {
   ADM_Team_Dependency__c: { Dependency_Status__c: pick(60), Notes__c: str(32000), Deliver_By__c: date },
   ADM_Sprint__c: { Goals__c: str(32000) }
 };
+async function patchRecord(sf, object, id, delta) {
+  if (typeof sf.update === 'function') {
+    const out = await sf.update(object, id, delta);
+    if (out && (out.success === false || (out.errors && out.errors.length))) throw new Error('GUS rejected the update.');
+  } else if (typeof sf.request === 'function') {
+    await sf.request({ method: 'PATCH', url: `/services/data/v62.0/sobjects/${object}/${id}`, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(delta) });
+  } else throw new Error('GUS Apps does not expose Salesforce update().');
+}
 async function updateOne(sf, u) {
   const fields = WRITABLE[u && u.object];
   if (!fields) throw new Error('Object is not editable from the dashboard.');
@@ -253,12 +261,7 @@ async function updateOne(sf, u) {
     delta[k] = v;
   }
   if (!Object.keys(delta).length) throw new Error('Nothing to save.');
-  if (typeof sf.update === 'function') {
-    const out = await sf.update(u.object, u.id, delta);
-    if (out && (out.success === false || (out.errors && out.errors.length))) throw new Error('GUS rejected the update.');
-  } else if (typeof sf.request === 'function') {
-    await sf.request({ method: 'PATCH', url: `/services/data/v62.0/sobjects/${u.object}/${u.id}`, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(delta) });
-  } else throw new Error('GUS Apps does not expose Salesforce update().');
+  await patchRecord(sf, u.object, u.id, delta);
   return delta;
 }
 // ── Team people (leadership section on the hub home) ─────────────────────────
@@ -364,4 +367,4 @@ async function getPicklists(sf) {
   return lists;
 }
 
-module.exports = { getBugTrend, getBugTrendItems, getTests, getPeople, getSla, getChampion, saveChampion, getTeams, getMembers, getBugs, getTds, getHome, getRotation, saveRotation, updateGus, getPicklists, requireTeam, WRITABLE, __test: { computeBugTrend, cleanRota, updateOne, computeSla } };
+module.exports = { getBugTrend, getBugTrendItems, getTests, getPeople, getSla, getChampion, saveChampion, getTeams, getMembers, getBugs, getTds, getHome, getRotation, saveRotation, updateGus, getPicklists, requireTeam, patchRecord, WRITABLE, __test: { computeBugTrend, cleanRota, updateOne, computeSla } };

@@ -65,6 +65,8 @@ async function handleRequest(ctx){
       case 'sprint-initial':payload=await sprint.getInitial(sf,b.teamId);break;
       case 'sprint-sprints':payload=await sprint.getSprints(sf,b.teamId);break;
       case 'sprint-data':payload=await sprint.loadSprintData(sf,b.teamId,b.sprintId);break;
+      case 'sprint-next':payload=await sprint.getNextSprint(sf,b.teamId,b.sprintId);break;
+      case 'sprint-move-next':payload=await sprint.moveToNextSprint(sf,b.teamId,b.sprintId,b.ids);break;
       case 'sprint-history':payload=await sprint.getHistory(sf,b.teamId);break;
       case 'hub-people':payload=await hub.getPeople(sf,ctx.slack,String(b.group||''));break;
       case 'hub-tests':payload=await hub.getTests(sf,b.teamId);break;

@@ -192,4 +192,27 @@ async function getInitial(sf, teamId) {
   return { ...list, ...data };
 }
 
-module.exports = { getTeams, getSprints, loadSprintData, getHistory, getInitial, __test: { buildMember, isClosed } };
+/** The team's sprint that starts right after `sprintId` (null when none is planned yet). */
+async function getNextSprint(sf, teamId, sprintId) {
+  requireTeam(teamId); requireSprintId(sprintId);
+  const [cur] = await queryAll(sf, `SELECT Id, Name, Start_Date__c FROM ADM_Sprint__c WHERE Id = '${sprintId}' AND Scrum_Team__c = '${teamId}' LIMIT 1`);
+  if (!cur) throw new Error('Sprint not found for this team.');
+  const [next] = await queryAll(sf, `SELECT Id, Name, Start_Date__c, End_Date__c FROM ADM_Sprint__c WHERE Scrum_Team__c = '${teamId}' AND Start_Date__c > ${cur.Start_Date__c} ORDER BY Start_Date__c ASC LIMIT 1`);
+  return { current: { Id: cur.Id, Name: cur.Name }, next: next ? { Id: next.Id, Name: next.Name } : null };
+}
+
+/** Move open work items from `sprintId` to the team's next sprint (GUS "Move Work to Next Sprint"). Closed items stay put. */
+async function moveToNextSprint(sf, teamId, sprintId, ids) {
+  if (!Array.isArray(ids) || !ids.length || ids.length > 100 || !ids.every(x => SF_ID.test(String(x)))) throw new Error('Select between 1 and 100 work items.');
+  const { next } = await getNextSprint(sf, teamId, sprintId);
+  if (!next) throw new Error('No next sprint exists for this team yet. Create it in GUS first.');
+  const list = [...new Set(ids)].map(x => `'${x}'`).join(',');
+  const rows = await queryAll(sf, `SELECT Id, Name, Status__c, RecordType.Name FROM ADM_Work__c WHERE Id IN (${list}) AND Sprint__c = '${sprintId}'`);
+  const open = rows.filter(r => !isClosed({ status: r.Status__c, recordType: r.RecordType && r.RecordType.Name }));
+  const out = await Promise.allSettled(open.map(r => hub.patchRecord(sf, 'ADM_Work__c', r.Id, { Sprint__c: next.Id })));
+  const moved = [], failed = [];
+  out.forEach((o, i) => o.status === 'fulfilled' ? moved.push(open[i].Id) : failed.push({ id: open[i].Id, name: open[i].Name, error: String((o.reason && o.reason.message) || o.reason).slice(0, 200) }));
+  return { next, moved, failed, skipped: rows.length - open.length, missing: ids.length - rows.length };
+}
+
+module.exports = { getTeams, getSprints, loadSprintData, getHistory, getInitial, moveToNextSprint, getNextSprint, __test: { buildMember, isClosed } };

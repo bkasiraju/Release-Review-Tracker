@@ -1684,3 +1684,11 @@ body[data-hub=status] #gus-links{display:none!important}
 /* work item values: slightly smaller type so more fits per row */
 .sp-items td:first-child,.sp-items td:first-child a{font-size:12.5px!important}
 .sp-items td.sp-subject,.sp-items td.sp-subject .sp-clip{font-size:13px!important;line-height:1.35}
+/* Move Work to Next Sprint */
+.sp-sel{margin:0 6px 0 0;vertical-align:-2px;cursor:pointer;accent-color:#0b5cab}
+#sp-movebar{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:60;display:flex;align-items:center;gap:14px;padding:10px 14px;background:#fff;border:1px solid #c9d3e0;border-radius:10px;box-shadow:0 8px 28px rgba(15,35,70,.22);font-size:13px}
+#sp-movebar .sp-move-btn{display:inline-flex;align-items:center;gap:8px;padding:7px 14px;background:#fff;color:#0b5cab;border:1px solid #5d6b7e;border-radius:6px;font:600 14px/1.2 inherit;cursor:pointer}
+#sp-movebar .sp-move-btn:hover:not(:disabled){background:#eef4fc;border-color:#0b5cab}
+#sp-movebar .sp-move-btn:disabled{opacity:.6;cursor:wait}
+#sp-movebar .sp-move-btn svg{width:16px;height:16px}
+#sp-movebar .sp-move-clear{background:none;border:0;color:#5d6b7e;cursor:pointer;text-decoration:underline;font-size:13px}

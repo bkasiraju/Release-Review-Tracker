@@ -6,7 +6,7 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const CLOSED=new Set(['Closed','Fixed','Completed','Duplicate','Will Not Fix','Never','Inactive','Rejected']);
 const CLOSED_BUG=new Set([...CLOSED,'Not a bug','Not Reproducible']);
 const GUS_WORK='https://gus.lightning.force.com/lightning/r/ADM_Work__c/';
-const S={pick:null,view:'pulse',standupIdx:-1,ready:false,loading:false,teamId:'',sprintId:'',members:[],sprint:null,history:null,tab:'saydo',open:new Set(),sort:{key:'',dir:'asc'},order:null,modal:null,epic:null,mem:[],search:'',seq:0};
+const S={sel:new Set(),pick:null,view:'pulse',standupIdx:-1,ready:false,loading:false,teamId:'',sprintId:'',members:[],sprint:null,history:null,tab:'saydo',open:new Set(),sort:{key:'',dir:'asc'},order:null,modal:null,epic:null,mem:[],search:'',seq:0};
 const icon=(n,t)=>window.ReviewIcons?window.ReviewIcons.icon(n,t):'';
 const isClosed=i=>(i.status&&i.status.startsWith('Closed'))||(i.recordType==='Bug'?CLOSED_BUG:CLOSED).has(i.status);
 const pts=i=>i.forecastPts!=null?i.forecastPts:(i.storyPoints||0);
@@ -93,10 +93,12 @@ const whoSelect=i=>`<select class="hub-inline who" data-edit="ADM_Work__c" data-
 const statusSelect=i=>`<select class="hub-inline ${stCls(i.status)}" data-edit="ADM_Work__c" data-id="${esc(i.id)}" data-field="Status__c" data-prev="${esc(i.status)}" data-label="${esc(i.name)} status" aria-label="Status of ${esc(i.name)}">${window.Hub.options(S.pick?S.pick.workStatus:[],i.status)}</select>`;
 const ptsInput=i=>`<input class="hub-inline num" type="number" min="0" step="0.5" data-edit="ADM_Work__c" data-type="num" data-id="${esc(i.id)}" data-field="Story_Points__c" data-prev="${i.storyPoints==null?'':esc(i.storyPoints)}" data-label="${esc(i.name)} points" aria-label="Story points of ${esc(i.name)}" value="${i.storyPoints==null?'':esc(i.storyPoints)}">`;
 const salBtn=i=>window.SAL?window.SAL.btn(i):'';
+/** Row checkbox for "Move Work to Next Sprint" (open items only). */
+const selBox=i=>isClosed(i)||i.itemStatus==='Removed'?'':`<input type="checkbox" class="sp-sel" data-sel="${esc(i.id)}" aria-label="Select ${esc(i.name)}"${S.sel.has(i.id)?' checked':''}>`;
 function itemRow(i,who){
   const flag=i.itemStatus==='Added'?'<span class="sp-chip add">Added</span>':i.itemStatus==='Removed'?'<span class="sp-chip rem">Removed</span>':'';
   const changed=i.ptsChanged?`<span class="sp-chip chg" title="Forecast ${esc(i.forecastPts)} pts, now ${esc(i.storyPoints)} pts">pts changed</span>`:'';
-  return `<tr class="${i.itemStatus==='Removed'?'sp-removed':''}"><td><a href="${GUS_WORK}${esc(i.id)}/view" target="_blank" rel="noopener noreferrer">${esc(i.name)}</a>${salBtn(i)}</td><td class="sp-subject" title="${esc(i.subject)}${i.epic?esc('\n\nEpic: '+i.epic):''}"><span class="sp-clip">${esc(i.subject)}</span>${who?`<span class="sp-tags">${itemTags(i)}</span>`:`${flag}${changed}`}</td><td class="sp-epic-cell" title="${esc(i.epic)}">${i.epicId?`<a href="${EPIC(esc(i.epicId))}" target="_blank" rel="noopener noreferrer">${esc(i.epic)}</a>`:'<span class="muted">—</span>'}</td><td class="sp-type">${esc(i.recordType)}</td>${who?`<td class="sp-qa-cell">${qaCell(i)}</td>`:''}<td>${statusSelect(i)}</td><td class="num">${planCell(i)}</td><td class="num">${ptsInput(i)}</td><td class="num">${churnCell(i)}</td></tr>`;
+  return `<tr class="${i.itemStatus==='Removed'?'sp-removed':''}"><td>${selBox(i)}<a href="${GUS_WORK}${esc(i.id)}/view" target="_blank" rel="noopener noreferrer">${esc(i.name)}</a>${salBtn(i)}</td><td class="sp-subject" title="${esc(i.subject)}${i.epic?esc('\n\nEpic: '+i.epic):''}"><span class="sp-clip">${esc(i.subject)}</span>${who?`<span class="sp-tags">${itemTags(i)}</span>`:`${flag}${changed}`}</td><td class="sp-epic-cell" title="${esc(i.epic)}">${i.epicId?`<a href="${EPIC(esc(i.epicId))}" target="_blank" rel="noopener noreferrer">${esc(i.epic)}</a>`:'<span class="muted">—</span>'}</td><td class="sp-type">${esc(i.recordType)}</td>${who?`<td class="sp-qa-cell">${qaCell(i)}</td>`:''}<td>${statusSelect(i)}</td><td class="num">${planCell(i)}</td><td class="num">${ptsInput(i)}</td><td class="num">${churnCell(i)}</td></tr>`;
 }
 const SORTS={name:i=>i.name,subject:i=>i.subject,epic:i=>i.epic,recordType:i=>i.recordType,status:i=>i.status,forecast:i=>i.forecastPts,pts:i=>i.storyPoints,churn:churnOf};
 function sortRows(rows){
@@ -299,8 +301,38 @@ function renderStandup(){
   ${epicCards(items,'Epics for '+m.name+'’s sprint work',(items.find(i=>i.assigneeId)||{}).assigneeId)}
   <div class="sp-sec-row su-sec-row"><h4 class="sp-sec">Work items <span class="count-pill">${epicFilter(items).length<items.length?`${epicFilter(items).length} of ${items.length}`:items.length}</span></h4>${typeChips(items)}</div>
   <div class="su-cols" aria-hidden="true"><span>#</span><span>Work</span><span>Subject / Epic</span><span>QA</span><span>Status</span><span class="num pl">Planned</span><span class="num ac">Actual</span><span class="num">Churn</span></div>
-  <ol class="su-items">${epicFilter(items).map(i=>`<li class="${isClosed(i)?'done':''}"><span class="su-no"></span><span class="su-wk"><a href="${GUS_WORK}${esc(i.id)}/view" target="_blank" rel="noopener noreferrer">${esc(i.name)}</a>${salBtn(i)}</span><span class="su-subject" title="${esc(i.subject)}${i.epic?esc('\n\nEpic: '+i.epic):''}">${esc(i.subject)}${i.epic?` <span class="sp-chip">${esc(i.epic)}</span>`:''} <span class="sp-tags">${itemTags(i)}</span></span>${qaCell(i)}${statusSelect(i)}<span class="num">${planCell(i)}</span>${ptsInput(i)}<span class="num">${churnCell(i)}</span></li>`).join('')}</ol></div>`:'<p class="su-hint0">Select an engineer above to see their epics and work items.</p>'}</div></section>`;
+  <ol class="su-items">${epicFilter(items).map(i=>`<li class="${isClosed(i)?'done':''}"><span class="su-no"></span><span class="su-wk">${selBox(i)}<a href="${GUS_WORK}${esc(i.id)}/view" target="_blank" rel="noopener noreferrer">${esc(i.name)}</a>${salBtn(i)}</span><span class="su-subject" title="${esc(i.subject)}${i.epic?esc('\n\nEpic: '+i.epic):''}">${esc(i.subject)}${i.epic?` <span class="sp-chip">${esc(i.epic)}</span>`:''} <span class="sp-tags">${itemTags(i)}</span></span>${qaCell(i)}${statusSelect(i)}<span class="num">${planCell(i)}</span>${ptsInput(i)}<span class="num">${churnCell(i)}</span></li>`).join('')}</ol></div>`:'<p class="su-hint0">Select an engineer above to see their epics and work items.</p>'}</div></section>`;
 }
+// ── Move Work to Next Sprint ────────────────────────────────────────────────
+const nextCache=new Map();
+const nextSprint=()=>{const k=S.teamId+'|'+S.sprintId;if(!nextCache.has(k))nextCache.set(k,call('sprint-next',{teamId:S.teamId,sprintId:S.sprintId}).catch(e=>{nextCache.delete(k);throw e;}));return nextCache.get(k);};
+function renderMoveBar(){
+  let bar=$('sp-movebar');
+  if(!S.sel.size){if(bar)bar.remove();return;}
+  if(!bar){bar=document.createElement('div');bar.id='sp-movebar';bar.setAttribute('role','region');bar.setAttribute('aria-label','Move selected work');document.body.appendChild(bar);}
+  const n=S.sel.size;
+  bar.innerHTML=`<span><b>${n}</b> work item${n>1?'s':''} selected</span><button type="button" class="sp-move-btn" data-move>Move Work to Next Sprint <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8h8M7 4.500 10.500 8 7 11.500M13 3v10" fill="none" stroke="currentColor" stroke-width="1.800" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button type="button" class="sp-move-clear" data-move-clear>Clear</button>`;
+  void nextSprint().catch(()=>{});
+}
+async function moveSelected(btn){
+  if(!S.sel.size||btn.disabled)return;btn.disabled=true;
+  try{
+    const {next,current}=await nextSprint();
+    if(!next){window.toast?.('No next sprint exists for this team yet. Create it in GUS first.',true);return;}
+    const n=S.sel.size;
+    if(!confirm(`Move ${n} work item${n>1?'s':''} from ${current.Name} to ${next.Name}?\n\nThis updates the Sprint field in GUS. Closed items are not moved.`))return;
+    btn.textContent='Moving…';
+    const r=await call('sprint-move-next',{teamId:S.teamId,sprintId:S.sprintId,ids:[...S.sel]});
+    S.sel.clear();nextCache.clear();
+    const bits=[`Moved ${r.moved.length} to ${r.next.Name}`];if(r.skipped)bits.push(`${r.skipped} closed left in place`);if(r.failed.length)bits.push(`${r.failed.length} failed: ${r.failed.map(f=>f.name).join(', ')}`);
+    window.toast?.(bits.join(' · ')+'.',!!r.failed.length);
+    renderMoveBar();await loadSprint(S.sprintId);
+  }catch(e){window.toast?.('Move failed: '+e.message,true);}
+  finally{btn.disabled=false;renderMoveBar();}
+}
+document.addEventListener('change',e=>{const c=e.target.closest&&e.target.closest('input[data-sel]');if(!c)return;const id=c.dataset.sel;c.checked?S.sel.add(id):S.sel.delete(id);document.querySelectorAll('input[data-sel]').forEach(x=>{if(x.dataset.sel===id)x.checked=c.checked;});renderMoveBar();});
+document.addEventListener('click',e=>{const m=e.target.closest&&e.target.closest('[data-move]');if(m){moveSelected(m);return;}if(e.target.closest&&e.target.closest('[data-move-clear]')){S.sel.clear();document.querySelectorAll('input[data-sel]').forEach(x=>{x.checked=false;});renderMoveBar();}});
+
 function bindStandup(){
   const stepClick=e=>{const t=e.target.closest('[data-su],[data-su-step]');if(!t)return;S.standupIdx=t.dataset.su!=null?Number(t.dataset.su):S.standupIdx+Number(t.dataset.suStep);S.types.clear();S.epic=null;renderStandup();};
   $('sp-standup').addEventListener('click',stepClick);$('sp-sprintbar').addEventListener('click',stepClick);
@@ -317,7 +349,7 @@ async function loadHistory(){
 }
 function applyData(d){S.sprint=d.sprint;S.members=d.members||[];S.sprintId=d.sprint?.Id||S.sprintId;renderGoal();renderDates();renderMetrics();renderMembers();renderModal();renderStandup();}
 async function loadTeam(teamId){
-  const my=++S.seq;S.teamId=teamId;S.history=null;S.members=[];S.open.clear();S.order=null;S.modal=null;renderModal();busy(true,'Loading sprint data from GUS…');
+  const my=++S.seq;S.sel.clear();renderMoveBar();S.teamId=teamId;S.history=null;S.members=[];S.open.clear();S.order=null;S.modal=null;renderModal();busy(true,'Loading sprint data from GUS…');
   $('sp-chart').innerHTML='<div class="sp-loading">Loading trend…</div>';
   try{
     const d=await call('sprint-initial',{teamId});if(my!==S.seq)return;
@@ -327,7 +359,7 @@ async function loadTeam(teamId){
   }catch(e){if(my!==S.seq)return;busy(false,'');window.toast?.('Sprint Insights: '+e.message,true);$('sp-members').innerHTML=`<div class="empty-state sp-empty"><h3>Could not load sprint data</h3><p>${esc(e.message)}</p></div>`;}
 }
 async function loadSprint(sprintId){
-  const my=++S.seq;S.sprintId=sprintId;S.open.clear();S.modal=null;renderModal();busy(true,'Loading sprint…');
+  const my=++S.seq;if(sprintId!==S.sprintId){S.sel.clear();renderMoveBar();}S.sprintId=sprintId;S.open.clear();S.modal=null;renderModal();busy(true,'Loading sprint…');
   try{const d=await call('sprint-data',{teamId:S.teamId,sprintId});if(my!==S.seq)return;applyData(d);busy(false);if(!S.history)void loadHistory();else renderChart();}
   catch(e){if(my!==S.seq)return;busy(false,'');window.toast?.('Sprint Insights: '+e.message,true);}
 }
