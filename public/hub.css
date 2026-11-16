@@ -1763,3 +1763,14 @@ body[data-hub=status] #gus-links{display:none!important}
 .nd-chhash{color:#7a8aa0;font-weight:700}
 .nd-chwrap .nd-chsel{flex:1;min-width:0;border:0;outline:0;background:transparent;padding:0;font-size:14px;height:100%;cursor:pointer}
 .nd-chcfg{height:44px;padding:0 16px;white-space:nowrap}
+
+/* Sprint Action Log: explicit column widths (colgroup) so all four action buttons fit; dotted borders */
+.sal-table col.c-wid{width:96px}.sal-table col.c-sub{width:19%}.sal-table col.c-asg{width:10%}.sal-table col.c-own{width:13%}
+.sal-table col.c-det{width:auto}.sal-table col.c-eta{width:104px}.sal-table col.c-pri{width:96px}.sal-table col.c-act{width:176px}
+.sal-table th,.sal-table td{width:auto!important;padding:10px 8px!important}
+.sal-table td.sal-acts,.sal-table th:last-child{width:auto!important;padding:10px 8px!important}
+.sal-actbox{display:flex;gap:6px;align-items:center;flex-wrap:nowrap}
+.sal-table td.sal-acts .sal-ic{flex:none;width:32px;height:32px;margin:0!important}
+.sal-table{border:1px dotted #9fb0c3!important;border-collapse:collapse!important}
+.sal-table th,.sal-table td{border:1px dotted #b8c4d2!important}
+.sal-table thead th{border-bottom:1px dotted #8ea0b5!important}
