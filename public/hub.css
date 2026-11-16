@@ -1712,3 +1712,9 @@ body[data-hub=status] #gus-links{display:none!important}
 .pd-open{font-size:12.5px;font-weight:600}.pd-err{color:#b3261e}
 .pd-tip{position:fixed;z-index:1500;background:#fff;border:1px solid #c9d3e0;border-radius:10px;box-shadow:0 10px 30px rgba(15,35,70,.22);padding:12px 14px;font-size:13px;line-height:1.45;pointer-events:none}
 .pd-tip p{margin:4px 0 8px}.pd-tip ol{margin:4px 0 8px 18px;padding:0}.pd-tip-h{font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.03em;color:#44546a}.pd-tip-h .muted{text-transform:none;letter-spacing:0;font-weight:400}.pd-tip-f{font-size:11px;color:#6b778a;border-top:1px solid #e6ebf2;padding-top:6px}
+
+/* Sprint Action Log: keep the Actions column fully visible (no clipped buttons) */
+.sal-body .table-scroll{overflow-x:auto;overflow-y:visible;max-height:none;min-height:0;max-width:100%}
+.sal-table{min-width:0}.sal-table .sal-subj{max-width:200px}.sal-table .sal-det{min-width:200px;max-width:340px}
+.sal-table td.sal-acts,.sal-table th:last-child{position:sticky;right:0;z-index:2;box-sizing:border-box;min-width:180px!important;width:180px!important;padding-left:12px;padding-right:16px;white-space:nowrap;text-align:left}
+.sal-table td.sal-acts{background:#fff;display:table-cell}.sal-table td.sal-acts .sal-ic{flex:none;margin-right:6px}.sal-table td.sal-acts .sal-ic:last-child{margin-right:0}
