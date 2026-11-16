@@ -1838,3 +1838,14 @@ body[data-hub=plan] #pl-sum .pl-kpis,body[data-hub=plan] #pl-sum [class*="pl-kpi
 body[data-hub=plan] #pl-main>section,body[data-hub=plan] #pl-main>.pl-fs{margin-top:14px}
 body[data-hub=plan] .pl-kpis{gap:12px!important;margin:0 0 12px!important}
 body[data-hub=plan] .pl-kpis+*{margin-top:12px}
+
+/* Sortable column headers (all tables) */
+th.hs,.sal-lg .sal-gc.hs{cursor:pointer;user-select:none;white-space:nowrap}
+th.hs::after,.sal-lg .sal-gc.hs::after{content:"↕";margin-left:6px;font-size:11px;color:#b3bfcc;font-weight:400}
+th.hs:hover,.sal-lg .sal-gc.hs:hover{color:#0b5cab;background:#f1f6fb}
+th.hs-on::after,.sal-lg .sal-gc.hs-on::after{color:#0b5cab;font-weight:700}
+th.hs-on[aria-sort=ascending]::after,.sal-lg .hs-on[aria-sort=ascending]::after{content:"▲";font-size:9px}
+th.hs-on[aria-sort=descending]::after,.sal-lg .hs-on[aria-sort=descending]::after{content:"▼";font-size:9px}
+th.hs:focus-visible,.sal-lg .hs:focus-visible{outline:2px solid #0b6fa8;outline-offset:-2px}
+.sal-lg .sal-gc.sal-subj{max-width:none!important;width:auto!important;overflow:visible!important;white-space:normal!important}
+.sal-lg .sal-gc.sal-det{min-width:0!important;max-width:none!important}

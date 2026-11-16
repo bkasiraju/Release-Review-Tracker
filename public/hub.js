@@ -269,6 +269,26 @@ function fitTable(t){
   cg.innerHTML=cols.map(c=>`<col style="width:${c.px}px">`).join('');
   t.classList.add('fit');t.style.minWidth=Math.min(used+FIT_MIN_TEXT*flex.length,avail*3)+'px';
 }
+/** Generic column sorting: every plain table (one header row, no sorting of its own) sorts by clicking a header. It reorders all DOM rows before the pager slices them, so sorting spans every page. */
+const hsState=new WeakMap(),HS_EMPTY=/^(|—|-|–|n\/a|none|unassigned)$/i,HS_DATE=/^(\d{4}-\d{2}-\d{2}|\d{1,2} [A-Za-z]{3} \d{4}|\d{1,2}\/\d{1,2}\/\d{4})/;
+const hsSkip=t=>t.classList.contains('nosort')||t.closest('.nd-overlay,.sal-lg')||[...t.tHead?t.tHead.rows[0].cells:[]].some(c=>c.hasAttribute('aria-sort')||c.querySelector('[data-sort],[data-pdsort],.sort,[aria-sort]')||c.dataset.sort||c.dataset.pdsort);
+const hsHead=t=>{if(!t.tHead||!t.tBodies.length||t.tHead.rows.length!==1||hsSkip(t))return null;const h=t.tHead.rows[0].cells,r=[...t.tBodies[0].rows].find(x=>!x.querySelector(':scope>td[colspan]'));return r&&r.cells.length===h.length&&![...h].some(c=>c.colSpan>1)?h:null;};
+const hsText=c=>{const x=c.querySelector('select');if(x)return (x.selectedOptions[0]||{}).text||'';const i=c.querySelector('input:not([type=checkbox]):not([type=hidden])');if(i)return i.value||'';return (c.dataset.sortv!=null?c.dataset.sortv:c.textContent).replace(/\s+/g,' ').trim();};
+const hsVal=txt=>{if(HS_EMPTY.test(txt))return null;if(HS_DATE.test(txt)){const d=Date.parse(/^\d{1,2}\/\d{1,2}\/\d{4}/.test(txt)?txt.split('/').reverse().join('-'):txt);if(!isNaN(d))return d;}const n=txt.replace(/[,%$]/g,'').match(/^-?\d+(\.\d+)?(\s*[a-zA-Z]{0,3})?$/);return n?parseFloat(txt.replace(/,/g,'')):txt.toLowerCase();};
+function hsMark(t,h,st){[...h].forEach((c,i)=>{const on=st&&st.col===i;c.classList.toggle('hs-on',!!on);if(on)c.setAttribute('aria-sort',st.dir==='asc'?'ascending':'descending');else c.removeAttribute('aria-sort');});}
+function sortTable(t){
+  const h=hsHead(t);if(!h)return;
+  if(!t.dataset.hs){t.dataset.hs='1';[...h].forEach(c=>{if(c.textContent.trim()){c.classList.add('hs');c.tabIndex=0;c.setAttribute('role','columnheader');c.title=c.title||'Click to sort';}});}
+  const st=hsState.get(t);hsMark(t,h,st);if(!st)return;
+  const body=t.tBodies[0],groups=[];
+  for(const r of body.rows){if(r.querySelector(':scope>td[colspan]')&&groups.length)groups[groups.length-1].push(r);else groups.push([r]);}
+  if(groups.length<2||groups.every(g=>g[0].querySelector(':scope>td[colspan]')))return;
+  const keyed=groups.map((g,i)=>({g,i,v:hsVal(hsText(g[0].cells[st.col]||{textContent:'',querySelector:()=>null,dataset:{}}))}));
+  keyed.sort((a,b)=>{const x=a.v,y=b.v;if(x==null||y==null)return x==null&&y==null?a.i-b.i:x==null?1:-1;const c=typeof x==='number'&&typeof y==='number'?x-y:String(x).localeCompare(String(y),undefined,{numeric:true});return (st.dir==='asc'?c:-c)||a.i-b.i;});
+  if(keyed.every((k,i)=>k.i===i))return;
+  const frag=document.createDocumentFragment();keyed.forEach(k=>k.g.forEach(r=>frag.appendChild(r)));body.appendChild(frag);
+}
+H.sortTable=sortTable;
 /** Generic pager: any table with more than 25 rows (and no pager of its own) shows 25 at a time. Re-applied whenever its rows are re-rendered. */
 const DP=25,dpState=new WeakMap();
 const dpSkip=t=>t.closest('#bug-queue,.tf-section,#table-card,.sp-modal,.nd-overlay')||t.classList.contains('nopage');
@@ -288,13 +308,21 @@ document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest
 H.fitTable=fitTable;
 (function(){
   const pending=new Set();let raf=0;
-  const run=()=>{raf=0;for(const t of pending)try{fitTable(t);pageTable(t);}catch(_){}pending.clear();};
+  const run=()=>{raf=0;for(const t of pending)try{fitTable(t);sortTable(t);pageTable(t);}catch(_){}pending.clear();};
   const queue=t=>{if(t&&!t.classList.contains('nofit')){pending.add(t);if(!raf)raf=requestAnimationFrame(run);}};
   new MutationObserver(ms=>{for(const m of ms){
     if(m.target.nodeName==='COLGROUP'||m.target.nodeName==='COL')continue;
     const own=m.target.closest&&m.target.closest('table');if(own)queue(own);
     for(const n of m.addedNodes){if(n.nodeType!==1||n.nodeName==='COLGROUP')continue;if(n.nodeName==='TABLE')queue(n);else if(n.querySelectorAll)n.querySelectorAll('table').forEach(queue);}
   }}).observe(document.body,{childList:true,subtree:true});
+  const hsToggle=e=>{
+    if(e.type==='keydown'&&e.key!=='Enter'&&e.key!==' ')return;
+    const th=e.target.closest&&e.target.closest('th.hs');if(!th||e.target.closest('input,select,textarea,a,button'))return;
+    const t=th.closest('table'),i=th.cellIndex,cur=hsState.get(t);if(!t)return;e.preventDefault();
+    hsState.set(t,{col:i,dir:cur&&cur.col===i&&cur.dir==='asc'?'desc':'asc'});
+    const ds=dpState.get(t);if(ds)ds.pg=1;queue(t);
+  };
+  document.addEventListener('click',hsToggle);document.addEventListener('keydown',hsToggle);
   let rt;window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>document.querySelectorAll('table').forEach(t=>{delete t.dataset.fit;queue(t);}),150);});
   document.querySelectorAll('table').forEach(queue);
 })();
