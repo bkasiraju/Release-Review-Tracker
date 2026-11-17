@@ -194,6 +194,30 @@ async function createEpic(sf, teamId, input) {
   return { gusId: newId(c), projectGusId: proj.id, projectCreated: proj.created, created: true };
 }
 
+// Write edits made in the plan grid through to epics that already exist in GUS (name, development lead = owner, planned release, effort).
+async function syncEpics(sf, teamId, epics) {
+  planKey(teamId);
+  const out = [];
+  for (const x of (Array.isArray(epics) ? epics : []).slice(0, 100)) {
+    const id = gid(x && x.gusId), f = {};
+    if (!id) { out.push({ gusId: '', ok: false, err: 'Not a GUS epic' }); continue; }
+    try {
+      if (x.name != null) { const n = text(x.name, 255); if (!n) throw new Error('Epic name cannot be empty.'); if (n.length > EPIC_NAME_MAX) throw new Error(`Epic name is ${n.length} characters; GUS allows at most ${EPIC_NAME_MAX}.`); f.Name = n; }
+      if (x.leadId !== undefined) { const l = gid(x.leadId); if (l) { f.Development_Lead__c = l; f.OwnerId = l; } }
+      if (x.releaseId !== undefined) f.Planned_Release__c = gid(x.releaseId) || null;
+      if (x.effort !== undefined) f.Planned_Story_Points__c = days(x.effort);
+      const mine = ((await sf.query(`SELECT Id FROM ADM_Epic__c WHERE Id = '${id}' AND Team__c = '${teamId}' LIMIT 1`)).records || [])[0];
+      if (!mine) throw new Error('Epic does not belong to this team.');
+      let r = await sf.update('ADM_Epic__c', id, f);
+      if (r && !ok(r) && f.OwnerId) { delete f.OwnerId; r = await sf.update('ADM_Epic__c', id, f); }
+      if (r && !ok(r)) throw new Error((r.errors || []).join(', ') || 'GUS rejected the update.');
+      out.push({ gusId: id, ok: true });
+    } catch (e) { out.push({ gusId: id, ok: false, err: String(e && e.message || e) }); }
+  }
+  refsCache.delete(teamId);
+  return { results: out };
+}
+
 // Validate ABL epics against the saved plan and describe exactly what a commit would do.
 const shortCache = new Map(), refsCache = new Map(), SHORT_TTL = 600000, REFS_TTL = 60000;
 async function teamShort(sf, teamId) {
@@ -357,4 +381,4 @@ async function commitRun(sf, store, teamId, confirm, includeBtl, acknowledged) {
   return { results, failed: results.filter(x => !x.ok).length, plan: saved && saved.plan, revision: saved && saved.revision, saveError };
 }
 
-module.exports = { getPlan, savePlan, getRefs, commitPlan, createProject, createEpic, review, cleanPlan };
+module.exports = { getPlan, savePlan, getRefs, commitPlan, createProject, createEpic, syncEpics, review, cleanPlan };

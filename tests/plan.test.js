@@ -125,3 +125,10 @@ test('createProject / createEpic write the mandatory GUS fields and reuse duplic
   await assert.rejects(plan.createEpic(sf,T,{name:'E',leadId:ENG,releaseId:'a1EEE00000OTHER01A',project:{gusId:'a1PEE00000PRJ0001A'}}),/planned releases/);
   await assert.rejects(plan.createEpic(sfMock([],{failEpic:true}),T,{name:'E2',leadId:ENG,releaseId:REL,project:{gusId:'a1PEE00000PRJ0001A'}}),/rejected the epic/);
 });
+test('syncEpics writes grid edits to GUS epics of this team only and reports failures',async()=>{
+  const log=[],base=sfMock(log),sf={...base,async query(q){if(/FROM ADM_Epic__c/.test(q))return {records:/a0XEE00000EPC0001A/.test(q)?[{Id:'a0XEE00000EPC0001A'}]:[]};return base.query(q);}};
+  const r=await plan.syncEpics(sf,T,[{gusId:'a0XEE00000EPC0001A',name:'Renamed',leadId:ENG,releaseId:'',effort:7.5},{gusId:'a0XEE00000OTHER01',name:'x'},{gusId:'a0XEE00000EPC0001A',name:'y'.repeat(81)}]);
+  assert.deepEqual(r.results.map(x=>x.ok),[true,false,false]);
+  assert.deepEqual(log.find(x=>x[0]==='u'&&x[1]==='ADM_Epic__c')[3],{Name:'Renamed',Development_Lead__c:ENG,OwnerId:ENG,Planned_Release__c:null,Planned_Story_Points__c:7.5});
+  assert.match(r.results[1].err,/does not belong/);assert.match(r.results[2].err,/at most 80/);
+});

@@ -152,8 +152,8 @@ function newEpicAt(){
     const r=await call('plan-create-epic',{teamId:H.team.Id,epic:{name,releaseId,leadId,project:{gusId:pr.gusId,name:pr.name,method:pr.method}}});
     pr.gusId=r.projectGusId||pr.gusId;
     const e=newEpic(pr.id),rr=rel.find(x=>x.id===releaseId);e.name=name;e.gusId=r.gusId;e.releaseId=rr?rr.id:'';e.releaseName=rr?rr.name:'';
-    e.owners=[leadId];e.ownerNames=[leadName];e.line=line;e.workstreams.forEach(x=>{x.line=line;});
-    pl.epics.push(e);closeModal();
+    e.owners=[leadId];e.ownerNames=[leadName];if(!P.gsnap)snapGus();e.line=line;e.workstreams.forEach(x=>{x.line=line;});
+    pl.epics.push(e);P.gsnap&&P.gsnap.set(e.gusId,JSON.stringify(gusSnap(e)));closeModal();
     if(filtersOn(P.view)){Object.assign(P.view,{q:'',flag:'',release:[],line:[],eng:[],theme:[]});saveFilters();drawTools();}
     draw();queueSave();const row=P.el.querySelector(`[data-e="${e.id}"]`);if(row){row.scrollIntoView({block:'center'});row.classList.add('pl-flash');setTimeout(()=>row.classList.remove('pl-flash'),2600);}
     window.toast?.(r.created?`Created epic “${name}” in GUS.`:`Epic “${name}” already existed in GUS and was linked.`,false);
@@ -468,10 +468,23 @@ const AUTOSAVE_MS=1500,HEARTBEAT_MS=120000;
 function queueSave(){setState('dirty');clearTimeout(P.timer);P.timer=setTimeout(()=>{if(P.plan&&P.el&&P.el.isConnected)flush(true);},AUTOSAVE_MS);}
 setInterval(()=>{if(P.plan&&P.el&&P.el.isConnected&&(P.state==='dirty'||P.state==='error'))flush(true);},HEARTBEAT_MS);
 window.addEventListener('beforeunload',ev=>{if(P.state==='dirty'||P.state==='error'){ev.preventDefault();ev.returnValue='';}});
+// Edits to epics that exist in GUS are written through to GUS after each plan save (administrators only).
+const gusSnap=e=>({name:e.name||'',leadId:(e.owners&&e.owners[0])||'',releaseId:e.releaseId||'',effort:Math.round(e.workstreams.reduce((a,w)=>a+(Number(w.days)||0),0)*100)/100});
+function snapGus(){P.gsnap=new Map((P.plan?P.plan.epics:[]).filter(e=>e.gusId).map(e=>[e.gusId,JSON.stringify(gusSnap(e))]));}
+async function syncGus(){
+  if(!P.plan||P.noGusSync)return;if(!P.gsnap)snapGus();
+  const todo=P.plan.epics.filter(e=>e.gusId&&P.gsnap.get(e.gusId)!==JSON.stringify(gusSnap(e)));if(!todo.length)return;
+  const sent=todo.map(e=>({e,s:gusSnap(e)}));
+  try{
+    const r=await call('plan-sync-epics',{teamId:H.team.Id,epics:sent.map(x=>({gusId:x.e.gusId,...x.s}))});
+    let bad=0;r.results.forEach((x,i)=>{if(x.ok)P.gsnap.set(sent[i].e.gusId,JSON.stringify(sent[i].s));else{bad++;window.toast?.(`GUS did not update “${sent[i].e.name}”: ${x.err}`,true);P.gsnap.set(sent[i].e.gusId,JSON.stringify(sent[i].s));}});
+    if(!bad&&sent.length)window.toast?.(`Updated ${sent.length} epic${sent.length>1?'s':''} in GUS.`,false);
+  }catch(e){if(/restricted/i.test(e.message))P.noGusSync=true;else window.toast?.('GUS update failed: '+e.message,true);}
+}
 async function flush(quiet){
   clearTimeout(P.timer);if(P.inflight)await P.inflight;if(P.state!=='dirty'&&P.state!=='error')return P.inflight;
   const my=P.seq;setState('saving');
-  P.inflight=call('plan-save',{teamId:H.team.Id,plan:P.plan,revision:P.rev}).then(r=>{if(my!==P.seq)return;P.rev=r.revision;if(P.state==='saving')setState('saved');},e=>{if(my!==P.seq)return;setState(/changed/i.test(e.message)?'conflict':'error');if(!quiet)window.toast?.(e.message,true);});
+  P.inflight=call('plan-save',{teamId:H.team.Id,plan:P.plan,revision:P.rev}).then(r=>{if(my!==P.seq)return;P.rev=r.revision;if(P.state==='saving')setState('saved');return syncGus();},e=>{if(my!==P.seq)return;setState(/changed/i.test(e.message)?'conflict':'error');if(!quiet)window.toast?.(e.message,true);});
   return P.inflight;
 }
 
@@ -781,6 +794,7 @@ async function openCommit(btl){
 }
 function showResult(r){
   if(r.plan){P.plan=r.plan;P.rev=r.revision;draw();}else load(P.el);
+  snapGus();
   const ok=r.results.filter(x=>x.ok).length;
   openModal(r.failed?'Saved with errors':'Saved to GUS',`<p class="note">${ok} of ${r.results.length} epic(s) saved to GUS${r.failed?`; ${r.failed} failed and can be retried — saved ones are not duplicated`:''}.${r.saveError?` The draft could not record the GUS ids (${esc(r.saveError)}); reload before retrying.`:''}</p>
   <div class="pl-review">${r.results.map(x=>`<div class="pl-review-r${x.ok?'':' bad'}"><b>${esc(x.name)}</b><span>${x.ok?esc([x.project,x.action,x.note].filter(Boolean).join(' · ')):'⚠ '+esc(x.error)}</span>${x.gusId?`<a class="pl-gus" href="${H.GUS}ADM_Epic__c/${esc(x.gusId)}/view" target="_blank" rel="noopener">Open in GUS ↗</a>`:''}</div>`).join('')}</div>
@@ -794,7 +808,7 @@ async function load(el){
   try{
     const id=H.team.Id,[g,refs,members]=await Promise.all([call('plan-get',{teamId:id}),call('plan-refs',{teamId:id}).catch(e=>({releases:[],programs:[],projects:[],sprints:[],warnings:[e.message]})),H.members().catch(()=>[])]);
     if(my!==P.seq)return;
-    P.plan=g.plan.window.start?g.plan:{...g.plan,window:emptyPlan().window};P.rev=g.revision;P.plan.epics.forEach(deriveLine);P.refs=refs;P.members=members;
+    P.noGusSync=false;P.plan=g.plan.window.start?g.plan:{...g.plan,window:emptyPlan().window};setTimeout(snapGus,0);P.rev=g.revision;P.plan.epics.forEach(deriveLine);P.refs=refs;P.members=members;
     const w=refs.warnings||[];el.querySelector('#pl-warn').innerHTML=w.length?`<p class="note pl-warn">Some GUS lists did not load (${esc(w.join('; '))}). Pickers may be incomplete.</p>`:'';
     el.querySelector('#pl-start').value=P.plan.window.start;el.querySelector('#pl-end').value=P.plan.window.end;
     el.querySelector('#pl-last').textContent=P.plan.lastCommit&&P.plan.lastCommit.at?`Last saved to GUS ${new Date(P.plan.lastCommit.at).toLocaleString()} (${P.plan.lastCommit.created} created, ${P.plan.lastCommit.updated} updated)`:'';
