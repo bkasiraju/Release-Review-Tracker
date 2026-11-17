@@ -118,17 +118,18 @@ function newEpicAt(){
   const rel=P.refs.releases,dr=defRel(),prog=P.refs.program;
   const body=
     crSection('Epic',crField('Project','',`<select class="hub-inline" data-p>${pl.projects.map((p,i)=>opt(p.id,projShort(p)+(p.gusId?'':'  (new — created with the epic)'),i===pl.projects.length-1)).join('')}</select>`,'wide')+crField('Epic name','',`<input class="hub-inline" type="text" data-n maxlength="255" placeholder="Epic name" autocomplete="off">`,'wide'))+
-    crSection('Planning',crField('Planned release','',`<select class="hub-inline" data-r>${rel.map(r=>opt(r.id,r.name,r.id===dr.releaseId)).join('')||opt('','No releases',true)}</select>`)+crField('ATL/BTL','',`<select class="hub-inline" data-l><option value="ABL">ABL (above the line)</option><option value="BTL" selected>BTL (below the line)</option></select>`)+crField('Planned effort','days',`<input class="hub-inline" type="number" min="0" max="1000" step="0.5" data-d placeholder="0">`))+
+    crSection('Planning',crField('Development lead','required',`<select class="hub-inline" data-o><option value="" selected>Select a team member…</option>${P.members.slice().sort((a,b)=>String(a.name).localeCompare(b.name)).map(m=>opt(m.id,m.name,false)).join('')}</select>`,'wide')+crField('Planned release','',`<select class="hub-inline" data-r>${rel.map(r=>opt(r.id,r.name,r.id===dr.releaseId)).join('')||opt('','No releases',true)}</select>`)+crField('ATL/BTL','',`<select class="hub-inline" data-l><option value="ABL">ABL (above the line)</option><option value="BTL" selected>BTL (below the line)</option></select>`)+crField('Planned effort','days',`<input class="hub-inline" type="number" min="0" max="1000" step="0.5" data-d placeholder="0">`))+
     crSection('Set automatically',crAuto([['Team',H.team.Name],['Program',prog?prog.name:'—'],['Owner',crUser()]]));
   const el=crDialog('New epic','Creates the epic in GUS under the chosen project and adds it to this plan.',body,'Create in GUS',async(el)=>{
-    const pr=pl.projects.find(x=>x.id===el.querySelector('[data-p]').value),name=el.querySelector('[data-n].hub-inline').value.trim(),releaseId=el.querySelector('[data-r]').value,effort=Number(el.querySelector('[data-d]').value)||0,line=el.querySelector('[data-l]').value;
+    const pr=pl.projects.find(x=>x.id===el.querySelector('[data-p]').value),name=el.querySelector('[data-n].hub-inline').value.trim(),releaseId=el.querySelector('[data-r]').value,effort=Number(el.querySelector('[data-d]').value)||0,line=el.querySelector('[data-l]').value,leadId=el.querySelector('[data-o]').value,leadName=(P.members.find(m=>m.id===leadId)||{}).name||'';
     if(!pr)throw new Error('Choose a project.');
     if(!name){el.querySelector('[data-n]').focus();throw new Error('Enter the epic name.');}
+    if(!leadId){el.querySelector('[data-o]').focus();throw new Error('Select the development lead.');}
     if(!releaseId)throw new Error('Choose the planned release.');
-    const r=await call('plan-create-epic',{teamId:H.team.Id,epic:{name,releaseId,effort,project:{gusId:pr.gusId,name:pr.name,method:pr.method}}});
+    const r=await call('plan-create-epic',{teamId:H.team.Id,epic:{name,releaseId,effort,leadId,project:{gusId:pr.gusId,name:pr.name,method:pr.method}}});
     pr.gusId=r.projectGusId||pr.gusId;
     const e=newEpic(pr.id),rr=rel.find(x=>x.id===releaseId);e.name=name;e.gusId=r.gusId;if(rr){e.releaseId=rr.id;e.releaseName=rr.name;}
-    e.line=line;e.workstreams.forEach(x=>{x.line=line;});if(e.workstreams[0])e.workstreams[0].days=effort;
+    e.owners=[leadId];e.ownerNames=[leadName];e.line=line;e.workstreams.forEach(x=>{x.line=line;});if(e.workstreams[0])e.workstreams[0].days=effort;
     pl.epics.push(e);closeModal();draw();queueSave();P.el.querySelector(`[data-e="${e.id}"]`)?.scrollIntoView({block:'nearest'});
     window.toast?.(r.created?`Created epic “${name}” in GUS.`:`Epic “${name}” already existed in GUS and was linked.`,false);
   });
