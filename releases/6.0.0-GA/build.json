@@ -3,7 +3,7 @@
   "label": "GOLDEN BUILD",
   "product": "Release Intelligence",
   "artifact": "cfs-release-review-tracker.zip",
-  "sha256": "143155342cb5165b87fbeb9dc7161621af8826d5a105d2442609c6bbea64462b",
+  "sha256": "dda6f03bd07609b176e1f3fead5079a94e131f1a77fc936b8b8f422ced3197a4",
   "gitTags": ["v6.0.0-GA", "GOLDEN-BUILD-6.0.0-GA"],
   "productionUrl": "https://gus-apps.internal.salesforce.com/applets/cfs-release-review-tracker/",
   "preferredRollbackTag": "GOLDEN-BUILD-6.0.0-GA",
