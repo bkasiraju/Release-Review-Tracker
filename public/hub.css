@@ -2047,3 +2047,4 @@ html body .pl-cr .pl-cr-foot .note{order:-1;background:none;border:0;padding:0;t
 html body .pl-cr .pl-cr-foot .button{min-width:120px;justify-content:center}
 html body .pl-cr .pl-cr-foot [data-close]{margin-right:6px}
 .pl-cr-btns{display:inline-flex;gap:10px;justify-content:center}
+html body .pl-pmenu .pl-pchip input.hub-inline[readonly]{background:#f3f6f9;color:#4b647a;border-style:dashed;cursor:default}
