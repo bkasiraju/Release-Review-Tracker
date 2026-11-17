@@ -1976,3 +1976,9 @@ html body .sp-items.sp-items.who.who th:nth-child(3){width:20%!important}
 #sp-movebar.in-header .sp-move-btn:hover:not(:disabled){background:#084a8c}
 #sp-movebar.in-header .sp-sel-n{white-space:nowrap}
 #sp-movebar:not(.in-header){z-index:13000}
+.pl-cr-seg{grid-column:1/-1;display:inline-flex;border:1px solid #c9d6e2;border-radius:8px;overflow:hidden;width:max-content;max-width:100%}
+.pl-cr-seg button{background:#fff;border:0;padding:6px 12px;font:600 12px/1.2 inherit;color:#4b647a;cursor:pointer}
+.pl-cr-seg button+button{border-left:1px solid #c9d6e2}
+.pl-cr-seg button.on{background:#0b5cab;color:#fff}
+.pl-cr-f[hidden]{display:none}
+.pl-cr-hint{grid-column:1/-1;margin:0;font-size:12px;color:#0b6fa8}

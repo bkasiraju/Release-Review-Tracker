@@ -129,10 +129,14 @@ async function loadRefs(sf, teamId) {
     safe('Sprints', sf.query(`SELECT Name, Start_Date__c, End_Date__c FROM ADM_Sprint__c WHERE Scrum_Team__c = '${teamId}' AND End_Date__c >= LAST_N_DAYS:14 ORDER BY Start_Date__c LIMIT 16`)),
     teamProgram(sf, teamId)
   ]);
+  // Projects already in the team's program (not only those with this team's epics), so they can be picked rather than retyped.
+  const inProg = teamProg ? await safe('Program projects', sf.query(`SELECT Id, Name, V2MOM_Method__c FROM PPM_Project__c WHERE Program__c = '${teamProg.id}' ORDER BY Name LIMIT 500`)) : [];
+  const seen = new Map(used.map(r => [r.p, { id: r.p, name: r.n, programId: r.g || '', programName: r.gn || '' }]));
+  for (const r of inProg) seen.set(r.Id, { ...(seen.get(r.Id) || { id: r.Id, name: r.Name, programId: teamProg.id, programName: teamProg.name }), method: r.V2MOM_Method__c || '' });
   return {
     releases: releases.map(r => ({ id: r.Id, name: r.Name })),
     programs: programs.map(r => ({ id: r.Id, name: r.Name })),
-    projects: used.map(r => ({ id: r.p, name: r.n, programId: r.g || '', programName: r.gn || '' })).sort((a, b) => a.name.localeCompare(b.name)),
+    projects: [...seen.values()].sort((a, b) => a.name.localeCompare(b.name)),
     sprints: sprints.map(r => ({ name: r.Name, start: r.Start_Date__c, end: r.End_Date__c })),
     program: teamProg || null,
     warnings
@@ -162,7 +166,7 @@ async function ensureProject(sf, teamId, project) {
 }
 async function createProject(sf, teamId, input) {
   planKey(teamId);
-  const r = await ensureProject(sf, teamId, { name: input && input.name, method: input && input.method });
+  const r = await ensureProject(sf, teamId, { name: input && input.name, method: input && input.method, gusId: input && input.gusId });
   const program = r.program || await teamProgram(sf, teamId);
   return { gusId: r.id, created: r.created, programId: program ? program.id : '', programName: program ? program.name : '' };
 }

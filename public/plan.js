@@ -57,8 +57,8 @@ function crDialog(title,sub,bodyHtml,okLabel,submit){
   const ok=el.querySelector('[data-ok]'),err=el.querySelector('.pl-cr-err');
   const fail=m=>{err.textContent=m;err.hidden=!m;};
   let allowed=false,busy=false;
-  const sync=()=>{ok.disabled=!allowed||busy;};
-  call('connection',{}).then(c=>{allowed=!!(c&&c.canCommit);if(!allowed)fail('Creating records in GUS is restricted to the plan administrators.');sync();},()=>{allowed=true;sync();});
+  el._gate=true;const sync=()=>{ok.disabled=(el._gate&&!allowed)||busy;};el._sync=sync;el._deny=()=>fail(el._gate&&!allowed?'Creating records in GUS is restricted to the plan administrators.':'');
+  call('connection',{}).then(c=>{allowed=!!(c&&c.canCommit);if(!allowed&&el._gate)fail('Creating records in GUS is restricted to the plan administrators.');sync();},()=>{allowed=true;sync();});
   const go=async()=>{if(ok.disabled)return;fail('');busy=true;ok.textContent='Creating…';sync();
     try{await submit(el,fail);}catch(e){fail(String(e&&e.message||e));}finally{busy=false;ok.textContent=okLabel;sync();}};
   ok.onclick=go;
@@ -67,29 +67,51 @@ function crDialog(title,sub,bodyHtml,okLabel,submit){
 }
 const crUser=()=>(P.user&&P.user.name)||'You (signed-in GUS user)';
 function newProjectAt(){
-  const pl=P.plan,prog=P.refs.program,methods=ioLists().methods,known=new Map(P.refs.projects.map(x=>[x.name.toLowerCase(),x]));
+  const pl=P.plan,prog=P.refs.program,methods=ioLists().methods;
+  const inPlan=g=>pl.projects.some(x=>(g.id&&x.gusId===g.id)||x.name.toLowerCase()===g.name.toLowerCase());
+  const avail=P.refs.projects.filter(g=>!inPlan(g));
+  const mode=`<div class="pl-cr-seg" role="tablist" aria-label="Project source"><button type="button" role="tab" data-mode="pick">Pick from GUS</button><button type="button" role="tab" data-mode="new">Enter new project</button></div>`;
   const body=
-    crSection('Project',crField('Measure name','project in GUS',`<input class="hub-inline" type="text" list="pl-projects" data-n maxlength="120" placeholder="Start typing to reuse an existing GUS project" autocomplete="off">`,'wide')+crField('Short form','e.g. HRP M1.1.3',`<input class="hub-inline" type="text" data-s maxlength="30" placeholder="Filled from the name">`)+`<p class="pl-cr-hint" data-hint hidden></p>`)+
+    crSection('Project',mode+
+      crField('GUS project',`${avail.length} not yet in this plan`,`<select class="hub-inline" data-g>${avail.length?avail.map(g=>opt(g.id,g.name,false)).join(''):opt('','No other projects found in GUS',true)}</select>`,'wide pl-cr-pick')+
+      crField('Measure name','new project in GUS',`<input class="hub-inline" type="text" data-n maxlength="120" placeholder="e.g. M1.1.3: Baseline reliability" autocomplete="off">`,'wide pl-cr-new')+
+      crField('Short form','e.g. HRP M1.1.3',`<input class="hub-inline" type="text" data-s maxlength="30" placeholder="Filled from the name">`)+`<p class="pl-cr-hint" data-hint hidden></p>`)+
     crSection('V2MOM',crField('V2MOM method','saved on the project in GUS',`<input class="hub-inline" type="text" list="pl-cr-methods" data-m maxlength="1000" placeholder="Pick an existing method or type a new one" autocomplete="off"><datalist id="pl-cr-methods">${methods.map(m=>`<option value="${esc(m)}"></option>`).join('')}</datalist>`,'wide'))+
     crSection('Set automatically',crAuto([['Team',H.team.Name],['Program',prog?prog.name:'Not found for this team'],['Owner',crUser()]]));
-  const el=crDialog('New project','Creates the project in GUS and shares it with every team.',body,'Create in GUS',async(el,fail)=>{
-    const name=el.querySelector('[data-n]').value.trim(),short=el.querySelector('[data-s]').value.trim(),method=el.querySelector('[data-m]').value.trim();
-    if(!name){el.querySelector('[data-n]').focus();throw new Error('Enter the measure (project) name.');}
-    if(!prog)throw new Error('This team has no GUS program for the planning release, so a project cannot be created.');
-    const r=await call('plan-create-project',{teamId:H.team.Id,project:{name,method}});
+  let md=avail.length?'pick':'new';
+  const el=crDialog('Add project','Pick a project that already exists in GUS, or enter a new one. Either way it is shared with every team.',body,'Add project',async(el,fail)=>{
+    const sh=el.querySelector('[data-s]').value.trim(),method=el.querySelector('[data-m]').value.trim();let name,gusId='',r;
+    if(md==='pick'){
+      const g=avail.find(x=>x.id===el.querySelector('[data-g]').value);if(!g)throw new Error('Pick a project, or switch to “Enter new project”.');
+      name=g.name;gusId=g.id;
+      r={gusId:g.id,created:false,programId:g.programId,programName:g.programName};
+      if(method&&method!==g.method)await call('plan-create-project',{teamId:H.team.Id,project:{name,method,gusId}}).catch(()=>{});
+    }else{
+      name=el.querySelector('[data-n]').value.trim();
+      if(!name){el.querySelector('[data-n]').focus();throw new Error('Enter the measure (project) name.');}
+      if(!prog)throw new Error('This team has no GUS program for the planning release, so a project cannot be created.');
+      r=await call('plan-create-project',{teamId:H.team.Id,project:{name,method}});
+    }
     let p=pl.projects.find(x=>x.gusId===r.gusId);
-    if(!p){p={id:uid('p'),name,short:short||shortProj(name),theme:'',gusId:r.gusId};pl.projects.push(p);}
-    Object.assign(p,{name,short:short||p.short||shortProj(name),method,gusId:r.gusId,programId:r.programId,programName:r.programName});
-    if(!P.refs.projects.some(x=>x.id===r.gusId))P.refs.projects.push({id:r.gusId,name,programId:r.programId,programName:r.programName});
-    closeModal();draw();queueSave();window.toast?.(r.created?`Created project “${name}” in GUS.`:`Linked existing GUS project “${name}”.`,false);
+    if(!p){p={id:uid('p'),name,short:sh||shortProj(name),theme:'',gusId:r.gusId};pl.projects.push(p);}
+    Object.assign(p,{name,short:sh||p.short||shortProj(name),method:method||p.method||'',gusId:r.gusId,programId:r.programId,programName:r.programName});
+    if(!P.refs.projects.some(x=>x.id===r.gusId))P.refs.projects.push({id:r.gusId,name,programId:r.programId,programName:r.programName,method});
+    closeModal();draw();queueSave();window.toast?.(r.created?`Created project “${name}” in GUS.`:`Added GUS project “${name}” to the plan.`,false);
   });
-  const n=el.querySelector('[data-n]'),sh=el.querySelector('[data-s]'),m=el.querySelector('[data-m]'),hint=el.querySelector('[data-hint]');let shTouched=false;
-  sh.oninput=()=>{shTouched=true;};
+  const g=el.querySelector('[data-g]'),n=el.querySelector('[data-n]'),sh=el.querySelector('[data-s]'),m=el.querySelector('[data-m]'),hint=el.querySelector('[data-hint]'),ok=el.querySelector('[data-ok]');let shTouched=false;
+  const known=new Map(P.refs.projects.map(x=>[x.name.toLowerCase(),x]));
+  const fillPick=()=>{const x=avail.find(a=>a.id===g.value);if(!x)return;if(!shTouched)sh.value=shortProj(x.name);m.value=x.method||m.value;};
+  const setMode=k=>{md=k;el._gate=k==='new';el._sync();el._deny();el.querySelectorAll('[data-mode]').forEach(b=>{const on=b.dataset.mode===k;b.classList.toggle('on',on);b.setAttribute('aria-selected',String(on));});
+    el.querySelector('.pl-cr-pick').hidden=k!=='pick';el.querySelector('.pl-cr-new').hidden=k!=='new';ok.textContent=k==='pick'?'Add project':'Create in GUS';
+    el.querySelector('.pl-cr-foot .note').textContent=k==='pick'?'Links the existing GUS project; nothing new is created.':'Created in GUS immediately when you confirm.';
+    if(k==='pick')fillPick();(k==='pick'?g:n).focus();};
+  el.querySelectorAll('[data-mode]').forEach(b=>{b.onclick=()=>setMode(b.dataset.mode);});
+  g.onchange=fillPick;sh.oninput=()=>{shTouched=true;};
   n.oninput=()=>{const v=n.value.trim(),hit=known.get(v.toLowerCase()),local=pl.projects.find(x=>x.name.toLowerCase()===v.toLowerCase());
     if(!shTouched)sh.value=(local&&local.short)||(v?shortProj(v):'');
     if(local&&local.method&&!m.value)m.value=local.method;
     hint.hidden=!hit&&!local;hint.textContent=hit||local?'This project already exists in GUS. It will be linked, not duplicated.':'';};
-  n.focus();
+  setMode(md);
 }
 function newEpicAt(){
   const pl=P.plan;if(!pl.projects.length){newProjectAt();return;}
