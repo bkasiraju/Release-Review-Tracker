@@ -136,18 +136,19 @@ function newEpicAt(){
   const lead=P.members.slice().sort((x,y)=>String(x.name).localeCompare(String(y.name)));
   const body=
     crSection('New epic',
-      crField('Project','',`<select class="hub-inline" data-p>${pl.projects.map((p,i)=>opt(p.id,projShort(p)+(p.name&&p.name!==projShort(p)?' — '+p.name:'')+(p.gusId?'':'  (new — created with the epic)'),i===pl.projects.length-1)).join('')}</select>`,'s5')+
-      crField('Epic name','',`<input class="hub-inline" type="text" data-n maxlength="255" placeholder="Epic name" autocomplete="off">`,'s7')+
+      crField('Project','',`<select class="hub-inline" data-p>${pl.projects.map((p,i)=>opt(p.id,projLabel(p)+(p.gusId?'':'  (new — created with the epic)'),i===pl.projects.length-1)).join('')}</select>`,'s5')+
+      crField('Epic name',`<span data-cnt>0 / ${EPIC_NAME_MAX}</span>`,`<textarea class="hub-inline" rows="2" data-n placeholder="Epic name" autocomplete="off"></textarea>`,'s7')+
       `<span class="pl-cr-pinfo s12" data-pi></span>`+
       crField('Development lead','required · epic owner',`<select class="hub-inline" data-o><option value="" selected>Select a team member…</option>${lead.map(m=>opt(m.id,m.name,false)).join('')}</select>`,'s4')+
       crField('Planned release','',`<select class="hub-inline" data-r>${opt('','— None (set after planning) —',true)}${rel.map(r=>opt(r.id,r.name,false)).join('')}</select>`,'s3')+
-      crField('ATL/BTL','',`<select class="hub-inline" data-l><option value="ABL">ABL (above the line)</option><option value="BTL" selected>BTL (below the line)</option></select>`,'s3')+
+      crField('ATL/BTL','',`<select class="hub-inline" data-l><option value="ABL" selected>ABL / ATL (above the line)</option><option value="BTL">BTL (below the line)</option></select>`,'s3')+
       crField('Effort','days',`<input class="hub-inline" type="number" min="0" max="1000" step="0.5" data-d placeholder="0">`,'s2'))+
     `<p class="pl-cr-auto-l">Set automatically: <b>Team</b> ${esc(H.team.Name)} · <b>Program</b> ${esc(prog?prog.name:'—')} · <b>Epic owner</b> same as the development lead</p>`;
   const el=crDialog('New epic','Creates the epic in GUS under the chosen project and adds it to this plan.',body,'Create in GUS',async(el)=>{
     const pr=pl.projects.find(x=>x.id===el.querySelector('[data-p]').value),name=el.querySelector('[data-n].hub-inline').value.trim(),releaseId=el.querySelector('[data-r]').value,effort=Number(el.querySelector('[data-d]').value)||0,line=el.querySelector('[data-l]').value,leadId=el.querySelector('[data-o]').value,leadName=(P.members.find(m=>m.id===leadId)||{}).name||'';
     if(!pr)throw new Error('Choose a project.');
     if(!name){el.querySelector('[data-n]').focus();throw new Error('Enter the epic name.');}
+    if(name.length>EPIC_NAME_MAX){el.querySelector('[data-n]').focus();throw new Error(`Epic name is ${name.length} characters; GUS allows at most ${EPIC_NAME_MAX}. Shorten it by ${name.length-EPIC_NAME_MAX}.`);}
     if(!leadId){el.querySelector('[data-o]').focus();throw new Error('Select the development lead.');}
     const r=await call('plan-create-epic',{teamId:H.team.Id,epic:{name,releaseId,effort,leadId,project:{gusId:pr.gusId,name:pr.name,method:pr.method}}});
     pr.gusId=r.projectGusId||pr.gusId;
@@ -159,8 +160,10 @@ function newEpicAt(){
     window.toast?.(r.created?`Created epic “${name}” in GUS.`:`Epic “${name}” already existed in GUS and was linked.`,false);
   });
   const pSel=el.querySelector('[data-p]'),pInfo=el.querySelector('[data-pi]');
-  const showP=()=>{const p=pl.projects.find(x=>x.id===pSel.value);pInfo.textContent=p?`${p.name}${p.method?'  ·  V2MOM: '+p.method:''}`:'';pInfo.title=pInfo.textContent;};
+  const showP=()=>{const p=pl.projects.find(x=>x.id===pSel.value);pInfo.textContent=p&&p.method?'V2MOM: '+p.method:'';pInfo.title=pInfo.textContent;};
   pSel.onchange=showP;showP();
+  const nm=el.querySelector('textarea[data-n]'),cnt=el.querySelector('[data-cnt]'),errEl=el.querySelector('.pl-cr-err');
+  nm.oninput=()=>{const L=nm.value.length,over=L>EPIC_NAME_MAX;cnt.textContent=`${L} / ${EPIC_NAME_MAX}`;cnt.classList.toggle('over',over);nm.classList.toggle('bad',over);errEl.textContent=over?`Epic name is ${L} characters; GUS allows at most ${EPIC_NAME_MAX}. Shorten it by ${L-EPIC_NAME_MAX}.`:'';errEl.hidden=!over;};
   el.querySelector('.nd-modal').classList.add('pl-cr-epic');
   el.querySelector('[data-n].hub-inline').focus();
 }
@@ -170,6 +173,8 @@ const isEng=m=>H.leaderRank(m.name)<0||m.alloc;
 const IO_COLS=['Method Name (V2MOM Field in Project)','Measure Name (project in GUS)','Project (short form)','Epic Name','Workstream','Epic Owner','Workstream Owner(s)','WS Est (days)','ATL/BTL','Priority','Sprint','Planned Release'];
 const IO_ROWS=300;
 const projShort=p=>p.short||shortProj(p.name);
+const EPIC_NAME_MAX=80; // ADM_Epic__c.Name length in GUS
+const projLabel=p=>{const sh=projShort(p),n=p.name||'';return !n||n===sh?sh:n.toLowerCase().startsWith(sh.toLowerCase())?n:sh+' — '+n;};
 function ioLists(){
   const pl=P.plan,eng=P.members.filter(isEng).map(m=>m.name).sort();
   return {methods:[...new Set(pl.projects.map(p=>(p.method||'').trim()).filter(Boolean))].sort(),projects:pl.projects.map(projShort),releases:P.refs.releases.map(r=>r.name),eng,line:['ABL','BTL'],pri:[0,1,2,3,4,5].map(n=>'P'+n),status:STAT};

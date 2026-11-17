@@ -145,6 +145,7 @@ async function loadRefs(sf, teamId) {
 
 // Create a project or an epic directly in GUS from the planner's "+ Project" / "+ Epic" dialogs.
 // Mandatory: project = name + the team's program; epic = name + team + project + planned release (+ planned effort in days).
+const EPIC_NAME_MAX = 80; // ADM_Epic__c.Name length in GUS
 async function ensureProject(sf, teamId, project) {
   const name = text(project && project.name, 120), method = text(project && project.method, 1000);
   if (project && gid(project.gusId)) {
@@ -174,6 +175,7 @@ async function createEpic(sf, teamId, input) {
   planKey(teamId);
   const name = text(input && input.name, 255), releaseId = gid(input && input.releaseId);
   if (!name) throw new Error('Enter the epic name.');
+  if (name.length > EPIC_NAME_MAX) throw new Error(`Epic name is ${name.length} characters; GUS allows at most ${EPIC_NAME_MAX}.`);
   const leadId = gid(input && input.leadId);
   if (!leadId) throw new Error('Select the development lead.');
   // The planned release is optional at creation; it is tagged in GUS as soon as one is chosen (now or when the plan is committed).
@@ -263,6 +265,7 @@ function review(plan, releaseIds, program, includeBtl) {
       if (!project.gusId && !program) problems.push(`No “${PROGRAM_RELEASE}” program found in GUS for this team, so project “${project.name || '?'}” cannot be tagged to one`);
     }
     if (!e.gusId && e.name && plan.epics.some(o => o !== e && !o.gusId && o.name.toLowerCase() === e.name.toLowerCase() && (includeBtl || o.line === 'ABL'))) problems.push('Another unsaved epic has the same name; rename one so GUS does not get duplicates');
+    if (e.name && e.name.length > EPIC_NAME_MAX) problems.push(`Epic name is ${e.name.length} characters; GUS allows ${EPIC_NAME_MAX}`);
     if (!e.releaseId) problems.push('Select a planned release');
     else if (releaseIds && !releaseIds.has(e.releaseId)) problems.push('Planned release does not belong to this team');
     if (!(effort > 0)) problems.push('Add effort (days) on at least one workstream');

@@ -121,6 +121,7 @@ test('createProject / createEpic write the mandatory GUS fields and reuse duplic
   await assert.rejects(plan.createEpic(sf,T,{name:'',releaseId:REL,project:{gusId:'a1PEE00000PRJ0001A'}}),/epic name/);
   const l2=[],e2=await plan.createEpic(sfMock(l2),T,{name:'No release',leadId:ENG,releaseId:'',project:{gusId:'a1PEE00000PRJ0001A'}});
   assert.equal(e2.created,true);assert.equal('Planned_Release__c' in l2.find(x=>x[0]==='c'&&x[1]==='ADM_Epic__c')[2],false);
+  await assert.rejects(plan.createEpic(sf,T,{name:'x'.repeat(81),leadId:ENG,releaseId:REL,project:{gusId:'a1PEE00000PRJ0001A'}}),/at most 80/);
   await assert.rejects(plan.createEpic(sf,T,{name:'E',leadId:ENG,releaseId:'a1EEE00000OTHER01A',project:{gusId:'a1PEE00000PRJ0001A'}}),/planned releases/);
   await assert.rejects(plan.createEpic(sfMock([],{failEpic:true}),T,{name:'E2',leadId:ENG,releaseId:REL,project:{gusId:'a1PEE00000PRJ0001A'}}),/rejected the epic/);
 });

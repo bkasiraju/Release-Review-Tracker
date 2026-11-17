@@ -2034,3 +2034,6 @@ html body .nd-modal.pl-cr.pl-cr-epic{width:min(1040px,96vw)}
 @media(max-width:760px){.pl-cr-epic .pl-cr-f[class*=" s"]{grid-column:1/-1!important}}
 @keyframes plFlash{0%,60%{background:#fff3c4}100%{background:transparent}}
 .pl-flash,.pl-flash>td{animation:plFlash 2.6s ease-out}
+.pl-cr .pl-cr-f textarea.hub-inline{height:auto;min-height:58px;padding:8px 12px;resize:vertical;line-height:1.35}
+.pl-cr .pl-cr-f textarea.hub-inline.bad{border-color:#b3261e;box-shadow:0 0 0 2px rgba(179,38,30,.15)}
+.pl-cr-f [data-cnt]{font-weight:600}.pl-cr-f [data-cnt].over{color:#b3261e}
