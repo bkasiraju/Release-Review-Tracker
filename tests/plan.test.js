@@ -164,3 +164,14 @@ test('listEpics returns the team epics for the add-existing picker',async()=>{
   const r=await plan.listEpics(sf,T);
   assert.deepEqual(r.epics[0],{id:'a3QEE000002pXaH2AU',name:'E1',projectId:'a1PEE00000PRJ0001A',projectName:'M1',method:'meth',programId:PROG,programName:'MQ - 268',releaseId:REL,releaseName:'MQ 268',leadId:ENG,leadName:'Ann',points:12});
 });
+test('deleteProject only deletes an empty project in the team program',async()=>{
+  const PID='a1PEE00000PRJ0001A',del=[];
+  const mk=(o={})=>({async query(q){if(/FROM ADM_Scrum_Team__c/.test(q))return {records:[{Name:'Message Queue'}]};if(/FROM PPM_Program__c/.test(q))return {records:[{Id:PROG,Name:'MQ - 268'}]};if(/FROM PPM_Project__c/.test(q))return {records:o.foreign?[]:[{Id:PID,Name:'M9: Gone'}]};if(/COUNT\(\)/.test(q))return {totalSize:o.epics||0,records:[]};return {records:[]};},
+    async delete(obj,id){if(o.refuse)throw new Error('insufficient access rights');del.push([obj,id]);}});
+  const r=await plan.deleteProject(mk(),T,{gusId:PID});assert.equal(r.deleted,true);assert.deepEqual(del,[['PPM_Project__c',PID]]);
+  await assert.rejects(plan.deleteProject(mk({epics:2}),T,{gusId:PID}),/still has 2 epics/);
+  await assert.rejects(plan.deleteProject(mk({foreign:true}),T,{gusId:PID}),/not in this team/);
+  await assert.rejects(plan.deleteProject(mk({refuse:true}),T,{gusId:PID}),/refused to delete/);
+  await assert.rejects(plan.deleteProject(mk(),T,{gusId:'bad id'}),/not in GUS/);
+  assert.equal(del.length,1);
+});

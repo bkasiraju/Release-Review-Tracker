@@ -173,6 +173,27 @@ async function createProject(sf, teamId, input) {
   const program = r.program || await teamProgram(sf, teamId);
   return { gusId: r.id, created: r.created, programId: program ? program.id : '', programName: program ? program.name : '' };
 }
+/** Deletes a project (measure) in GUS. Guarded: it must sit in this team's program and have no epics left in GUS, so shared work is never lost. */
+async function deleteProject(sf, teamId, input) {
+  planKey(teamId);
+  const id = gid(input && input.gusId);
+  if (!id) throw new Error('This project is not in GUS.');
+  const program = await teamProgram(sf, teamId);
+  if (!program) throw new Error('This team has no GUS program for the planning release.');
+  const hit = ((await sf.query(`SELECT Id, Name FROM PPM_Project__c WHERE Id = '${id}' AND Program__c = '${program.id}' LIMIT 1`)).records || [])[0];
+  if (!hit) throw new Error('That project is not in this team\'s GUS program, so it was not deleted.');
+  const n = ((await sf.query(`SELECT COUNT() FROM ADM_Epic__c WHERE Project__c = '${id}'`)).totalSize) || 0;
+  if (n) throw new Error(`“${hit.Name}” still has ${n} epic${n === 1 ? '' : 's'} in GUS. Move or delete them in GUS first; the project was not deleted.`);
+  try {
+    if (typeof sf.delete === 'function') await sf.delete('PPM_Project__c', id);
+    else if (typeof sf.request === 'function') await sf.request({ method: 'DELETE', url: '/services/data/v62.0/sobjects/PPM_Project__c/' + id });
+    else throw new Error('GUS Apps cannot delete records from this session.');
+  } catch (e) {
+    throw new Error('GUS refused to delete the project: ' + String(e && e.message || e));
+  }
+  refsCache.delete(teamId);
+  return { deleted: true, gusId: id, name: hit.Name };
+}
 async function createEpic(sf, teamId, input) {
   planKey(teamId);
   const name = text(input && input.name, 255), releaseId = gid(input && input.releaseId);
@@ -440,4 +461,4 @@ async function commitRun(sf, store, teamId, confirm, includeBtl, acknowledged) {
   return { results, failed: results.filter(x => !x.ok).length, plan: saved && saved.plan, revision: saved && saved.revision, saveError };
 }
 
-module.exports = { getPlan, savePlan, getRefs, commitPlan, createProject, createEpic, listEpics, createWorkstream, syncEpics, review, cleanPlan };
+module.exports = { getPlan, savePlan, getRefs, commitPlan, createProject, deleteProject, createEpic, listEpics, createWorkstream, syncEpics, review, cleanPlan };

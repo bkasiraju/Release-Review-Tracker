@@ -105,6 +105,7 @@ async function handleRequest(ctx){
       case 'plan-gus-epics':payload=await planner.listEpics(sf,b.teamId);break;
       case 'plan-create-workstream':if(!await canCommit(sf,ctx))throw Error('Creating workstreams in GUS is restricted to the plan administrators.');payload=await planner.createWorkstream(sf,b.teamId,b.workstream);break;
       case 'plan-create-epic':if(!await canCommit(sf,ctx))throw Error('Creating epics in GUS is restricted to the plan administrators.');payload=await planner.createEpic(sf,b.teamId,b.epic);break;
+      case 'plan-delete-project':if(!await canCommit(sf,ctx))throw Error('Deleting projects in GUS is restricted to the plan administrators.');payload=await planner.deleteProject(sf,b.teamId,b.project);break;
       case 'hub-tds':payload=await hub.getTds(sf,b.teamId);break;
       case 'hub-picklists':payload=await hub.getPicklists(sf);break;
       case 'hub-rotation':payload=await hub.getRotation(store,b.teamId);break;

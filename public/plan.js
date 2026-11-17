@@ -6,9 +6,9 @@
 const H=window.Hub,{esc,icon,call}=H;
 const P={plan:null,rev:null,refs:{releases:[],programs:[],projects:[],sprints:[]},members:[],seq:0,timer:0,state:'idle',stateAt:'',inflight:null,el:null};
 P.open={theme:false,eng:false,exec:false};
-P.view={q:'',release:[],line:[],eng:[],theme:[],group:'project',flag:'',kpi:''};
+P.view={q:'',tok:[],release:[],line:[],eng:[],theme:[],group:'project',flag:'',kpi:''};
 const MF=['release','line','eng','theme'],FKEY='pl-filters-';
-const filtersOn=V=>!!(V.q||V.flag||MF.some(k=>V[k].length));
+const filtersOn=V=>!!(V.q||V.flag||(V.tok&&V.tok.length)||MF.some(k=>V[k].length));
 /** Saved filter selections per team: kept in memory for the session and in localStorage when the frame allows it. */
 const memFilters={};
 function restoreFilters(){const t=H.team&&H.team.Id;if(!t||P.view._team===t)return;P.view._team=t;let v=memFilters[t];if(!v){try{v=JSON.parse(localStorage.getItem(FKEY+t));}catch(_){}}MF.forEach(k=>{P.view[k]=v&&Array.isArray(v[k])?v[k].slice():[];});}
@@ -216,7 +216,7 @@ function newEpicAt(pid){
       }
       if(!P.gsnap)snapGus();
       pl.epics.push(e);made.epic=e;P.gsnap.set(e.gusId,JSON.stringify(gusSnap(e)));
-      if(filtersOn(P.view)){Object.assign(P.view,{q:'',flag:'',release:[],line:[],eng:[],theme:[]});saveFilters();drawTools();}
+      if(filtersOn(P.view)){Object.assign(P.view,{q:'',tok:[],flag:'',release:[],line:[],eng:[],theme:[]});saveFilters();drawTools();}
       setCollapsed('p:'+pr.id,false);setCollapsed('e:'+e.id,false);draw();queueSave();flashRow(e);
     }
     // Workstreams: each becomes a parent story in GUS. A retry only creates the ones still missing.
@@ -616,13 +616,13 @@ const extraKpis=m=>{const cap=m.rows.filter(x=>x.cap),sum=k=>r2(cap.reduce((a,x)
 /** A summary tile filters the grid below to the data behind it; clicking the active tile again clears the filter. */
 function applyKpi(a){
   const V=P.view,cap=(P.engRows||[]).filter(x=>x.cap);
-  if(V.kpi===a){Object.assign(V,{q:'',release:[],line:[],eng:[],theme:[]});saveFilters();}
+  if(V.kpi===a){Object.assign(V,{q:'',tok:[],release:[],line:[],eng:[],theme:[]});saveFilters();}
   else{
     let eng=[];
     if(a==='over')eng=cap.filter(x=>x.abl+x.btl>x.avail+0.001).map(x=>x.id);
     if(a==='off')eng=cap.filter(x=>(x.leave||0)+(x.holiday||0)+(x.oncall||0)>0).map(x=>x.id);
     if((a==='over'||a==='off')&&!eng.length){window.toast?.(a==='over'?'No engineers are over-allocated.':'No engineer has time off or on-call.',false);return;}
-    Object.assign(V,{q:'',release:[],line:a==='abl'?['ABL']:a==='btl'?['BTL']:[],eng,theme:[]});saveFilters();
+    Object.assign(V,{q:'',tok:[],release:[],line:a==='abl'?['ABL']:a==='btl'?['BTL']:[],eng,theme:[]});saveFilters();
     V.flag=['unassigned','incomplete','pending'].includes(a)?a:'';V.kpi=a;
   }
   drawSummary();drawTools();drawPlanner();wire();
@@ -642,13 +642,15 @@ function drawPlanner(){
   const el=P.el.querySelector('#pl-planner'),pl=P.plan,rel=P.refs.releases;
   const projOpts=sel=>pl.projects.map(p=>opt(p.id,p.name||'(unnamed project)',p.id===sel)).join('');
   const engOpts=sel=>'<option value="">Unassigned</option>'+P.members.filter(isEng).map(m=>opt(m.id,m.name,m.id===sel)).join('');
-  const V=P.view,prj=new Map(pl.projects.map(p=>[p.id,p])),q=V.q.trim().toLowerCase(),filtering=!!(q||V.flag||MF.some(k=>V[k].length));
+  const V=P.view,prj=new Map(pl.projects.map(p=>[p.id,p])),q=(/^\s*([a-z0-9]+)\s*:/i.exec(V.q)&&SA[/^\s*([a-z0-9]+)/i.exec(V.q)[1].toLowerCase()]?'':V.q.trim().toLowerCase()),filtering=!!(q||V.flag||V.tok.length||MF.some(k=>V[k].length));
   const FLAG={unassigned:e=>e.workstreams.some(w=>(w.days||0)>0&&!wsEngs(w).length),incomplete:e=>!(e.owners&&e.owners.length)||!e.workstreams.some(w=>(w.days||0)>0),pending:e=>e.line==='ABL'&&!e.gusId};
   const match=e=>{const p=prj.get(e.projectId);
     if(V.flag&&FLAG[V.flag]&&!FLAG[V.flag](e))return false;
     if(V.release.length&&!V.release.includes(e.releaseId))return false;if(V.line.length&&!(e.workstreams.length?e.workstreams.some(w=>V.line.includes(wl(e,w))):V.line.includes(e.line)))return false;
     if(V.eng.length&&!e.workstreams.some(w=>wsEngs(w).some(i=>V.eng.includes(i))))return false;if(V.theme.length&&!V.theme.includes(epicTheme(e)))return false;
+    if(!tokOk(e,p))return false;
     if(q&&!((e.name||'')+' '+(p&&p.name||'')+' '+e.workstreams.map(w=>w.name).join(' ')).toLowerCase().includes(q))return false;return true;};
+  const tokOk=(e,p)=>{const by={};V.tok.forEach(t=>(by[t.k]=by[t.k]||[]).push(t));return Object.keys(by).every(k=>{const vs=skVals(k,e,p).map(x=>String(x).toLowerCase());return by[k].some(t=>{const v=t.v.toLowerCase();return t.x?vs.includes(v):vs.some(x=>x.includes(v));});});};
   const shown=pl.epics.filter(match);
   const cnt=P.el.querySelector('#pl-count');if(cnt)cnt.textContent=filtering?`${shown.length} of ${pl.epics.length} epics${V.flag?' · '+({unassigned:'unassigned effort',incomplete:'incomplete',pending:'pending GUS save'})[V.flag]:''}`:`${pl.epics.length} epic${pl.epics.length===1?'':'s'}`;
   const gsum=es=>{const d=l=>fmt(es.filter(e=>e.line===l).reduce((a,e)=>a+epicDays(e),0));return `<span class="pl-gsum"><i>${es.length} epic${es.length===1?'':'s'}</i><i class="abl">ABL ${d('ABL')}d</i><i class="btl">BTL ${d('BTL')}d</i></span>`;};
@@ -692,13 +694,13 @@ function drawPlanner(){
     };
     const byP=new Map(pl.projects.map(p=>[p.id,[]]));
     shown.forEach(e=>{if(!byP.has(e.projectId))byP.set(e.projectId,[]);byP.get(e.projectId).push(e);});
-    const projRow=(pid,es,open)=>{const p=prj.get(pid);return `<tr class="pl-g-proj" data-p="${esc(pid)}" style="--pc:${projColor(pid)}"><td colspan="${cols.length+1}"><div class="pl-pj-bar"><div class="pl-pj-l"><button type="button" class="pl-caret" data-fold-row="p:${esc(pid)}" aria-expanded="${open}" aria-label="${open?'Collapse':'Expand'} project" title="${open?'Collapse':'Expand'}">${open?'▾':'▸'}</button><span class="pl-pj-t"><b class="pl-pj-n" title="${esc(p?p.name:'')}">${esc(p?projLabel(p):'(no project)')}</b>${p&&p.method?`<span class="pl-pj-m" title="Method: ${esc(p.method)}">Method: ${esc(p.method)}</span>`:''}</span></div><div class="pl-pj-r">${gsum(es)}${p&&p.gusId?`<a class="pl-open-gus" href="${H.GUS}PPM_Project__c/${esc(p.gusId)}/view" target="_blank" rel="noopener" title="Open this project in GUS" aria-label="Open project in GUS">↗</a>`:''}${p?`<button type="button" class="button small pl-pj-add" data-proj-add-epic>+ Epic</button>`:''}</div></div></td></tr>`;};
+    const projRow=(pid,es,open)=>{const p=prj.get(pid);return `<tr class="pl-g-proj" data-p="${esc(pid)}" style="--pc:${projColor(pid)}"><td colspan="${cols.length+1}"><div class="pl-pj-bar"><div class="pl-pj-l"><button type="button" class="pl-caret" data-fold-row="p:${esc(pid)}" aria-expanded="${open}" aria-label="${open?'Collapse':'Expand'} project" title="${open?'Collapse':'Expand'}">${open?'▾':'▸'}</button><span class="pl-pj-t"><b class="pl-pj-n" title="${esc(p?p.name:'')}">${esc(p?projLabel(p):'(no project)')}</b>${p&&p.method?`<span class="pl-pj-m" title="Method: ${esc(p.method)}">Method: ${esc(p.method)}</span>`:''}</span></div><div class="pl-pj-r">${gsum(es)}${p&&p.gusId?`<a class="pl-open-gus" href="${H.GUS}PPM_Project__c/${esc(p.gusId)}/view" target="_blank" rel="noopener" title="Open this project in GUS" aria-label="Open project in GUS">↗</a>`:''}${p?`<button type="button" class="button small pl-pj-add" data-proj-add-epic>+ Epic</button>`:''}${p?`<button type="button" class="button small pl-pj-del" data-proj-del aria-label="Delete project" title="Delete project">🗑</button>`:''}</div></div></td></tr>`;};
     byP.forEach((es,pid)=>{if(filtering&&!es.length)return;const open=!fold.has('p:'+pid);rows.push(projRow(pid,es,open));if(open)es.forEach(emit);});
     const prjs=new Map(pl.projects.map(p=>[p.id,p]));
     const emenu=P.epicsOpen?`<div class="pl-pmenu pl-emenu" role="dialog" aria-label="Epics"><div class="pl-pm-h"><b>Epics <small>${pl.epics.length}</small></b><button type="button" class="pl-pm-x" data-epics-toggle aria-label="Close epics" title="Close">×</button></div><div class="pl-eh" aria-hidden="true"><span>Project Shortform</span><span>Epic name</span><span>Development lead</span><span>Release</span><span></span></div>${pl.epics.length?pl.epics.map(e=>{const pj=prjs.get(e.projectId)||{},own=(e.ownerNames&&e.ownerNames.length?e.ownerNames:(e.owners||[]).map(memName)).filter(Boolean)[0]||'—';return `<div class="pl-erow" data-goto-epic="${esc(e.id)}" tabindex="0" role="button" title="${esc(e.name)} — click to show in the table"><span title="${esc(pj.name||'')}">${esc(projShort(pj)||'—')}</span><span>${esc(e.name||'(unnamed)')}</span><span title="${esc(own)}">${esc(own)}</span><span title="${esc(e.releaseName||'')}">${esc(e.releaseName||'—')}</span><span class="pl-pact">${e.gusId?`<a class="pl-gus" href="${H.GUS}ADM_Epic__c/${esc(e.gusId)}/view" target="_blank" rel="noopener">GUS ↗</a>`:'<em class="pl-draft">Draft</em>'}</span></div>`;}).join(''):'<p class="note">No epics yet. Use + Epic to add one.</p>'}<p class="note">Click an epic to jump to it in the table. Hover to see full text.</p></div>`:'';
     const pmenu=P.projOpen?`<div class="pl-pmenu" role="dialog" aria-label="Projects"><div class="pl-pm-h"><b>Projects</b><button type="button" class="pl-pm-x" data-proj-toggle aria-label="Close projects" title="Close">×</button></div><div class="pl-ph" aria-hidden="true"><span>Project Shortform</span><span>Project name</span><span>V2MOM method</span><span></span></div>${pl.projects.map(p=>`<span class="pl-pchip" data-p="${esc(p.id)}"><input class="hub-inline pl-pshort" type="text" placeholder="e.g. HRP M1.1.3" aria-label="Project Shortform" title="${esc(p.short||'')}" data-f="short" value="${esc(p.short||'')}" maxlength="60"><input class="hub-inline pl-pname" type="text" list="pl-projects" placeholder="Project name (type to link a GUS project)" aria-label="Project name" title="${esc(p.name)}${p.gusId?' (exists in GUS; rename it in GUS)':''}" data-f="name" value="${esc(p.name)}" maxlength="120"${p.gusId?' readonly':''}><input class="hub-inline pl-pmeth" type="text" placeholder="V2MOM method" aria-label="V2MOM method for this project" title="${esc(p.method||'')}${p.gusId?' (saved to the GUS project on commit)':''}" data-f="method" value="${esc(p.method||'')}" maxlength="1000"><span class="pl-pact">${p.gusId?`<a class="pl-gus" href="${H.GUS}PPM_Project__c/${esc(p.gusId)}/view" target="_blank" rel="noopener">GUS ↗</a>`:'<em class="pl-draft">New</em>'}<button type="button" class="pl-x" data-add-epic aria-label="Add epic to this project" title="Add epic to this project">+</button><button type="button" class="pl-x" data-del-proj aria-label="Delete project" title="Delete project">×</button></span></span>`).join('')}<p class="note">Project names that exist in GUS are read-only (rename them in GUS). The shortform is a label kept in this plan only. The V2MOM method is saved to the GUS project when you commit the plan. Hover a field to see its full text.</p></div>`:'';
 
-    return `<div class="pl-grid-tools"><span class="pl-tl"><button type="button" class="button" id="pl-add-proj">+ Project</button><span class="pl-pwrap"><button type="button" class="button" data-proj-toggle aria-haspopup="true" aria-expanded="${P.projOpen?'true':'false'}">Projects ▾</button>${pmenu}</span><span class="pl-pwrap"><button type="button" class="button" data-epics-toggle aria-haspopup="true" aria-expanded="${P.epicsOpen?'true':'false'}">Epics ▾</button>${emenu}</span></span><span class="pl-cols"><button type="button" class="button" data-cols-toggle aria-haspopup="true" aria-expanded="${P.colsOpen?'true':'false'}">Columns ▾</button>${P.colsOpen?`<div class="pl-cols-menu" role="menu">${[...cols,...Object.keys(GCOL).filter(k=>!cols.includes(k))].map(k=>{const on=cols.includes(k),i=cols.indexOf(k);return `<div class="pl-colrow" data-colrow="${k}"${on?' draggable="true"':''}><span class="pl-colgrip" aria-hidden="true">${on?'⠿':''}</span><label><input type="checkbox" data-col="${k}"${on?' checked':''}> ${esc(GCOL[k])}</label>${on?`<button type="button" class="pl-colmv" data-colmv="${k}" data-d="-1" aria-label="Move ${esc(GCOL[k])} left"${i===0?' disabled':''}>▲</button><button type="button" class="pl-colmv" data-colmv="${k}" data-d="1" aria-label="Move ${esc(GCOL[k])} right"${i===cols.length-1?' disabled':''}>▼</button>`:''}</div>`;}).join('')}<div class="pl-cols-foot"><button type="button" class="pl-cols-reset" data-cols-reset>Reset to default</button><button type="button" class="button primary" data-cols-done>Done</button></div></div>`:''}</span></div><div class="pl-grid-wrap"><table class="pl-grid"><colgroup>${cols.map(k=>`<col class="${k==='name'||k==='ws'?'w-grow':'w-fit'}">`).join('')}<col class="w-fit"></colgroup><thead><tr>${cols.map(k=>`<th class="c-${k}">${esc(GCOL[k])}</th>`).join('')}<th class="c-actions">Actions</th></tr></thead><tbody>${rows.join('')||`<tr><td colspan="${cols.length+1}" class="note">${pl.projects.length?'No epics match the filters.':'No epics yet.'}</td></tr>`}</tbody></table></div>`;};
+    return `<div class="pl-grid-tools"><span class="pl-tl"><button type="button" class="button" id="pl-add-proj">+ Project</button><button type="button" class="button" data-fold-all="1" title="Collapse every project">Collapse all</button><button type="button" class="button" data-fold-all="0" title="Expand every project and epic">Expand all</button><span class="pl-pwrap"><button type="button" class="button" data-proj-toggle aria-haspopup="true" aria-expanded="${P.projOpen?'true':'false'}">Projects ▾</button>${pmenu}</span><span class="pl-pwrap"><button type="button" class="button" data-epics-toggle aria-haspopup="true" aria-expanded="${P.epicsOpen?'true':'false'}">Epics ▾</button>${emenu}</span></span><span class="pl-cols"><button type="button" class="button" data-cols-toggle aria-haspopup="true" aria-expanded="${P.colsOpen?'true':'false'}">Columns ▾</button>${P.colsOpen?`<div class="pl-cols-menu" role="menu">${[...cols,...Object.keys(GCOL).filter(k=>!cols.includes(k))].map(k=>{const on=cols.includes(k),i=cols.indexOf(k);return `<div class="pl-colrow" data-colrow="${k}"${on?' draggable="true"':''}><span class="pl-colgrip" aria-hidden="true">${on?'⠿':''}</span><label><input type="checkbox" data-col="${k}"${on?' checked':''}> ${esc(GCOL[k])}</label>${on?`<button type="button" class="pl-colmv" data-colmv="${k}" data-d="-1" aria-label="Move ${esc(GCOL[k])} left"${i===0?' disabled':''}>▲</button><button type="button" class="pl-colmv" data-colmv="${k}" data-d="1" aria-label="Move ${esc(GCOL[k])} right"${i===cols.length-1?' disabled':''}>▼</button>`:''}</div>`;}).join('')}<div class="pl-cols-foot"><button type="button" class="pl-cols-reset" data-cols-reset>Reset to default</button><button type="button" class="button primary" data-cols-done>Done</button></div></div>`:''}</span></div><div class="pl-grid-wrap"><table class="pl-grid"><colgroup>${cols.map(k=>`<col class="${k==='name'||k==='ws'?'w-grow':'w-fit'}">`).join('')}<col class="w-fit"></colgroup><thead><tr>${cols.map(k=>`<th class="c-${k}">${esc(GCOL[k])}</th>`).join('')}<th class="c-actions">Actions</th></tr></thead><tbody>${rows.join('')||`<tr><td colspan="${cols.length+1}" class="note">${pl.projects.length?'No epics match the filters.':'No epics yet.'}</td></tr>`}</tbody></table></div>`;};
   el.innerHTML=`<datalist id="pl-projects">${P.refs.projects.map(p=>`<option value="${esc(p.name)}"></option>`).join('')}</datalist><datalist id="pl-sprints">${P.refs.sprints.map(s=>`<option value="${esc(s.name)}"></option>`).join('')}</datalist>`+
     (!pl.projects.length?'<div class="empty-state hub-empty pl-empty"><h3>No projects yet</h3><p>Use + Project, then + Epic on the project row, or Import a filled template.</p></div>':'')+gridHtml();
   hoistTools();
@@ -717,7 +719,8 @@ function drawTools(){
   const sel=(k,label,list)=>`<div class="pl-tf pl-mf${V[k].length?' on':''}" data-mf="${k}"><span>${label}</span><button type="button" class="pl-mf-btn" aria-haspopup="true" aria-expanded="false" aria-label="${label} filter"><b>${esc(mfLabel(k,list))}</b><i aria-hidden="true">▾</i></button><div class="pl-mf-pop" hidden><input type="search" class="hub-inline" placeholder="Search ${label.toLowerCase()}…" aria-label="Search ${label}"><div class="pl-mf-acts"><button type="button" data-mf-all>Select all</button><button type="button" data-mf-none>Clear</button></div><ul>${list.map(([v,l])=>`<li data-t="${esc(String(l).toLowerCase())}"><label><input type="checkbox" value="${esc(v)}"${V[k].includes(v)?' checked':''}> <span>${esc(l)}</span></label></li>`).join('')||'<li class="note">Nothing to filter yet</li>'}</ul></div></div>`;
   const rels=[...new Map(pl.epics.filter(e=>e.releaseId).map(e=>[e.releaseId,e.releaseName||(P.refs.releases.find(r=>r.id===e.releaseId)||{}).name||e.releaseId])).entries()];
   const keepGt=box.querySelector(':scope > .pl-grid-tools');
-  box.innerHTML=`<label class="pl-tf pl-q"><span>Search</span><input type="search" class="hub-inline" data-v="q" placeholder="Epic, workstream or project…" aria-label="Search epics" value="${esc(V.q)}"></label>`+
+  box.innerHTML=`<div class="pl-tf pl-q pl-gs"><span>Search</span><div class="pl-gs-box"><span class="pl-gs-chips">${V.tok.map((t,i)=>`<span class="pl-gs-chip" title="${esc(SK[t.k]+': '+t.v)}"><b>${esc(SK[t.k])}:</b> ${esc(t.v)}<button type="button" data-tok-x="${i}" aria-label="Remove ${esc(SK[t.k])} filter ${esc(t.v)}">×</button></span>`).join('')}</span><input type="search" class="hub-inline" data-v="q" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="pl-gs-sug" aria-autocomplete="list" placeholder="Search… type 3+ letters, or project: epic: ws: eng: owner: status: atl: btl: sprint: release:" aria-label="Search the planner" value="${esc(V.q)}"></div><div class="pl-gs-sug" id="pl-gs-sug" role="listbox" hidden></div></div>`+
+    
     sel('release','Release',rels)+sel('line','ATL/BTL',[['ABL','ABL'],['BTL','BTL']])+sel('eng','Engineer',engs.map(m=>[m.id,m.name]))+sel('theme','Theme',themes.map(t=>[t,t]))+
     `<button type="button" class="button small pl-clear${filtersOn(V)?' pl-clear-on':''}" data-clear-view${filtersOn(V)?'':' disabled'}>Clear filters</button><span class="note pl-count" id="pl-count"></span>`;
   if(keepGt)box.appendChild(keepGt);
@@ -731,9 +734,52 @@ function drawTools(){
     if(e.target.closest('[data-mf-none]')){V[k]=[];w.querySelectorAll('li input').forEach(i=>{i.checked=false;});saveFilters();refresh(w);return;}};
   box.onchange=e=>{const i=e.target.closest('.pl-mf li input');if(!i)return;const w=i.closest('.pl-mf'),k=w.dataset.mf;V[k]=[...w.querySelectorAll('li input:checked')].map(x=>x.value);saveFilters();refresh(w);};
   box.addEventListener('input',e=>{const q=e.target.closest('.pl-mf-pop input[type=search]');if(!q)return;const t=q.value.trim().toLowerCase();q.closest('.pl-mf-pop').querySelectorAll('li[data-t]').forEach(li=>{li.hidden=!!t&&!li.dataset.t.includes(t);});});
+  const gi=box.querySelector('.pl-gs input'),gp=box.querySelector('.pl-gs-sug');let gl=[],ga=-1;
+  const gClose=()=>{gp.hidden=true;gi.setAttribute('aria-expanded','false');ga=-1;};
+  const gAdd=(k,v,x)=>{if(!V.tok.some(t=>t.k===k&&t.v.toLowerCase()===v.toLowerCase()))V.tok.push({k,v,x});V.q='';drawTools();drawPlanner();wire();const i=P.el.querySelector('#pl-tools .pl-gs input');if(i)i.focus();};
+  const gShow=()=>{gl=skSuggest(gi.value);ga=-1;if(!gl.length){const q=gi.value.trim();gp.innerHTML=q.length>=3||/^\w+:/.test(q)?`<div class="pl-gs-empty">No matches for “${esc(q)}”</div>`:'';gp.hidden=!gp.innerHTML;gi.setAttribute('aria-expanded',String(!gp.hidden));return;}
+    gp.innerHTML=gl.map((x,i)=>`<button type="button" class="pl-gs-opt" role="option" data-gs="${i}"><span class="pl-gs-k">${esc(SK[x.k])}</span><span class="pl-gs-v">${esc(x.v)}</span><span class="pl-gs-n">${x.n} epic${x.n===1?'':'s'}</span></button>`).join('');gp.hidden=false;gi.setAttribute('aria-expanded','true');};
+  const gMark=()=>gp.querySelectorAll('.pl-gs-opt').forEach((b,i)=>{b.classList.toggle('on',i===ga);b.setAttribute('aria-selected',String(i===ga));if(i===ga)b.scrollIntoView({block:'nearest'});});
+  gi.addEventListener('input',gShow);gi.addEventListener('focus',()=>{if(gi.value.trim())gShow();});
+  gp.addEventListener('mousedown',e=>{const b=e.target.closest('[data-gs]');if(!b)return;e.preventDefault();const x=gl[+b.dataset.gs];if(x)gAdd(x.k,x.v,true);});
+  gi.addEventListener('keydown',e=>{
+    if(e.key==='ArrowDown'||e.key==='ArrowUp'){if(gp.hidden)gShow();if(!gl.length)return;e.preventDefault();ga=(ga+(e.key==='ArrowDown'?1:-1)+gl.length)%gl.length;gMark();}
+    else if(e.key==='Enter'){const m=/^\s*([a-z0-9]+)\s*:\s*(.+)$/i.exec(gi.value);if(ga>=0&&gl[ga]){e.preventDefault();gAdd(gl[ga].k,gl[ga].v,true);}else if(m&&SA[m[1].toLowerCase()]){e.preventDefault();const k=SA[m[1].toLowerCase()],v=m[2].trim();gAdd(k,/^(atl|btl)$/i.test(m[1])&&k==='line'?m[1].toUpperCase().replace('ATL','ABL'):v,false);}}
+    else if(e.key==='Escape'&&!gp.hidden){gClose();e.stopPropagation();}
+    else if(e.key==='Backspace'&&!gi.value&&V.tok.length){V.tok.pop();drawTools();drawPlanner();wire();const i=P.el.querySelector('#pl-tools .pl-gs input');if(i)i.focus();}});
+  gi.addEventListener('blur',()=>setTimeout(gClose,120));
+  box.querySelectorAll('[data-tok-x]').forEach(b=>b.addEventListener('click',()=>{V.tok.splice(+b.dataset.tokX,1);drawTools();drawPlanner();wire();}));
   box.onkeydown=e=>{if(e.key==='Escape'&&e.target.closest('.pl-mf')){const w=e.target.closest('.pl-mf');closeAll();w.querySelector('.pl-mf-btn').focus();e.stopPropagation();}};
   if(!P.mfDoc){P.mfDoc=true;document.addEventListener('mousedown',e=>{if(e.target.closest('.pl-mf'))return;document.querySelectorAll('.pl-mf-pop').forEach(p=>{p.hidden=true;});});}
 }
+// Global search: "kind:text" tokens (project:, epic:, ws:, eng:, owner:, status:, atl:/btl:, sprint:, release:, theme:, method:).
+// Type 3+ characters to get suggestions across every kind, or a short form such as "eng:" to list just that kind. Tokens AND across kinds and OR within one.
+const SK={project:'Project',method:'Method',epic:'Epic',ws:'Workstream',eng:'Engineer',owner:'Epic owner',status:'Status',line:'ATL/BTL',sprint:'Sprint',release:'Release',theme:'Theme'};
+const SA={project:'project',proj:'project',p:'project',measure:'project',method:'method',m:'method',epic:'epic',e:'epic',workstream:'ws',ws:'ws',w:'ws',engineer:'eng',eng:'eng',en:'eng',owner:'owner',lead:'owner',dl:'owner',status:'status',st:'status',atl:'line',btl:'line',line:'line',sprint:'sprint',sp:'sprint',release:'release',rel:'release',theme:'theme'};
+const uniq=a=>[...new Set(a.map(x=>String(x==null?'':x).trim()).filter(Boolean))];
+function skVals(k,e,p){const ws=e.workstreams||[];
+  switch(k){
+    case 'project':return p?[projLabel(p),p.name,projShort(p)]:[];
+    case 'method':return p&&p.method?[p.method]:[];
+    case 'epic':return [e.name];
+    case 'ws':return ws.map(w=>w.name);
+    case 'eng':return uniq(ws.flatMap(w=>wsEngs(w).map((id,i)=>memName(id)||(w.engNames||[])[i]||(w.engId===id?w.engName:''))));
+    case 'owner':return uniq((e.ownerNames&&e.ownerNames.length?e.ownerNames:(e.owners||[]).map(memName)));
+    case 'status':return uniq([e.status||'Planned',...ws.map(w=>w.status)]);
+    case 'line':return uniq(ws.length?ws.map(w=>wl(e,w)):[e.line]).flatMap(l=>l==='ABL'?['ABL','ATL']:[l]);
+    case 'sprint':return uniq(ws.map(w=>w.sprint));
+    case 'release':return e.releaseName?[e.releaseName]:[];
+    case 'theme':return [epicTheme(e)];
+  }return [];}
+function skSuggest(query){const m=/^\s*([a-z0-9]+)\s*:\s*(.*)$/i.exec(query),kind=m&&SA[m[1].toLowerCase()],text=(kind?m[2]:query).trim().toLowerCase();
+  if(!kind&&text.length<3)return [];
+  const prj=new Map(P.plan.projects.map(p=>[p.id,p])),kinds=kind?[kind]:Object.keys(SK),out=[];
+  kinds.forEach(k=>{const cnt=new Map();
+    P.plan.epics.forEach(e=>{const seen=new Set();(k==='project'?[projLabel(prj.get(e.projectId)||{name:'',short:''})].filter(Boolean):skVals(k,e,prj.get(e.projectId))).forEach(v=>{if(!seen.has(v)&&!(k==='line'&&v==='ATL')&&(!text||v.toLowerCase().includes(text)||(k==='line'&&((v==='ABL'&&('atl'.startsWith(text)||'above the line'.includes(text)))||(v==='BTL'&&'below the line'.includes(text)))))){seen.add(v);cnt.set(v,(cnt.get(v)||0)+1);}});});
+    if(k==='project'){/* project labels only; method has its own kind */}
+    const arr=[...cnt.entries()].sort((a,b)=>(b[0].toLowerCase().startsWith(text)-a[0].toLowerCase().startsWith(text))||b[1]-a[1]||a[0].localeCompare(b[0],undefined,{numeric:true}));
+    arr.slice(0,kind?12:4).forEach(([v,n])=>out.push({k,v,n}));});
+  return out.slice(0,kind?12:16);}
 function draw(){drawSummary();drawTools();drawPlanner();wire();}
 
 const closeMs=()=>document.querySelectorAll('.ms.open').forEach(w=>{w.classList.remove('open');w.querySelector('.cs-btn').setAttribute('aria-expanded','false');});
@@ -820,13 +866,14 @@ function onClick(ev){
   const tb=t.closest('[data-tab]');if(tb){setTab(tb.dataset.tab);return;}
   const rp=t.closest('[data-rps]');if(rp){openRps(rp.dataset.rps,rp);return;}
   const fd=t.closest('[data-fold]')||(t.closest('.pl-card>h3>small')?.parentElement.querySelector('[data-fold]'));if(fd){P.open[fd.dataset.fold]=!P.open[fd.dataset.fold];drawSummary();return;}
+  const fa=t.closest('[data-fold-all]');if(fa){const c=collapsed();c.clear();if(fa.dataset.foldAll==='1')pl.projects.forEach(p=>c.add('p:'+p.id));try{localStorage.setItem(colKey(),JSON.stringify([...c]));}catch(_){}drawPlanner();wire();return;}
   const fr=t.closest('[data-fold-row]');if(fr){const k=fr.dataset.foldRow;setCollapsed(k,!collapsed().has(k));drawPlanner();wire();return;}
   if(t.closest('[data-proj-add-epic]')){newEpicAt(c.p);return;}
   if(t.closest('[data-epics-toggle]')){P.epicsOpen=!P.epicsOpen;if(P.epicsOpen)P.projOpen=false;drawPlanner();wire();return;}
   const ge=t.closest('[data-goto-epic]');if(ge&&!t.closest('a')){const id=ge.dataset.gotoEpic,ee=findE(id);if(ee){setCollapsed('p:'+ee.projectId,false);setCollapsed('e:'+id,false);}P.epicsOpen=false;drawPlanner();wire();const row=P.el.querySelector(`[data-e="${id}"]`);if(row){row.scrollIntoView({block:'center'});row.classList.add('pl-flash');setTimeout(()=>row.classList.remove('pl-flash'),2600);}return;}
   if(t.closest('[data-proj-toggle]')){P.projOpen=!P.projOpen;if(P.projOpen)P.epicsOpen=false;drawPlanner();wire();return;}
   const kp=t.closest('[data-kpi]');if(kp){applyKpi(kp.dataset.kpi);return;}
-  if(t.closest('[data-clear-view]')){P.view=Object.assign(P.view,{q:'',release:[],line:[],eng:[],theme:[]});saveFilters();drawTools();drawPlanner();wire();return;}
+  if(t.closest('[data-clear-view]')){P.view=Object.assign(P.view,{q:'',tok:[],release:[],line:[],eng:[],theme:[]});saveFilters();drawTools();drawPlanner();wire();return;}
   if(t.closest('#pl-save')){const b=t.closest('#pl-save');b.disabled=true;P.state='dirty';flush().then(()=>{b.disabled=false;if(P.state==='saved')window.toast?.('Plan saved to GUS Apps for the whole team.');else window.toast?.('Could not save the plan.',true);},()=>{b.disabled=false;});return;}
   if(t.closest('#pl-leaves'))return openLeaves();
   if(t.closest('#pl-commit'))return openCommit(false);
@@ -835,13 +882,34 @@ function onClick(ev){
   const line=t.closest('[data-line]');if(line){const e=findE(c.e);if(e){const v=line.dataset.line,w=c.w&&e.workstreams.find(x=>x.id===c.w);if(w){e.workstreams.forEach(x=>{x.line=x.line||e.line;});w.line=v;deriveLine(e);}else{e.line=v;e.workstreams.forEach(x=>{x.line=v;});}draw();queueSave();}return;}
   if(t.closest('[data-del-ws]')){const e=findE(c.e);if(e){e.workstreams=e.workstreams.filter(w=>w.id!==c.w);draw();queueSave();}return;}
   if(t.closest('[data-del-epic]')){const e=findE(c.e);if(!e)return;const go=()=>{pl.epics=pl.epics.filter(x=>x.id!==c.e);draw();queueSave();};if(!e.gusId&&!e.name&&!epicDays(e))go();else confirmAt(t.closest('[data-del-epic]'),e.gusId?'This epic is already in GUS. Delete only the draft here? The GUS epic stays.':'Delete this epic and its workstreams?',go);return;}
-  if(t.closest('[data-del-proj]')){const n=pl.epics.filter(e=>e.projectId===c.p).length,go=()=>{pl.projects=pl.projects.filter(p=>p.id!==c.p);pl.epics=pl.epics.filter(e=>e.projectId!==c.p);draw();queueSave();};if(!n)go();else confirmAt(t.closest('[data-del-proj]'),`Delete this project and its ${n} epic draft(s)? Anything already in GUS stays there.`,go);}
+  if(t.closest('[data-del-proj]')){P.projOpen=false;delProjectDlg(c.p,t.closest('[data-del-proj]'));return;}
+  if(t.closest('[data-proj-del]')){delProjectDlg(c.p,t.closest('[data-proj-del]'));return;}
 }
 
 // ── Dialogs ─────────────────────────────────────────────────────────────────
 let modal=null;
 function closeModal(){if(!modal)return false;document.removeEventListener('keydown',modal.key,true);modal.el.remove();modal.opener&&modal.opener.focus&&modal.opener.focus();modal=null;return true;}
 document.addEventListener('mouseover',e=>{const i=e.target.closest&&e.target.closest('.pl-pmenu input');if(i)i.title=i.value;});
+// Remove a project from the dashboard. By default GUS is untouched; the admin can also delete the project in GUS (explicit acknowledgement).
+function delProjectDlg(pid,opener){
+  const pl=P.plan,p=findP(pid);if(!p)return;
+  const n=pl.epics.filter(e=>e.projectId===pid).length,inGus=!!p.gusId;
+  const el=openModal('Delete project',`<p><b>${esc(projLabel(p))}</b></p>
+    <p class="note">This removes the project${n?` and its ${n} epic${n===1?'':'s'}`:''} from this dashboard. Anything already in GUS stays in GUS.</p>
+    ${inGus?`<label class="pl-del-row"><input type="checkbox" data-gus><span>Also delete this project from GUS</span></label>
+    <div data-ack hidden><label class="pl-del-row pl-del-ack"><input type="checkbox" data-ackc><span>I understand this permanently deletes the project in GUS and cannot be undone. GUS only allows it when the project has no epics left.</span></label></div>`:''}
+    <p class="pl-del-err" role="alert" hidden></p>
+    <div class="nd-actions"><button type="button" class="button" data-close>Cancel</button><button type="button" class="button primary" data-pdel>Remove from dashboard</button></div>`,opener);
+  const gus=el.querySelector('[data-gus]'),ack=el.querySelector('[data-ackc]'),go=el.querySelector("[data-pdel]"),err=el.querySelector('.pl-del-err');
+  const sync=()=>{const g=!!(gus&&gus.checked);el.querySelector('[data-ack]')&&(el.querySelector('[data-ack]').hidden=!g);go.textContent=g?'Delete from dashboard and GUS':'Remove from dashboard';go.disabled=g&&!(ack&&ack.checked);go.classList.toggle('pl-danger',g);};
+  gus&&gus.addEventListener('change',()=>{if(ack)ack.checked=false;sync();});ack&&ack.addEventListener('change',sync);sync();
+  go.onclick=async()=>{err.hidden=true;go.disabled=true;let warn=false,msg=`Removed “${projLabel(p)}” from the dashboard.`;
+    try{
+      if(gus&&gus.checked){await call('plan-delete-project',{teamId:H.team.Id,project:{gusId:p.gusId}});msg=`Deleted “${projLabel(p)}” from GUS and the dashboard.`;}
+      pl.projects=pl.projects.filter(x=>x.id!==pid);pl.epics=pl.epics.filter(e=>e.projectId!==pid);
+      closeModal();draw();queueSave();window.toast?.(msg,warn);
+    }catch(e){err.textContent=String(e&&e.message||e)+(gus&&gus.checked?' The project was kept on the dashboard.':'');err.hidden=false;sync();}};
+}
 function openModal(title,body,opener){
   closeModal();const el=document.createElement('div');el.className='nd-overlay';
   el.innerHTML=`<div class="nd-modal pl-modal" role="dialog" aria-modal="true" aria-labelledby="pl-mt"><div class="nd-head"><h2 id="pl-mt">${esc(title)}</h2><button type="button" class="nd-x" data-close aria-label="Close">×</button></div><div id="pl-mb">${body}</div></div>`;
