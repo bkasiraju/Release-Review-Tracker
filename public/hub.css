@@ -2006,3 +2006,5 @@ html body .pl-cr .pl-cr-seg button+button{border-left:2px solid #0b5cab!importan
 html body .pl-cr .pl-cr-seg button:hover{background:#e8f0f8!important}
 html body .pl-cr .pl-cr-seg button.on{background:#0b5cab!important;color:#fff!important;text-shadow:none}
 html body .pl-cr .pl-cr-seg button.on:hover{background:#084a8c!important}
+html body .nd-modal.pl-cr{width:min(880px,96vw)}
+html body .pl-cr .pl-cr-f .hub-inline,html body .pl-cr .pl-cr-f select{width:100%;max-width:none;text-overflow:ellipsis}
