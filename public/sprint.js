@@ -295,6 +295,7 @@ function renderStandup(){
   const end=$('sp-end');if(end){const t=m||ms[0];end.innerHTML=(t?`<button class="button small${m?' sp-fs-flash':''}" data-open-member="${esc(t.name)}" title="${m?'Open this engineer full-screen':'Open the first engineer full-screen'}">Full-Screen ⤢</button>`:'');}
   const bd=$('sp-bar-dates');if(bd)bd.innerHTML=datesHtml()?`<div class="sp-dates">${datesHtml()}</div>`:'';
   const acts=$('sp-bar-actions');if(acts)acts.innerHTML='';
+  queueMicrotask(renderMoveBar);
   if(!$('sp-shuffle')){const rf=$('sp-refresh');if(rf)rf.insertAdjacentHTML('beforebegin','<button class="button" id="sp-shuffle" data-shuffle title="Randomise the order of engineers for standup">🔀 Shuffle</button>');}
   host.innerHTML=`<section class="table-card su-card"><div class="su-pills" role="group" aria-label="Team members">${pills}</div>
   <div class="su-carousel"><div class="su-nav"><div class="su-nav-c"><span class="su-count">${m?`${S.standupIdx+1} of ${ms.length}`:`${ms.length} engineers`}</span><div class="su-dots" role="tablist">${ms.map((x,k)=>`<button class="su-dot${k===S.standupIdx?' active':''}" data-su="${k}" role="tab" aria-selected="${k===S.standupIdx}" aria-label="${esc(x.name)}"></button>`).join('')}</div></div></div>
@@ -308,11 +309,14 @@ function renderStandup(){
 const nextCache=new Map();
 const nextSprint=()=>{const k=S.teamId+'|'+S.sprintId;if(!nextCache.has(k))nextCache.set(k,call('sprint-next',{teamId:S.teamId,sprintId:S.sprintId}).catch(e=>{nextCache.delete(k);throw e;}));return nextCache.get(k);};
 function renderMoveBar(){
+  // In the Standup view the actions live in the sprint header; elsewhere (or full-screen) they float at the bottom.
+  const host=S.view==='standup'?$('sp-bar-actions'):null,inHdr=!!(host&&host.offsetParent);
   let bar=$('sp-movebar');
   if(!S.sel.size){if(bar)bar.remove();return;}
-  if(!bar){bar=document.createElement('div');bar.id='sp-movebar';bar.setAttribute('role','region');bar.setAttribute('aria-label','Move selected work');document.body.appendChild(bar);}
-  const n=S.sel.size;
-  bar.innerHTML=`<span><b>${n}</b> work item${n>1?'s':''} selected</span><button type="button" class="sp-move-btn" data-move>Move Work to Next Sprint <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8h8M7 4.500 10.500 8 7 11.500M13 3v10" fill="none" stroke="currentColor" stroke-width="1.800" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button type="button" class="sp-move-clear" data-move-clear>Clear</button>`;
+  if(bar&&(bar.classList.contains('in-header')!==inHdr||(inHdr&&bar.parentNode!==host))){bar.remove();bar=null;}
+  if(!bar){bar=document.createElement('div');bar.id='sp-movebar';bar.setAttribute('role','region');bar.setAttribute('aria-label','Actions for selected work');bar.classList.toggle('in-header',inHdr);(inHdr?host:document.body).appendChild(bar);}
+  const n=S.sel.size,m=inHdr?orderedMembers()[S.standupIdx]:null,open=m?activeItems(m).filter(i=>!isClosed(i)&&i.itemStatus!=='Removed'):[],all=open.length&&open.some(i=>!S.sel.has(i.id));
+  bar.innerHTML=`<span class="sp-sel-n"><b>${n}</b> selected</span>${all?`<button type="button" class="sp-move-clear" data-sel-open>Select all open (${open.length})</button>`:''}<button type="button" class="sp-move-btn" data-move>Move to Next Sprint <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8h8M7 4.500 10.500 8 7 11.500M13 3v10" fill="none" stroke="currentColor" stroke-width="1.800" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button type="button" class="sp-move-clear" data-move-clear>Clear</button>`;
   void nextSprint().catch(()=>{});
 }
 async function moveSelected(btn){
@@ -332,7 +336,7 @@ async function moveSelected(btn){
   finally{btn.disabled=false;renderMoveBar();}
 }
 document.addEventListener('change',e=>{const c=e.target.closest&&e.target.closest('input[data-sel]');if(!c)return;const id=c.dataset.sel;c.checked?S.sel.add(id):S.sel.delete(id);document.querySelectorAll('input[data-sel]').forEach(x=>{if(x.dataset.sel===id)x.checked=c.checked;});renderMoveBar();});
-document.addEventListener('click',e=>{const m=e.target.closest&&e.target.closest('[data-move]');if(m){moveSelected(m);return;}if(e.target.closest&&e.target.closest('[data-move-clear]')){S.sel.clear();document.querySelectorAll('input[data-sel]').forEach(x=>{x.checked=false;});renderMoveBar();}});
+document.addEventListener('click',e=>{const m=e.target.closest&&e.target.closest('[data-move]');if(m){moveSelected(m);return;}if(e.target.closest&&e.target.closest('[data-sel-open]')){const m=orderedMembers()[S.standupIdx];if(m)activeItems(m).forEach(i=>{if(!isClosed(i)&&i.itemStatus!=='Removed')S.sel.add(i.id);});document.querySelectorAll('input[data-sel]').forEach(x=>{x.checked=S.sel.has(x.dataset.sel);});renderMoveBar();return;}if(e.target.closest&&e.target.closest('[data-move-clear]')){S.sel.clear();document.querySelectorAll('input[data-sel]').forEach(x=>{x.checked=false;});renderMoveBar();}});
 
 function bindStandup(){
   const stepClick=e=>{const t=e.target.closest('[data-su],[data-su-step]');if(!t)return;S.standupIdx=t.dataset.su!=null?Number(t.dataset.su):S.standupIdx+Number(t.dataset.suStep);S.types.clear();S.epic=null;renderStandup();};
@@ -380,7 +384,7 @@ async function show(){
 function setSubview(v){
   S.view=v;syncHash(v);$('sp-pulse').classList.toggle('hidden',v!=='pulse');$('sp-standup').classList.toggle('hidden',v!=='standup');
   document.querySelectorAll('[data-sp-view]').forEach(x=>{const on=x.dataset.spView===v;x.classList.toggle('selected',on);x.setAttribute('aria-pressed',String(on));});
-  const ba=$('sp-bar-actions');if(ba&&v!=='standup')ba.innerHTML='';const se=$('sp-end');if(se&&v!=='standup')se.innerHTML='';const shf=$('sp-shuffle');if(shf&&v!=='standup')shf.remove();const sbd=$('sp-bar-dates');if(sbd&&v!=='standup')sbd.innerHTML='';document.body.dataset.spView=v;const sd=document.querySelector('.executive-heading:has(#sp-end) > div:first-child p');if(sd)sd.textContent=v==='standup'?'Daily standup for the selected team. Pick an engineer to walk through their epics and work items; update status and points inline — changes save to GUS immediately.':'Commitment, say-do and delivery for the selected team. Edit status and points inline; changes save to GUS immediately.';const sh=document.querySelector('#sp-sprintbar h2');if(sh)sh.textContent=v==='standup'?'Sprint':'Current Sprint Summary';
+  const ba=$('sp-bar-actions');if(ba&&v!=='standup')ba.innerHTML='';queueMicrotask(renderMoveBar);const se=$('sp-end');if(se&&v!=='standup')se.innerHTML='';const shf=$('sp-shuffle');if(shf&&v!=='standup')shf.remove();const sbd=$('sp-bar-dates');if(sbd&&v!=='standup')sbd.innerHTML='';document.body.dataset.spView=v;const sd=document.querySelector('.executive-heading:has(#sp-end) > div:first-child p');if(sd)sd.textContent=v==='standup'?'Daily standup for the selected team. Pick an engineer to walk through their epics and work items; update status and points inline — changes save to GUS immediately.':'Commitment, say-do and delivery for the selected team. Edit status and points inline; changes save to GUS immediately.';const sh=document.querySelector('#sp-sprintbar h2');if(sh)sh.textContent=v==='standup'?'Sprint':'Current Sprint Summary';
   const bar=$('sp-sprintbar');if(bar){if(v==='standup'){$('sp-status').before(bar);}else $('sp-metrics').before(bar);}
   if(v==='standup')renderStandup();
 }

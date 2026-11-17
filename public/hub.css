@@ -1970,3 +1970,8 @@ html body .sp-items.sp-items.who.who th:nth-child(3){width:20%!important}
 .pl-cr-foot{display:flex;align-items:center;gap:8px;margin-top:6px}
 .pl-cr-foot .note{font-size:11px;color:#6b8296}
 @media(max-width:520px){.pl-cr-g{grid-template-columns:1fr}}
+/* Selection actions rendered in the Standup sprint header */
+#sp-movebar.in-header{position:static;transform:none;z-index:auto;padding:0;gap:8px;background:none;border:0;box-shadow:none;font-size:12px;flex-wrap:wrap}
+#sp-movebar.in-header .sp-move-btn{padding:5px 10px;font-size:12px;background:#0b5cab;color:#fff;border-color:#0b5cab}
+#sp-movebar.in-header .sp-move-btn:hover:not(:disabled){background:#084a8c}
+#sp-movebar.in-header .sp-sel-n{white-space:nowrap}
