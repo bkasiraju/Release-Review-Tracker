@@ -2051,3 +2051,7 @@ html body .pl-pmenu .pl-pchip input.hub-inline[readonly]{background:#f3f6f9;colo
 .pl-pmenu .pl-pm-h{display:flex;align-items:center;justify-content:space-between}
 .pl-pmenu .pl-pm-x{border:0;background:none;font-size:22px;line-height:1;color:#4b647a;cursor:pointer;padding:0 6px;border-radius:6px}
 .pl-pmenu .pl-pm-x:hover{background:#e8f0f8;color:#032d60}
+.pl-grid td:has(>.pl-open-gus){display:table-cell;white-space:nowrap}
+.pl-open-gus{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;margin-left:4px;border:1px solid #b9c9d9;border-radius:6px;background:#fff;color:#0b5cab;font-size:13px;font-weight:700;text-decoration:none;vertical-align:middle}
+.pl-open-gus:hover{background:#0b5cab;color:#fff}
+.pl-grid td:has(>.pl-open-gus) input.hub-inline{width:calc(100% - 30px)!important}

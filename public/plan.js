@@ -567,7 +567,7 @@ function drawPlanner(){
         const tdE=(k,h)=>first?`<td class="c-${k}">${h}</td>`:`<td class="c-${k}"></td>`,tdW=(k,h)=>w?`<td class="c-${k}" data-w="${esc(w.id)}">${h}</td>`:`<td class="c-${k}"></td>`;
         const C={
           project:()=>tdE('project',sel('projectId',pl.projects.map(p=>`<option value="${esc(p.id)}" data-short="${esc(p.short||shortProj(p.name))}"${p.id===e.projectId?' selected':''}>${esc(p.name||'(unnamed project)')}</option>`).join(''),'Project')),
-          name:()=>tdE('name',`<input class="hub-inline" type="text" aria-label="Epic name" data-f="name" value="${esc(e.name)}" maxlength="255" placeholder="Epic name">`),
+          name:()=>tdE('name',`<input class="hub-inline" type="text" aria-label="Epic name" data-f="name" value="${esc(e.name)}" maxlength="${EPIC_NAME_MAX}" placeholder="Epic name">${e.gusId?`<a class="pl-open-gus" href="${H.GUS}ADM_Epic__c/${esc(e.gusId)}/view" target="_blank" rel="noopener" title="Open this epic in GUS" aria-label="Open epic ${esc(e.name)} in GUS">↗</a>`:''}`),
           ws:()=>tdW('ws',`<input class="hub-inline" type="text" aria-label="Workstream" data-f="name" value="${esc(w&&w.name)}" maxlength="120" placeholder="Workstream">`),
           owners:()=>tdE('owners',msel('owners',e.owners||[],'Epic owners','Owners')),
           priority:()=>tdE('priority',sel('priority',priOpts(e.priority),'Epic priority')),
