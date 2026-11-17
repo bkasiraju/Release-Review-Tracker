@@ -2048,3 +2048,6 @@ html body .pl-cr .pl-cr-foot .button{min-width:120px;justify-content:center}
 html body .pl-cr .pl-cr-foot [data-close]{margin-right:6px}
 .pl-cr-btns{display:inline-flex;gap:10px;justify-content:center}
 html body .pl-pmenu .pl-pchip input.hub-inline[readonly]{background:#f3f6f9;color:#4b647a;border-style:dashed;cursor:default}
+.pl-pmenu .pl-pm-h{display:flex;align-items:center;justify-content:space-between}
+.pl-pmenu .pl-pm-x{border:0;background:none;font-size:22px;line-height:1;color:#4b647a;cursor:pointer;padding:0 6px;border-radius:6px}
+.pl-pmenu .pl-pm-x:hover{background:#e8f0f8;color:#032d60}
