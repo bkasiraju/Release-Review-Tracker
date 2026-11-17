@@ -60,7 +60,7 @@ function cleanPlan(input) {
     releaseId: gid(x.releaseId), releaseName: text(x.releaseName, 120), gusId: gid(x.gusId),
     synced: x.synced && typeof x.synced === 'object' && /^[0-9a-f]{24}$/.test(String(x.synced.hash || '')) ? { hash: x.synced.hash, at: text(x.synced.at, 40), ws: Object.fromEntries(Object.entries(x.synced.ws && typeof x.synced.ws === 'object' ? x.synced.ws : {}).filter(([k, v]) => LOCAL.test(k) && /^[0-9a-f]{24}$/.test(String(v))).slice(0, MAX.workstreams)) } : null,
     workstreams: (Array.isArray(x.workstreams) ? x.workstreams : []).slice(0, MAX.workstreams).map((s, j) => ({
-      id: lid(s.id, j, 'w'), name: text(s.name, 120), status: STATUS.includes(s.status) ? s.status : '', engIds: (Array.isArray(s.engIds) ? s.engIds : []).map(gid).filter(Boolean).slice(0, 12), engNames: (Array.isArray(s.engNames) ? s.engNames : []).slice(0, 12).map(n => text(n, 80)), priority: Number.isFinite(Number(s.priority)) && s.priority !== '' && s.priority != null ? Math.min(Math.max(Math.round(Number(s.priority)), 0), 9999) : null, engId: gid(s.engId), engName: text(s.engName, 80), days: days(s.days), line: s.line === 'ABL' || s.line === 'BTL' ? s.line : '', sprint: text(s.sprint, 60)
+      id: lid(s.id, j, 'w'), gusId: gid(s.gusId), name: text(s.name, 120), status: STATUS.includes(s.status) ? s.status : '', engIds: (Array.isArray(s.engIds) ? s.engIds : []).map(gid).filter(Boolean).slice(0, 12), engNames: (Array.isArray(s.engNames) ? s.engNames : []).slice(0, 12).map(n => text(n, 80)), priority: Number.isFinite(Number(s.priority)) && s.priority !== '' && s.priority != null ? Math.min(Math.max(Math.round(Number(s.priority)), 0), 9999) : null, engId: gid(s.engId), engName: text(s.engName, 80), days: days(s.days), line: s.line === 'ABL' || s.line === 'BTL' ? s.line : '', sprint: text(s.sprint, 60)
     }))
   }));
   const people = {};
@@ -122,12 +122,13 @@ async function getRefs(sf, teamId) {
 }
 async function loadRefs(sf, teamId) {
   const warnings = [], safe = (label, p) => p.then(r => (r && r.records) || [], e => { warnings.push(label + ': ' + (e && e.message || 'unavailable')); return []; });
-  const [releases, programs, used, sprints, teamProg] = await Promise.all([
+  const [releases, programs, used, sprints, teamProg, tags] = await Promise.all([
     safe('Planned releases', teamReleases(sf, teamId, true).then(r => ({ records: r }))),
     safe('Programs', sf.query(`SELECT Id, Name FROM PPM_Program__c WHERE Name LIKE '% - ${PROGRAM_RELEASE}' ORDER BY Name LIMIT 200`)),
     safe('Projects', sf.query(`SELECT Project__c p, Project__r.Name n, Project__r.Program__c g, Project__r.Program__r.Name gn FROM ADM_Epic__c WHERE Team__c = '${teamId}' AND Project__c != null GROUP BY Project__c, Project__r.Name, Project__r.Program__c, Project__r.Program__r.Name LIMIT 500`)),
     safe('Sprints', sf.query(`SELECT Name, Start_Date__c, End_Date__c FROM ADM_Sprint__c WHERE Scrum_Team__c = '${teamId}' AND End_Date__c >= LAST_N_DAYS:14 ORDER BY Start_Date__c LIMIT 16`)),
-    teamProgram(sf, teamId)
+    teamProgram(sf, teamId),
+    safe('Product tags', sf.query(`SELECT Id, Name FROM ADM_Product_Tag__c WHERE Team__c = '${teamId}' AND Active__c = true ORDER BY Name LIMIT 200`))
   ]);
   // Projects already in the team's program (not only those with this team's epics), so they can be picked rather than retyped.
   const inProg = teamProg ? await safe('Program projects', sf.query(`SELECT Id, Name, V2MOM_Method__c FROM PPM_Project__c WHERE Program__c = '${teamProg.id}' ORDER BY Name LIMIT 500`)) : [];
@@ -139,6 +140,7 @@ async function loadRefs(sf, teamId) {
     projects: [...seen.values()].sort((a, b) => a.name.localeCompare(b.name)),
     sprints: sprints.map(r => ({ name: r.Name, start: r.Start_Date__c, end: r.End_Date__c })),
     program: teamProg || null,
+    tags: tags.map(r => ({ id: r.Id, name: r.Name })),
     warnings
   };
 }
@@ -192,6 +194,56 @@ async function createEpic(sf, teamId, input) {
   if (!ok(c) || !newId(c)) throw new Error('GUS rejected the epic: ' + ((c && c.errors) || []).join(', '));
   refsCache.delete(teamId);
   return { gusId: newId(c), projectGusId: proj.id, projectCreated: proj.created, created: true };
+}
+
+// A workstream in GUS is a parent User Story ("WS: <name>") on the epic, so engineers' own stories hang under it via Parent__c.
+// Two themes mark it: the shared "Workstream" theme (find every workstream) and one per workstream (find the stories under it).
+const WS_PREFIX = 'WS: ', WS_MARKER = 'Workstream', THEME_NAME_MAX = 80;
+async function ensureTheme(sf, teamId, name) {
+  const hit = ((await sf.query(`SELECT Id FROM ADM_Theme__c WHERE Name = '${soql(name)}' AND Scrum_Team__c = '${teamId}' LIMIT 1`)).records || [])[0];
+  if (hit) return hit.Id;
+  const c = await sf.create('ADM_Theme__c', { Name: name, Scrum_Team__c: teamId, Active__c: true });
+  if (!ok(c) || !newId(c)) throw new Error('GUS rejected the theme "' + name + '": ' + ((c && c.errors) || []).join(', '));
+  return newId(c);
+}
+async function assignTheme(sf, themeId, workId) {
+  const hit = ((await sf.query(`SELECT Id FROM ADM_Theme_Assignment__c WHERE Theme__c = '${themeId}' AND Work__c = '${workId}' LIMIT 1`)).records || [])[0];
+  if (hit) return;
+  const c = await sf.create('ADM_Theme_Assignment__c', { Theme__c: themeId, Work__c: workId });
+  if (!ok(c)) throw new Error('GUS rejected the theme assignment: ' + ((c && c.errors) || []).join(', '));
+}
+// GUS rejects a User Story whose details are under 20 characters.
+const wsDetails = (epic, name, d) => `Workstream "${name}" of epic "${epic}"${d ? ` (planned ${d} days)` : ''}. Engineers add their work items as child stories of this story (Parent).`.slice(0, 2000);
+async function createWorkstream(sf, teamId, input) {
+  planKey(teamId);
+  const epicId = gid(input && input.epicGusId), name = text(input && input.name, 200), assigneeId = gid(input && input.assigneeId), tagId = gid(input && input.tagId);
+  if (!epicId) throw new Error('The epic is not in GUS yet. Create the epic first, then add its workstreams.');
+  if (!name) throw new Error('Enter the workstream name.');
+  const epic = ((await sf.query(`SELECT Id, Name FROM ADM_Epic__c WHERE Id = '${epicId}' AND Team__c = '${teamId}' LIMIT 1`)).records || [])[0];
+  if (!epic) throw new Error('That epic does not belong to this team.');
+  if (!tagId) throw new Error('Select a product tag. GUS requires one on every user story.');
+  {
+    const t = ((await sf.query(`SELECT Id FROM ADM_Product_Tag__c WHERE Id = '${tagId}' AND Team__c = '${teamId}' AND Active__c = true LIMIT 1`)).records || [])[0];
+    if (!t) throw new Error('That product tag is not one of this team\'s active tags.');
+  }
+  const subject = WS_PREFIX + name;
+  let workId = (((await sf.query(`SELECT Id FROM ADM_Work__c WHERE Epic__c = '${epicId}' AND Subject__c = '${soql(subject)}' AND RecordType.Name = 'User Story' LIMIT 1`)).records || [])[0] || {}).Id, created = false;
+  if (!workId) {
+    const rt = ((await sf.query(`SELECT Id FROM RecordType WHERE SobjectType = 'ADM_Work__c' AND Name = 'User Story' AND IsActive = true LIMIT 1`)).records || [])[0];
+    if (!rt) throw new Error('Could not find the User Story record type in GUS.');
+    const f = { Subject__c: subject, Epic__c: epicId, Scrum_Team__c: teamId, RecordTypeId: rt.Id, Product_Tag__c: tagId, Details__c: wsDetails(epic.Name, name, days(input && input.days)), ...(assigneeId ? { Assignee__c: assigneeId } : {}) };
+    const c = await sf.create('ADM_Work__c', f);
+    if (!ok(c) || !newId(c)) throw new Error('GUS rejected the workstream story: ' + ((c && c.errors) || []).join(', '));
+    workId = newId(c); created = true;
+  }
+  // Themes are best effort: the story exists either way, and a retry only adds what is missing.
+  const themes = [], warnings = [];
+  const wsTheme = (WS_PREFIX + (text(input && input.projectShort, 30) ? text(input.projectShort, 30) + ' › ' : '') + name).slice(0, THEME_NAME_MAX);
+  for (const t of [WS_MARKER, wsTheme]) {
+    try { await assignTheme(sf, await ensureTheme(sf, teamId, t), workId); themes.push(t); }
+    catch (e) { warnings.push(String(e && e.message || e).slice(0, 200)); }
+  }
+  return { gusId: workId, created, themes, warnings };
 }
 
 // Write edits made in the plan grid through to epics that already exist in GUS (name, development lead = owner, planned release, effort).
@@ -381,4 +433,4 @@ async function commitRun(sf, store, teamId, confirm, includeBtl, acknowledged) {
   return { results, failed: results.filter(x => !x.ok).length, plan: saved && saved.plan, revision: saved && saved.revision, saveError };
 }
 
-module.exports = { getPlan, savePlan, getRefs, commitPlan, createProject, createEpic, syncEpics, review, cleanPlan };
+module.exports = { getPlan, savePlan, getRefs, commitPlan, createProject, createEpic, createWorkstream, syncEpics, review, cleanPlan };

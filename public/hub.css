@@ -2064,3 +2064,8 @@ html body .pl-pwrap .pl-emenu{width:min(980px,calc(100vw - 32px))!important}
 .pl-emenu .pl-erow:hover,.pl-emenu .pl-erow:focus{background:#eef4fa;border-color:#0b5cab;outline:0}
 .pl-emenu .pl-erow>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 @media(max-width:760px){.pl-emenu .pl-eh{display:none}.pl-emenu .pl-erow{grid-template-columns:1fr auto}}
+
+/* New workstream: "also create in GUS" checkbox row */
+html body .pl-cr .pl-cr-chk{display:flex!important;flex-direction:row!important;align-items:center;gap:8px}
+html body .pl-cr .pl-cr-chk input{width:auto!important;max-width:none!important;margin:0}
+html body .pl-cr .pl-cr-chk span{font-weight:600}

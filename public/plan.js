@@ -116,19 +116,43 @@ function newProjectAt(){
 function newWorkstreamAt(){
   const pl=P.plan;if(!pl.epics.length){window.toast?.('Add an epic first, then add workstreams under it.',true);newEpicAt();return;}
   const prj=new Map(pl.projects.map(p=>[p.id,p])),eng=P.members.filter(isEng).slice().sort((a,b)=>String(a.name).localeCompare(String(b.name)));
+  const tags=P.refs.tags||[],tagKey='ri-ws-tag-'+H.team.Id,lastTag=(()=>{try{return localStorage.getItem(tagKey)||'';}catch(_){return '';}})();
   const body=
-    crSection('Workstream',crField('Epic','workstream is added under this epic',`<select class="hub-inline" data-e>${pl.epics.map((e,i)=>opt(e.id,`${projShort(prj.get(e.projectId)||{name:''})} › ${e.name||'(unnamed epic)'}`,i===pl.epics.length-1)).join('')}</select>`,'wide')+crField('Workstream name','',`<input class="hub-inline" type="text" data-n maxlength="255" placeholder="e.g. API changes" autocomplete="off">`,'wide'))+
-    crSection('Assignment',crField('Engineer','optional',`<select class="hub-inline" data-g><option value="">Unassigned</option>${eng.map(m=>opt(m.id,m.name,false)).join('')}</select>`)+crField('Planned effort','days',`<input class="hub-inline" type="number" min="0" max="1000" step="0.5" data-d placeholder="0">`));
-  const el=crDialog('New workstream','Adds a workstream under an epic in this plan. It is written to GUS with the epic when the plan is committed.',body,'Add workstream',async(el)=>{
+    crSection('Workstream',crField('Epic','workstream is added under this epic',`<select class="hub-inline" data-e>${pl.epics.map((e,i)=>opt(e.id,`${projShort(prj.get(e.projectId)||{name:''})} › ${e.name||'(unnamed epic)'}${e.gusId?'':'  (not in GUS yet)'}`,i===pl.epics.length-1)).join('')}</select>`,'wide')+crField('Workstream name','',`<input class="hub-inline" type="text" data-n maxlength="200" placeholder="e.g. API changes" autocomplete="off">`,'wide'))+
+    crSection('Assignment',crField('Engineer','optional',`<select class="hub-inline" data-g><option value="">Unassigned</option>${eng.map(m=>opt(m.id,m.name,false)).join('')}</select>`)+crField('Planned effort','days',`<input class="hub-inline" type="number" min="0" max="1000" step="0.5" data-d placeholder="0">`))+
+    `<section class="pl-cr-s" data-gussec><h3>GUS</h3><div class="pl-cr-g">`+
+      `<label class="pl-cr-f wide pl-cr-chk"><input type="checkbox" data-gus checked><span>Also create the workstream in GUS as a parent User Story on the epic</span></label>`+
+      crField('Product tag','required by GUS · pick one of the team\'s tags',`<select class="hub-inline" data-t><option value="">Select a tag…</option>${tags.map(t=>opt(t.id,t.name,t.id===lastTag)).join('')}</select>`,'wide')+
+    `</div></section>`+
+    `<div data-chips></div>`;
+  const el=crDialog('New workstream','Adds a workstream under an epic. For an epic that is already in GUS it is also created there, so engineers can add their work items under it.',body,'Add workstream',async(el)=>{
     const e=pl.epics.find(x=>x.id===el.querySelector('[data-e]').value),name=el.querySelector('[data-n]').value.trim(),gid=el.querySelector('[data-g]').value,days=Number(el.querySelector('[data-d]').value)||0;
     if(!e)throw new Error('Choose the epic.');
     if(!name){el.querySelector('[data-n]').focus();throw new Error('Enter the workstream name.');}
     const m=eng.find(x=>x.id===gid),w={id:uid('w'),name,priority:0,engId:m?m.id:'',engName:m?m.name:'',engIds:m?[m.id]:[],engNames:m?[m.name]:[],days,sprint:''};
+    let msg=`Added workstream “${name}”.`,warn=false;
+    if(useGus()){
+      const tagId=el.querySelector('[data-t]').value;
+      if(!tagId){tSel.focus();throw new Error('Select a product tag. GUS requires one on every user story.');}
+      const r=await call('plan-create-workstream',{teamId:H.team.Id,workstream:{epicGusId:e.gusId,name,assigneeId:gid,tagId,days,projectShort:projShort(prj.get(e.projectId)||{name:''})}});
+      w.gusId=r.gusId;try{localStorage.setItem(tagKey,tagId);}catch(_){}
+      msg=r.created?`Created workstream “${name}” in GUS.`:`Workstream “${name}” already existed in GUS and was linked.`;
+      if(r.warnings&&r.warnings.length){warn=true;msg+=' Themes were not fully applied: '+r.warnings[0];}
+    }
     e.workstreams.push(w);closeModal();draw();queueSave();P.el.querySelector(`[data-w="${w.id}"]`)?.scrollIntoView({block:'nearest'});
-    window.toast?.(`Added workstream “${name}”.`,false);
+    window.toast?.(msg,warn);
   });
-  el._gate=false;el._sync();el._deny();el.querySelector('.pl-cr-foot .note').textContent='Saved to the plan immediately.';
-  el.querySelector('[data-n]').focus();
+  const eSel=el.querySelector('[data-e]'),chk=el.querySelector('[data-gus]'),nm=el.querySelector('[data-n]'),chips=el.querySelector('[data-chips]'),tSel=el.querySelector('[data-t]');
+  const epicNow=()=>pl.epics.find(x=>x.id===eSel.value);
+  const useGus=()=>!!(epicNow()&&epicNow().gusId&&chk.checked);
+  const sync=()=>{const e=epicNow(),inGus=!!(e&&e.gusId);chk.disabled=!inGus;if(!inGus)chk.checked=false;tSel.disabled=!useGus();
+    const ok=el.querySelector('[data-ok]'),note=el.querySelector('.pl-cr-foot .note');ok.textContent=useGus()?'Create in GUS':'Add workstream';
+    note.textContent=useGus()?'Created in GUS immediately when you confirm.':inGus?'Saved to the plan only.':'This epic is not in GUS yet, so the workstream is saved to the plan only.';
+    el._gate=useGus();el._sync();el._deny();
+    const pr=e&&prj.get(e.projectId),sh=pr?projShort(pr):'',n=nm.value.trim();
+    chips.innerHTML=useGus()?crAuto([['Story type','User Story'],['Subject','WS: '+(n||'…')],['Themes','Workstream · WS: '+(sh?sh+' › ':'')+(n||'…')],['Parent','Epic']]):'';};
+  eSel.onchange=sync;chk.onchange=sync;nm.oninput=sync;
+  sync();nm.focus();
 }
 function newEpicAt(){
   const pl=P.plan;if(!pl.projects.length){newProjectAt();return;}

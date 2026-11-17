@@ -132,3 +132,29 @@ test('syncEpics writes grid edits to GUS epics of this team only and reports fai
   assert.deepEqual(log.find(x=>x[0]==='u'&&x[1]==='ADM_Epic__c')[3],{Name:'Renamed',Development_Lead__c:ENG,OwnerId:ENG,Planned_Release__c:null,Planned_Story_Points__c:7.5});
   assert.match(r.results[1].err,/does not belong/);assert.match(r.results[2].err,/at most 80/);
 });
+
+test('createWorkstream makes a parent User Story with the Workstream + per-workstream themes, idempotently',async()=>{
+  const EP='a0XEE00000EPC0001A',TAG='a1TEE00000TAG0001A',log=[],themes=new Map(),assigned=new Set();let nid=0,work=null;
+  const sf={async query(q){log.push(['q',q]);
+      if(/FROM ADM_Epic__c/.test(q))return {records:q.includes(EP)?[{Id:EP,Name:'E'}]:[]};
+      if(/FROM ADM_Product_Tag__c/.test(q))return {records:q.includes(TAG)?[{Id:TAG}]:[]};
+      if(/FROM RecordType/.test(q))return {records:[{Id:'0129000000006gDAAQ'}]};
+      if(/FROM ADM_Work__c/.test(q))return {records:work?[{Id:work}]:[]};
+      if(/FROM ADM_Theme__c/.test(q)){const n=/Name = '((?:[^'\\]|\\.)*)'/.exec(q)[1];return {records:themes.has(n)?[{Id:themes.get(n)}]:[]};}
+      if(/FROM ADM_Theme_Assignment__c/.test(q)){const m=/Theme__c = '(\w+)' AND Work__c = '(\w+)'/.exec(q);return {records:assigned.has(m[1]+m[2])?[{Id:'x'}]:[]};}
+      return {records:[]};},
+    async create(o,f){log.push(['c',o,f]);const id=o.slice(4,7)+'EE0000000'+String(++nid).padStart(6,'0');
+      if(o==='ADM_Work__c')work=id;if(o==='ADM_Theme__c')themes.set(f.Name,id);if(o==='ADM_Theme_Assignment__c')assigned.add(f.Theme__c+f.Work__c);return {success:true,id};}};
+  const inp={epicGusId:EP,name:'API changes',assigneeId:ENG,tagId:TAG,projectShort:'HRP M1'};
+  const r=await plan.createWorkstream(sf,T,inp);
+  const w=log.find(x=>x[0]==='c'&&x[1]==='ADM_Work__c')[2];
+  assert.deepEqual(w,{Subject__c:'WS: API changes',Epic__c:EP,Scrum_Team__c:T,RecordTypeId:'0129000000006gDAAQ',Product_Tag__c:TAG,Details__c:'Workstream "API changes" of epic "E". Engineers add their work items as child stories of this story (Parent).',Assignee__c:ENG});
+  assert.equal(r.created,true);assert.deepEqual(r.themes,['Workstream','WS: HRP M1 › API changes']);assert.equal(log.filter(x=>x[1]==='ADM_Theme_Assignment__c').length,2);
+  const again=await plan.createWorkstream(sf,T,inp);   // retry: nothing duplicated
+  assert.equal(again.created,false);assert.equal(log.filter(x=>x[0]==='c').length,5);
+  await assert.rejects(plan.createWorkstream(sf,T,{...inp,epicGusId:'a0XEE00000OTHER01A'}),/does not belong/);
+  await assert.rejects(plan.createWorkstream(sf,T,{...inp,tagId:'a1TEE00000OTHER01A'}),/product tag/);
+  await assert.rejects(plan.createWorkstream(sf,T,{...inp,tagId:''}),/product tag/);
+  await assert.rejects(plan.createWorkstream(sf,T,{...inp,epicGusId:''}),/not in GUS yet/);
+  await assert.rejects(plan.createWorkstream(sf,T,{...inp,name:' '}),/workstream name/);
+});
