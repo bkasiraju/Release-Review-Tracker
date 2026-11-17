@@ -1975,3 +1975,4 @@ html body .sp-items.sp-items.who.who th:nth-child(3){width:20%!important}
 #sp-movebar.in-header .sp-move-btn{padding:5px 10px;font-size:12px;background:#0b5cab;color:#fff;border-color:#0b5cab}
 #sp-movebar.in-header .sp-move-btn:hover:not(:disabled){background:#084a8c}
 #sp-movebar.in-header .sp-sel-n{white-space:nowrap}
+#sp-movebar:not(.in-header){z-index:13000}

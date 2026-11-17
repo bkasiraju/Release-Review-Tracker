@@ -251,7 +251,7 @@ function shuffle(){
 }
 function renderModal(){
   const old=$('sp-modal'),keep=old&&old.querySelector('.sp-modal-body'),top=keep?keep.scrollTop:0;
-  if(old)old.remove();if(!S.modal)return;
+  if(old)old.remove();queueMicrotask(renderMoveBar);if(!S.modal)return;
   const ms=orderedMembers(),k=ms.findIndex(x=>x.name===S.modal);if(k<0){S.modal=null;return;}
   const m=ms[k],items=activeItems(m).sort((a,b)=>isClosed(a)-isClosed(b)||String(a.name).localeCompare(String(b.name)));
   const shown=epicFilter(items),sp=items.reduce((n,i)=>n+spOf(i),0),doneSp=items.filter(isClosed).reduce((n,i)=>n+spOf(i),0),pv=ms[k-1],nx=ms[k+1];
@@ -310,7 +310,7 @@ const nextCache=new Map();
 const nextSprint=()=>{const k=S.teamId+'|'+S.sprintId;if(!nextCache.has(k))nextCache.set(k,call('sprint-next',{teamId:S.teamId,sprintId:S.sprintId}).catch(e=>{nextCache.delete(k);throw e;}));return nextCache.get(k);};
 function renderMoveBar(){
   // In the Standup view the actions live in the sprint header; elsewhere (or full-screen) they float at the bottom.
-  const host=S.view==='standup'?$('sp-bar-actions'):null,inHdr=!!(host&&host.offsetParent);
+  const host=S.view==='standup'&&!S.modal?$('sp-bar-actions'):null,inHdr=!!(host&&host.offsetParent);
   let bar=$('sp-movebar');
   if(!S.sel.size){if(bar)bar.remove();return;}
   if(bar&&(bar.classList.contains('in-header')!==inHdr||(inHdr&&bar.parentNode!==host))){bar.remove();bar=null;}
