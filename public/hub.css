@@ -1999,3 +1999,10 @@ html body .nd-modal.pl-cr{width:min(760px,96vw);padding:22px 26px}
 .pl-cr .pl-cr-foot{margin-top:4px;padding-top:14px;border-top:1px solid #dbe5ee}
 .pl-cr .pl-cr-seg{margin-bottom:2px}
 .pl-cr .pl-cr-seg button{padding:8px 16px;font-size:13px}
+/* Pick/Enter switch: high-contrast states */
+html body .pl-cr .pl-cr-seg{border:2px solid #0b5cab;border-radius:8px;background:#fff}
+html body .pl-cr .pl-cr-seg button{background:#fff!important;color:#0b5cab!important;font-weight:700!important;border:0!important;opacity:1!important}
+html body .pl-cr .pl-cr-seg button+button{border-left:2px solid #0b5cab!important}
+html body .pl-cr .pl-cr-seg button:hover{background:#e8f0f8!important}
+html body .pl-cr .pl-cr-seg button.on{background:#0b5cab!important;color:#fff!important;text-shadow:none}
+html body .pl-cr .pl-cr-seg button.on:hover{background:#084a8c!important}
