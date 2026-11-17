@@ -2009,3 +2009,6 @@ html body .pl-cr .pl-cr-seg button.on:hover{background:#084a8c!important}
 html body .nd-modal.pl-cr{width:min(880px,96vw)}
 html body .pl-cr .pl-cr-f .hub-inline,html body .pl-cr .pl-cr-f select{width:100%;max-width:none;text-overflow:ellipsis}
 html body .nd-modal.pl-cr .pl-cr-f input.hub-inline,html body .nd-modal.pl-cr .pl-cr-f select.hub-inline,html body .nd-modal.pl-cr .pl-cr-f textarea{width:100%!important;max-width:none!important;min-width:0;box-sizing:border-box}
+html body .empty-state.pl-empty{min-height:0;padding:18px 16px 14px}
+html body .empty-state.pl-empty h3{margin:0 0 4px}
+html body .empty-state.pl-empty p{margin:0}
