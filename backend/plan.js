@@ -246,6 +246,13 @@ async function createWorkstream(sf, teamId, input) {
   return { gusId: workId, created, themes, warnings };
 }
 
+// The team's epics already in GUS, so they can be added to the plan table instead of retyped.
+async function listEpics(sf, teamId) {
+  planKey(teamId);
+  const rows = (await sf.query(`SELECT Id, Name, Project__c, Project__r.Name, Project__r.V2MOM_Method__c, Project__r.Program__c, Project__r.Program__r.Name, Planned_Release__c, Planned_Release__r.Name, Development_Lead__c, Development_Lead__r.Name, Planned_Story_Points__c FROM ADM_Epic__c WHERE Team__c = '${teamId}' AND (NOT Name LIKE '\_\_%') ORDER BY Name LIMIT 1000`)).records || [];
+  return { epics: rows.map(r => ({ id: r.Id, name: r.Name, projectId: r.Project__c || '', projectName: (r.Project__r && r.Project__r.Name) || '', method: (r.Project__r && r.Project__r.V2MOM_Method__c) || '', programId: (r.Project__r && r.Project__r.Program__c) || '', programName: (r.Project__r && r.Project__r.Program__r && r.Project__r.Program__r.Name) || '', releaseId: r.Planned_Release__c || '', releaseName: (r.Planned_Release__r && r.Planned_Release__r.Name) || '', leadId: r.Development_Lead__c || '', leadName: (r.Development_Lead__r && r.Development_Lead__r.Name) || '', points: Number(r.Planned_Story_Points__c) || 0 })) };
+}
+
 // Write edits made in the plan grid through to epics that already exist in GUS (name, development lead = owner, planned release, effort).
 async function syncEpics(sf, teamId, epics) {
   planKey(teamId);
@@ -433,4 +440,4 @@ async function commitRun(sf, store, teamId, confirm, includeBtl, acknowledged) {
   return { results, failed: results.filter(x => !x.ok).length, plan: saved && saved.plan, revision: saved && saved.revision, saveError };
 }
 
-module.exports = { getPlan, savePlan, getRefs, commitPlan, createProject, createEpic, createWorkstream, syncEpics, review, cleanPlan };
+module.exports = { getPlan, savePlan, getRefs, commitPlan, createProject, createEpic, listEpics, createWorkstream, syncEpics, review, cleanPlan };

@@ -60,7 +60,7 @@ function crDialog(title,sub,bodyHtml,okLabel,submit){
   el._gate=true;const sync=()=>{ok.disabled=(el._gate&&!allowed)||busy;};el._sync=sync;el._deny=()=>fail(el._gate&&!allowed?'Creating records in GUS is restricted to the plan administrators.':'');
   call('connection',{}).then(c=>{allowed=!!(c&&c.canCommit);if(!allowed&&el._gate)fail('Creating records in GUS is restricted to the plan administrators.');sync();},()=>{allowed=true;sync();});
   const go=async()=>{if(ok.disabled)return;fail('');busy=true;ok.textContent='Creating…';sync();
-    try{await submit(el,fail);}catch(e){fail(String(e&&e.message||e));}finally{busy=false;ok.textContent=okLabel;sync();}};
+    try{await submit(el,fail);}catch(e){fail(String(e&&e.message||e));}finally{busy=false;ok.textContent=ok.dataset.label||okLabel;sync();}};
   ok.onclick=go;
   el.addEventListener('keydown',ev=>{if(ev.key==='Enter'&&ev.target.tagName==='INPUT'){ev.preventDefault();go();}});
   return el;
@@ -146,7 +146,7 @@ function newWorkstreamAt(){
   const epicNow=()=>pl.epics.find(x=>x.id===eSel.value);
   const useGus=()=>!!(epicNow()&&epicNow().gusId&&chk.checked);
   const sync=()=>{const e=epicNow(),inGus=!!(e&&e.gusId);chk.disabled=!inGus;if(!inGus)chk.checked=false;tSel.disabled=!useGus();
-    const ok=el.querySelector('[data-ok]'),note=el.querySelector('.pl-cr-foot .note');ok.textContent=useGus()?'Create in GUS':'Add workstream';
+    const ok=el.querySelector('[data-ok]'),note=el.querySelector('.pl-cr-foot .note');ok.dataset.label=ok.textContent=useGus()?'Create in GUS':'Add workstream';
     note.textContent=useGus()?'Created in GUS immediately when you confirm.':inGus?'Saved to the plan only.':'This epic is not in GUS yet, so the workstream is saved to the plan only.';
     el._gate=useGus();el._sync();el._deny();
     const pr=e&&prj.get(e.projectId),sh=pr?projShort(pr):'',n=nm.value.trim();
@@ -159,15 +159,34 @@ function newEpicAt(){
   const rel=P.refs.releases,dr=defRel(),prog=P.refs.program;
   const lead=P.members.slice().sort((x,y)=>String(x.name).localeCompare(String(y.name)));
   const body=
-    crSection('New epic',
-      crField('Project','',`<select class="hub-inline" data-p>${pl.projects.map((p,i)=>opt(p.id,projLabel(p)+(p.gusId?'':'  (new — created with the epic)'),i===pl.projects.length-1)).join('')}</select>`,'s5')+
-      crField('Epic name',`<span data-cnt>0 / ${EPIC_NAME_MAX}</span>`,`<textarea class="hub-inline" rows="2" data-n placeholder="Epic name" autocomplete="off"></textarea>`,'s7')+
-      `<span class="pl-cr-pinfo s12" data-pi></span>`+
-      crField('Development lead','required · epic owner',`<select class="hub-inline" data-o><option value="" selected>Select a team member…</option>${lead.map(m=>opt(m.id,m.name,false)).join('')}</select>`,'s5')+
-      crField('Planned release','',`<select class="hub-inline" data-r>${opt('','— None (set after planning) —',true)}${rel.map(r=>opt(r.id,r.name,false)).join('')}</select>`,'s4')+
-      crField('ATL/BTL','',`<select class="hub-inline" data-l><option value="ABL" selected>ABL / ATL (above the line)</option><option value="BTL">BTL (below the line)</option></select>`,'s3'))+
-    crAuto([['Team',H.team.Name],['Program',prog?prog.name:'—'],['Epic owner','= Development lead']]);
-  const el=crDialog('New epic','Creates the epic in GUS under the chosen project and adds it to this plan.',body,'Create in GUS',async(el)=>{
+    crSection('Epic',`<div class="pl-cr-seg" role="tablist" aria-label="Epic source"><button type="button" role="tab" data-mode="new">Create new epic</button><button type="button" role="tab" data-mode="pick">Add existing GUS epic</button></div>`+
+      crField('GUS epic','<span data-pcnt>loading…</span>',`<select class="hub-inline" data-xe><option value="">Loading epics from GUS…</option></select>`,'s9 pl-cr-pick')+
+      crField('ATL/BTL','',`<select class="hub-inline" data-xl><option value="ABL" selected>ABL / ATL (above the line)</option><option value="BTL">BTL (below the line)</option></select>`,'s3 pl-cr-pick')+
+      `<span class="pl-cr-pinfo s12 pl-cr-pick" data-xi></span>`+
+      crField('Project','',`<select class="hub-inline" data-p>${pl.projects.map((p,i)=>opt(p.id,projLabel(p)+(p.gusId?'':'  (new — created with the epic)'),i===pl.projects.length-1)).join('')}</select>`,'s5 pl-cr-new')+
+      crField('Epic name',`<span data-cnt>0 / ${EPIC_NAME_MAX}</span>`,`<textarea class="hub-inline" rows="2" data-n placeholder="Epic name" autocomplete="off"></textarea>`,'s7 pl-cr-new')+
+      `<span class="pl-cr-pinfo s12 pl-cr-new" data-pi></span>`+
+      crField('Development lead','required · epic owner',`<select class="hub-inline" data-o><option value="" selected>Select a team member…</option>${lead.map(m=>opt(m.id,m.name,false)).join('')}</select>`,'s5 pl-cr-new')+
+      crField('Planned release','',`<select class="hub-inline" data-r>${opt('','— None (set after planning) —',true)}${rel.map(r=>opt(r.id,r.name,false)).join('')}</select>`,'s4 pl-cr-new')+
+      crField('ATL/BTL','',`<select class="hub-inline" data-l><option value="ABL" selected>ABL / ATL (above the line)</option><option value="BTL">BTL (below the line)</option></select>`,'s3 pl-cr-new'))+
+    `<div class="pl-cr-new">${crAuto([['Team',H.team.Name],['Program',prog?prog.name:'—'],['Epic owner','= Development lead']])}</div>`;
+  let md='new',xeps=[];
+  const el=crDialog('Add epic','Create a new epic in GUS, or add an epic that already exists in GUS to this table.',body,'Create in GUS',async(el)=>{
+    if(md==='pick'){
+      const x=xeps.find(g=>g.id===el.querySelector('[data-xe]').value);if(!x)throw new Error('Pick a GUS epic, or switch to “Create new epic”.');
+      if(pl.epics.some(e=>e.gusId===x.id))throw new Error('That epic is already in the table.');
+      if(!x.projectId)throw new Error('This epic has no project in GUS. Assign it a project in GUS first, or create a new epic here.');
+      let pr=pl.projects.find(p=>p.gusId===x.projectId);
+      if(!pr){pr={id:uid('p'),name:x.projectName,short:shortProj(x.projectName),theme:'',gusId:x.projectId,method:x.method,programId:x.programId,programName:x.programName};pl.projects.push(pr);}
+      const e=newEpic(pr.id),line=el.querySelector('[data-xl]').value;e.name=x.name;e.gusId=x.id;e.releaseId=x.releaseId;e.releaseName=x.releaseName;e.line=line;
+      e.owners=x.leadId?[x.leadId]:[];e.ownerNames=x.leadId?[x.leadName]:[];
+      // GUS keeps the epic's planned points; carry them as one workstream so the epic total (sum of workstreams) still matches and is never overwritten.
+      if(x.points>0)e.workstreams=[{id:uid('w'),name:'Planned in GUS',priority:0,engId:'',engName:'',engIds:[],engNames:[],days:x.points,sprint:'',line}];else e.workstreams.forEach(w=>{w.line=line;});
+      if(!P.gsnap)snapGus();pl.epics.push(e);P.gsnap.set(e.gusId,JSON.stringify(gusSnap(e)));closeModal();
+      if(filtersOn(P.view)){Object.assign(P.view,{q:'',flag:'',release:[],line:[],eng:[],theme:[]});saveFilters();drawTools();}
+      draw();queueSave();const row=P.el.querySelector(`[data-e="${e.id}"]`);if(row){row.scrollIntoView({block:'center'});row.classList.add('pl-flash');setTimeout(()=>row.classList.remove('pl-flash'),2600);}
+      window.toast?.(`Added GUS epic “${x.name}” to the table.`,false);return;
+    }
     const pr=pl.projects.find(x=>x.id===el.querySelector('[data-p]').value),name=el.querySelector('[data-n].hub-inline').value.trim(),releaseId=el.querySelector('[data-r]').value,line=el.querySelector('[data-l]').value,leadId=el.querySelector('[data-o]').value,leadName=(P.members.find(m=>m.id===leadId)||{}).name||'';
     if(!pr)throw new Error('Choose a project.');
     if(!name){el.querySelector('[data-n]').focus();throw new Error('Enter the epic name.');}
@@ -188,7 +207,19 @@ function newEpicAt(){
   const nm=el.querySelector('textarea[data-n]'),cnt=el.querySelector('[data-cnt]'),errEl=el.querySelector('.pl-cr-err');
   nm.oninput=()=>{const L=nm.value.length,over=L>EPIC_NAME_MAX;cnt.textContent=`${L} / ${EPIC_NAME_MAX}`;cnt.classList.toggle('over',over);nm.classList.toggle('bad',over);errEl.textContent=over?`Epic name is ${L} characters; GUS allows at most ${EPIC_NAME_MAX}. Shorten it by ${L-EPIC_NAME_MAX}.`:'';errEl.hidden=!over;};
   el.querySelector('.nd-modal').classList.add('pl-cr-epic');
-  el.querySelector('[data-n].hub-inline').focus();
+  const xSel=el.querySelector('[data-xe]'),xInfo=el.querySelector('[data-xi]'),pc=el.querySelector('[data-pcnt]'),okb=el.querySelector('[data-ok]'),note=el.querySelector('.pl-cr-foot .note');
+  const showX=()=>{const x=xeps.find(g=>g.id===xSel.value);xInfo.textContent=x?[x.projectName&&'Project: '+x.projectName,x.leadName&&'Lead: '+x.leadName,x.releaseName&&'Release: '+x.releaseName,x.points&&x.points+' days planned'].filter(Boolean).join('  ·  '):'';xInfo.title=xInfo.textContent;};
+  xSel.onchange=showX;
+  const setMode=k=>{md=k;el._gate=k==='new';el._sync();el._deny();
+    el.querySelectorAll('[data-mode]').forEach(b=>{const on=b.dataset.mode===k;b.classList.toggle('on',on);b.setAttribute('aria-selected',String(on));});
+    el.querySelectorAll('.pl-cr-new').forEach(n=>{n.hidden=k!=='new';});el.querySelectorAll('.pl-cr-pick').forEach(n=>{n.hidden=k!=='pick';});
+    okb.dataset.label=okb.textContent=k==='pick'?'Add epic':'Create in GUS';note.textContent=k==='pick'?'Adds the existing GUS epic to this table; nothing new is created.':'Created in GUS immediately when you confirm.';
+    (k==='pick'?xSel:el.querySelector('[data-n].hub-inline')).focus();};
+  el.querySelectorAll('[data-mode]').forEach(b=>{b.onclick=()=>setMode(b.dataset.mode);});
+  call('plan-gus-epics',{teamId:H.team.Id}).then(r=>{const inPlan=new Set(pl.epics.map(e=>e.gusId).filter(Boolean));xeps=(r.epics||[]).filter(g=>!inPlan.has(g.id));
+    xSel.innerHTML=xeps.length?`<option value="">Select an epic…</option>`+xeps.map(g=>opt(g.id,(g.projectName?projShort({name:g.projectName})+' › ':'')+g.name,false)).join(''):opt('','No other epics found in GUS for this team',true);
+    pc.textContent=`${xeps.length} not yet in this table`;},e=>{xSel.innerHTML=opt('','Could not load GUS epics',true);pc.textContent=String(e&&e.message||e).slice(0,60);});
+  setMode('new');
 }
 // ── Export template / import (xlsx) ────────────────────────────────────────
 // Engineers for planning/allocation: non-leaders plus leaders the backend flags (Ram/Jayant on MQ & MAPS, Jayant on VegaCache).

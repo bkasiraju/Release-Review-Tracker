@@ -2069,3 +2069,7 @@ html body .pl-pwrap .pl-emenu{width:min(980px,calc(100vw - 32px))!important}
 html body .pl-cr .pl-cr-chk{display:flex!important;flex-direction:row!important;align-items:center;gap:8px}
 html body .pl-cr .pl-cr-chk input{width:auto!important;max-width:none!important;margin:0}
 html body .pl-cr .pl-cr-chk span{font-weight:600}
+
+/* Add epic: pick-existing mode */
+.pl-cr-epic .pl-cr-f.s9{grid-column:span 9}
+html body .pl-cr [hidden]{display:none!important}

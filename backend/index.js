@@ -102,6 +102,7 @@ async function handleRequest(ctx){
       case 'plan-commit':if(!await canCommit(sf,ctx))throw Error('Saving the plan to GUS is restricted to the plan administrators.');payload=await planner.commitPlan(sf,store,b.teamId,b.confirm===true,b.includeBtl===true,b.confirm===true?b.acknowledged===true:undefined);break;
       case 'plan-create-project':if(!await canCommit(sf,ctx))throw Error('Creating projects in GUS is restricted to the plan administrators.');payload=await planner.createProject(sf,b.teamId,b.project);break;
       case 'plan-sync-epics':if(!await canCommit(sf,ctx))throw Error('Updating epics in GUS is restricted to the plan administrators.');payload=await planner.syncEpics(sf,b.teamId,b.epics);break;
+      case 'plan-gus-epics':payload=await planner.listEpics(sf,b.teamId);break;
       case 'plan-create-workstream':if(!await canCommit(sf,ctx))throw Error('Creating workstreams in GUS is restricted to the plan administrators.');payload=await planner.createWorkstream(sf,b.teamId,b.workstream);break;
       case 'plan-create-epic':if(!await canCommit(sf,ctx))throw Error('Creating epics in GUS is restricted to the plan administrators.');payload=await planner.createEpic(sf,b.teamId,b.epic);break;
       case 'hub-tds':payload=await hub.getTds(sf,b.teamId);break;

@@ -158,3 +158,9 @@ test('createWorkstream makes a parent User Story with the Workstream + per-works
   await assert.rejects(plan.createWorkstream(sf,T,{...inp,epicGusId:''}),/not in GUS yet/);
   await assert.rejects(plan.createWorkstream(sf,T,{...inp,name:' '}),/workstream name/);
 });
+
+test('listEpics returns the team epics for the add-existing picker',async()=>{
+  const sf={async query(q){assert.match(q,new RegExp(`Team__c = '${T}'`));return {records:[{Id:'a3QEE000002pXaH2AU',Name:'E1',Project__c:'a1PEE00000PRJ0001A',Project__r:{Name:'M1',V2MOM_Method__c:'meth',Program__c:PROG,Program__r:{Name:'MQ - 268'}},Planned_Release__c:REL,Planned_Release__r:{Name:'MQ 268'},Development_Lead__c:ENG,Development_Lead__r:{Name:'Ann'},Planned_Story_Points__c:12}]};}};
+  const r=await plan.listEpics(sf,T);
+  assert.deepEqual(r.epics[0],{id:'a3QEE000002pXaH2AU',name:'E1',projectId:'a1PEE00000PRJ0001A',projectName:'M1',method:'meth',programId:PROG,programName:'MQ - 268',releaseId:REL,releaseName:'MQ 268',leadId:ENG,leadName:'Ann',points:12});
+});
