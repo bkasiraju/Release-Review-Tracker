@@ -1982,3 +1982,20 @@ html body .sp-items.sp-items.who.who th:nth-child(3){width:20%!important}
 .pl-cr-seg button.on{background:#0b5cab;color:#fff}
 .pl-cr-f[hidden]{display:none}
 .pl-cr-hint{grid-column:1/-1;margin:0;font-size:12px;color:#0b6fa8}
+/* Create dialog v2: wider, clearly separated sections, obvious inputs vs labels */
+html body .nd-modal.pl-cr{width:min(760px,96vw);padding:22px 26px}
+.pl-cr .pl-cr-sub{font-size:13px;margin:0 0 16px}
+.pl-cr .pl-cr-s{padding:0;margin:0 0 16px;border:1px solid #b9c9d9;border-radius:10px;background:#fff;overflow:hidden}
+.pl-cr .pl-cr-s h3{margin:0;padding:9px 16px;background:#e8f0f8;border-bottom:1px solid #b9c9d9;font-size:12px;font-weight:700;letter-spacing:.07em;color:#032d60}
+.pl-cr .pl-cr-g{padding:14px 16px 16px;gap:14px 16px}
+.pl-cr .pl-cr-f{gap:6px;font-size:12px;font-weight:700;color:#032d60;text-transform:none}
+.pl-cr .pl-cr-f small{font-weight:400;color:#5b6f82}
+.pl-cr .pl-cr-f .hub-inline,.pl-cr .pl-cr-f select,.pl-cr .pl-cr-f textarea{height:38px;padding:0 12px;background:#fff;border:1px solid #8a9db3;border-radius:6px;font:400 14px/1.2 inherit;color:#16324a;box-shadow:inset 0 1px 2px rgba(3,45,96,.08)}
+.pl-cr .pl-cr-f .hub-inline:focus,.pl-cr .pl-cr-f select:focus{outline:0;border-color:#0b5cab;box-shadow:0 0 0 3px rgba(11,92,171,.2)}
+.pl-cr .pl-cr-f .hub-inline::placeholder{color:#8a9db3}
+.pl-cr .pl-cr-auto{padding:0}
+.pl-cr .pl-cr-auto div{background:#f3f6f9;border:1px dashed #c9d6e2}
+.pl-cr .pl-cr-auto dd{font-weight:600}
+.pl-cr .pl-cr-foot{margin-top:4px;padding-top:14px;border-top:1px solid #dbe5ee}
+.pl-cr .pl-cr-seg{margin-bottom:2px}
+.pl-cr .pl-cr-seg button{padding:8px 16px;font-size:13px}
