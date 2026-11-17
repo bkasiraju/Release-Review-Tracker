@@ -50,9 +50,9 @@ function wireDrag(el){
 // "+ Project" / "+ Epic": a sectioned dialog that creates the record in GUS right away (plan administrators only).
 const crField=(label,hint,ctl,cls)=>`<label class="pl-cr-f${cls?' '+cls:''}"><span>${label}${hint?` <small>${hint}</small>`:''}</span>${ctl}</label>`;
 const crSection=(title,body)=>`<section class="pl-cr-s"><h3>${title}</h3><div class="pl-cr-g">${body}</div></section>`;
-const crAuto=rows=>`<dl class="pl-cr-auto">${rows.map(([k,v])=>`<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>`;
+const crAuto=rows=>`<div class="pl-cr-chips" aria-label="Set automatically">${rows.map(([k,v])=>`<span class="pl-cr-chip" title="${esc(k)}: ${esc(v)}"><i>${esc(k)}</i>${esc(v)}</span>`).join('')}</div>`;
 function crDialog(title,sub,bodyHtml,okLabel,submit){
-  const el=openModal(title,`<p class="pl-cr-sub">${esc(sub)}</p>${bodyHtml}<p class="pl-cr-err" role="alert" hidden></p><div class="pl-cr-foot"><span class="note">Created in GUS immediately when you confirm.</span><span class="toolbar-spacer"></span><button type="button" class="button" data-close>Cancel</button><button type="button" class="button primary" data-ok disabled>${esc(okLabel)}</button></div>`);
+  const el=openModal(title,`<p class="pl-cr-sub">${esc(sub)}</p>${bodyHtml}<p class="pl-cr-err" role="alert" hidden></p><div class="pl-cr-foot"><span class="note">Created in GUS immediately when you confirm.</span><span class="pl-cr-btns"><button type="button" class="button" data-close>Cancel</button><button type="button" class="button primary" data-ok disabled>${esc(okLabel)}</button></span></div>`);
   el.querySelector('.nd-modal').classList.add('pl-cr');
   const ok=el.querySelector('[data-ok]'),err=el.querySelector('.pl-cr-err');
   const fail=m=>{err.textContent=m;err.hidden=!m;};
@@ -77,7 +77,7 @@ function newProjectAt(){
       crField('Measure name','new project in GUS',`<input class="hub-inline" type="text" data-n maxlength="120" placeholder="e.g. M1.1.3: Baseline reliability" autocomplete="off">`,'wide pl-cr-new')+
       crField('Project Shortform','e.g. HRP M1.1.3',`<input class="hub-inline" type="text" data-s maxlength="60" placeholder="e.g. HRP M1.1.3">`,'wide')+`<p class="pl-cr-hint" data-hint hidden></p>`)+
     crSection('V2MOM',crField('V2MOM method','saved on the project in GUS',`<input class="hub-inline" type="text" list="pl-cr-methods" data-m maxlength="1000" placeholder="Pick an existing method or type a new one" autocomplete="off"><datalist id="pl-cr-methods">${methods.map(m=>`<option value="${esc(m)}"></option>`).join('')}</datalist>`,'wide'))+
-    crSection('Set automatically',crAuto([['Team',H.team.Name],['Program',prog?prog.name:'Not found for this team'],['Owner',crUser()]]));
+    crAuto([['Team',H.team.Name],['Program',prog?prog.name:'Not found for this team'],['Owner',crUser()]]);
   let md=avail.length?'pick':'new';
   const el=crDialog('Add project','Pick a project that already exists in GUS, or enter a new one. Either way it is shared with every team.',body,'Add project',async(el,fail)=>{
     const sh=el.querySelector('[data-s]').value.trim(),method=el.querySelector('[data-m]').value.trim();let name,gusId='',r;
@@ -143,7 +143,7 @@ function newEpicAt(){
       crField('Planned release','',`<select class="hub-inline" data-r>${opt('','— None (set after planning) —',true)}${rel.map(r=>opt(r.id,r.name,false)).join('')}</select>`,'s3')+
       crField('ATL/BTL','',`<select class="hub-inline" data-l><option value="ABL" selected>ABL / ATL (above the line)</option><option value="BTL">BTL (below the line)</option></select>`,'s3')+
       crField('Effort','days',`<input class="hub-inline" type="number" min="0" max="1000" step="0.5" data-d placeholder="0">`,'s2'))+
-    `<p class="pl-cr-auto-l">Set automatically: <b>Team</b> ${esc(H.team.Name)} · <b>Program</b> ${esc(prog?prog.name:'—')} · <b>Epic owner</b> same as the development lead</p>`;
+    crAuto([['Team',H.team.Name],['Program',prog?prog.name:'—'],['Epic owner','= Development lead']]);
   const el=crDialog('New epic','Creates the epic in GUS under the chosen project and adds it to this plan.',body,'Create in GUS',async(el)=>{
     const pr=pl.projects.find(x=>x.id===el.querySelector('[data-p]').value),name=el.querySelector('[data-n].hub-inline').value.trim(),releaseId=el.querySelector('[data-r]').value,effort=Number(el.querySelector('[data-d]').value)||0,line=el.querySelector('[data-l]').value,leadId=el.querySelector('[data-o]').value,leadName=(P.members.find(m=>m.id===leadId)||{}).name||'';
     if(!pr)throw new Error('Choose a project.');

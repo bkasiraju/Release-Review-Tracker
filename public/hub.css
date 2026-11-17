@@ -2037,3 +2037,13 @@ html body .nd-modal.pl-cr.pl-cr-epic{width:min(1040px,96vw)}
 .pl-cr .pl-cr-f textarea.hub-inline{height:auto;min-height:58px;padding:8px 12px;resize:vertical;line-height:1.35}
 .pl-cr .pl-cr-f textarea.hub-inline.bad{border-color:#b3261e;box-shadow:0 0 0 2px rgba(179,38,30,.15)}
 .pl-cr-f [data-cnt]{font-weight:600}.pl-cr-f [data-cnt].over{color:#b3261e}
+/* Auto-set chips + centered footer */
+.pl-cr-chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.pl-cr-chip{display:inline-flex;align-items:center;gap:6px;max-width:100%;padding:4px 12px;border-radius:999px;background:#e8f0f8;border:1px solid #c5d6e8;font-size:12px;color:#16324a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pl-cr-chip i{font-style:normal;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#5b6f82}
+html body .pl-cr .pl-cr-foot{flex-direction:column;align-items:center;gap:10px}
+html body .pl-cr .pl-cr-foot .toolbar-spacer{display:none}
+html body .pl-cr .pl-cr-foot .note{order:-1;background:none;border:0;padding:0;text-align:center;font-size:12px;color:#5b6f82}
+html body .pl-cr .pl-cr-foot .button{min-width:120px;justify-content:center}
+html body .pl-cr .pl-cr-foot [data-close]{margin-right:6px}
+.pl-cr-btns{display:inline-flex;gap:10px;justify-content:center}
