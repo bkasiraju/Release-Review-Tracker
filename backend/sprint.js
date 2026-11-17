@@ -100,8 +100,20 @@ async function loadSprintData(sf, teamId, sprintId) {
   if (!sprints.length) throw new Error('Sprint not found for this team');
   const sprint = sprints[0];
 
+  // Early in a sprint GUS has not taken the forecast snapshot yet (no ADM_Work_Commitment__c rows).
+  // Fall back to the work currently in the sprint so the team still sees its items; flagged noForecast.
+  let rows = commitments;
+  const noForecast = !commitments.length;
+  if (noForecast) {
+    const cur = await queryAll(sf,
+      `SELECT Id, Name, Subject__c, Status__c, Story_Points__c, Priority__c, RecordType.Name, Assignee__c, Assignee__r.Name, ` +
+      `QA_Engineer__c, QA_Engineer__r.Name, Epic__c, Epic__r.Name, Epic__r.Development_Lead__c, Epic__r.Development_Lead__r.Name ` +
+      `FROM ADM_Work__c WHERE Sprint__c = '${sprintId}' LIMIT 2000`);
+    rows = cur.map(w => ({ Work__c: w.Id, Work__r: w, Item_Status__c: 'Current', Committed_Story_Points__c: null }));
+  }
+
   const byMember = new Map();
-  for (const c of commitments) {
+  for (const c of rows) {
     const w = c.Work__r;
     if (!w) continue;
     const forecastPts = c.Committed_Story_Points__c;
@@ -142,6 +154,7 @@ async function loadSprintData(sf, teamId, sprintId) {
       Start_Date__c: sprint.Start_Date__c,
       End_Date__c: sprint.End_Date__c,
       Goals__c: sprint.Goals__c,
+      noForecast,
       Completion_Committed_Story_Points__c: sprint.Completion_Committed_Story_Points__c,
       // Same figures as the GUS sprint wall header: Forecast Closed %, Forecast, Closed (velocity), Current, Days Left.
       gus: {

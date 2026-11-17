@@ -108,3 +108,16 @@ test('incremental saves send only deltas and never duplicate epics',async()=>{
   // 8. two unsaved epics with the same name are blocked rather than linked to one GUS epic
   const d=plan.cleanPlan(draft());d.epics.push({...d.epics[0],id:'e7'});assert.match(plan.review(d,new Set([REL]),{id:PROG,name:'x'}).blockers[0].problems.join(' '),/same name/);
 });
+test('createProject / createEpic write the mandatory GUS fields and reuse duplicates',async()=>{
+  const log=[],sf=sfMock(log);
+  const p=await plan.createProject(sf,T,{name:'M9: New',method:'Method X'});
+  assert.equal(p.created,true);assert.equal(p.programId,PROG);
+  assert.deepEqual(log.find(x=>x[0]==='c'&&x[1]==='PPM_Project__c')[2],{Name:'M9: New',Program__c:PROG,V2MOM_Method__c:'Method X'});
+  const e=await plan.createEpic(sf,T,{name:'Epic A',releaseId:REL,effort:5,project:{gusId:'a1PEE00000PRJ0001A'}});
+  assert.equal(e.created,true);
+  const f=log.find(x=>x[0]==='c'&&x[1]==='ADM_Epic__c')[2];
+  assert.equal(f.Team__c,T);assert.equal(f.Project__c,'a1PEE00000PRJ0001A');assert.equal(f.Planned_Release__c,REL);assert.equal(f.Planned_Story_Points__c,5);
+  await assert.rejects(plan.createEpic(sf,T,{name:'',releaseId:REL,project:{gusId:'a1PEE00000PRJ0001A'}}),/epic name/);
+  await assert.rejects(plan.createEpic(sf,T,{name:'E',releaseId:'a1EEE00000OTHER01A',project:{gusId:'a1PEE00000PRJ0001A'}}),/planned releases/);
+  await assert.rejects(plan.createEpic(sfMock([],{failEpic:true}),T,{name:'E2',releaseId:REL,project:{gusId:'a1PEE00000PRJ0001A'}}),/rejected the epic/);
+});

@@ -122,19 +122,65 @@ async function getRefs(sf, teamId) {
 }
 async function loadRefs(sf, teamId) {
   const warnings = [], safe = (label, p) => p.then(r => (r && r.records) || [], e => { warnings.push(label + ': ' + (e && e.message || 'unavailable')); return []; });
-  const [releases, programs, used, sprints] = await Promise.all([
+  const [releases, programs, used, sprints, teamProg] = await Promise.all([
     safe('Planned releases', teamReleases(sf, teamId, true).then(r => ({ records: r }))),
     safe('Programs', sf.query(`SELECT Id, Name FROM PPM_Program__c WHERE Name LIKE '% - ${PROGRAM_RELEASE}' ORDER BY Name LIMIT 200`)),
     safe('Projects', sf.query(`SELECT Project__c p, Project__r.Name n, Project__r.Program__c g, Project__r.Program__r.Name gn FROM ADM_Epic__c WHERE Team__c = '${teamId}' AND Project__c != null GROUP BY Project__c, Project__r.Name, Project__r.Program__c, Project__r.Program__r.Name LIMIT 500`)),
-    safe('Sprints', sf.query(`SELECT Name, Start_Date__c, End_Date__c FROM ADM_Sprint__c WHERE Scrum_Team__c = '${teamId}' AND End_Date__c >= LAST_N_DAYS:14 ORDER BY Start_Date__c LIMIT 16`))
+    safe('Sprints', sf.query(`SELECT Name, Start_Date__c, End_Date__c FROM ADM_Sprint__c WHERE Scrum_Team__c = '${teamId}' AND End_Date__c >= LAST_N_DAYS:14 ORDER BY Start_Date__c LIMIT 16`)),
+    teamProgram(sf, teamId)
   ]);
   return {
     releases: releases.map(r => ({ id: r.Id, name: r.Name })),
     programs: programs.map(r => ({ id: r.Id, name: r.Name })),
     projects: used.map(r => ({ id: r.p, name: r.n, programId: r.g || '', programName: r.gn || '' })).sort((a, b) => a.name.localeCompare(b.name)),
     sprints: sprints.map(r => ({ name: r.Name, start: r.Start_Date__c, end: r.End_Date__c })),
+    program: teamProg || null,
     warnings
   };
+}
+
+// Create a project or an epic directly in GUS from the planner's "+ Project" / "+ Epic" dialogs.
+// Mandatory: project = name + the team's program; epic = name + team + project + planned release (+ planned effort in days).
+async function ensureProject(sf, teamId, project) {
+  const name = text(project && project.name, 120), method = text(project && project.method, 1000);
+  if (project && gid(project.gusId)) {
+    if (method) { try { await sf.update('PPM_Project__c', gid(project.gusId), { V2MOM_Method__c: method }); } catch (_) { /* method is best effort on an existing project */ } }
+    return { id: gid(project.gusId), created: false };
+  }
+  if (!name) throw new Error('Enter the project (measure) name.');
+  const program = await teamProgram(sf, teamId);
+  if (!program) throw new Error('This team has no GUS program for the planning release, so a project cannot be created. Ask a plan administrator.');
+  const hit = ((await sf.query(`SELECT Id FROM PPM_Project__c WHERE Name = '${soql(name)}' AND Program__c = '${program.id}' LIMIT 1`)).records || [])[0];
+  if (hit) {
+    if (method) { try { await sf.update('PPM_Project__c', hit.Id, { V2MOM_Method__c: method }); } catch (_) { /* best effort */ } }
+    return { id: hit.Id, created: false, program };
+  }
+  const c = await sf.create('PPM_Project__c', { Name: name, Program__c: program.id, ...(method ? { V2MOM_Method__c: method } : {}) });
+  if (!ok(c) || !newId(c)) throw new Error('GUS rejected the project: ' + ((c && c.errors) || []).join(', '));
+  refsCache.delete(teamId);
+  return { id: newId(c), created: true, program };
+}
+async function createProject(sf, teamId, input) {
+  planKey(teamId);
+  const r = await ensureProject(sf, teamId, { name: input && input.name, method: input && input.method });
+  const program = r.program || await teamProgram(sf, teamId);
+  return { gusId: r.id, created: r.created, programId: program ? program.id : '', programName: program ? program.name : '' };
+}
+async function createEpic(sf, teamId, input) {
+  planKey(teamId);
+  const name = text(input && input.name, 255), releaseId = gid(input && input.releaseId);
+  if (!name) throw new Error('Enter the epic name.');
+  if (!releaseId) throw new Error('Choose the planned release.');
+  const rel = await teamReleases(sf, teamId, false).then(r => new Set(r.map(x => x.Id)), () => null);
+  if (rel && !rel.has(releaseId)) throw new Error('That release is not one of this team\'s planned releases.');
+  const proj = await ensureProject(sf, teamId, input && input.project);
+  const effort = days(input && input.effort);
+  const hit = ((await sf.query(`SELECT Id FROM ADM_Epic__c WHERE Name = '${soql(name)}' AND Team__c = '${teamId}' LIMIT 1`)).records || [])[0];
+  if (hit) return { gusId: hit.Id, projectGusId: proj.id, projectCreated: proj.created, created: false };
+  const c = await sf.create('ADM_Epic__c', { Name: name, Team__c: teamId, Project__c: proj.id, Planned_Release__c: releaseId, Planned_Story_Points__c: effort });
+  if (!ok(c) || !newId(c)) throw new Error('GUS rejected the epic: ' + ((c && c.errors) || []).join(', '));
+  refsCache.delete(teamId);
+  return { gusId: newId(c), projectGusId: proj.id, projectCreated: proj.created, created: true };
 }
 
 // Validate ABL epics against the saved plan and describe exactly what a commit would do.
@@ -299,4 +345,4 @@ async function commitRun(sf, store, teamId, confirm, includeBtl, acknowledged) {
   return { results, failed: results.filter(x => !x.ok).length, plan: saved && saved.plan, revision: saved && saved.revision, saveError };
 }
 
-module.exports = { getPlan, savePlan, getRefs, commitPlan, review, cleanPlan };
+module.exports = { getPlan, savePlan, getRefs, commitPlan, createProject, createEpic, review, cleanPlan };

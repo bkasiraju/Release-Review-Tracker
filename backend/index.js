@@ -100,6 +100,8 @@ async function handleRequest(ctx){
       case 'plan-save':payload=await planner.savePlan(store,b.teamId,b.plan,b.revision);break;
       case 'plan-refs':payload=await planner.getRefs(sf,b.teamId);break;
       case 'plan-commit':if(!await canCommit(sf,ctx))throw Error('Saving the plan to GUS is restricted to the plan administrators.');payload=await planner.commitPlan(sf,store,b.teamId,b.confirm===true,b.includeBtl===true,b.confirm===true?b.acknowledged===true:undefined);break;
+      case 'plan-create-project':if(!await canCommit(sf,ctx))throw Error('Creating projects in GUS is restricted to the plan administrators.');payload=await planner.createProject(sf,b.teamId,b.project);break;
+      case 'plan-create-epic':if(!await canCommit(sf,ctx))throw Error('Creating epics in GUS is restricted to the plan administrators.');payload=await planner.createEpic(sf,b.teamId,b.epic);break;
       case 'hub-tds':payload=await hub.getTds(sf,b.teamId);break;
       case 'hub-picklists':payload=await hub.getPicklists(sf);break;
       case 'hub-rotation':payload=await hub.getRotation(store,b.teamId);break;

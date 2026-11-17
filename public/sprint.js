@@ -63,8 +63,9 @@ function renderDates(){const el=$('sp-dates');if(!el)return;const h=datesHtml();
 let datesTimer=0;function scheduleDates(){clearTimeout(datesTimer);const n=new Date(),next=new Date(n.getFullYear(),n.getMonth(),n.getDate()+1,0,0,5)-n;datesTimer=setTimeout(()=>{renderDates();scheduleDates();},Math.min(next,2147483000));}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)renderDates();});scheduleDates();
 function renderGoal(){
-  const g=(S.sprint?.Goals__c||'').trim();
-  $('sp-goal').classList.toggle('hidden',!g);$('sp-goal').textContent=g?'Sprint goal: '+g.replace(/\s+/g,' '):'';
+  const g=(S.sprint?.Goals__c||'').trim(),nf=S.sprint?.noForecast?'Forecast not captured yet in GUS - showing current sprint work; forecast, spillover and say-do appear once it is.':'';
+  const t=[g?'Sprint goal: '+g.replace(/\s+/g,' '):'',nf].filter(Boolean).join('  |  ');
+  $('sp-goal').classList.toggle('hidden',!t);$('sp-goal').textContent=t;
 }
 
 // ── Members ─────────────────────────────────────────────────────────────────

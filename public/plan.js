@@ -47,41 +47,70 @@ function wireDrag(el){
     const k=e.workstreams.findIndex(w=>w.id===wid),n=k+(ev.key==='ArrowUp'?-1:1);if(n<0||n>=e.workstreams.length)return;
     moveWs(wid,e.id,n);draw();queueSave();P.el.querySelector(`[data-w="${wid}"] [data-grip]`)?.focus();};
 }
-// Inline popover next to "+ Project": measure name (the GUS project) and its short form (e.g. HRP M1.1.3).
-function newProjectAt(btn){
-  document.querySelectorAll('.pl-confirm').forEach(x=>x.remove());
-  const d=document.createElement('div');d.className='pl-confirm pl-newproj';d.setAttribute('role','dialog');d.setAttribute('aria-label','New project');
-  d.innerHTML=`<header class="pl-pop-h"><b>New project</b><span>Add a measure (project in GUS) to this release plan</span></header><section class="pl-pop-b"><label>Measure name <small>(project in GUS)</small><input class="hub-inline" type="text" list="pl-projects" data-n maxlength="120" placeholder="Enter value"></label><label>Short form <small>e.g. HRP M1.1.3</small><input class="hub-inline" type="text" data-s maxlength="30" placeholder="Enter value"></label></section><footer class="pl-pop-f"><button type="button" class="button small" data-no>Cancel</button><button type="button" class="button small primary" data-yes>Add project</button></footer>`;
-  document.body.appendChild(d);
-  const r=btn.getBoundingClientRect(),w=d.offsetWidth,h=d.offsetHeight;
-  d.style.left=Math.max(8,Math.min(innerWidth-w-8,r.right-w))+'px';d.style.top=(r.bottom+h+8>innerHeight&&r.top-h-8>8?r.top-h-8:r.bottom+8)+'px';
-  const n=d.querySelector('[data-n]'),sh=d.querySelector('[data-s]');
-  const close=()=>{d.remove();document.removeEventListener('mousedown',away,true);document.removeEventListener('keydown',key,true);btn.focus();};
-  const away=ev=>{if(!d.contains(ev.target)&&!ev.target.closest('.pl-confirm'))close();};
-  const add=()=>{const name=n.value.trim(),short=sh.value.trim();if(!name){n.focus();n.classList.add('bad');return;}
-    const hit=P.refs.projects.find(x=>x.name===name),p={id:uid('p'),name,short:short||shortProj(name),theme:'',gusId:''};
-    if(hit){p.gusId=hit.id;p.programId=hit.programId;p.programName=hit.programName;}
-    P.plan.projects.push(p);close();draw();queueSave();};
-  const key=ev=>{if(ev.key==='Escape'){ev.stopPropagation();close();}else if(ev.key==='Enter'&&d.contains(ev.target)){ev.preventDefault();add();}};
-  d.querySelector('[data-no]').onclick=close;d.querySelector('[data-yes]').onclick=add;n.oninput=()=>n.classList.remove('bad');
-  document.addEventListener('mousedown',away,true);document.addEventListener('keydown',key,true);n.focus();
+// "+ Project" / "+ Epic": a sectioned dialog that creates the record in GUS right away (plan administrators only).
+const crField=(label,hint,ctl,cls)=>`<label class="pl-cr-f${cls?' '+cls:''}"><span>${label}${hint?` <small>${hint}</small>`:''}</span>${ctl}</label>`;
+const crSection=(title,body)=>`<section class="pl-cr-s"><h3>${title}</h3><div class="pl-cr-g">${body}</div></section>`;
+const crAuto=rows=>`<dl class="pl-cr-auto">${rows.map(([k,v])=>`<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>`;
+function crDialog(title,sub,bodyHtml,okLabel,submit){
+  const el=openModal(title,`<p class="pl-cr-sub">${esc(sub)}</p>${bodyHtml}<p class="pl-cr-err" role="alert" hidden></p><div class="pl-cr-foot"><span class="note">Created in GUS immediately when you confirm.</span><span class="toolbar-spacer"></span><button type="button" class="button" data-close>Cancel</button><button type="button" class="button primary" data-ok disabled>${esc(okLabel)}</button></div>`);
+  el.querySelector('.nd-modal').classList.add('pl-cr');
+  const ok=el.querySelector('[data-ok]'),err=el.querySelector('.pl-cr-err');
+  const fail=m=>{err.textContent=m;err.hidden=!m;};
+  let allowed=false,busy=false;
+  const sync=()=>{ok.disabled=!allowed||busy;};
+  call('connection',{}).then(c=>{allowed=!!(c&&c.canCommit);if(!allowed)fail('Creating records in GUS is restricted to the plan administrators.');sync();},()=>{allowed=true;sync();});
+  const go=async()=>{if(ok.disabled)return;fail('');busy=true;ok.textContent='Creating…';sync();
+    try{await submit(el,fail);}catch(e){fail(String(e&&e.message||e));}finally{busy=false;ok.textContent=okLabel;sync();}};
+  ok.onclick=go;
+  el.addEventListener('keydown',ev=>{if(ev.key==='Enter'&&ev.target.tagName==='INPUT'){ev.preventDefault();go();}});
+  return el;
 }
-function newEpicAt(btn){
-  document.querySelectorAll('.pl-confirm').forEach(x=>x.remove());
-  const pl=P.plan;if(!pl.projects.length){newProjectAt(btn);return;}
-  const rel=P.refs.releases,dr=defRel(),d=document.createElement('div');d.className='pl-confirm pl-newproj';d.setAttribute('role','dialog');d.setAttribute('aria-label','New epic');
-  d.innerHTML=`<header class="pl-pop-h"><b>New epic</b><span>Add an epic under a project in this release plan</span></header><section class="pl-pop-b"><label class="pl-f-project">Project<select class="hub-inline" data-p>${pl.projects.map((p,i)=>opt(p.id,p.short||projShort(p.name),i===pl.projects.length-1)).join('')}</select></label><label class="pl-f-name">Epic name<input class="hub-inline" type="text" data-n maxlength="255" placeholder="Epic name"></label><label class="pl-f-rel">Planned release<select class="hub-inline" data-r>${rel.map(r=>opt(r.id,r.name,r.id===dr.releaseId)).join('')||opt('','No releases',true)}</select></label><label class="pl-f-atl">ATL/BTL<select class="hub-inline" data-l><option value="BTL">BTL</option><option value="ABL">ABL</option></select></label></section><footer class="pl-pop-f"><button type="button" class="button small" data-no>Cancel</button><button type="button" class="button small primary" data-yes>Add epic</button></footer>`;
-  document.body.appendChild(d);
-  const r=btn.getBoundingClientRect(),w=d.offsetWidth,h=d.offsetHeight;
-  d.style.left=Math.max(8,Math.min(innerWidth-w-8,r.left))+'px';d.style.top=(r.bottom+h+8>innerHeight&&r.top-h-8>8?r.top-h-8:r.bottom+8)+'px';
-  const n=d.querySelector('[data-n]');
-  const close=()=>{d.remove();document.removeEventListener('mousedown',away,true);document.removeEventListener('keydown',key,true);};
-  const away=ev=>{if(!d.contains(ev.target))close();};
-  const add=()=>{const e=newEpic(d.querySelector('[data-p]').value);e.name=n.value.trim();const rv=d.querySelector('[data-r]').value,rr=rel.find(x=>x.id===rv);if(rr){e.releaseId=rr.id;e.releaseName=rr.name;}
-    e.line=d.querySelector('[data-l]').value;e.workstreams.forEach(x=>{x.line=e.line;});pl.epics.push(e);close();draw();queueSave();const ne=P.el.querySelector(`[data-e="${e.id}"]`);ne?.scrollIntoView({block:'nearest'});};
-  const key=ev=>{if(ev.key==='Escape'){ev.stopPropagation();close();}else if(ev.key==='Enter'&&d.contains(ev.target)&&ev.target.tagName!=='SELECT'){ev.preventDefault();add();}};
-  d.querySelector('[data-no]').onclick=close;d.querySelector('[data-yes]').onclick=add;
-  document.addEventListener('mousedown',away,true);document.addEventListener('keydown',key,true);n.focus();
+const crUser=()=>(P.user&&P.user.name)||'You (signed-in GUS user)';
+function newProjectAt(){
+  const pl=P.plan,prog=P.refs.program,methods=ioLists().methods,known=new Map(P.refs.projects.map(x=>[x.name.toLowerCase(),x]));
+  const body=
+    crSection('Project',crField('Measure name','project in GUS',`<input class="hub-inline" type="text" list="pl-projects" data-n maxlength="120" placeholder="Start typing to reuse an existing GUS project" autocomplete="off">`,'wide')+crField('Short form','e.g. HRP M1.1.3',`<input class="hub-inline" type="text" data-s maxlength="30" placeholder="Filled from the name">`)+`<p class="pl-cr-hint" data-hint hidden></p>`)+
+    crSection('V2MOM',crField('V2MOM method','saved on the project in GUS',`<input class="hub-inline" type="text" list="pl-cr-methods" data-m maxlength="1000" placeholder="Pick an existing method or type a new one" autocomplete="off"><datalist id="pl-cr-methods">${methods.map(m=>`<option value="${esc(m)}"></option>`).join('')}</datalist>`,'wide'))+
+    crSection('Set automatically',crAuto([['Team',H.team.Name],['Program',prog?prog.name:'Not found for this team'],['Owner',crUser()]]));
+  const el=crDialog('New project','Creates the project in GUS and shares it with every team.',body,'Create in GUS',async(el,fail)=>{
+    const name=el.querySelector('[data-n]').value.trim(),short=el.querySelector('[data-s]').value.trim(),method=el.querySelector('[data-m]').value.trim();
+    if(!name){el.querySelector('[data-n]').focus();throw new Error('Enter the measure (project) name.');}
+    if(!prog)throw new Error('This team has no GUS program for the planning release, so a project cannot be created.');
+    const r=await call('plan-create-project',{teamId:H.team.Id,project:{name,method}});
+    let p=pl.projects.find(x=>x.gusId===r.gusId);
+    if(!p){p={id:uid('p'),name,short:short||shortProj(name),theme:'',gusId:r.gusId};pl.projects.push(p);}
+    Object.assign(p,{name,short:short||p.short||shortProj(name),method,gusId:r.gusId,programId:r.programId,programName:r.programName});
+    if(!P.refs.projects.some(x=>x.id===r.gusId))P.refs.projects.push({id:r.gusId,name,programId:r.programId,programName:r.programName});
+    closeModal();draw();queueSave();window.toast?.(r.created?`Created project “${name}” in GUS.`:`Linked existing GUS project “${name}”.`,false);
+  });
+  const n=el.querySelector('[data-n]'),sh=el.querySelector('[data-s]'),m=el.querySelector('[data-m]'),hint=el.querySelector('[data-hint]');let shTouched=false;
+  sh.oninput=()=>{shTouched=true;};
+  n.oninput=()=>{const v=n.value.trim(),hit=known.get(v.toLowerCase()),local=pl.projects.find(x=>x.name.toLowerCase()===v.toLowerCase());
+    if(!shTouched)sh.value=(local&&local.short)||(v?shortProj(v):'');
+    if(local&&local.method&&!m.value)m.value=local.method;
+    hint.hidden=!hit&&!local;hint.textContent=hit||local?'This project already exists in GUS. It will be linked, not duplicated.':'';};
+  n.focus();
+}
+function newEpicAt(){
+  const pl=P.plan;if(!pl.projects.length){newProjectAt();return;}
+  const rel=P.refs.releases,dr=defRel(),prog=P.refs.program;
+  const body=
+    crSection('Epic',crField('Project','',`<select class="hub-inline" data-p>${pl.projects.map((p,i)=>opt(p.id,projShort(p)+(p.gusId?'':'  (new — created with the epic)'),i===pl.projects.length-1)).join('')}</select>`,'wide')+crField('Epic name','',`<input class="hub-inline" type="text" data-n maxlength="255" placeholder="Epic name" autocomplete="off">`,'wide'))+
+    crSection('Planning',crField('Planned release','',`<select class="hub-inline" data-r>${rel.map(r=>opt(r.id,r.name,r.id===dr.releaseId)).join('')||opt('','No releases',true)}</select>`)+crField('ATL/BTL','',`<select class="hub-inline" data-l><option value="ABL">ABL (above the line)</option><option value="BTL" selected>BTL (below the line)</option></select>`)+crField('Planned effort','days',`<input class="hub-inline" type="number" min="0" max="1000" step="0.5" data-d placeholder="0">`))+
+    crSection('Set automatically',crAuto([['Team',H.team.Name],['Program',prog?prog.name:'—'],['Owner',crUser()]]));
+  const el=crDialog('New epic','Creates the epic in GUS under the chosen project and adds it to this plan.',body,'Create in GUS',async(el)=>{
+    const pr=pl.projects.find(x=>x.id===el.querySelector('[data-p]').value),name=el.querySelector('[data-n].hub-inline').value.trim(),releaseId=el.querySelector('[data-r]').value,effort=Number(el.querySelector('[data-d]').value)||0,line=el.querySelector('[data-l]').value;
+    if(!pr)throw new Error('Choose a project.');
+    if(!name){el.querySelector('[data-n]').focus();throw new Error('Enter the epic name.');}
+    if(!releaseId)throw new Error('Choose the planned release.');
+    const r=await call('plan-create-epic',{teamId:H.team.Id,epic:{name,releaseId,effort,project:{gusId:pr.gusId,name:pr.name,method:pr.method}}});
+    pr.gusId=r.projectGusId||pr.gusId;
+    const e=newEpic(pr.id),rr=rel.find(x=>x.id===releaseId);e.name=name;e.gusId=r.gusId;if(rr){e.releaseId=rr.id;e.releaseName=rr.name;}
+    e.line=line;e.workstreams.forEach(x=>{x.line=line;});if(e.workstreams[0])e.workstreams[0].days=effort;
+    pl.epics.push(e);closeModal();draw();queueSave();P.el.querySelector(`[data-e="${e.id}"]`)?.scrollIntoView({block:'nearest'});
+    window.toast?.(r.created?`Created epic “${name}” in GUS.`:`Epic “${name}” already existed in GUS and was linked.`,false);
+  });
+  el.querySelector('[data-n].hub-inline').focus();
 }
 // ── Export template / import (xlsx) ────────────────────────────────────────
 // Engineers for planning/allocation: non-leaders plus leaders the backend flags (Ram/Jayant on MQ & MAPS, Jayant on VegaCache).
