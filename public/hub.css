@@ -2023,3 +2023,4 @@ html body .pl-pmenu .pl-pchip input.hub-inline:focus{border-color:#0b5cab;box-sh
 html body .pl-pmenu .pl-ph,html body .pl-pmenu .pl-pchip{grid-template-columns:150px minmax(0,1.4fr) minmax(0,1fr) 112px}
 html body .pl-pmenu .pl-ph{padding:0 7px;text-align:left}
 html body .pl-pmenu .pl-ph span{text-align:left;justify-self:start;padding:0 1px}
+.pl-cr-pinfo{display:block;font-weight:400;font-size:12px;color:#4b647a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}

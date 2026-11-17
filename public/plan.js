@@ -134,7 +134,7 @@ function newEpicAt(){
   const pl=P.plan;if(!pl.projects.length){newProjectAt();return;}
   const rel=P.refs.releases,dr=defRel(),prog=P.refs.program;
   const body=
-    crSection('Epic',crField('Project','',`<select class="hub-inline" data-p>${pl.projects.map((p,i)=>opt(p.id,projShort(p)+(p.gusId?'':'  (new — created with the epic)'),i===pl.projects.length-1)).join('')}</select>`,'wide')+crField('Epic name','',`<input class="hub-inline" type="text" data-n maxlength="255" placeholder="Epic name" autocomplete="off">`,'wide'))+
+    crSection('Epic',crField('Project','',`<select class="hub-inline" data-p>${pl.projects.map((p,i)=>opt(p.id,projShort(p)+(p.name&&p.name!==projShort(p)?' — '+p.name:'')+(p.gusId?'':'  (new — created with the epic)'),i===pl.projects.length-1)).join('')}</select><span class="pl-cr-pinfo" data-pi></span>`,'wide')+crField('Epic name','',`<input class="hub-inline" type="text" data-n maxlength="255" placeholder="Epic name" autocomplete="off">`,'wide'))+
     crSection('Planning',crField('Development lead','required · also the epic owner',`<select class="hub-inline" data-o><option value="" selected>Select a team member…</option>${P.members.slice().sort((a,b)=>String(a.name).localeCompare(b.name)).map(m=>opt(m.id,m.name,false)).join('')}</select>`,'wide')+crField('Planned release','',`<select class="hub-inline" data-r>${rel.map(r=>opt(r.id,r.name,r.id===dr.releaseId)).join('')||opt('','No releases',true)}</select>`)+crField('ATL/BTL','',`<select class="hub-inline" data-l><option value="ABL">ABL (above the line)</option><option value="BTL" selected>BTL (below the line)</option></select>`)+crField('Planned effort','days',`<input class="hub-inline" type="number" min="0" max="1000" step="0.5" data-d placeholder="0">`))+
     crSection('Set automatically',crAuto([['Team',H.team.Name],['Program',prog?prog.name:'—'],['Epic owner','Same as the development lead']]));
   const el=crDialog('New epic','Creates the epic in GUS under the chosen project and adds it to this plan.',body,'Create in GUS',async(el)=>{
@@ -150,6 +150,9 @@ function newEpicAt(){
     pl.epics.push(e);closeModal();draw();queueSave();P.el.querySelector(`[data-e="${e.id}"]`)?.scrollIntoView({block:'nearest'});
     window.toast?.(r.created?`Created epic “${name}” in GUS.`:`Epic “${name}” already existed in GUS and was linked.`,false);
   });
+  const pSel=el.querySelector('[data-p]'),pInfo=el.querySelector('[data-pi]');
+  const showP=()=>{const p=pl.projects.find(x=>x.id===pSel.value);pInfo.textContent=p?`${p.name}${p.method?'  ·  V2MOM: '+p.method:''}`:'';pInfo.title=pInfo.textContent;};
+  pSel.onchange=showP;showP();
   el.querySelector('[data-n].hub-inline').focus();
 }
 // ── Export template / import (xlsx) ────────────────────────────────────────
