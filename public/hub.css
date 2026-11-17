@@ -2024,3 +2024,13 @@ html body .pl-pmenu .pl-ph,html body .pl-pmenu .pl-pchip{grid-template-columns:1
 html body .pl-pmenu .pl-ph{padding:0 7px;text-align:left}
 html body .pl-pmenu .pl-ph span{text-align:left;justify-self:start;padding:0 1px}
 .pl-cr-pinfo{display:block;font-weight:400;font-size:12px;color:#4b647a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* One-section epic dialog */
+html body .nd-modal.pl-cr.pl-cr-epic{width:min(1040px,96vw)}
+.pl-cr-epic .pl-cr-g{grid-template-columns:repeat(12,minmax(0,1fr))}
+.pl-cr-epic .pl-cr-f.s2{grid-column:span 2}.pl-cr-epic .pl-cr-f.s3{grid-column:span 3}.pl-cr-epic .pl-cr-f.s4{grid-column:span 4}.pl-cr-epic .pl-cr-f.s5{grid-column:span 5}.pl-cr-epic .pl-cr-f.s7{grid-column:span 7}
+.pl-cr-epic .pl-cr-pinfo.s12{grid-column:1/-1;margin-top:-8px}
+.pl-cr-auto-l{margin:0 0 12px;padding:8px 12px;border:1px dashed #c9d6e2;border-radius:8px;background:#f3f6f9;font-size:12px;color:#4b647a}
+.pl-cr-auto-l b{color:#16324a}
+@media(max-width:760px){.pl-cr-epic .pl-cr-f[class*=" s"]{grid-column:1/-1!important}}
+@keyframes plFlash{0%,60%{background:#fff3c4}100%{background:transparent}}
+.pl-flash,.pl-flash>td{animation:plFlash 2.6s ease-out}
