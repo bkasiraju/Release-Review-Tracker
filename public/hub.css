@@ -2125,3 +2125,7 @@ html body .nd-modal.pl-cr.pl-cr-wide,html body .nd-modal.pl-cr.pl-cr-epic.pl-cr-
 .pl-wstag[hidden]{display:none}
 .pl-wstag small{font-weight:400;color:#5a6b7d;margin-right:0}
 html body .pl-cr .pl-wstag .hub-inline{width:min(360px,100%)!important;flex:0 0 auto}
+
+/* Project row: method on a second, greyed line */
+html body .pl-g-proj .pl-pj-t{display:flex;flex-direction:column;min-width:0;line-height:1.25}
+html body .pl-g-proj .pl-pj-m{display:block;max-width:100%;font-size:11px;color:#7a8794;font-weight:400;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
