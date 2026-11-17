@@ -134,7 +134,7 @@ function newWorkstreamAt(epicId){
     crSection('Assignment',crField('Engineer','optional',`<select class="hub-inline" data-g><option value="">Unassigned</option>${eng.map(m=>opt(m.id,m.name,false)).join('')}</select>`)+crField('Planned effort','days',`<input class="hub-inline" type="number" min="0" max="1000" step="0.5" data-d placeholder="0">`))+
     `<section class="pl-cr-s" data-gussec><h3>GUS</h3><div class="pl-cr-g">`+
       `<label class="pl-cr-f wide pl-cr-chk"><input type="checkbox" data-gus checked><span>Also create the workstream in GUS as a parent User Story on the epic</span></label>`+
-      crField('Product tag','required by GUS · pick one of the team\'s tags',`<select class="hub-inline" data-t><option value="">Select a tag…</option>${tags.map(t=>opt(t.id,t.name,t.id===lastTag)).join('')}</select>`,'wide')+
+      (lastTag?`<div hidden>${crField('Product tag','required by GUS · pick one of the team\'s tags',`<select class="hub-inline" data-t><option value="">Select a tag…</option>${tags.map(t=>opt(t.id,t.name,t.id===lastTag)).join('')}</select>`,'wide')}</div>`:crField('Product tag','required by GUS · pick one of the team\'s tags',`<select class="hub-inline" data-t><option value="">Select a tag…</option>${tags.map(t=>opt(t.id,t.name,t.id===lastTag)).join('')}</select>`,'wide'))+
     `</div></section>`+
     `<div data-chips></div>`;
   const el=crDialog('New workstream','Adds a workstream under an epic. For an epic that is already in GUS it is also created there, so engineers can add their work items under it.',body,'Add workstream',async(el)=>{
@@ -237,7 +237,7 @@ function newEpicAt(pid){
   nm.oninput=()=>{const L=nm.value.length,over=L>EPIC_NAME_MAX;cnt.textContent=`${L} / ${EPIC_NAME_MAX}`;cnt.classList.toggle('over',over);nm.classList.toggle('bad',over);errEl.textContent=over?`Epic name is ${L} characters; GUS allows at most ${EPIC_NAME_MAX}. Shorten it by ${L-EPIC_NAME_MAX}.`:'';errEl.hidden=!over;};
   const xSel=el.querySelector('[data-xe]'),xInfo=el.querySelector('[data-xi]'),pc=el.querySelector('[data-pcnt]'),okb=el.querySelector('[data-ok]'),note=el.querySelector('.pl-cr-foot .note'),wsr=el.querySelector('[data-wsrows]'),tagBox=el.querySelector('[data-tagbox]');
   const filled=()=>[...wsr.querySelectorAll('[data-wn]')].filter(i=>i.value.trim()).length;
-  const sync=()=>{const f=filled();tagBox.hidden=!f;el._gate=md==='new'||f>0;el._sync();el._deny();
+  const sync=()=>{const f=filled();tagBox.hidden=!f||!!lastTag;el._gate=md==='new'||f>0;el._sync();el._deny();
     okb.dataset.label=okb.textContent=md==='pick'?(f?'Add epic & create workstreams':'Add epic'):'Create in GUS';
     note.textContent=md==='pick'?(f?'Adds the epic to this table and creates the workstreams in GUS.':'Adds the existing GUS epic to this table; nothing new is created.'):(f?`Creates the epic and ${f} workstream${f>1?'s':''} in GUS.`:'Created in GUS immediately when you confirm.');};
   const showX=()=>{const x=xeps.find(g=>g.id===xSel.value);xInfo.textContent=x?[x.leadName&&'Lead: '+x.leadName,x.releaseName&&'Release: '+x.releaseName,x.points&&x.points+' days planned'].filter(Boolean).join('  ·  '):'';xInfo.title=xInfo.textContent;};
