@@ -65,6 +65,10 @@ function crDialog(title,sub,bodyHtml,okLabel,submit){
   el.addEventListener('keydown',ev=>{if(ev.key==='Enter'&&ev.target.tagName==='INPUT'){ev.preventDefault();go();}});
   return el;
 }
+// Tree state: which project / epic rows are collapsed (per team, remembered in this browser).
+const colKey=()=>'ri-collapse-'+(H.team&&H.team.Id);
+const collapsed=()=>{const t=H.team&&H.team.Id;if(P.col&&P.colTeam===t)return P.col;let a=[];try{a=JSON.parse(localStorage.getItem(colKey()))||[];}catch(_){}P.colTeam=t;return P.col=new Set(a);};
+const setCollapsed=(k,on)=>{const c=collapsed();if(on)c.add(k);else c.delete(k);try{localStorage.setItem(colKey(),JSON.stringify([...c]));}catch(_){}};
 const crUser=()=>(P.user&&P.user.name)||'You (signed-in GUS user)';
 function newProjectAt(){
   const pl=P.plan,prog=P.refs.program,methods=ioLists().methods;
@@ -113,12 +117,12 @@ function newProjectAt(){
     hint.hidden=!hit&&!local;hint.textContent=hit||local?'This project already exists in GUS. It will be linked, not duplicated.':'';};
   setMode(md);
 }
-function newWorkstreamAt(){
+function newWorkstreamAt(epicId){
   const pl=P.plan;if(!pl.epics.length){window.toast?.('Add an epic first, then add workstreams under it.',true);newEpicAt();return;}
   const prj=new Map(pl.projects.map(p=>[p.id,p])),eng=P.members.filter(isEng).slice().sort((a,b)=>String(a.name).localeCompare(String(b.name)));
   const tags=P.refs.tags||[],tagKey='ri-ws-tag-'+H.team.Id,lastTag=(()=>{try{return localStorage.getItem(tagKey)||'';}catch(_){return '';}})();
   const body=
-    crSection('Workstream',crField('Epic','workstream is added under this epic',`<select class="hub-inline" data-e>${pl.epics.map((e,i)=>opt(e.id,`${projShort(prj.get(e.projectId)||{name:''})} › ${e.name||'(unnamed epic)'}${e.gusId?'':'  (not in GUS yet)'}`,i===pl.epics.length-1)).join('')}</select>`,'wide')+crField('Workstream name','',`<input class="hub-inline" type="text" data-n maxlength="200" placeholder="e.g. API changes" autocomplete="off">`,'wide'))+
+    crSection('Workstream',crField('Epic','workstream is added under this epic',`<select class="hub-inline" data-e>${pl.epics.map((e,i)=>opt(e.id,`${projShort(prj.get(e.projectId)||{name:''})} › ${e.name||'(unnamed epic)'}${e.gusId?'':'  (not in GUS yet)'}`,epicId?e.id===epicId:i===pl.epics.length-1)).join('')}</select>`,'wide')+crField('Workstream name','',`<input class="hub-inline" type="text" data-n maxlength="200" placeholder="e.g. API changes" autocomplete="off">`,'wide'))+
     crSection('Assignment',crField('Engineer','optional',`<select class="hub-inline" data-g><option value="">Unassigned</option>${eng.map(m=>opt(m.id,m.name,false)).join('')}</select>`)+crField('Planned effort','days',`<input class="hub-inline" type="number" min="0" max="1000" step="0.5" data-d placeholder="0">`))+
     `<section class="pl-cr-s" data-gussec><h3>GUS</h3><div class="pl-cr-g">`+
       `<label class="pl-cr-f wide pl-cr-chk"><input type="checkbox" data-gus checked><span>Also create the workstream in GUS as a parent User Story on the epic</span></label>`+
@@ -139,7 +143,7 @@ function newWorkstreamAt(){
       msg=r.created?`Created workstream “${name}” in GUS.`:`Workstream “${name}” already existed in GUS and was linked.`;
       if(r.warnings&&r.warnings.length){warn=true;msg+=' Themes were not fully applied: '+r.warnings[0];}
     }
-    e.workstreams.push(w);closeModal();draw();queueSave();P.el.querySelector(`[data-w="${w.id}"]`)?.scrollIntoView({block:'nearest'});
+    e.workstreams.push(w);setCollapsed('p:'+e.projectId,false);setCollapsed('e:'+e.id,false);closeModal();draw();queueSave();P.el.querySelector(`[data-w="${w.id}"]`)?.scrollIntoView({block:'nearest'});
     window.toast?.(msg,warn);
   });
   const eSel=el.querySelector('[data-e]'),chk=el.querySelector('[data-gus]'),nm=el.querySelector('[data-n]'),chips=el.querySelector('[data-chips]'),tSel=el.querySelector('[data-t]');
@@ -154,71 +158,93 @@ function newWorkstreamAt(){
   eSel.onchange=sync;chk.onchange=sync;nm.oninput=sync;
   sync();nm.focus();
 }
-function newEpicAt(){
+// Opened from a project row: creates a new epic under that project (with its workstreams) or adds an existing GUS epic of that project.
+function newEpicAt(pid){
   const pl=P.plan;if(!pl.projects.length){newProjectAt();return;}
-  const rel=P.refs.releases,dr=defRel(),prog=P.refs.program;
-  const lead=P.members.slice().sort((x,y)=>String(x.name).localeCompare(String(y.name)));
+  const pr=pl.projects.find(x=>x.id===pid)||pl.projects[pl.projects.length-1];
+  const rel=P.refs.releases,prog=P.refs.program,tags=P.refs.tags||[],tagKey='ri-ws-tag-'+H.team.Id,lastTag=(()=>{try{return localStorage.getItem(tagKey)||'';}catch(_){return '';}})();
+  const lead=P.members.slice().sort((x,y)=>String(x.name).localeCompare(String(y.name))),eng=P.members.filter(isEng).slice().sort((a,b)=>String(a.name).localeCompare(String(b.name)));
+  const atl=cls=>crField('ATL/BTL','',`<select class="hub-inline" data-l><option value="ABL" selected>ABL / ATL (above the line)</option><option value="BTL">BTL (below the line)</option></select>`,cls);
+  const wsRow=()=>`<div class="pl-wsr"><input class="hub-inline" type="text" data-wn maxlength="200" placeholder="Workstream name" aria-label="Workstream name" autocomplete="off"><select class="hub-inline" data-we aria-label="Engineer"><option value="">Unassigned</option>${eng.map(m=>opt(m.id,m.name,false)).join('')}</select><input class="hub-inline" type="number" min="0" max="1000" step="0.5" data-wd placeholder="Days" aria-label="Planned days"><button type="button" class="pl-ib" data-wx aria-label="Remove workstream" title="Remove">×</button></div>`;
   const body=
     crSection('Epic',`<div class="pl-cr-seg" role="tablist" aria-label="Epic source"><button type="button" role="tab" data-mode="new">Create new epic</button><button type="button" role="tab" data-mode="pick">Add existing GUS epic</button></div>`+
+      `<div class="pl-cr-pinfo s12"><b>Project</b> ${esc(projLabel(pr))}${pr.method?` · V2MOM: ${esc(pr.method)}`:''}${pr.gusId?'':' · new — created with the epic'}</div>`+
       crField('GUS epic','<span data-pcnt>loading…</span>',`<select class="hub-inline" data-xe><option value="">Loading epics from GUS…</option></select>`,'s9 pl-cr-pick')+
-      crField('ATL/BTL','',`<select class="hub-inline" data-xl><option value="ABL" selected>ABL / ATL (above the line)</option><option value="BTL">BTL (below the line)</option></select>`,'s3 pl-cr-pick')+
+      atl('s3 pl-cr-pick').replace('data-l','data-xl')+
       `<span class="pl-cr-pinfo s12 pl-cr-pick" data-xi></span>`+
-      crField('Project','',`<select class="hub-inline" data-p>${pl.projects.map((p,i)=>opt(p.id,projLabel(p)+(p.gusId?'':'  (new — created with the epic)'),i===pl.projects.length-1)).join('')}</select>`,'s5 pl-cr-new')+
-      crField('Epic name',`<span data-cnt>0 / ${EPIC_NAME_MAX}</span>`,`<textarea class="hub-inline" rows="2" data-n placeholder="Epic name" autocomplete="off"></textarea>`,'s7 pl-cr-new')+
-      `<span class="pl-cr-pinfo s12 pl-cr-new" data-pi></span>`+
-      crField('Development lead','required · epic owner',`<select class="hub-inline" data-o><option value="" selected>Select a team member…</option>${lead.map(m=>opt(m.id,m.name,false)).join('')}</select>`,'s5 pl-cr-new')+
-      crField('Planned release','',`<select class="hub-inline" data-r>${opt('','— None (set after planning) —',true)}${rel.map(r=>opt(r.id,r.name,false)).join('')}</select>`,'s4 pl-cr-new')+
-      crField('ATL/BTL','',`<select class="hub-inline" data-l><option value="ABL" selected>ABL / ATL (above the line)</option><option value="BTL">BTL (below the line)</option></select>`,'s3 pl-cr-new'))+
+      crField('Epic name',`<span data-cnt>0 / ${EPIC_NAME_MAX}</span>`,`<textarea class="hub-inline" rows="2" data-n placeholder="Epic name" autocomplete="off"></textarea>`,'s9 pl-cr-new')+
+      atl('s3 pl-cr-new')+
+      crField('Development lead','required · epic owner',`<select class="hub-inline" data-o><option value="" selected>Select a team member…</option>${lead.map(m=>opt(m.id,m.name,false)).join('')}</select>`,'s6 pl-cr-new')+
+      crField('Planned release','',`<select class="hub-inline" data-r>${opt('','— None (set after planning) —',true)}${rel.map(r=>opt(r.id,r.name,false)).join('')}</select>`,'s6 pl-cr-new'))+
+    crSection('Workstreams <small>optional · each is created in GUS as a story under the epic</small>',
+      `<div class="pl-wsbox s12"><div data-wsrows>${wsRow()}</div><div class="pl-wsbar"><button type="button" class="button small" data-wadd>+ Add workstream</button>`+
+      `<label class="pl-wstag" data-tagbox hidden>Product tag <small>required by GUS</small><select class="hub-inline" data-t><option value="">Select a tag…</option>${tags.map(t=>opt(t.id,t.name,t.id===lastTag)).join('')}</select></label></div></div>`)+
     `<div class="pl-cr-new">${crAuto([['Team',H.team.Name],['Program',prog?prog.name:'—'],['Epic owner','= Development lead']])}</div>`;
-  let md='new',xeps=[];
-  const el=crDialog('Add epic','Create a new epic in GUS, or add an epic that already exists in GUS to this table.',body,'Create in GUS',async(el)=>{
-    if(md==='pick'){
-      const x=xeps.find(g=>g.id===el.querySelector('[data-xe]').value);if(!x)throw new Error('Pick a GUS epic, or switch to “Create new epic”.');
-      if(pl.epics.some(e=>e.gusId===x.id))throw new Error('That epic is already in the table.');
-      if(!x.projectId)throw new Error('This epic has no project in GUS. Assign it a project in GUS first, or create a new epic here.');
-      let pr=pl.projects.find(p=>p.gusId===x.projectId);
-      if(!pr){pr={id:uid('p'),name:x.projectName,short:shortProj(x.projectName),theme:'',gusId:x.projectId,method:x.method,programId:x.programId,programName:x.programName};pl.projects.push(pr);}
-      const e=newEpic(pr.id),line=el.querySelector('[data-xl]').value;e.name=x.name;e.gusId=x.id;e.releaseId=x.releaseId;e.releaseName=x.releaseName;e.line=line;
-      e.owners=x.leadId?[x.leadId]:[];e.ownerNames=x.leadId?[x.leadName]:[];
-      // GUS keeps the epic's planned points; carry them as one workstream so the epic total (sum of workstreams) still matches and is never overwritten.
-      if(x.points>0)e.workstreams=[{id:uid('w'),name:'Planned in GUS',priority:0,engId:'',engName:'',engIds:[],engNames:[],days:x.points,sprint:'',line}];else e.workstreams.forEach(w=>{w.line=line;});
-      if(!P.gsnap)snapGus();pl.epics.push(e);P.gsnap.set(e.gusId,JSON.stringify(gusSnap(e)));closeModal();
+  let md='new',xeps=[];const made={epic:null,ws:new Map()};
+  const flashRow=e=>{const row=P.el.querySelector(`[data-e="${e.id}"]`);if(row){row.scrollIntoView({block:'center'});row.classList.add('pl-flash');setTimeout(()=>row.classList.remove('pl-flash'),2600);}};
+  const el=crDialog('Add epic','Create a new epic in GUS, or add an epic that already exists in GUS, under this project. Workstreams are optional.',body,'Create in GUS',async(el)=>{
+    const rows=[...el.querySelectorAll('.pl-wsr')].map(r=>({r,name:r.querySelector('[data-wn]').value.trim(),engId:r.querySelector('[data-we]').value,days:Number(r.querySelector('[data-wd]').value)||0})).filter(x=>x.name),tagId=el.querySelector('[data-t]').value;
+    if(rows.length&&!tagId){el.querySelector('[data-t]').focus();throw new Error('Select a product tag for the workstreams. GUS requires one on every story.');}
+    let e=made.epic,msg='';
+    if(!e){
+      if(md==='pick'){
+        const x=xeps.find(g=>g.id===el.querySelector('[data-xe]').value);if(!x)throw new Error('Pick a GUS epic, or switch to “Create new epic”.');
+        if(pl.epics.some(g=>g.gusId===x.id))throw new Error('That epic is already in the table.');
+        const line=el.querySelector('[data-xl]').value;e=newEpic(pr.id);e.name=x.name;e.gusId=x.id;e.releaseId=x.releaseId;e.releaseName=x.releaseName;e.line=line;
+        e.owners=x.leadId?[x.leadId]:[];e.ownerNames=x.leadId?[x.leadName]:[];
+        // GUS keeps the epic's planned points; carry them as one workstream so the epic total (sum of workstreams) still matches and is never overwritten.
+        e.workstreams=x.points>0?[{id:uid('w'),name:'Planned in GUS',priority:0,engId:'',engName:'',engIds:[],engNames:[],days:x.points,sprint:'',line}]:[];
+        msg=`Added GUS epic “${x.name}” to the table.`;
+      }else{
+        const name=el.querySelector('[data-n].hub-inline').value.trim(),releaseId=el.querySelector('[data-r]').value,line=el.querySelector('[data-l]').value,leadId=el.querySelector('[data-o]').value,leadName=(P.members.find(m=>m.id===leadId)||{}).name||'';
+        if(!name){el.querySelector('[data-n]').focus();throw new Error('Enter the epic name.');}
+        if(name.length>EPIC_NAME_MAX){el.querySelector('[data-n]').focus();throw new Error(`Epic name is ${name.length} characters; GUS allows at most ${EPIC_NAME_MAX}. Shorten it by ${name.length-EPIC_NAME_MAX}.`);}
+        if(!leadId){el.querySelector('[data-o]').focus();throw new Error('Select the development lead.');}
+        const r=await call('plan-create-epic',{teamId:H.team.Id,epic:{name,releaseId,leadId,project:{gusId:pr.gusId,name:pr.name,method:pr.method}}});
+        pr.gusId=r.projectGusId||pr.gusId;
+        const rr=rel.find(x=>x.id===releaseId);e=newEpic(pr.id);e.name=name;e.gusId=r.gusId;e.releaseId=rr?rr.id:'';e.releaseName=rr?rr.name:'';e.owners=[leadId];e.ownerNames=[leadName];e.line=line;
+        if(rows.length)e.workstreams=[];else e.workstreams.forEach(w=>{w.line=line;});
+        msg=r.created?`Created epic “${name}” in GUS.`:`Epic “${name}” already existed in GUS and was linked.`;
+      }
+      if(!P.gsnap)snapGus();
+      pl.epics.push(e);made.epic=e;P.gsnap.set(e.gusId,JSON.stringify(gusSnap(e)));
       if(filtersOn(P.view)){Object.assign(P.view,{q:'',flag:'',release:[],line:[],eng:[],theme:[]});saveFilters();drawTools();}
-      draw();queueSave();const row=P.el.querySelector(`[data-e="${e.id}"]`);if(row){row.scrollIntoView({block:'center'});row.classList.add('pl-flash');setTimeout(()=>row.classList.remove('pl-flash'),2600);}
-      window.toast?.(`Added GUS epic “${x.name}” to the table.`,false);return;
+      setCollapsed('p:'+pr.id,false);setCollapsed('e:'+e.id,false);draw();queueSave();flashRow(e);
     }
-    const pr=pl.projects.find(x=>x.id===el.querySelector('[data-p]').value),name=el.querySelector('[data-n].hub-inline').value.trim(),releaseId=el.querySelector('[data-r]').value,line=el.querySelector('[data-l]').value,leadId=el.querySelector('[data-o]').value,leadName=(P.members.find(m=>m.id===leadId)||{}).name||'';
-    if(!pr)throw new Error('Choose a project.');
-    if(!name){el.querySelector('[data-n]').focus();throw new Error('Enter the epic name.');}
-    if(name.length>EPIC_NAME_MAX){el.querySelector('[data-n]').focus();throw new Error(`Epic name is ${name.length} characters; GUS allows at most ${EPIC_NAME_MAX}. Shorten it by ${name.length-EPIC_NAME_MAX}.`);}
-    if(!leadId){el.querySelector('[data-o]').focus();throw new Error('Select the development lead.');}
-    const r=await call('plan-create-epic',{teamId:H.team.Id,epic:{name,releaseId,leadId,project:{gusId:pr.gusId,name:pr.name,method:pr.method}}});
-    pr.gusId=r.projectGusId||pr.gusId;
-    const e=newEpic(pr.id),rr=rel.find(x=>x.id===releaseId);e.name=name;e.gusId=r.gusId;e.releaseId=rr?rr.id:'';e.releaseName=rr?rr.name:'';
-    e.owners=[leadId];e.ownerNames=[leadName];if(!P.gsnap)snapGus();e.line=line;e.workstreams.forEach(x=>{x.line=line;});
-    pl.epics.push(e);P.gsnap&&P.gsnap.set(e.gusId,JSON.stringify(gusSnap(e)));closeModal();
-    if(filtersOn(P.view)){Object.assign(P.view,{q:'',flag:'',release:[],line:[],eng:[],theme:[]});saveFilters();drawTools();}
-    draw();queueSave();const row=P.el.querySelector(`[data-e="${e.id}"]`);if(row){row.scrollIntoView({block:'center'});row.classList.add('pl-flash');setTimeout(()=>row.classList.remove('pl-flash'),2600);}
-    window.toast?.(r.created?`Created epic “${name}” in GUS.`:`Epic “${name}” already existed in GUS and was linked.`,false);
+    // Workstreams: each becomes a parent story in GUS. A retry only creates the ones still missing.
+    for(const x of rows){
+      if(made.ws.has(x.r))continue;
+      let r;
+      try{r=await call('plan-create-workstream',{teamId:H.team.Id,workstream:{epicGusId:e.gusId,name:x.name,assigneeId:x.engId,tagId,days:x.days,projectShort:projShort(pr)}});}
+      catch(err){throw new Error(`The epic is in the table, but workstream “${x.name}” was not created in GUS: ${String(err&&err.message||err)} Fix it and press the button again; workstreams already created are kept.`);}
+      const m=eng.find(g=>g.id===x.engId),w={id:uid('w'),gusId:r.gusId,name:x.name,priority:0,engId:m?m.id:'',engName:m?m.name:'',engIds:m?[m.id]:[],engNames:m?[m.name]:[],days:x.days,sprint:'',line:e.line};
+      e.workstreams.push(w);made.ws.set(x.r,w);if(r.warnings&&r.warnings.length)window.toast?.('Themes were not fully applied: '+r.warnings[0],true);
+      try{localStorage.setItem(tagKey,tagId);}catch(_){}
+    }
+    closeModal();draw();queueSave();flashRow(e);
+    window.toast?.(msg||`Added workstreams to “${e.name}”.`,false);
   });
-  const pSel=el.querySelector('[data-p]'),pInfo=el.querySelector('[data-pi]');
-  const showP=()=>{const p=pl.projects.find(x=>x.id===pSel.value);pInfo.textContent=p&&p.method?'V2MOM: '+p.method:'';pInfo.title=pInfo.textContent;};
-  pSel.onchange=showP;showP();
+  el.querySelector('.nd-modal').classList.add('pl-cr-epic');
   const nm=el.querySelector('textarea[data-n]'),cnt=el.querySelector('[data-cnt]'),errEl=el.querySelector('.pl-cr-err');
   nm.oninput=()=>{const L=nm.value.length,over=L>EPIC_NAME_MAX;cnt.textContent=`${L} / ${EPIC_NAME_MAX}`;cnt.classList.toggle('over',over);nm.classList.toggle('bad',over);errEl.textContent=over?`Epic name is ${L} characters; GUS allows at most ${EPIC_NAME_MAX}. Shorten it by ${L-EPIC_NAME_MAX}.`:'';errEl.hidden=!over;};
-  el.querySelector('.nd-modal').classList.add('pl-cr-epic');
-  const xSel=el.querySelector('[data-xe]'),xInfo=el.querySelector('[data-xi]'),pc=el.querySelector('[data-pcnt]'),okb=el.querySelector('[data-ok]'),note=el.querySelector('.pl-cr-foot .note');
-  const showX=()=>{const x=xeps.find(g=>g.id===xSel.value);xInfo.textContent=x?[x.projectName&&'Project: '+x.projectName,x.leadName&&'Lead: '+x.leadName,x.releaseName&&'Release: '+x.releaseName,x.points&&x.points+' days planned'].filter(Boolean).join('  ·  '):'';xInfo.title=xInfo.textContent;};
+  const xSel=el.querySelector('[data-xe]'),xInfo=el.querySelector('[data-xi]'),pc=el.querySelector('[data-pcnt]'),okb=el.querySelector('[data-ok]'),note=el.querySelector('.pl-cr-foot .note'),wsr=el.querySelector('[data-wsrows]'),tagBox=el.querySelector('[data-tagbox]');
+  const filled=()=>[...wsr.querySelectorAll('[data-wn]')].filter(i=>i.value.trim()).length;
+  const sync=()=>{const f=filled();tagBox.hidden=!f;el._gate=md==='new'||f>0;el._sync();el._deny();
+    okb.dataset.label=okb.textContent=md==='pick'?(f?'Add epic & create workstreams':'Add epic'):'Create in GUS';
+    note.textContent=md==='pick'?(f?'Adds the epic to this table and creates the workstreams in GUS.':'Adds the existing GUS epic to this table; nothing new is created.'):(f?`Creates the epic and ${f} workstream${f>1?'s':''} in GUS.`:'Created in GUS immediately when you confirm.');};
+  const showX=()=>{const x=xeps.find(g=>g.id===xSel.value);xInfo.textContent=x?[x.leadName&&'Lead: '+x.leadName,x.releaseName&&'Release: '+x.releaseName,x.points&&x.points+' days planned'].filter(Boolean).join('  ·  '):'';xInfo.title=xInfo.textContent;};
   xSel.onchange=showX;
-  const setMode=k=>{md=k;el._gate=k==='new';el._sync();el._deny();
+  const setMode=k=>{md=k;
     el.querySelectorAll('[data-mode]').forEach(b=>{const on=b.dataset.mode===k;b.classList.toggle('on',on);b.setAttribute('aria-selected',String(on));});
     el.querySelectorAll('.pl-cr-new').forEach(n=>{n.hidden=k!=='new';});el.querySelectorAll('.pl-cr-pick').forEach(n=>{n.hidden=k!=='pick';});
-    okb.dataset.label=okb.textContent=k==='pick'?'Add epic':'Create in GUS';note.textContent=k==='pick'?'Adds the existing GUS epic to this table; nothing new is created.':'Created in GUS immediately when you confirm.';
-    (k==='pick'?xSel:el.querySelector('[data-n].hub-inline')).focus();};
+    sync();(k==='pick'?xSel:el.querySelector('[data-n].hub-inline')).focus();};
   el.querySelectorAll('[data-mode]').forEach(b=>{b.onclick=()=>setMode(b.dataset.mode);});
-  call('plan-gus-epics',{teamId:H.team.Id}).then(r=>{const inPlan=new Set(pl.epics.map(e=>e.gusId).filter(Boolean));xeps=(r.epics||[]).filter(g=>!inPlan.has(g.id));
-    xSel.innerHTML=xeps.length?`<option value="">Select an epic…</option>`+xeps.map(g=>opt(g.id,(g.projectName?projShort({name:g.projectName})+' › ':'')+g.name,false)).join(''):opt('','No other epics found in GUS for this team',true);
-    pc.textContent=`${xeps.length} not yet in this table`;},e=>{xSel.innerHTML=opt('','Could not load GUS epics',true);pc.textContent=String(e&&e.message||e).slice(0,60);});
+  el.querySelector('[data-wadd]').onclick=()=>{if(wsr.children.length>=10)return;wsr.insertAdjacentHTML('beforeend',wsRow());wsr.lastElementChild.querySelector('input').focus();};
+  wsr.addEventListener('input',sync);
+  wsr.addEventListener('click',ev=>{const x=ev.target.closest('[data-wx]');if(!x)return;if(wsr.children.length>1)x.closest('.pl-wsr').remove();else{x.closest('.pl-wsr').querySelectorAll('input').forEach(i=>{i.value='';});}sync();});
+  call('plan-gus-epics',{teamId:H.team.Id}).then(r=>{const inPlan=new Set(pl.epics.map(e=>e.gusId).filter(Boolean));xeps=(r.epics||[]).filter(g=>!inPlan.has(g.id)&&pr.gusId&&g.projectId===pr.gusId);
+    xSel.innerHTML=xeps.length?`<option value="">Select an epic…</option>`+xeps.map(g=>opt(g.id,g.name,false)).join(''):opt('',pr.gusId?'No other epics of this project in GUS':'This project is not in GUS yet, so it has no GUS epics',true);
+    pc.textContent=`${xeps.length} of this project not yet in the table`;},e=>{xSel.innerHTML=opt('','Could not load GUS epics',true);pc.textContent=String(e&&e.message||e).slice(0,60);});
   setMode('new');
 }
 // ── Export template / import (xlsx) ────────────────────────────────────────
@@ -618,24 +644,21 @@ function drawPlanner(){
   const shown=pl.epics.filter(match);
   const cnt=P.el.querySelector('#pl-count');if(cnt)cnt.textContent=filtering?`${shown.length} of ${pl.epics.length} epics${V.flag?' · '+({unassigned:'unassigned effort',incomplete:'incomplete',pending:'pending GUS save'})[V.flag]:''}`:`${pl.epics.length} epic${pl.epics.length===1?'':'s'}`;
   const gsum=es=>{const d=l=>fmt(es.filter(e=>e.line===l).reduce((a,e)=>a+epicDays(e),0));return `<span class="pl-gsum">${es.length} epic${es.length===1?'':'s'} · ABL ${d('ABL')}d · BTL ${d('BTL')}d</span>`;};
-  const groupKey={release:e=>e.releaseName||(P.refs.releases.find(r=>r.id===e.releaseId)||{}).name||'No planned release',line:e=>e.line==='ABL'?'Above the line (ABL)':'Below the line (BTL)',theme:e=>epicTheme(e)}[V.group];
   const cols=gridCols();
   const gridHtml=()=>{
-    const order=new Map(pl.projects.map((p,i)=>[p.id,i])),key=e=>V.group==='project'?String(1e4+(order.has(e.projectId)?order.get(e.projectId):9999)):groupKey(e);
-    const es=[...shown].sort((a,b)=>String(key(a)).localeCompare(String(key(b)),undefined,{numeric:true}));
     const sel=(f,html,lbl)=>`<select class="sp-select pl-g" aria-label="${lbl}" data-f="${f}">${html}</select>`;
-    const rows=[];let last=null;
-    es.forEach(e=>{
-      if(V.group!=='project'&&key(e)!==last){last=key(e);const g=es.filter(x=>key(x)===last);rows.push(`<tr class="pl-g-grp"><td colspan="${cols.length+1}"><b>${esc(last)}</b> ${gsum(g)}</td></tr>`);}
-      const ws=e.workstreams.length?e.workstreams:[null];
+    const rows=[],fold=collapsed();
+    const emit=e=>{
+      const cE=fold.has('e:'+e.id)&&e.workstreams.length>0;
+      const ws=cE?[null]:(e.workstreams.length?e.workstreams:[null]);
       ws.forEach((w,j)=>{
         const first=j===0,tail=j===ws.length-1;
         const txt=(f,v,ph,max,w2)=>`<input class="hub-inline" type="text" aria-label="${ph}" data-f="${f}" value="${esc(v||'')}" maxlength="${max}" placeholder="${ph}" style="width:${w2}px">`;
         const tdE=(k,h)=>first?`<td class="c-${k}">${h}</td>`:`<td class="c-${k}"></td>`,tdW=(k,h)=>w?`<td class="c-${k}" data-w="${esc(w.id)}">${h}</td>`:`<td class="c-${k}"></td>`;
         const C={
           project:()=>tdE('project',sel('projectId',pl.projects.map(p=>`<option value="${esc(p.id)}" data-short="${esc(p.short||shortProj(p.name))}"${p.id===e.projectId?' selected':''}>${esc(p.name||'(unnamed project)')}</option>`).join(''),'Project')),
-          name:()=>tdE('name',`<input class="hub-inline" type="text" aria-label="Epic name" data-f="name" value="${esc(e.name)}" maxlength="${EPIC_NAME_MAX}" placeholder="Epic name">${e.gusId?`<a class="pl-open-gus" href="${H.GUS}ADM_Epic__c/${esc(e.gusId)}/view" target="_blank" rel="noopener" title="Open this epic in GUS" aria-label="Open epic ${esc(e.name)} in GUS">↗</a>`:''}`),
-          ws:()=>tdW('ws',`<input class="hub-inline" type="text" aria-label="Workstream" data-f="name" value="${esc(w&&w.name)}" maxlength="120" placeholder="Workstream">`),
+          name:()=>tdE('name',`${e.workstreams.length?`<button type="button" class="pl-caret" data-fold-row="e:${esc(e.id)}" aria-expanded="${!cE}" aria-label="${cE?'Expand':'Collapse'} workstreams" title="${cE?'Show':'Hide'} workstreams">${cE?'▸':'▾'}</button>`:''}<input class="hub-inline" type="text" aria-label="Epic name" data-f="name" value="${esc(e.name)}" maxlength="${EPIC_NAME_MAX}" placeholder="Epic name">${e.gusId?`<a class="pl-open-gus" href="${H.GUS}ADM_Epic__c/${esc(e.gusId)}/view" target="_blank" rel="noopener" title="Open this epic in GUS" aria-label="Open epic ${esc(e.name)} in GUS">↗</a>`:''}`),
+          ws:()=>cE?tdE('ws',`<span class="pl-wscount">${e.workstreams.length} workstream${e.workstreams.length===1?'':'s'} · ${fmt(e.workstreams.reduce((a,x)=>a+(x.days||0),0))}d</span>`):tdW('ws',`<input class="hub-inline" type="text" aria-label="Workstream" data-f="name" value="${esc(w&&w.name)}" maxlength="120" placeholder="Workstream">`),
           owners:()=>tdE('owners',msel('owners',e.owners||[],'Epic owners','Owners')),
           priority:()=>tdE('priority',sel('priority',priOpts(e.priority),'Epic priority')),
           estimate:()=>tdE('estimate',`<output class="pl-days pl-ro" data-eff aria-label="Epic effort (sum of workstream effort, ATL only)" title="Sum of workstream effort. Counted only when the epic is ABL (above the line); saved to GUS as Planned Story Points.">${epicDays(e)?fmt(epicDays(e)):'0'}</output>`),
@@ -655,17 +678,21 @@ function drawPlanner(){
         };
         const ep=cols.map(k=>C[k]()).join(''),wc='';
         const ico=d=>`<svg viewBox="0 0 20 20" aria-hidden="true">${d}</svg>`,ib=(cls,attr,lbl,d,on)=>`<button type="button" class="pl-ib ${cls}${on?'':' pl-ib-off'}" ${on?attr:'tabindex="-1" disabled'} aria-label="${lbl}" title="${lbl}">${ico(d)}</button>`;
-        const act=`<td class="pl-g-act"><span class="pl-acts"${w?` data-w="${esc(w.id)}"`:''}>${w?`<button type="button" class="pl-ib pl-grip" draggable="true" data-grip aria-label="Move workstream: drag within this epic or into another epic (or press Up/Down)" title="Drag to move this workstream, within this epic or into another">${ico('<g fill="currentColor" stroke="none"><circle cx="7" cy="5" r="1.4"/><circle cx="13" cy="5" r="1.4"/><circle cx="7" cy="10" r="1.4"/><circle cx="13" cy="10" r="1.4"/><circle cx="7" cy="15" r="1.4"/><circle cx="13" cy="15" r="1.4"/></g>')}</button>`:ib('pl-grip','','',' ',false)}${ib('pl-add','data-add-ws','Add workstream','<path d="M10 4v12M4 10h12"/>',tail)}${ib('pl-rm','data-del-ws','Remove workstream','<circle cx="10" cy="10" r="7"/><path d="M6.8 10h6.4"/>',!!w)}${ib('pl-trash','data-del-epic','Delete epic','<path d="M4 6h12M8 6V4h4v2M6 6l.8 10h6.4L14 6M8.5 9v4M11.5 9v4"/>',first)}</span></td>`;
+        const act=`<td class="pl-g-act"><span class="pl-acts"${w?` data-w="${esc(w.id)}"`:''}>${w?`<button type="button" class="pl-ib pl-grip" draggable="true" data-grip aria-label="Move workstream: drag within this epic or into another epic (or press Up/Down)" title="Drag to move this workstream, within this epic or into another">${ico('<g fill="currentColor" stroke="none"><circle cx="7" cy="5" r="1.4"/><circle cx="13" cy="5" r="1.4"/><circle cx="7" cy="10" r="1.4"/><circle cx="13" cy="10" r="1.4"/><circle cx="7" cy="15" r="1.4"/><circle cx="13" cy="15" r="1.4"/></g>')}</button>`:ib('pl-grip','','',' ',false)}${ib('pl-add','data-add-ws','Add workstream to this epic','<path d="M10 4v12M4 10h12"/>',tail||first)}${ib('pl-rm','data-del-ws','Remove workstream','<circle cx="10" cy="10" r="7"/><path d="M6.8 10h6.4"/>',!!w)}${ib('pl-trash','data-del-epic','Delete epic','<path d="M4 6h12M8 6V4h4v2M6 6l.8 10h6.4L14 6M8.5 9v4M11.5 9v4"/>',first)}</span></td>`;
         rows.push(`<tr data-e="${esc(e.id)}"${w?` data-wr="${esc(w.id)}"`:''} style="--pc:${projColor(e.projectId)}" class="${wl(e,w)==='ABL'?'abl':'btl'}${first?' pl-g-first':''}">${ep}${wc}${act}</tr>`);
       });
-    });
+    };
+    const byP=new Map(pl.projects.map(p=>[p.id,[]]));
+    shown.forEach(e=>{if(!byP.has(e.projectId))byP.set(e.projectId,[]);byP.get(e.projectId).push(e);});
+    const projRow=(pid,es,open)=>{const p=prj.get(pid);return `<tr class="pl-g-proj" data-p="${esc(pid)}" style="--pc:${projColor(pid)}"><td colspan="${cols.length+1}"><button type="button" class="pl-caret" data-fold-row="p:${esc(pid)}" aria-expanded="${open}" aria-label="${open?'Collapse':'Expand'} project" title="${open?'Collapse':'Expand'}">${open?'▾':'▸'}</button><b class="pl-pj-n" title="${esc(p?p.name:'')}">${esc(p?projLabel(p):'(no project)')}</b>${p&&p.method?`<span class="pl-pj-m" title="${esc(p.method)}">${esc(p.method)}</span>`:''}${gsum(es)}${p&&p.gusId?`<a class="pl-open-gus" href="${H.GUS}PPM_Project__c/${esc(p.gusId)}/view" target="_blank" rel="noopener" title="Open this project in GUS" aria-label="Open project in GUS">↗</a>`:''}${p?`<button type="button" class="button small pl-pj-add" data-proj-add-epic>+ Epic</button>`:''}${!es.length&&!filtering?'<em class="pl-pj-empty">No epics yet</em>':''}</td></tr>`;};
+    byP.forEach((es,pid)=>{if(filtering&&!es.length)return;const open=!fold.has('p:'+pid);rows.push(projRow(pid,es,open));if(open)es.forEach(emit);});
     const prjs=new Map(pl.projects.map(p=>[p.id,p]));
     const emenu=P.epicsOpen?`<div class="pl-pmenu pl-emenu" role="dialog" aria-label="Epics"><div class="pl-pm-h"><b>Epics <small>${pl.epics.length}</small></b><button type="button" class="pl-pm-x" data-epics-toggle aria-label="Close epics" title="Close">×</button></div><div class="pl-eh" aria-hidden="true"><span>Project Shortform</span><span>Epic name</span><span>Development lead</span><span>Release</span><span></span></div>${pl.epics.length?pl.epics.map(e=>{const pj=prjs.get(e.projectId)||{},own=(e.ownerNames&&e.ownerNames.length?e.ownerNames:(e.owners||[]).map(memName)).filter(Boolean)[0]||'—';return `<div class="pl-erow" data-goto-epic="${esc(e.id)}" tabindex="0" role="button" title="${esc(e.name)} — click to show in the table"><span title="${esc(pj.name||'')}">${esc(projShort(pj)||'—')}</span><span>${esc(e.name||'(unnamed)')}</span><span title="${esc(own)}">${esc(own)}</span><span title="${esc(e.releaseName||'')}">${esc(e.releaseName||'—')}</span><span class="pl-pact">${e.gusId?`<a class="pl-gus" href="${H.GUS}ADM_Epic__c/${esc(e.gusId)}/view" target="_blank" rel="noopener">GUS ↗</a>`:'<em class="pl-draft">Draft</em>'}</span></div>`;}).join(''):'<p class="note">No epics yet. Use + Epic to add one.</p>'}<p class="note">Click an epic to jump to it in the table. Hover to see full text.</p></div>`:'';
     const pmenu=P.projOpen?`<div class="pl-pmenu" role="dialog" aria-label="Projects"><div class="pl-pm-h"><b>Projects</b><button type="button" class="pl-pm-x" data-proj-toggle aria-label="Close projects" title="Close">×</button></div><div class="pl-ph" aria-hidden="true"><span>Project Shortform</span><span>Project name</span><span>V2MOM method</span><span></span></div>${pl.projects.map(p=>`<span class="pl-pchip" data-p="${esc(p.id)}"><input class="hub-inline pl-pshort" type="text" placeholder="e.g. HRP M1.1.3" aria-label="Project Shortform" title="${esc(p.short||'')}" data-f="short" value="${esc(p.short||'')}" maxlength="60"><input class="hub-inline pl-pname" type="text" list="pl-projects" placeholder="Project name (type to link a GUS project)" aria-label="Project name" title="${esc(p.name)}${p.gusId?' (exists in GUS; rename it in GUS)':''}" data-f="name" value="${esc(p.name)}" maxlength="120"${p.gusId?' readonly':''}><input class="hub-inline pl-pmeth" type="text" placeholder="V2MOM method" aria-label="V2MOM method for this project" title="${esc(p.method||'')}${p.gusId?' (saved to the GUS project on commit)':''}" data-f="method" value="${esc(p.method||'')}" maxlength="1000"><span class="pl-pact">${p.gusId?`<a class="pl-gus" href="${H.GUS}PPM_Project__c/${esc(p.gusId)}/view" target="_blank" rel="noopener">GUS ↗</a>`:'<em class="pl-draft">New</em>'}<button type="button" class="pl-x" data-add-epic aria-label="Add epic to this project" title="Add epic to this project">+</button><button type="button" class="pl-x" data-del-proj aria-label="Delete project" title="Delete project">×</button></span></span>`).join('')}<p class="note">Project names that exist in GUS are read-only (rename them in GUS). The shortform is a label kept in this plan only. The V2MOM method is saved to the GUS project when you commit the plan. Hover a field to see its full text.</p></div>`:'';
 
-    return `<div class="pl-grid-tools"><span class="pl-tl"><button type="button" class="button" data-grid-add-epic>+ Epic</button><button type="button" class="button" data-grid-add-ws>+ Workstream</button><button type="button" class="button" id="pl-add-proj">+ Project</button><span class="pl-pwrap"><button type="button" class="button" data-proj-toggle aria-haspopup="true" aria-expanded="${P.projOpen?'true':'false'}">Projects ▾</button>${pmenu}</span><span class="pl-pwrap"><button type="button" class="button" data-epics-toggle aria-haspopup="true" aria-expanded="${P.epicsOpen?'true':'false'}">Epics ▾</button>${emenu}</span></span><span class="pl-cols"><button type="button" class="button" data-cols-toggle aria-haspopup="true" aria-expanded="${P.colsOpen?'true':'false'}">Columns ▾</button>${P.colsOpen?`<div class="pl-cols-menu" role="menu">${[...cols,...Object.keys(GCOL).filter(k=>!cols.includes(k))].map(k=>{const on=cols.includes(k),i=cols.indexOf(k);return `<div class="pl-colrow" data-colrow="${k}"${on?' draggable="true"':''}><span class="pl-colgrip" aria-hidden="true">${on?'⠿':''}</span><label><input type="checkbox" data-col="${k}"${on?' checked':''}> ${esc(GCOL[k])}</label>${on?`<button type="button" class="pl-colmv" data-colmv="${k}" data-d="-1" aria-label="Move ${esc(GCOL[k])} left"${i===0?' disabled':''}>▲</button><button type="button" class="pl-colmv" data-colmv="${k}" data-d="1" aria-label="Move ${esc(GCOL[k])} right"${i===cols.length-1?' disabled':''}>▼</button>`:''}</div>`;}).join('')}<div class="pl-cols-foot"><button type="button" class="pl-cols-reset" data-cols-reset>Reset to default</button><button type="button" class="button primary" data-cols-done>Done</button></div></div>`:''}</span></div><div class="pl-grid-wrap"><table class="pl-grid"><colgroup>${cols.map(k=>`<col class="${k==='name'||k==='ws'?'w-grow':'w-fit'}">`).join('')}<col class="w-fit"></colgroup><thead><tr>${cols.map(k=>`<th class="c-${k}">${esc(GCOL[k])}</th>`).join('')}<th class="c-actions">Actions</th></tr></thead><tbody>${rows.join('')||`<tr><td colspan="${cols.length+1}" class="note">${pl.projects.length?'No epics match the filters.':'No epics yet.'}</td></tr>`}</tbody></table></div>`;};
+    return `<div class="pl-grid-tools"><span class="pl-tl"><button type="button" class="button" id="pl-add-proj">+ Project</button><span class="pl-pwrap"><button type="button" class="button" data-proj-toggle aria-haspopup="true" aria-expanded="${P.projOpen?'true':'false'}">Projects ▾</button>${pmenu}</span><span class="pl-pwrap"><button type="button" class="button" data-epics-toggle aria-haspopup="true" aria-expanded="${P.epicsOpen?'true':'false'}">Epics ▾</button>${emenu}</span></span><span class="pl-cols"><button type="button" class="button" data-cols-toggle aria-haspopup="true" aria-expanded="${P.colsOpen?'true':'false'}">Columns ▾</button>${P.colsOpen?`<div class="pl-cols-menu" role="menu">${[...cols,...Object.keys(GCOL).filter(k=>!cols.includes(k))].map(k=>{const on=cols.includes(k),i=cols.indexOf(k);return `<div class="pl-colrow" data-colrow="${k}"${on?' draggable="true"':''}><span class="pl-colgrip" aria-hidden="true">${on?'⠿':''}</span><label><input type="checkbox" data-col="${k}"${on?' checked':''}> ${esc(GCOL[k])}</label>${on?`<button type="button" class="pl-colmv" data-colmv="${k}" data-d="-1" aria-label="Move ${esc(GCOL[k])} left"${i===0?' disabled':''}>▲</button><button type="button" class="pl-colmv" data-colmv="${k}" data-d="1" aria-label="Move ${esc(GCOL[k])} right"${i===cols.length-1?' disabled':''}>▼</button>`:''}</div>`;}).join('')}<div class="pl-cols-foot"><button type="button" class="pl-cols-reset" data-cols-reset>Reset to default</button><button type="button" class="button primary" data-cols-done>Done</button></div></div>`:''}</span></div><div class="pl-grid-wrap"><table class="pl-grid"><colgroup>${cols.map(k=>`<col class="${k==='name'||k==='ws'?'w-grow':'w-fit'}">`).join('')}<col class="w-fit"></colgroup><thead><tr>${cols.map(k=>`<th class="c-${k}">${esc(GCOL[k])}</th>`).join('')}<th class="c-actions">Actions</th></tr></thead><tbody>${rows.join('')||`<tr><td colspan="${cols.length+1}" class="note">${pl.projects.length?'No epics match the filters.':'No epics yet.'}</td></tr>`}</tbody></table></div>`;};
   el.innerHTML=`<datalist id="pl-projects">${P.refs.projects.map(p=>`<option value="${esc(p.name)}"></option>`).join('')}</datalist><datalist id="pl-sprints">${P.refs.sprints.map(s=>`<option value="${esc(s.name)}"></option>`).join('')}</datalist>`+
-    (!pl.projects.length?'<div class="empty-state hub-empty pl-empty"><h3>No projects yet</h3><p>Use + Project, then + Epic, or Import a filled template.</p></div>':'')+gridHtml();
+    (!pl.projects.length?'<div class="empty-state hub-empty pl-empty"><h3>No projects yet</h3><p>Use + Project, then + Epic on the project row, or Import a filled template.</p></div>':'')+gridHtml();
   hoistTools();
 }
 // The grid action buttons (+ Epic, + Project, Projects, Columns) live on the filter bar's right so everything sits on one line.
@@ -684,7 +711,6 @@ function drawTools(){
   const keepGt=box.querySelector(':scope > .pl-grid-tools');
   box.innerHTML=`<label class="pl-tf pl-q"><span>Search</span><input type="search" class="hub-inline" data-v="q" placeholder="Epic, workstream or project…" aria-label="Search epics" value="${esc(V.q)}"></label>`+
     sel('release','Release',rels)+sel('line','ATL/BTL',[['ABL','ABL'],['BTL','BTL']])+sel('eng','Engineer',engs.map(m=>[m.id,m.name]))+sel('theme','Theme',themes.map(t=>[t,t]))+
-    `<label class="pl-tf"><span>Group by</span><select class="sp-select" data-v="group" aria-label="Group by">${[['project','Project'],['release','Planned release'],['line','ABL / BTL'],['theme','Theme']].map(([v,l])=>opt(v,l,V.group===v)).join('')}</select></label>`+
     `<button type="button" class="button small pl-clear${filtersOn(V)?' pl-clear-on':''}" data-clear-view${filtersOn(V)?'':' disabled'}>Clear filters</button><span class="note pl-count" id="pl-count"></span>`;
   if(keepGt)box.appendChild(keepGt);
   box.querySelectorAll('select').forEach(x=>H.customSelect(x));
@@ -786,10 +812,10 @@ function onClick(ev){
   const tb=t.closest('[data-tab]');if(tb){setTab(tb.dataset.tab);return;}
   const rp=t.closest('[data-rps]');if(rp){openRps(rp.dataset.rps,rp);return;}
   const fd=t.closest('[data-fold]')||(t.closest('.pl-card>h3>small')?.parentElement.querySelector('[data-fold]'));if(fd){P.open[fd.dataset.fold]=!P.open[fd.dataset.fold];drawSummary();return;}
-  if(t.closest('[data-grid-add-ws]')){newWorkstreamAt();return;}
-  if(t.closest('[data-grid-add-epic]')){newEpicAt(t.closest('[data-grid-add-epic]'));return;}
+  const fr=t.closest('[data-fold-row]');if(fr){const k=fr.dataset.foldRow;setCollapsed(k,!collapsed().has(k));drawPlanner();wire();return;}
+  if(t.closest('[data-proj-add-epic]')){newEpicAt(c.p);return;}
   if(t.closest('[data-epics-toggle]')){P.epicsOpen=!P.epicsOpen;if(P.epicsOpen)P.projOpen=false;drawPlanner();wire();return;}
-  const ge=t.closest('[data-goto-epic]');if(ge&&!t.closest('a')){const id=ge.dataset.gotoEpic;P.epicsOpen=false;drawPlanner();wire();const row=P.el.querySelector(`[data-e="${id}"]`);if(row){row.scrollIntoView({block:'center'});row.classList.add('pl-flash');setTimeout(()=>row.classList.remove('pl-flash'),2600);}return;}
+  const ge=t.closest('[data-goto-epic]');if(ge&&!t.closest('a')){const id=ge.dataset.gotoEpic,ee=findE(id);if(ee){setCollapsed('p:'+ee.projectId,false);setCollapsed('e:'+id,false);}P.epicsOpen=false;drawPlanner();wire();const row=P.el.querySelector(`[data-e="${id}"]`);if(row){row.scrollIntoView({block:'center'});row.classList.add('pl-flash');setTimeout(()=>row.classList.remove('pl-flash'),2600);}return;}
   if(t.closest('[data-proj-toggle]')){P.projOpen=!P.projOpen;if(P.projOpen)P.epicsOpen=false;drawPlanner();wire();return;}
   const kp=t.closest('[data-kpi]');if(kp){applyKpi(kp.dataset.kpi);return;}
   if(t.closest('[data-clear-view]')){P.view=Object.assign(P.view,{q:'',release:[],line:[],eng:[],theme:[]});saveFilters();drawTools();drawPlanner();wire();return;}
@@ -797,7 +823,7 @@ function onClick(ev){
   if(t.closest('#pl-leaves'))return openLeaves();
   if(t.closest('#pl-commit'))return openCommit(false);
   if(t.closest('[data-add-epic]')){const e=newEpic(c.p);pl.epics.push(e);draw();queueSave();P.el.querySelector(`[data-e="${e.id}"] .pl-ename`)?.focus();return;}
-  if(t.closest('[data-add-ws]')){const e=findE(c.e);if(!e)return;const w={id:uid('w'),name:'',priority:0,engId:'',engName:'',engIds:[],engNames:[],days:0,sprint:''};e.workstreams.push(w);draw();queueSave();P.el.querySelector(`[data-w="${w.id}"] input`)?.focus();return;}
+  if(t.closest('[data-add-ws]')){if(findE(c.e))newWorkstreamAt(c.e);return;}
   const line=t.closest('[data-line]');if(line){const e=findE(c.e);if(e){const v=line.dataset.line,w=c.w&&e.workstreams.find(x=>x.id===c.w);if(w){e.workstreams.forEach(x=>{x.line=x.line||e.line;});w.line=v;deriveLine(e);}else{e.line=v;e.workstreams.forEach(x=>{x.line=v;});}draw();queueSave();}return;}
   if(t.closest('[data-del-ws]')){const e=findE(c.e);if(e){e.workstreams=e.workstreams.filter(w=>w.id!==c.w);draw();queueSave();}return;}
   if(t.closest('[data-del-epic]')){const e=findE(c.e);if(!e)return;const go=()=>{pl.epics=pl.epics.filter(x=>x.id!==c.e);draw();queueSave();};if(!e.gusId&&!e.name&&!epicDays(e))go();else confirmAt(t.closest('[data-del-epic]'),e.gusId?'This epic is already in GUS. Delete only the draft here? The GUS epic stays.':'Delete this epic and its workstreams?',go);return;}

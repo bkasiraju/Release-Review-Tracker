@@ -2073,3 +2073,29 @@ html body .pl-cr .pl-cr-chk span{font-weight:600}
 /* Add epic: pick-existing mode */
 .pl-cr-epic .pl-cr-f.s9{grid-column:span 9}
 html body .pl-cr [hidden]{display:none!important}
+
+/* Project > Epic > Workstream tree */
+.pl-g-proj td{background:#eaf1f8;border-top:2px solid var(--pc,#a8b7c7);padding:7px 8px;font-size:13px;white-space:normal}
+.pl-g-proj td>*{vertical-align:middle}
+.pl-g-proj .pl-pj-n{margin:0 10px 0 4px;font-size:13.5px;color:#032d60}
+.pl-g-proj .pl-pj-m{display:inline-block;max-width:340px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#444;font-size:12px;margin-right:10px}
+.pl-g-proj .pl-gsum{margin-right:10px}
+.pl-g-proj .pl-pj-add{margin-left:6px}
+.pl-g-proj .pl-pj-empty{color:#706e6b;font-size:12px;margin-left:10px}
+.pl-caret{border:0;background:transparent;cursor:pointer;font-size:13px;line-height:1;padding:2px 5px;color:#0b5cab;border-radius:4px}
+.pl-caret:hover{background:rgba(11,92,171,.12)}
+.pl-caret:focus-visible{outline:2px solid #0b5cab;outline-offset:1px}
+.pl-wscount{color:#444;font-size:12px;font-style:italic}
+tr[data-e] .c-name{white-space:nowrap}
+/* Epic dialog: workstream rows */
+.pl-cr-epic .pl-wsbox{grid-column:1/-1}
+.pl-wsr{display:grid;grid-template-columns:minmax(0,1fr) 190px 90px 30px;gap:8px;margin-bottom:6px;align-items:center}
+html body .pl-cr .pl-wsr .hub-inline{width:100%!important;max-width:none!important}
+.pl-wsr [data-wx]{width:28px;height:28px;font-size:18px;line-height:1;cursor:pointer;border:1px solid #c9c7c5;border-radius:4px;background:#fff}
+.pl-wsbar{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-top:4px}
+.pl-wstag{display:flex;flex-direction:column;gap:3px;font-size:12px;font-weight:600;min-width:260px}
+html body .pl-cr .pl-wstag .hub-inline{width:100%!important;max-width:none!important}
+.pl-cr-epic .pl-cr-f.s6{grid-column:span 6}.pl-cr-epic .pl-cr-f.s12{grid-column:span 12}
+html body .pl-cr .pl-wsr .hub-inline,html body .pl-cr .pl-wstag .hub-inline{height:38px;padding:0 12px;background:#fff;border:1px solid #8a9db3;border-radius:6px;font:400 14px/1.2 inherit;color:#16324a;box-sizing:border-box;box-shadow:inset 0 1px 2px rgba(3,45,96,.08)}
+html body .pl-cr .pl-wsr .hub-inline:focus,html body .pl-cr .pl-wstag .hub-inline:focus{outline:0;border-color:#0b5cab;box-shadow:0 0 0 3px rgba(11,92,171,.2)}
+.pl-g-proj .pl-open-gus{margin:0 8px 0 0}
