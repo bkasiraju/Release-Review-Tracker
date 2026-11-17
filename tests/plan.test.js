@@ -116,7 +116,7 @@ test('createProject / createEpic write the mandatory GUS fields and reuse duplic
   const e=await plan.createEpic(sf,T,{name:'Epic A',releaseId:REL,effort:5,leadId:ENG,project:{gusId:'a1PEE00000PRJ0001A'}});
   assert.equal(e.created,true);
   const f=log.find(x=>x[0]==='c'&&x[1]==='ADM_Epic__c')[2];
-  assert.equal(f.Team__c,T);assert.equal(f.Project__c,'a1PEE00000PRJ0001A');assert.equal(f.Planned_Release__c,REL);assert.equal(f.Development_Lead__c,ENG);assert.equal(f.Planned_Story_Points__c,5);
+  assert.equal(f.Team__c,T);assert.equal(f.Project__c,'a1PEE00000PRJ0001A');assert.equal(f.Planned_Release__c,REL);assert.equal(f.Development_Lead__c,ENG);assert.equal(f.OwnerId,ENG);assert.equal(f.Planned_Story_Points__c,5);
   await assert.rejects(plan.createEpic(sf,T,{name:'E',releaseId:REL,project:{gusId:'a1PEE00000PRJ0001A'}}),/development lead/);
   await assert.rejects(plan.createEpic(sf,T,{name:'',releaseId:REL,project:{gusId:'a1PEE00000PRJ0001A'}}),/epic name/);
   await assert.rejects(plan.createEpic(sf,T,{name:'E',leadId:ENG,releaseId:'a1EEE00000OTHER01A',project:{gusId:'a1PEE00000PRJ0001A'}}),/planned releases/);

@@ -24,7 +24,7 @@ const epicPayload = (e, project, includeBtl, projectId) => {
   const fields = { Project__c: projectId || (project && project.gusId) || '', Planned_Release__c: e.releaseId, Planned_Story_Points__c: effortOf(e, includeBtl) };
   if (e.priority != null) fields.Priority__c = e.priority;
   const extra = { Description__c: epicDescription(e, project, includeBtl) };
-  if (e.owners && e.owners[0]) extra.Development_Lead__c = e.owners[0];
+  if (e.owners && e.owners[0]) { extra.Development_Lead__c = e.owners[0]; extra.OwnerId = e.owners[0]; } // the epic owner is the development lead
   return { name: e.name, fields, extra };
 };
 const epicHash = (e, project, includeBtl) => hash(epicPayload(e, project, includeBtl, project && project.gusId));
@@ -183,7 +183,10 @@ async function createEpic(sf, teamId, input) {
   const effort = days(input && input.effort);
   const hit = ((await sf.query(`SELECT Id FROM ADM_Epic__c WHERE Name = '${soql(name)}' AND Team__c = '${teamId}' LIMIT 1`)).records || [])[0];
   if (hit) return { gusId: hit.Id, projectGusId: proj.id, projectCreated: proj.created, created: false };
-  const c = await sf.create('ADM_Epic__c', { Name: name, Team__c: teamId, Project__c: proj.id, Planned_Release__c: releaseId, Development_Lead__c: leadId, Planned_Story_Points__c: effort });
+  const base = { Name: name, Team__c: teamId, Project__c: proj.id, Planned_Release__c: releaseId, Development_Lead__c: leadId, Planned_Story_Points__c: effort };
+  // The epic owner is the development lead; if GUS refuses that owner, fall back to the default owner.
+  let c = await sf.create('ADM_Epic__c', { ...base, OwnerId: leadId }).catch(e => ({ success: false, errors: [String(e && e.message || e)] }));
+  if (!ok(c) || !newId(c)) c = await sf.create('ADM_Epic__c', base);
   if (!ok(c) || !newId(c)) throw new Error('GUS rejected the epic: ' + ((c && c.errors) || []).join(', '));
   refsCache.delete(teamId);
   return { gusId: newId(c), projectGusId: proj.id, projectCreated: proj.created, created: true };
@@ -314,7 +317,7 @@ async function commitRun(sf, store, teamId, confirm, includeBtl, acknowledged) {
       if (e.priority != null) fields.Priority__c = e.priority;
       // Richer details (description, development lead); if the org rejects them the epic is still saved with the core fields.
       const extra = { Description__c: epicDescription(e, project, includeBtl === true) };
-      if (e.owners && e.owners[0]) extra.Development_Lead__c = e.owners[0];
+      if (e.owners && e.owners[0]) { extra.Development_Lead__c = e.owners[0]; extra.OwnerId = e.owners[0]; } // the epic owner is the development lead
       const attempt = async (fn) => {
         try { const x = await fn({ ...fields, ...extra }); if (x && !ok(x)) throw new Error((x.errors || []).join(', ')); return x; }
         catch (err) { r.note = 'saved without description/lead (' + String(err && err.message || err).slice(0, 120) + ')'; return fn(fields); }
