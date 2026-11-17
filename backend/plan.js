@@ -174,16 +174,16 @@ async function createEpic(sf, teamId, input) {
   planKey(teamId);
   const name = text(input && input.name, 255), releaseId = gid(input && input.releaseId);
   if (!name) throw new Error('Enter the epic name.');
-  if (!releaseId) throw new Error('Choose the planned release.');
   const leadId = gid(input && input.leadId);
   if (!leadId) throw new Error('Select the development lead.');
-  const rel = await teamReleases(sf, teamId, false).then(r => new Set(r.map(x => x.Id)), () => null);
-  if (rel && !rel.has(releaseId)) throw new Error('That release is not one of this team\'s planned releases.');
+  // The planned release is optional at creation; it is tagged in GUS as soon as one is chosen (now or when the plan is committed).
+  const rel = releaseId ? await teamReleases(sf, teamId, false).then(r => new Set(r.map(x => x.Id)), () => null) : null;
+  if (releaseId && rel && !rel.has(releaseId)) throw new Error('That release is not one of this team\'s planned releases.');
   const proj = await ensureProject(sf, teamId, input && input.project);
   const effort = days(input && input.effort);
   const hit = ((await sf.query(`SELECT Id FROM ADM_Epic__c WHERE Name = '${soql(name)}' AND Team__c = '${teamId}' LIMIT 1`)).records || [])[0];
   if (hit) return { gusId: hit.Id, projectGusId: proj.id, projectCreated: proj.created, created: false };
-  const base = { Name: name, Team__c: teamId, Project__c: proj.id, Planned_Release__c: releaseId, Development_Lead__c: leadId, Planned_Story_Points__c: effort };
+  const base = { Name: name, Team__c: teamId, Project__c: proj.id, ...(releaseId ? { Planned_Release__c: releaseId } : {}), Development_Lead__c: leadId, Planned_Story_Points__c: effort };
   // The epic owner is the development lead; if GUS refuses that owner, fall back to the default owner.
   let c = await sf.create('ADM_Epic__c', { ...base, OwnerId: leadId }).catch(e => ({ success: false, errors: [String(e && e.message || e)] }));
   if (!ok(c) || !newId(c)) c = await sf.create('ADM_Epic__c', base);

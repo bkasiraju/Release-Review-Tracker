@@ -140,7 +140,7 @@ function newEpicAt(){
       crField('Epic name','',`<input class="hub-inline" type="text" data-n maxlength="255" placeholder="Epic name" autocomplete="off">`,'s7')+
       `<span class="pl-cr-pinfo s12" data-pi></span>`+
       crField('Development lead','required · epic owner',`<select class="hub-inline" data-o><option value="" selected>Select a team member…</option>${lead.map(m=>opt(m.id,m.name,false)).join('')}</select>`,'s4')+
-      crField('Planned release','',`<select class="hub-inline" data-r>${rel.map(r=>opt(r.id,r.name,r.id===dr.releaseId)).join('')||opt('','No releases',true)}</select>`,'s3')+
+      crField('Planned release','',`<select class="hub-inline" data-r>${opt('','— None (set after planning) —',true)}${rel.map(r=>opt(r.id,r.name,false)).join('')}</select>`,'s3')+
       crField('ATL/BTL','',`<select class="hub-inline" data-l><option value="ABL">ABL (above the line)</option><option value="BTL" selected>BTL (below the line)</option></select>`,'s3')+
       crField('Effort','days',`<input class="hub-inline" type="number" min="0" max="1000" step="0.5" data-d placeholder="0">`,'s2'))+
     `<p class="pl-cr-auto-l">Set automatically: <b>Team</b> ${esc(H.team.Name)} · <b>Program</b> ${esc(prog?prog.name:'—')} · <b>Epic owner</b> same as the development lead</p>`;
@@ -149,10 +149,9 @@ function newEpicAt(){
     if(!pr)throw new Error('Choose a project.');
     if(!name){el.querySelector('[data-n]').focus();throw new Error('Enter the epic name.');}
     if(!leadId){el.querySelector('[data-o]').focus();throw new Error('Select the development lead.');}
-    if(!releaseId)throw new Error('Choose the planned release.');
     const r=await call('plan-create-epic',{teamId:H.team.Id,epic:{name,releaseId,effort,leadId,project:{gusId:pr.gusId,name:pr.name,method:pr.method}}});
     pr.gusId=r.projectGusId||pr.gusId;
-    const e=newEpic(pr.id),rr=rel.find(x=>x.id===releaseId);e.name=name;e.gusId=r.gusId;if(rr){e.releaseId=rr.id;e.releaseName=rr.name;}
+    const e=newEpic(pr.id),rr=rel.find(x=>x.id===releaseId);e.name=name;e.gusId=r.gusId;e.releaseId=rr?rr.id:'';e.releaseName=rr?rr.name:'';
     e.owners=[leadId];e.ownerNames=[leadName];e.line=line;e.workstreams.forEach(x=>{x.line=line;});if(e.workstreams[0])e.workstreams[0].days=effort;
     pl.epics.push(e);closeModal();
     if(filtersOn(P.view)){Object.assign(P.view,{q:'',flag:'',release:[],line:[],eng:[],theme:[]});saveFilters();drawTools();}
