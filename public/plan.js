@@ -51,9 +51,17 @@ function wireDrag(el){
 const crField=(label,hint,ctl,cls)=>`<label class="pl-cr-f${cls?' '+cls:''}"><span>${label}${hint?` <small>${hint}</small>`:''}</span>${ctl}</label>`;
 const crSection=(title,body)=>`<section class="pl-cr-s"><h3>${title}</h3><div class="pl-cr-g">${body}</div></section>`;
 const crAuto=rows=>`<div class="pl-cr-chips" aria-label="Set automatically">${rows.map(([k,v])=>`<span class="pl-cr-chip" title="${esc(k)}: ${esc(v)}"><i>${esc(k)}</i>${esc(v)}</span>`).join('')}</div>`;
+// Default Product Tag per team: the tag remembered in this browser, else the team's main tag (most used on its work in GUS).
+const TEAM_TAG={'message queue':'Architecture Message Queue','caching services':'CaaS: Cache As A Service','managed async processing service (maps)':'MAPS'};
+function defTag(tags,key){let v='';try{v=localStorage.getItem(key)||'';}catch(_){}
+  if(v&&tags.some(t=>t.id===v))return v;
+  const n=TEAM_TAG[String(H.team&&H.team.Name||'').toLowerCase()],t=n&&tags.find(x=>x.name===n);return t?t.id:'';}
 function crDialog(title,sub,bodyHtml,okLabel,submit){
   const el=openModal(title,`<p class="pl-cr-sub">${esc(sub)}</p>${bodyHtml}<p class="pl-cr-err" role="alert" hidden></p><div class="pl-cr-foot"><span class="note">Created in GUS immediately when you confirm.</span><span class="pl-cr-btns"><button type="button" class="button" data-close>Cancel</button><button type="button" class="button primary" data-ok disabled>${esc(okLabel)}</button></span></div>`);
   el.querySelector('.nd-modal').classList.add('pl-cr');
+  {const m=el.querySelector('.nd-modal'),x=m.querySelector('.nd-x'),b=document.createElement('button');b.type='button';b.className='nd-x pl-cr-expand';
+    const set=on=>{m.classList.toggle('pl-cr-wide',on);b.textContent=on?'⤡':'⤢';b.title=b.ariaLabel=on?'Shrink dialog':'Expand dialog';b.setAttribute('aria-pressed',on);try{localStorage.setItem('ri-cr-wide',on?'1':'');}catch(_){}};
+    b.onclick=()=>set(!m.classList.contains('pl-cr-wide'));x.before(b);let w=false;try{w=!!localStorage.getItem('ri-cr-wide');}catch(_){}set(w);}
   const ok=el.querySelector('[data-ok]'),err=el.querySelector('.pl-cr-err');
   const fail=m=>{err.textContent=m;err.hidden=!m;};
   let allowed=false,busy=false;
@@ -120,7 +128,7 @@ function newProjectAt(){
 function newWorkstreamAt(epicId){
   const pl=P.plan;if(!pl.epics.length){window.toast?.('Add an epic first, then add workstreams under it.',true);newEpicAt();return;}
   const prj=new Map(pl.projects.map(p=>[p.id,p])),eng=P.members.filter(isEng).slice().sort((a,b)=>String(a.name).localeCompare(String(b.name)));
-  const tags=P.refs.tags||[],tagKey='ri-ws-tag-'+H.team.Id,lastTag=(()=>{try{return localStorage.getItem(tagKey)||'';}catch(_){return '';}})();
+  const tags=P.refs.tags||[],tagKey='ri-ws-tag-'+H.team.Id,lastTag=defTag(tags,tagKey);
   const body=
     crSection('Workstream',crField('Epic','workstream is added under this epic',`<select class="hub-inline" data-e>${pl.epics.map((e,i)=>opt(e.id,`${projShort(prj.get(e.projectId)||{name:''})} › ${e.name||'(unnamed epic)'}${e.gusId?'':'  (not in GUS yet)'}`,epicId?e.id===epicId:i===pl.epics.length-1)).join('')}</select>`,'wide')+crField('Workstream name','',`<input class="hub-inline" type="text" data-n maxlength="200" placeholder="e.g. API changes" autocomplete="off">`,'wide'))+
     crSection('Assignment',crField('Engineer','optional',`<select class="hub-inline" data-g><option value="">Unassigned</option>${eng.map(m=>opt(m.id,m.name,false)).join('')}</select>`)+crField('Planned effort','days',`<input class="hub-inline" type="number" min="0" max="1000" step="0.5" data-d placeholder="0">`))+
@@ -162,7 +170,7 @@ function newWorkstreamAt(epicId){
 function newEpicAt(pid){
   const pl=P.plan;if(!pl.projects.length){newProjectAt();return;}
   const pr=pl.projects.find(x=>x.id===pid)||pl.projects[pl.projects.length-1];
-  const rel=P.refs.releases,prog=P.refs.program,tags=P.refs.tags||[],tagKey='ri-ws-tag-'+H.team.Id,lastTag=(()=>{try{return localStorage.getItem(tagKey)||'';}catch(_){return '';}})();
+  const rel=P.refs.releases,prog=P.refs.program,tags=P.refs.tags||[],tagKey='ri-ws-tag-'+H.team.Id,lastTag=defTag(tags,tagKey);
   const lead=P.members.slice().sort((x,y)=>String(x.name).localeCompare(String(y.name))),eng=P.members.filter(isEng).slice().sort((a,b)=>String(a.name).localeCompare(String(b.name)));
   const atl=cls=>crField('ATL/BTL','',`<select class="hub-inline" data-l><option value="ABL" selected>ABL / ATL (above the line)</option><option value="BTL">BTL (below the line)</option></select>`,cls);
   const wsRow=()=>`<div class="pl-wsr"><input class="hub-inline" type="text" data-wn maxlength="200" placeholder="Workstream name" aria-label="Workstream name" autocomplete="off"><select class="hub-inline" data-we aria-label="Engineer"><option value="">Unassigned</option>${eng.map(m=>opt(m.id,m.name,false)).join('')}</select><input class="hub-inline" type="number" min="0" max="1000" step="0.5" data-wd placeholder="Days" aria-label="Planned days"><button type="button" class="pl-ib" data-wx aria-label="Remove workstream" title="Remove">×</button></div>`;
