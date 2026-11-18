@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.6.0-GA (18 November 2026)
+
+Release Planning grid decluttered: the project header is now one line (project name, then a small "V2MOM ▸" chip). The V2MOM method shows on hover, or inline on the same line when the chip is clicked (session-only). The Theme column replaces Sprint in the default columns; anyone who already chose their own columns keeps them, and Sprint stays available in the column chooser. Verified by unit tests only; the layout has not been checked in a signed-in browser.
+
 ## 6.5.0-GA (18 November 2026)
 
 Follow-up to the 6.4.0-GA review caveats: workstream theme short forms match whole words only ("Roadmaps" is no longer MAPS, "VegaCache Interface" is not VC-FACE); every GUS rejection message when creating projects, epics, workstream stories, themes and plan updates now reads as plain text (object errors no longer print as `[object Object]`, HTML is stripped); the "no theme short form" warning now tells users to ask a plan administrator. Verified by unit tests only (focused plan tests pass; full-suite baseline of 38 pre-existing failures unchanged); not verified against live GUS.
