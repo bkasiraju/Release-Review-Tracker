@@ -494,7 +494,7 @@ async function boot(){
   H.prefetch(H.team.Id);H.preloadPeople();
 }
 /** Where body-level popups (dialogs, tooltips, pickers) must attach: in native full screen only the fullscreen element's subtree is drawn. */
-H.popHost=()=>document.fullscreenElement||document.body;
+H.popHost=()=>{const f=document.fullscreenElement;return f&&f!==document.documentElement?f:document.body;};
 window.Hub=H;
 document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,0));
 })();

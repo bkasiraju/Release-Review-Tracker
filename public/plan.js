@@ -931,8 +931,8 @@ function toggleFs(force){
   const b=box.querySelector('#pl-fs-btn');if(b){b.textContent=on?'Exit full screen':'Full screen';b.setAttribute('aria-pressed',String(on));}
   try{if(on&&!document.fullscreenElement&&box.requestFullscreen)box.requestFullscreen().catch(()=>{});else if(!on&&document.fullscreenElement)document.exitFullscreen().catch(()=>{});}catch(_){}
 }
-document.addEventListener('fullscreenchange',()=>{const host=H.popHost();document.querySelectorAll('.nd-overlay,.hub-confirm-ov,.pl-tt,#ui-tooltip').forEach(x=>{if(x.parentNode!==host)host.appendChild(x);});if(!document.fullscreenElement)toggleFs(false);});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.querySelector('.pl-fs-on')&&!document.querySelector('.cs.open,.ms.open')){toggleFs(false);e.stopImmediatePropagation();}},true);
+document.addEventListener('fullscreenchange',()=>{const host=H.popHost();document.querySelectorAll('.nd-overlay,.hub-confirm-ov,.pl-tt,#ui-tooltip,#toasts,.pl-confirm,.pl-mspop').forEach(x=>{if(x.parentNode!==host)host.appendChild(x);});if(!document.fullscreenElement)toggleFs(false);});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.querySelector('.pl-fs-on')&&!document.querySelector('.nd-overlay,.hub-confirm-ov,.pl-confirm,.pl-mspop')&&!document.querySelector('.cs.open,.ms.open')){toggleFs(false);e.stopImmediatePropagation();}},true);
 function onClick(ev){
   const t=ev.target,c=ctxOf(t),pl=P.plan;
   if(t.closest('#pl-fs-btn'))return toggleFs();
