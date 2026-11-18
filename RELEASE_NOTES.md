@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.7.0-GA (18 November 2026)
+
+Release Planning grid: the "+" (add workstream) button now appears on every workstream row, not just the first and last. It adds the new workstream directly below that row. Order can still be changed with the grip handle on each row (drag, or Up/Down keys). Epic delete stays on the first row. Verified by syntax check and unit tests only; not checked in a signed-in browser.
+
 ## 6.6.0-GA (18 November 2026)
 
 Release Planning grid decluttered: the project header is now one line (project name, then a small "V2MOM ▸" chip). The V2MOM method shows on hover, or inline on the same line when the chip is clicked (session-only). The Theme column replaces Sprint in the default columns; anyone who already chose their own columns keeps them, and Sprint stays available in the column chooser. Verified by unit tests only; the layout has not been checked in a signed-in browser.
