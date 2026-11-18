@@ -2163,3 +2163,10 @@ html body .pl-modal .pl-del-ack[hidden],html body .pl-modal [data-ack][hidden]{d
 html body .pl-modal .pl-del-err{margin:12px 0 0;padding:9px 12px;border-radius:8px;background:#fdecea;color:#7a1410;font-size:13px}
 html body .pl-modal .pl-del-err[hidden]{display:none}
 html body .pl-modal .button.primary.pl-danger{background:#a61a14;border-color:#a61a14;color:#fff}html body .pl-modal .button.primary.pl-danger:disabled{opacity:.5;cursor:not-allowed}
+/* Over-limit name suggestion (Add project / Add epic) */
+.pl-cr-fit{grid-column:1/-1;margin:0;padding:8px 10px;border-radius:8px;background:#eef4fa;border:1px solid #c9d6e2;font-size:12px;color:#16324a;line-height:1.5}
+.pl-cr-fit:empty{display:none}
+.pl-cr-fit b{font-weight:700;word-break:break-word}
+.pl-cr-fit .button{margin-left:6px;vertical-align:baseline}
+.pl-cr-f small .over,.pl-cr-f small span.over{color:#c23934;font-weight:700}
+.pl-cr-f .hub-inline.bad{border-color:#c23934}

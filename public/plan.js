@@ -77,6 +77,36 @@ function crDialog(title,sub,bodyHtml,okLabel,submit){
 const colKey=()=>'ri-collapse-'+(H.team&&H.team.Id);
 const collapsed=()=>{const t=H.team&&H.team.Id;if(P.col&&P.colTeam===t)return P.col;let a=[];try{a=JSON.parse(localStorage.getItem(colKey()))||[];}catch(_){}P.colTeam=t;return P.col=new Set(a);};
 const setCollapsed=(k,on)=>{const c=collapsed();if(on)c.add(k);else c.delete(k);try{localStorage.setItem(colKey(),JSON.stringify([...c]));}catch(_){}};
+// Smart shortening for GUS name limits (Project and Epic names: 80). Applies the least lossy step first and stops as soon as the name fits.
+const NAME_ABBR=[[/\binfrastructure\b/gi,'Infra'],[/\bconfiguration\b/gi,'Config'],[/\bapplications\b/gi,'Apps'],[/\bapplication\b/gi,'App'],[/\benvironments\b/gi,'Envs'],[/\benvironment\b/gi,'Env'],[/\bperformance\b/gi,'Perf'],[/\bdocumentation\b/gi,'Docs'],[/\bmanagement\b/gi,'Mgmt'],[/\bauthentication\b/gi,'Auth'],[/\bimplementation\b/gi,'Impl'],[/\bdevelopment\b/gi,'Dev'],[/\band\b/gi,'&'],[/\bwith\b/gi,'w/']];
+function smartShorten(name,max){
+  const tidy=x=>x.replace(/\s+([,:;)])/g,'$1').replace(/\s{2,}/g,' ').replace(/[\s,;:\-–—&/]+$/,'').trim();
+  let s=tidy(String(name||''));if(s.length<=max)return s;
+  // 1. "Advanced Cross Region Continuity (ACRC)" -> "ACRC" when the initials spell the acronym.
+  for(let from=0;;){const re=/\s*\(([A-Z][A-Z0-9]{1,9})\)/g;re.lastIndex=from;const x=re.exec(s);if(!x)break;
+    const ac=x[1],w=s.slice(0,x.index).split(' '),tail=w.slice(-ac.length);
+    if(tail.length===ac.length&&tail.map(t=>t[0]).join('').toUpperCase()===ac){s=w.slice(0,-ac.length).concat(ac).join(' ')+s.slice(x.index+x[0].length);from=0;}else from=x.index+x[0].length;}
+  s=tidy(s);if(s.length<=max)return s;
+  // 2. Common abbreviations, applied one at a time.
+  for(const [re,to] of NAME_ABBR){s=s.replace(re,to);if(s.length<=max)return tidy(s);}
+  // 3. Remaining parentheticals, then a trailing "by Q3" style timing qualifier.
+  s=tidy(s.replace(/\s*\([^)]*\)/g,''));if(s.length<=max)return s;
+  s=tidy(s.replace(/\s+(?:by|in|before|until)\s+(?:Q[1-4]|FY\d{2,4}|H[12]|CY\d{2,4}|\d{4})(?:\s+\w+)?$/i,''));if(s.length<=max)return s;
+  // 4. Cut at the last clause boundary that fits, else at a word boundary.
+  let cut=-1;const re=/\s(?:for|to|by|in|on|across|so that|using)\s/gi;let m;
+  while((m=re.exec(s))&&m.index<=max)cut=m.index;
+  if(cut>=Math.min(20,max/2))return tidy(s.slice(0,cut));
+  const t=s.slice(0,max-1),sp=t.lastIndexOf(' ');
+  return tidy(sp>=max/2?t.slice(0,sp):t)+'…';
+}
+// Shows "Suggested (n/80): …  [Use suggestion]" in `box` while the field is over the limit. Call the returned function to refresh.
+function fitSuggest(input,max,box,what){
+  const upd=()=>{const v=input.value.trim(),L=v.length;if(L<=max){box.innerHTML='';return;}
+    const sug=smartShorten(v,max);
+    box.innerHTML=`${esc(what)} is ${L} characters; GUS allows at most ${max}. Suggested (${sug.length}/${max}): <b>${esc(sug)}</b> <button type="button" class="button small" data-fit>Use suggestion</button>`;
+    box.querySelector('[data-fit]').onclick=()=>{input.value=sug;input.dispatchEvent(new Event('input',{bubbles:true}));input.focus();};};
+  input.addEventListener('input',upd);upd();return upd;
+}
 const crUser=()=>(P.user&&P.user.name)||'You (signed-in GUS user)';
 function newProjectAt(){
   const pl=P.plan,prog=P.refs.program,methods=ioLists().methods;
@@ -86,7 +116,7 @@ function newProjectAt(){
   const body=
     crSection('Project',mode+
       crField('GUS project',`${avail.length} not yet in this plan`,`<select class="hub-inline" data-g>${avail.length?avail.map(g=>opt(g.id,g.name,false)).join(''):opt('','No other projects found in GUS',true)}</select>`,'wide pl-cr-pick')+
-      crField('Measure name','new project in GUS',`<input class="hub-inline" type="text" data-n maxlength="120" placeholder="e.g. M1.1.3: Baseline reliability" autocomplete="off">`,'wide pl-cr-new')+
+      crField('Measure name',`new project in GUS · <span data-ncnt>0 / ${PROJECT_NAME_MAX}</span>`,`<input class="hub-inline" type="text" data-n placeholder="e.g. M1.1.3: Baseline reliability" autocomplete="off">`,'wide pl-cr-new')+`<p class="pl-cr-fit pl-cr-new" data-fit role="status"></p>`+
       crField('Project Shortform','e.g. HRP M1.1.3',`<input class="hub-inline" type="text" data-s maxlength="60" placeholder="e.g. HRP M1.1.3">`,'wide')+`<p class="pl-cr-hint" data-hint hidden></p>`)+
     crSection('V2MOM',crField('V2MOM method','saved on the project in GUS',`<input class="hub-inline" type="text" list="pl-cr-methods" data-m maxlength="1000" placeholder="Pick an existing method or type a new one" autocomplete="off"><datalist id="pl-cr-methods">${methods.map(m=>`<option value="${esc(m)}"></option>`).join('')}</datalist>`,'wide'))+
     crAuto([['Team',H.team.Name],['Program',prog?prog.name:'Not found for this team'],['Owner',crUser()]]);
@@ -101,6 +131,7 @@ function newProjectAt(){
     }else{
       name=el.querySelector('[data-n]').value.trim();
       if(!name){el.querySelector('[data-n]').focus();throw new Error('Enter the measure (project) name.');}
+      if(name.length>PROJECT_NAME_MAX){el.querySelector('[data-n]').focus();throw new Error(`Project name is ${name.length} characters; GUS allows at most ${PROJECT_NAME_MAX}. Use the suggestion or shorten it by ${name.length-PROJECT_NAME_MAX}.`);}
       if(!prog)throw new Error('This team has no GUS program for the planning release, so a project cannot be created.');
       r=await call('plan-create-project',{teamId:H.team.Id,project:{name,method}});
     }
@@ -112,8 +143,12 @@ function newProjectAt(){
   });
   const g=el.querySelector('[data-g]'),n=el.querySelector('[data-n]'),sh=el.querySelector('[data-s]'),m=el.querySelector('[data-m]'),hint=el.querySelector('[data-hint]'),ok=el.querySelector('[data-ok]');let shTouched=false;
   const known=new Map(P.refs.projects.map(x=>[x.name.toLowerCase(),x]));
+  const ncnt=el.querySelector('[data-ncnt]'),fitBox=el.querySelector('[data-fit]');
+  const fit=fitSuggest(n,PROJECT_NAME_MAX,fitBox,'Project name');
+  const count=()=>{const L=n.value.trim().length;ncnt.textContent=`${L} / ${PROJECT_NAME_MAX}`;ncnt.classList.toggle('over',L>PROJECT_NAME_MAX);n.classList.toggle('bad',L>PROJECT_NAME_MAX);};
+  n.addEventListener('input',count);
   const fillPick=()=>{const x=avail.find(a=>a.id===g.value);if(!x)return;if(!shTouched)sh.value=shortProj(x.name);m.value=x.method||m.value;};
-  const setMode=k=>{md=k;sh.value='';m.value='';n.value='';shTouched=false;hint.hidden=true;el._gate=k==='new';el._sync();el._deny();el.querySelectorAll('[data-mode]').forEach(b=>{const on=b.dataset.mode===k;b.classList.toggle('on',on);b.setAttribute('aria-selected',String(on));});
+  const setMode=k=>{md=k;sh.value='';m.value='';n.value='';shTouched=false;hint.hidden=true;fit();count();el._gate=k==='new';el._sync();el._deny();el.querySelectorAll('[data-mode]').forEach(b=>{const on=b.dataset.mode===k;b.classList.toggle('on',on);b.setAttribute('aria-selected',String(on));});
     el.querySelector('.pl-cr-pick').hidden=k!=='pick';el.querySelector('.pl-cr-new').hidden=k!=='new';ok.textContent=k==='pick'?'Add project':'Create in GUS';
     el.querySelector('.pl-cr-foot .note').textContent=k==='pick'?'Links the existing GUS project; nothing new is created.':'Created in GUS immediately when you confirm.';
     if(k==='pick')fillPick();(k==='pick'?g:n).focus();};
@@ -181,6 +216,7 @@ function newEpicAt(pid){
       atl('s3 pl-cr-pick').replace('data-l','data-xl')+
       `<span class="pl-cr-pinfo s12 pl-cr-pick" data-xi></span>`+
       crField('Epic name',`<span data-cnt>0 / ${EPIC_NAME_MAX}</span>`,`<textarea class="hub-inline" rows="2" data-n placeholder="Epic name" autocomplete="off"></textarea>`,'s9 pl-cr-new')+
+      `<p class="pl-cr-fit s12 pl-cr-new" data-efit role="status"></p>`+
       atl('s3 pl-cr-new')+
       crField('Development lead','required · epic owner',`<select class="hub-inline" data-o><option value="" selected>Select a team member…</option>${lead.map(m=>opt(m.id,m.name,false)).join('')}</select>`,'s6 pl-cr-new')+
       crField('Planned release','',`<select class="hub-inline" data-r>${opt('','— None (set after planning) —',true)}${rel.map(r=>opt(r.id,r.name,false)).join('')}</select>`,'s6 pl-cr-new'))+
@@ -234,7 +270,8 @@ function newEpicAt(pid){
   });
   el.querySelector('.nd-modal').classList.add('pl-cr-epic');
   const nm=el.querySelector('textarea[data-n]'),cnt=el.querySelector('[data-cnt]'),errEl=el.querySelector('.pl-cr-err');
-  nm.oninput=()=>{const L=nm.value.length,over=L>EPIC_NAME_MAX;cnt.textContent=`${L} / ${EPIC_NAME_MAX}`;cnt.classList.toggle('over',over);nm.classList.toggle('bad',over);errEl.textContent=over?`Epic name is ${L} characters; GUS allows at most ${EPIC_NAME_MAX}. Shorten it by ${L-EPIC_NAME_MAX}.`:'';errEl.hidden=!over;};
+  fitSuggest(nm,EPIC_NAME_MAX,el.querySelector('[data-efit]'),'Epic name');
+  nm.oninput=()=>{const L=nm.value.trim().length,over=L>EPIC_NAME_MAX;cnt.textContent=`${L} / ${EPIC_NAME_MAX}`;cnt.classList.toggle('over',over);nm.classList.toggle('bad',over);errEl.textContent=over?`Epic name is ${L} characters; GUS allows at most ${EPIC_NAME_MAX}. Shorten it by ${L-EPIC_NAME_MAX}.`:'';errEl.hidden=!over;};
   const xSel=el.querySelector('[data-xe]'),xInfo=el.querySelector('[data-xi]'),pc=el.querySelector('[data-pcnt]'),okb=el.querySelector('[data-ok]'),note=el.querySelector('.pl-cr-foot .note'),wsr=el.querySelector('[data-wsrows]'),tagBox=el.querySelector('[data-tagbox]');
   const filled=()=>[...wsr.querySelectorAll('[data-wn]')].filter(i=>i.value.trim()).length;
   const sync=()=>{const f=filled();tagBox.hidden=!f||!!lastTag;el._gate=md==='new'||f>0;el._sync();el._deny();
@@ -262,6 +299,7 @@ const IO_COLS=['Method Name (V2MOM Field in Project)','Measure Name (project in 
 const IO_ROWS=300;
 const projShort=p=>p.short||shortProj(p.name);
 const EPIC_NAME_MAX=80; // ADM_Epic__c.Name length in GUS
+const PROJECT_NAME_MAX=80; // PPM_Project__c.Name length in GUS
 const projLabel=p=>{const sh=projShort(p),n=p.name||'';return !n||n===sh?sh:n.toLowerCase().startsWith(sh.toLowerCase())?n:sh+' — '+n;};
 function ioLists(){
   const pl=P.plan,eng=P.members.filter(isEng).map(m=>m.name).sort();
@@ -698,7 +736,7 @@ function drawPlanner(){
     byP.forEach((es,pid)=>{if(filtering&&!es.length)return;const open=!fold.has('p:'+pid);rows.push(projRow(pid,es,open));if(open)es.forEach(emit);});
     const prjs=new Map(pl.projects.map(p=>[p.id,p]));
     const emenu=P.epicsOpen?`<div class="pl-pmenu pl-emenu" role="dialog" aria-label="Epics"><div class="pl-pm-h"><b>Epics <small>${pl.epics.length}</small></b><button type="button" class="pl-pm-x" data-epics-toggle aria-label="Close epics" title="Close">×</button></div><div class="pl-eh" aria-hidden="true"><span>Project Shortform</span><span>Epic name</span><span>Development lead</span><span>Release</span><span></span></div>${pl.epics.length?pl.epics.map(e=>{const pj=prjs.get(e.projectId)||{},own=(e.ownerNames&&e.ownerNames.length?e.ownerNames:(e.owners||[]).map(memName)).filter(Boolean)[0]||'—';return `<div class="pl-erow" data-goto-epic="${esc(e.id)}" tabindex="0" role="button" title="${esc(e.name)} — click to show in the table"><span title="${esc(pj.name||'')}">${esc(projShort(pj)||'—')}</span><span>${esc(e.name||'(unnamed)')}</span><span title="${esc(own)}">${esc(own)}</span><span title="${esc(e.releaseName||'')}">${esc(e.releaseName||'—')}</span><span class="pl-pact">${e.gusId?`<a class="pl-gus" href="${H.GUS}ADM_Epic__c/${esc(e.gusId)}/view" target="_blank" rel="noopener">GUS ↗</a>`:'<em class="pl-draft">Draft</em>'}</span></div>`;}).join(''):'<p class="note">No epics yet. Use + Epic to add one.</p>'}<p class="note">Click an epic to jump to it in the table. Hover to see full text.</p></div>`:'';
-    const pmenu=P.projOpen?`<div class="pl-pmenu" role="dialog" aria-label="Projects"><div class="pl-pm-h"><b>Projects</b><button type="button" class="pl-pm-x" data-proj-toggle aria-label="Close projects" title="Close">×</button></div><div class="pl-ph" aria-hidden="true"><span>Project Shortform</span><span>Project name</span><span>V2MOM method</span><span></span></div>${pl.projects.map(p=>`<span class="pl-pchip" data-p="${esc(p.id)}"><input class="hub-inline pl-pshort" type="text" placeholder="e.g. HRP M1.1.3" aria-label="Project Shortform" title="${esc(p.short||'')}" data-f="short" value="${esc(p.short||'')}" maxlength="60"><input class="hub-inline pl-pname" type="text" list="pl-projects" placeholder="Project name (type to link a GUS project)" aria-label="Project name" title="${esc(p.name)}${p.gusId?' (exists in GUS; rename it in GUS)':''}" data-f="name" value="${esc(p.name)}" maxlength="120"${p.gusId?' readonly':''}><input class="hub-inline pl-pmeth" type="text" placeholder="V2MOM method" aria-label="V2MOM method for this project" title="${esc(p.method||'')}${p.gusId?' (saved to the GUS project on commit)':''}" data-f="method" value="${esc(p.method||'')}" maxlength="1000"><span class="pl-pact">${p.gusId?`<a class="pl-gus" href="${H.GUS}PPM_Project__c/${esc(p.gusId)}/view" target="_blank" rel="noopener">GUS ↗</a>`:'<em class="pl-draft">New</em>'}<button type="button" class="pl-x" data-add-epic aria-label="Add epic to this project" title="Add epic to this project">+</button><button type="button" class="pl-x" data-del-proj aria-label="Delete project" title="Delete project">×</button></span></span>`).join('')}<p class="note">Project names that exist in GUS are read-only (rename them in GUS). The shortform is a label kept in this plan only. The V2MOM method is saved to the GUS project when you commit the plan. Hover a field to see its full text.</p></div>`:'';
+    const pmenu=P.projOpen?`<div class="pl-pmenu" role="dialog" aria-label="Projects"><div class="pl-pm-h"><b>Projects</b><button type="button" class="pl-pm-x" data-proj-toggle aria-label="Close projects" title="Close">×</button></div><div class="pl-ph" aria-hidden="true"><span>Project Shortform</span><span>Project name</span><span>V2MOM method</span><span></span></div>${pl.projects.map(p=>`<span class="pl-pchip" data-p="${esc(p.id)}"><input class="hub-inline pl-pshort" type="text" placeholder="e.g. HRP M1.1.3" aria-label="Project Shortform" title="${esc(p.short||'')}" data-f="short" value="${esc(p.short||'')}" maxlength="60"><input class="hub-inline pl-pname" type="text" list="pl-projects" placeholder="Project name (type to link a GUS project)" aria-label="Project name" title="${esc(p.name)}${p.gusId?' (exists in GUS; rename it in GUS)':''}" data-f="name" value="${esc(p.name)}" maxlength="${PROJECT_NAME_MAX}"${p.gusId?' readonly':''}><input class="hub-inline pl-pmeth" type="text" placeholder="V2MOM method" aria-label="V2MOM method for this project" title="${esc(p.method||'')}${p.gusId?' (saved to the GUS project on commit)':''}" data-f="method" value="${esc(p.method||'')}" maxlength="1000"><span class="pl-pact">${p.gusId?`<a class="pl-gus" href="${H.GUS}PPM_Project__c/${esc(p.gusId)}/view" target="_blank" rel="noopener">GUS ↗</a>`:'<em class="pl-draft">New</em>'}<button type="button" class="pl-x" data-add-epic aria-label="Add epic to this project" title="Add epic to this project">+</button><button type="button" class="pl-x" data-del-proj aria-label="Delete project" title="Delete project">×</button></span></span>`).join('')}<p class="note">Project names that exist in GUS are read-only (rename them in GUS). The shortform is a label kept in this plan only. The V2MOM method is saved to the GUS project when you commit the plan. Hover a field to see its full text.</p></div>`:'';
 
     return `<div class="pl-grid-tools"><span class="pl-tl"><button type="button" class="button" id="pl-add-proj">+ Project</button><button type="button" class="button" data-fold-all="1" title="Collapse every project">Collapse all</button><button type="button" class="button" data-fold-all="0" title="Expand every project and epic">Expand all</button><span class="pl-pwrap"><button type="button" class="button" data-proj-toggle aria-haspopup="true" aria-expanded="${P.projOpen?'true':'false'}">Projects ▾</button>${pmenu}</span><span class="pl-pwrap"><button type="button" class="button" data-epics-toggle aria-haspopup="true" aria-expanded="${P.epicsOpen?'true':'false'}">Epics ▾</button>${emenu}</span></span><span class="pl-cols"><button type="button" class="button" data-cols-toggle aria-haspopup="true" aria-expanded="${P.colsOpen?'true':'false'}">Columns ▾</button>${P.colsOpen?`<div class="pl-cols-menu" role="menu">${[...cols,...Object.keys(GCOL).filter(k=>!cols.includes(k))].map(k=>{const on=cols.includes(k),i=cols.indexOf(k);return `<div class="pl-colrow" data-colrow="${k}"${on?' draggable="true"':''}><span class="pl-colgrip" aria-hidden="true">${on?'⠿':''}</span><label><input type="checkbox" data-col="${k}"${on?' checked':''}> ${esc(GCOL[k])}</label>${on?`<button type="button" class="pl-colmv" data-colmv="${k}" data-d="-1" aria-label="Move ${esc(GCOL[k])} left"${i===0?' disabled':''}>▲</button><button type="button" class="pl-colmv" data-colmv="${k}" data-d="1" aria-label="Move ${esc(GCOL[k])} right"${i===cols.length-1?' disabled':''}>▼</button>`:''}</div>`;}).join('')}<div class="pl-cols-foot"><button type="button" class="pl-cols-reset" data-cols-reset>Reset to default</button><button type="button" class="button primary" data-cols-done>Done</button></div></div>`:''}</span></div><div class="pl-grid-wrap"><table class="pl-grid"><colgroup>${cols.map(k=>`<col class="${k==='name'||k==='ws'?'w-grow':'w-fit'}">`).join('')}<col class="w-fit"></colgroup><thead><tr>${cols.map(k=>`<th class="c-${k}">${esc(GCOL[k])}</th>`).join('')}<th class="c-actions">Actions</th></tr></thead><tbody>${rows.join('')||`<tr><td colspan="${cols.length+1}" class="note">${pl.projects.length?'No epics match the filters.':'No epics yet.'}</td></tr>`}</tbody></table></div>`;};
   el.innerHTML=`<datalist id="pl-projects">${P.refs.projects.map(p=>`<option value="${esc(p.name)}"></option>`).join('')}</datalist><datalist id="pl-sprints">${P.refs.sprints.map(s=>`<option value="${esc(s.name)}"></option>`).join('')}</datalist>`+
