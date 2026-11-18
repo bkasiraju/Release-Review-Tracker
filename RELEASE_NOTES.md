@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.13.1-GA (18 November 2026)
+
+Review fixes for the column search. The Doc, HRP V2MOM and CFS V2MOM column searches now look at what those columns show (the Doc search matched nothing before). Searches in a column you then hide no longer filter silently. Creating an epic, clicking a summary tile, or "Clear filters" also clears the column searches, and "Clear filters" is enabled when only column searches are set. Typing no longer pulls focus back from a cell you clicked into, and the search boxes keep their 24px size. Not checked in a browser.
+
 ## 6.13.0-GA (18 November 2026)
 
 Inline column search in the Release Planning table. A second header row has a "Search" box under every column (Project, Epic Name, Workstream, Epic Owner, Workstream Owner(s), WS Est, Epic Est, ATL/BTL, Theme and any other column you add). Type free text and the grid is filtered as you type; a box with text is highlighted, several boxes combine (all must match), and a "Clear" button under Actions resets them. An epic is shown when its own value or any of its workstreams matches the column text (e.g. a Workstream Owner search keeps the whole epic with its workstreams). Searching Project alone also lists matching projects that have no epics yet. The box texts are not saved between visits. Works with the existing filters and "Clear filters". Unit-level check only; not checked in a browser.

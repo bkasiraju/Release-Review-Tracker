@@ -9,7 +9,7 @@ P.open={theme:false,eng:false,exec:false};
 P.mOpen=new Set(); // projects whose V2MOM method is expanded on the project row (session only)
 P.view={q:'',tok:[],release:[],line:[],eng:[],theme:[],group:'project',flag:'',kpi:'',col:{}};
 const MF=['release','line','eng','theme'],FKEY='pl-filters-';
-const filtersOn=V=>!!(V.q||V.flag||(V.tok&&V.tok.length)||MF.some(k=>V[k].length));
+const filtersOn=V=>!!(V.q||V.flag||Object.values(V.col||{}).some(v=>v&&v.trim())||(V.tok&&V.tok.length)||MF.some(k=>V[k].length));
 /** Saved filter selections per team: kept in memory for the session and in localStorage when the frame allows it. */
 const memFilters={};
 function restoreFilters(){const t=H.team&&H.team.Id;if(!t||P.view._team===t)return;P.view._team=t;let v=memFilters[t];if(!v){try{v=JSON.parse(localStorage.getItem(FKEY+t));}catch(_){}}MF.forEach(k=>{P.view[k]=v&&Array.isArray(v[k])?v[k].slice():[];});}
@@ -255,7 +255,7 @@ function newEpicAt(pid){
       }
       if(!P.gsnap)snapGus();
       pl.epics.push(e);made.epic=e;P.gsnap.set(e.gusId,JSON.stringify(gusSnap(e)));
-      if(filtersOn(P.view)){Object.assign(P.view,{q:'',tok:[],flag:'',release:[],line:[],eng:[],theme:[]});saveFilters();drawTools();}
+      if(filtersOn(P.view)){Object.assign(P.view,{q:'',tok:[],flag:'',release:[],line:[],eng:[],theme:[],col:{}});saveFilters();drawTools();}
       setCollapsed('p:'+pr.id,false);setCollapsed('e:'+e.id,false);draw();queueSave();flashRow(e);
     }
     // Workstreams: each becomes a parent story in GUS. A retry only creates the ones still missing.
@@ -657,13 +657,13 @@ const extraKpis=m=>{const cap=m.rows.filter(x=>x.cap),sum=k=>r2(cap.reduce((a,x)
 /** A summary tile filters the grid below to the data behind it; clicking the active tile again clears the filter. */
 function applyKpi(a){
   const V=P.view,cap=(P.engRows||[]).filter(x=>x.cap);
-  if(V.kpi===a){Object.assign(V,{q:'',tok:[],release:[],line:[],eng:[],theme:[]});saveFilters();}
+  if(V.kpi===a){Object.assign(V,{q:'',tok:[],release:[],line:[],eng:[],theme:[],col:{}});saveFilters();}
   else{
     let eng=[];
     if(a==='over')eng=cap.filter(x=>x.abl+x.btl>x.avail+0.001).map(x=>x.id);
     if(a==='off')eng=cap.filter(x=>(x.leave||0)+(x.holiday||0)+(x.oncall||0)>0).map(x=>x.id);
     if((a==='over'||a==='off')&&!eng.length){window.toast?.(a==='over'?'No engineers are over-allocated.':'No engineer has time off or on-call.',false);return;}
-    Object.assign(V,{q:'',tok:[],release:[],line:a==='abl'?['ABL']:a==='btl'?['BTL']:[],eng,theme:[]});saveFilters();
+    Object.assign(V,{q:'',tok:[],release:[],line:a==='abl'?['ABL']:a==='btl'?['BTL']:[],eng,theme:[],col:{}});saveFilters();
     V.flag=['unassigned','incomplete','pending'].includes(a)?a:'';V.kpi=a;
   }
   drawSummary();drawTools();drawPlanner();wire();
@@ -683,7 +683,7 @@ function drawPlanner(){
   const el=P.el.querySelector('#pl-planner'),pl=P.plan,rel=P.refs.releases;
   const projOpts=sel=>pl.projects.map(p=>opt(p.id,p.name||'(unnamed project)',p.id===sel)).join('');
   const engOpts=sel=>'<option value="">Unassigned</option>'+P.members.filter(isEng).map(m=>opt(m.id,m.name,m.id===sel)).join('');
-  const V=P.view,prj=new Map(pl.projects.map(p=>[p.id,p])),q=(/^\s*([a-z0-9]+)\s*:/i.exec(V.q)&&SA[/^\s*([a-z0-9]+)/i.exec(V.q)[1].toLowerCase()]?'':V.q.trim().toLowerCase()),colF=Object.entries(V.col||{}).filter(([k,v])=>v&&v.trim()).map(([k,v])=>[k,v.trim().toLowerCase()]),filtering=!!(q||colF.length||V.flag||V.tok.length||MF.some(k=>V[k].length));
+  const V=P.view,prj=new Map(pl.projects.map(p=>[p.id,p])),q=(/^\s*([a-z0-9]+)\s*:/i.exec(V.q)&&SA[/^\s*([a-z0-9]+)/i.exec(V.q)[1].toLowerCase()]?'':V.q.trim().toLowerCase()),colF=Object.entries(V.col||{}).filter(([k,v])=>v&&v.trim()&&gridCols().includes(k)).map(([k,v])=>[k,v.trim().toLowerCase()]),filtering=!!(q||colF.length||V.flag||V.tok.length||MF.some(k=>V[k].length));
   const FLAG={unassigned:e=>e.workstreams.some(w=>(w.days||0)>0&&!wsEngs(w).length),incomplete:e=>!(e.owners&&e.owners.length)||!e.workstreams.some(w=>(w.days||0)>0),pending:e=>e.line==='ABL'&&!e.gusId};
   const match=e=>{const p=prj.get(e.projectId);
     if(V.flag&&FLAG[V.flag]&&!FLAG[V.flag](e))return false;
@@ -758,9 +758,9 @@ const wire=()=>{P.el.querySelectorAll('#pl-planner select').forEach(s=>H.customS
 let cfTimer;
 /** Inline column searches: update the filter and redraw the grid, keeping focus and caret in the box being typed in. */
 function wireColFilters(){const root=P.el.querySelector('#pl-planner');if(!root)return;
-  const redraw=(focus,pos)=>{drawPlanner();wire();if(focus){const i=P.el.querySelector(`.pl-cf[data-cf="${focus}"]`);if(i){i.focus();try{i.setSelectionRange(pos,pos);}catch(_){}}}};
-  root.querySelectorAll('.pl-cf').forEach(i=>i.addEventListener('input',()=>{const k=i.dataset.cf,pos=i.selectionStart;P.view.col=P.view.col||{};P.view.col[k]=i.value;clearTimeout(cfTimer);cfTimer=setTimeout(()=>redraw(k,pos),150);}));
-  const c=root.querySelector('[data-cf-clear]');if(c)c.onclick=()=>{P.view.col={};redraw();};}
+  const redraw=(focus,pos,keep=true)=>{if(!P.plan)return;drawPlanner();wire();if(focus&&keep){const i=P.el.querySelector(`.pl-cf[data-cf="${focus}"]`);if(i){i.focus();try{i.setSelectionRange(pos,pos);}catch(_){}}}};
+  root.querySelectorAll('.pl-cf').forEach(i=>i.addEventListener('input',()=>{const k=i.dataset.cf,pos=i.selectionStart;P.view.col=P.view.col||{};P.view.col[k]=i.value;clearTimeout(cfTimer);cfTimer=setTimeout(()=>redraw(k,pos,document.activeElement===i),150);}));
+  const c=root.querySelector('[data-cf-clear]');if(c)c.onclick=()=>{P.view.col={};redraw();const f=P.el.querySelector('.pl-cf');if(f)f.focus();};}
 function drawTools(){
   const box=P.el.querySelector('#pl-tools'),pl=P.plan;if(!box||!pl)return;const V=P.view;
   const themes=[...new Set(pl.epics.map(epicTheme))].sort(),engs=P.members.filter(isEng);
@@ -813,7 +813,7 @@ function colText(k,e,p){const ws=e.workstreams||[],sk=n=>skVals(n,e,p).join(' ')
     case 'project':t=sk('project');break;case 'name':t=e.name||'';break;case 'ws':t=sk('ws');break;case 'owners':t=sk('owner');break;case 'engs':t=sk('eng');break;
     case 'days':t=ws.map(w=>w.days||'').join(' ');break;case 'estimate':t=String(epicDays(e));break;case 'line':t=sk('line')+(e.line==='ABL'?' above':' below');break;
     case 'priority':t='P'+(e.priority==null?0:e.priority);break;case 'status':case 'wstatus':t=sk('status');break;case 'sprint':t=sk('sprint');break;case 'release':t=sk('release');break;
-    case 'theme':t=sk('theme');break;case 'gus':t=e.gusId?'gus saved':'draft';break;case 'hrp':case 'v2mom':case 'pmethod':t=sk('method');break;
+    case 'theme':t=sk('theme');break;case 'gus':t=e.gusId?'gus saved':'draft';break;case 'doc':t=e.doc||'';break;case 'hrp':t=e.hrp||'';break;case 'v2mom':t=e.v2mom||'';break;case 'pmethod':t=sk('method');break;
   }return t.toLowerCase();}
 function skVals(k,e,p){const ws=e.workstreams||[];
   switch(k){
