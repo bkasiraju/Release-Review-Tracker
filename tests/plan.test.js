@@ -113,17 +113,18 @@ test('createProject / createEpic write the mandatory GUS fields and reuse duplic
   const p=await plan.createProject(sf,T,{name:'M9: New',method:'Method X'});
   assert.equal(p.created,true);assert.equal(p.programId,PROG);
   assert.deepEqual(log.find(x=>x[0]==='c'&&x[1]==='PPM_Project__c')[2],{Name:'M9: New',Program__c:PROG,V2MOM_Method__c:'Method X'});
-  const e=await plan.createEpic(sf,T,{name:'Epic A',releaseId:REL,effort:5,leadId:ENG,project:{gusId:'a1PEE00000PRJ0001A'}});
+  const e=await plan.createEpic(sf,T,{name:'Epic A',releaseId:REL,effort:5,leadId:ENG,priority:0,project:{gusId:'a1PEE00000PRJ0001A'}});
   assert.equal(e.created,true);
   const f=log.find(x=>x[0]==='c'&&x[1]==='ADM_Epic__c')[2];
   assert.equal(f.Team__c,T);assert.equal(f.Project__c,'a1PEE00000PRJ0001A');assert.equal(f.Planned_Release__c,REL);assert.equal(f.Development_Lead__c,ENG);assert.equal(f.OwnerId,ENG);assert.equal(f.Planned_Story_Points__c,5);
   await assert.rejects(plan.createEpic(sf,T,{name:'E',releaseId:REL,project:{gusId:'a1PEE00000PRJ0001A'}}),/development lead/);
+  await assert.rejects(plan.createEpic(sf,T,{name:'E',leadId:ENG,releaseId:REL,project:{gusId:'a1PEE00000PRJ0001A'}}),/priority/);
   await assert.rejects(plan.createEpic(sf,T,{name:'',releaseId:REL,project:{gusId:'a1PEE00000PRJ0001A'}}),/epic name/);
-  const l2=[],e2=await plan.createEpic(sfMock(l2),T,{name:'No release',leadId:ENG,releaseId:'',project:{gusId:'a1PEE00000PRJ0001A'}});
+  const l2=[],e2=await plan.createEpic(sfMock(l2),T,{name:'No release',leadId:ENG,priority:0,releaseId:'',project:{gusId:'a1PEE00000PRJ0001A'}});
   assert.equal(e2.created,true);assert.equal('Planned_Release__c' in l2.find(x=>x[0]==='c'&&x[1]==='ADM_Epic__c')[2],false);
   await assert.rejects(plan.createEpic(sf,T,{name:'x'.repeat(81),leadId:ENG,releaseId:REL,project:{gusId:'a1PEE00000PRJ0001A'}}),/at most 80/);
   await assert.rejects(plan.createEpic(sf,T,{name:'E',leadId:ENG,releaseId:'a1EEE00000OTHER01A',project:{gusId:'a1PEE00000PRJ0001A'}}),/planned releases/);
-  await assert.rejects(plan.createEpic(sfMock([],{failEpic:true}),T,{name:'E2',leadId:ENG,releaseId:REL,project:{gusId:'a1PEE00000PRJ0001A'}}),/rejected the epic/);
+  await assert.rejects(plan.createEpic(sfMock([],{failEpic:true}),T,{name:'E2',leadId:ENG,priority:0,releaseId:REL,project:{gusId:'a1PEE00000PRJ0001A'}}),/rejected the epic/);
 });
 test('syncEpics writes grid edits to GUS epics of this team only and reports failures',async()=>{
   const log=[],base=sfMock(log),sf={...base,async query(q){if(/FROM ADM_Epic__c/.test(q))return {records:/a0XEE00000EPC0001A/.test(q)?[{Id:'a0XEE00000EPC0001A'}]:[]};return base.query(q);}};

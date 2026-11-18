@@ -1,0 +1,103 @@
+/* V2MOM Measures Import Wizard: parse a V2MOM sheet (Google link or .xlsx), pick the measures owned by chosen people, and create them as GUS projects
+ * under the program the user names, for the current team. Opened from the button next to "Open in GUS". */
+(function(){
+'use strict';
+const H=window.Hub,esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const NAME_MAX=80,call=(a,d)=>window.api(a,d);
+const LS=k=>'ri-v2mom-'+k+'-'+(H.team&&H.team.Id);
+const get=k=>{try{return localStorage.getItem(LS(k))||'';}catch(_){return '';}},put=(k,v)=>{try{localStorage.setItem(LS(k),v);}catch(_){}};
+const shortOf=()=>String(H.team&&(H.team.short||H.team.Name)||'').replace(/[^A-Za-z0-9&]+/g,' ').trim().split(' ').map((w,i,a)=>a.length>1?w[0].toUpperCase():w).join('').slice(0,8);
+
+function open(){
+  if(!H.hasTeam()){window.toast?.('Pick a team first. The import creates projects for the selected team.',true);return;}
+  const ov=document.createElement('div');ov.className='nd-overlay';
+  ov.innerHTML=`<div class="nd-modal pl-modal v2w" role="dialog" aria-modal="true" aria-label="V2MOM measures import"><div class="nd-h"><h2>V2MOM measures import <small>${esc(H.team.Name)}</small></h2><button type="button" class="nd-x" data-x aria-label="Close">×</button></div><div class="nd-b" data-b></div></div>`;
+  H.popHost().appendChild(ov);
+  const b=ov.querySelector('[data-b]'),close=()=>ov.remove();
+  ov.addEventListener('click',e=>{if(e.target===ov||e.target.closest('[data-x]'))close();});
+  ov.addEventListener('keydown',e=>{if(e.key==='Escape')close();});
+  let parsed=null,sheets=null,programs=[],teamProg=null;
+  call('plan-refs',{teamId:H.team.Id}).then(r=>{programs=r.programs||[];}).catch(()=>{});
+
+  const step1=(err)=>{
+    b.innerHTML=`<p class="note">Step 1 of 3 · Read the V2MOM sheet. Measures are matched to the owners you list; each becomes a GUS project for <b>${esc(H.team.Name)}</b>.</p>
+    <label class="pl-cr-f"><span>Google Sheet link <small>must be shared with “anyone with the link”, or upload an .xlsx instead</small></span><input class="hub-inline" data-url type="url" placeholder="https://docs.google.com/spreadsheets/d/…" value="${esc(get('url'))}"></label>
+    <label class="pl-cr-f"><span>Or upload .xlsx</span><input class="hub-inline" data-file type="file" accept=".xlsx"></label>
+    <label class="pl-cr-f"><span>Tabs (methods) <small>comma-separated; for .xlsx, tabs named M1, M2… are used when empty</small></span><input class="hub-inline" data-tabs value="${esc(get('tabs')||'M1, M2, M3, M4, M5')}"></label>
+    <label class="pl-cr-f"><span>Owner filter <small>comma-separated names; empty = all owners</small></span><input class="hub-inline" data-own placeholder="e.g. Jane Doe, Raj Patel" value="${esc(get('owners'))}"></label>
+    <p class="pl-cr-err" role="alert" ${err?'':'hidden'}>${esc(err||'')}</p>
+    <div class="pl-cr-foot"><span class="note">Nothing is created until you confirm in step 3.</span><span class="pl-cr-btns"><button type="button" class="button" data-x>Cancel</button><button type="button" class="button primary" data-go>Parse sheet</button></span></div>`;
+    const go=b.querySelector('[data-go]'),er=b.querySelector('.pl-cr-err');
+    go.onclick=async()=>{
+      const url=b.querySelector('[data-url]').value.trim(),f=b.querySelector('[data-file]').files[0],owners=b.querySelector('[data-own]').value,tabsTxt=b.querySelector('[data-tabs]').value;
+      const tabs=tabsTxt.split(',').map(x=>x.trim()).filter(Boolean);
+      er.hidden=true;go.disabled=true;go.textContent='Reading…';
+      try{
+        let payload={teamId:H.team.Id,owners,tabs};
+        if(f){const all=await window.PlanIO.read(await f.arrayBuffer());sheets={};Object.keys(all).filter(k=>tabs.length?tabs.some(t=>t.toLowerCase()===k.toLowerCase()):/^M\d+/i.test(k)).forEach(k=>{sheets[k]=all[k];});
+          if(!Object.keys(sheets).length)throw new Error('No matching tabs found in that file. Check the tab names (M1, M2, …).');payload.sheets=sheets;}
+        else if(url)payload.url=url;else throw new Error('Paste a Google Sheet link or choose an .xlsx file.');
+        parsed=await call('plan-v2mom-parse',payload);teamProg=parsed.teamProgram;
+        put('url',f?'':url);put('tabs',tabsTxt);put('owners',owners);
+        step2();
+      }catch(e){step1(String(e&&e.message||e));}
+    };
+  };
+
+  const step2=()=>{
+    const pre=get('prefix')||shortOf(),ms=parsed.measures||[];
+    if(!ms.length){b.innerHTML=`<p class="pl-cr-err" role="alert">No measures matched. ${parsed.skipped?esc(parsed.skipped+' rows were skipped. '):''}Check the owner names and tabs.</p><div class="pl-cr-foot"><span></span><span class="pl-cr-btns"><button type="button" class="button" data-back>Back</button></span></div>`;b.querySelector('[data-back]').onclick=()=>step1();return;}
+    const byTab=new Map();ms.forEach((m,i)=>{if(!byTab.has(m.method))byTab.set(m.method,[]);byTab.get(m.method).push([m,i]);});
+    b.innerHTML=`<p class="note">Step 2 of 3 · ${ms.length} measure${ms.length===1?'':'s'} across ${byTab.size} method${byTab.size===1?'':'s'}${parsed.owners&&parsed.owners.length?' for '+esc(parsed.owners.join(', ')):''}. Untick any you do not want, and edit names if needed.</p>
+    <div class="v2w-bar"><label>Project prefix <input class="hub-inline" data-pre value="${esc(pre)}" maxlength="12" style="width:90px"></label>
+    <label>Method value <select class="hub-inline" data-mm><option value="refs">V2MOM refs from the sheet</option><option value="tab">Sheet method (M1, M2…)</option></select></label>
+    <button type="button" class="button small" data-all>Select all</button><button type="button" class="button small" data-none>Select none</button><span class="note" data-cnt></span></div>
+    <div class="v2w-list" data-list></div><p class="pl-cr-err" role="alert" hidden></p>
+    <div class="pl-cr-foot"><span class="note">Next: choose the GUS program.</span><span class="pl-cr-btns"><button type="button" class="button" data-back>Back</button><button type="button" class="button primary" data-next>Continue</button></span></div>`;
+    const list=b.querySelector('[data-list]'),pe=b.querySelector('[data-pre]'),mm=b.querySelector('[data-mm]'),cnt=b.querySelector('[data-cnt]');
+    const nameFor=m=>`${pe.value.trim()} M${m.code} - ${m.name}`.replace(/\s+/g,' ').trim();
+    const draw=()=>{list.innerHTML=[...byTab].map(([t,arr])=>`<section class="v2w-g"><h4>${esc(t)} <small>${arr.length}</small></h4>${arr.map(([m,i])=>{const nm=nameFor(m);return `<div class="v2w-r"><input type="checkbox" data-i="${i}" checked aria-label="Import ${esc(m.code)}"><div><input class="hub-inline" data-n="${i}" value="${esc(nm)}"><small class="v2w-c" data-c="${i}"></small><small>${esc(m.ownerText||'')}${m.refText?' · '+esc(m.refText):''}</small></div></div>`;}).join('')}</section>`).join('');count();};
+    const count=()=>{const n=list.querySelectorAll('[data-i]:checked').length;cnt.textContent=n+' selected';list.querySelectorAll('[data-n]').forEach(x=>{const c=list.querySelector(`[data-c="${x.dataset.n}"]`),l=x.value.trim().length;c.textContent=l+' / '+NAME_MAX;c.classList.toggle('bad',l>NAME_MAX);});};
+    draw();
+    pe.oninput=()=>{const cur=[...list.querySelectorAll('[data-i]')].map(x=>x.checked);draw();list.querySelectorAll('[data-i]').forEach((x,k)=>{x.checked=cur[k];});count();};
+    list.addEventListener('input',count);list.addEventListener('change',count);
+    b.querySelector('[data-all]').onclick=()=>{list.querySelectorAll('[data-i]').forEach(x=>x.checked=true);count();};
+    b.querySelector('[data-none]').onclick=()=>{list.querySelectorAll('[data-i]').forEach(x=>x.checked=false);count();};
+    b.querySelector('[data-back]').onclick=()=>step1();
+    b.querySelector('[data-next]').onclick=()=>{
+      const er=b.querySelector('.pl-cr-err'),items=[...list.querySelectorAll('[data-i]:checked')].map(x=>{const m=ms[+x.dataset.i],name=list.querySelector(`[data-n="${x.dataset.i}"]`).value.trim();
+        return {code:m.code,name,short:`${pe.value.trim()} M${m.code}`.trim(),method:mm.value==='tab'?m.method.split(':')[0]:(m.refText||'NO V2MOM Reference')};});
+      if(!items.length){er.textContent='Select at least one measure.';er.hidden=false;return;}
+      const long=items.find(i=>i.name.length>NAME_MAX);if(long){er.textContent=`“${long.name.slice(0,40)}…” is ${long.name.length} characters; GUS allows at most ${NAME_MAX}. Shorten it.`;er.hidden=false;return;}
+      put('prefix',pe.value.trim());step3(items,pe.value.trim());};
+  };
+
+  const step3=(items,prefix)=>{
+    const def=get('program')||(teamProg&&teamProg.name)||'';
+    b.innerHTML=`<p class="note">Step 3 of 3 · Choose the GUS program. ${items.length} project${items.length===1?'':'s'} will be created under it (existing projects with the same name are reused) and added to <b>${esc(H.team.Name)}</b>'s plan.</p>
+    <label class="pl-cr-f"><span>GUS program name <small>exact name of the PPM program${teamProg?`; this team's default is ${esc(teamProg.name)}`:''}</small></span><input class="hub-inline" data-prog list="v2w-progs" value="${esc(def)}" placeholder="e.g. ${esc(H.team.short||H.team.Name)} - 268"><datalist id="v2w-progs">${programs.map(p=>`<option value="${esc(p.name)}">`).join('')}</datalist></label>
+    <div class="v2w-sum">${items.map(i=>`<div>${esc(i.name)} <small>${esc(i.method)}</small></div>`).join('')}</div>
+    <p class="pl-cr-err" role="alert" hidden></p>
+    <div class="pl-cr-foot"><span class="note">Created in GUS immediately when you confirm.</span><span class="pl-cr-btns"><button type="button" class="button" data-back>Back</button><button type="button" class="button primary" data-ok>Create in GUS</button></span></div>`;
+    b.querySelector('[data-back]').onclick=()=>step2();
+    const ok=b.querySelector('[data-ok]'),er=b.querySelector('.pl-cr-err');
+    ok.onclick=async()=>{
+      const programName=b.querySelector('[data-prog]').value.trim();
+      if(!programName){er.textContent='Enter the GUS program name.';er.hidden=false;return;}
+      er.hidden=true;ok.disabled=true;ok.textContent='Creating…';
+      try{const r=await call('plan-v2mom-import',{teamId:H.team.Id,programName,prefix,items});put('program',programName);done(r);}
+      catch(e){er.textContent=String(e&&e.message||e);er.hidden=false;ok.disabled=false;ok.textContent='Create in GUS';}
+    };
+  };
+
+  const done=r=>{
+    const bad=r.results.filter(x=>!x.ok);
+    b.innerHTML=`<p class="note"><b>${r.results.length-bad.length}</b> of ${r.results.length} projects are in program <b>${esc(r.program.name)}</b> (${r.created} newly created in GUS, ${r.added} added to the plan).</p>
+    <div class="v2w-sum">${r.results.map(x=>`<div class="${x.ok?'':'bad'}">${x.ok?'✓':'✗'} ${esc(x.name)} <small>${x.ok?(x.created?'created':'already existed'):esc(x.error)}</small></div>`).join('')}</div>
+    <div class="pl-cr-foot"><span></span><span class="pl-cr-btns"><button type="button" class="button primary" data-view>Open planner</button></span></div>`;
+    b.querySelector('[data-view]').onclick=()=>{close();H.go('plan');if(H.current==='plan')location.reload();};
+  };
+  step1();
+}
+document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('[data-v2mom-open]'))open();});
+})();

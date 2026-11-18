@@ -1,18 +1,8 @@
 'use strict';
 const {Gus,safeError,validId}=require('./gus');const {ContentStore}=require('./store');const {Service}=require('./service');const sprint=require('./sprint');const hub=require('./hub');const planner=require('./plan');
 const pref=require('./pref');const post=require('./post');
-// Only these users may review and save plans to GUS (epic create/update). Checked server-side; the UI just mirrors it.
-const COMMIT_USERS=['bkasiraju@salesforce.com','bkasiraju@gus.com'];
-async function canCommit(sf,ctx){
-  if(ctx.testMode)return true;
-  if(!sf)return false;
-  const ok=v=>v&&COMMIT_USERS.includes(String(v).trim().toLowerCase());
-  let id=sf.userId,w={};
-  if(typeof sf.identity==='function'){try{w=await sf.identity()||{};id=id||w.user_id||w.userId;}catch{/* identity is optional */}}
-  if([w.username,w.email,w.user_email,w.preferred_username].some(ok))return true;
-  if(!/^[a-zA-Z0-9]{15,18}$/.test(String(id||'')))return false;
-  try{const r=await sf.query(`SELECT Username, Email FROM User WHERE Id = '${id}' LIMIT 1`);const u=(r.records||[])[0]||{};return ok(u.Username)||ok(u.Email);}catch{return false;}
-}
+// Anyone signed in to GUS may review and save plans and create records; GUS itself still enforces its own permissions.
+async function canCommit(){return true;}
 function connection(ctx){
   const roots=[['ctx',ctx],['request',ctx.request],['invocation',ctx.invocation],['runtime',ctx.runtime],['context',ctx.context],['applet',ctx.applet],['auth',ctx.auth],['user',ctx.user],['salesforce',ctx.salesforce],['request.context',ctx.request?.context]].filter(([,r])=>r&&typeof r==='object');
   // Prefer delegated clients across every known host root before the generic facade.
@@ -99,14 +89,16 @@ async function handleRequest(ctx){
       case 'plan-get':payload=await planner.getPlan(store,b.teamId);break;
       case 'plan-save':payload=await planner.savePlan(store,b.teamId,b.plan,b.revision);break;
       case 'plan-refs':payload=await planner.getRefs(sf,b.teamId);break;
-      case 'plan-commit':if(!await canCommit(sf,ctx))throw Error('Saving the plan to GUS is restricted to the plan administrators.');payload=await planner.commitPlan(sf,store,b.teamId,b.confirm===true,b.includeBtl===true,b.confirm===true?b.acknowledged===true:undefined);break;
-      case 'plan-create-project':if(!await canCommit(sf,ctx))throw Error('Creating projects in GUS is restricted to the plan administrators.');payload=await planner.createProject(sf,b.teamId,b.project);break;
-      case 'plan-sync-epics':if(!await canCommit(sf,ctx))throw Error('Updating epics in GUS is restricted to the plan administrators.');payload=await planner.syncEpics(sf,b.teamId,b.epics);break;
+      case 'plan-commit':payload=await planner.commitPlan(sf,store,b.teamId,b.confirm===true,b.includeBtl===true,b.confirm===true?b.acknowledged===true:undefined);break;
+      case 'plan-v2mom-parse':{const v2=require('./v2mom-import'),sheets=b.sheets&&typeof b.sheets==='object'?b.sheets:await v2.readSheetUrl(b.url,b.tabs,ctx.googleSheets||ctx.google?.sheets);const parsed=v2.parseSheets(sheets,{owners:b.owners});const prog=await planner.resolveProgram(sf,b.teamId,'').catch(()=>null);payload={...parsed,teamProgram:prog};break;}
+      case 'plan-v2mom-import':payload=await planner.importV2mom(sf,store,b.teamId,b);break;
+      case 'plan-create-project':payload=await planner.createProject(sf,b.teamId,b.project);break;
+      case 'plan-sync-epics':payload=await planner.syncEpics(sf,b.teamId,b.epics);break;
       case 'plan-gus-epics':payload=await planner.listEpics(sf,b.teamId);break;
       case 'plan-find-epics':payload=await planner.findEpics(sf,b.teamId,b.query);break;
-      case 'plan-create-workstream':if(!await canCommit(sf,ctx))throw Error('Creating workstreams in GUS is restricted to the plan administrators.');payload=await planner.createWorkstream(sf,b.teamId,b.workstream);break;
-      case 'plan-create-epic':if(!await canCommit(sf,ctx))throw Error('Creating epics in GUS is restricted to the plan administrators.');payload=await planner.createEpic(sf,b.teamId,b.epic);break;
-      case 'plan-delete-project':if(!await canCommit(sf,ctx))throw Error('Deleting projects in GUS is restricted to the plan administrators.');payload=await planner.deleteProject(sf,b.teamId,b.project,store);break;
+      case 'plan-create-workstream':payload=await planner.createWorkstream(sf,b.teamId,b.workstream);break;
+      case 'plan-create-epic':payload=await planner.createEpic(sf,b.teamId,b.epic);break;
+      case 'plan-delete-project':payload=await planner.deleteProject(sf,b.teamId,b.project,store);break;
       case 'hub-tds':payload=await hub.getTds(sf,b.teamId);break;
       case 'hub-picklists':payload=await hub.getPicklists(sf);break;
       case 'hub-rotation':payload=await hub.getRotation(store,b.teamId);break;

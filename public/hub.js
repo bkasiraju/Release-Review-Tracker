@@ -117,7 +117,7 @@ function renderGusLinks(id){
   const l=GUS_LINKS[id]||GUS_LINKS.home;
   const ext='<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M8 4H4v12h12v-4M11 4h5v5M16 4l-7 7"/></svg>',item=([t,u])=>`<a class="gus-mi" role="menuitem" tabindex="-1" href="${u}" target="_blank" rel="noopener noreferrer">${t}${ext}</a>`;
   const mk=l.filter(x=>/^New /.test(x[0])),go=l.filter(x=>!/^New /.test(x[0]));
-  el.innerHTML=`<div class="gus-menu"><button type="button" class="gus-link primary gus-mbtn" aria-haspopup="menu" aria-expanded="false" aria-controls="gus-menu-list">Open in GUS<svg class="gus-car" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 8l5 5 5-5"/></svg></button><div class="gus-mlist" id="gus-menu-list" role="menu" aria-label="Open in GUS" hidden>${mk.length?'<span class="gus-mh" role="presentation">Create</span>'+mk.map(item).join(''):''}${go.length?'<span class="gus-mh" role="presentation">Go to list</span>'+go.map(item).join(''):''}</div></div>`;
+  el.innerHTML=`<div class="gus-menu"><button type="button" class="gus-link primary gus-mbtn" aria-haspopup="menu" aria-expanded="false" aria-controls="gus-menu-list">Open in GUS<svg class="gus-car" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 8l5 5 5-5"/></svg></button><div class="gus-mlist" id="gus-menu-list" role="menu" aria-label="Open in GUS" hidden>${mk.length?'<span class="gus-mh" role="presentation">Create</span>'+mk.map(item).join(''):''}${go.length?'<span class="gus-mh" role="presentation">Go to list</span>'+go.map(item).join(''):''}</div></div><button type="button" class="gus-link gus-v2" data-v2mom-open title="Import V2MOM measures from a sheet as GUS projects for this team">V2MOM Import</button>`;
 }
 H.go=(id,opts={})=>{
   if(id!=='home')parkOverview();

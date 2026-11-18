@@ -2315,3 +2315,22 @@ tr.cf-none td{padding:14px 12px;color:#5c6b7a;font-size:13px;text-align:left}
 .pl-sumby{display:inline-flex;margin-left:auto;margin-right:10px;border:1px solid #c9d6de;border-radius:6px;overflow:hidden}
 .pl-sumby button{border:0;background:#fff;padding:3px 10px;font-size:12px;color:#032d60;cursor:pointer}
 .pl-sumby button[aria-pressed=true]{background:#0176d3;color:#fff}
+/* 6.26.0 V2MOM import wizard */
+.gus-links .gus-v2{display:inline-flex;align-items:center;padding:4px 11px;border:1px solid #b9d3e6;border-radius:999px;background:#f3f8fc;font-size:12px;font-weight:600;color:#0b5cab;cursor:pointer}
+.gus-links .gus-v2:hover{background:#e3f0fa}
+.v2w{max-width:760px;width:94vw}
+.v2w-bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:8px 0;font-size:12px}
+.v2w-list{max-height:48vh;overflow:auto;border:1px solid #d5e1ec;border-radius:8px;padding:4px 10px}
+.v2w-g h4{margin:10px 0 4px;font-size:13px}.v2w-g h4 small{color:#5b6b7c}
+.v2w-r{display:flex;gap:8px;align-items:flex-start;padding:4px 0;border-top:1px solid #eef3f8}.v2w-r>div{flex:1;display:flex;flex-direction:column;gap:2px}.v2w-r small{color:#5b6b7c;font-size:11px}
+.v2w-c.bad,.v2w-sum .bad{color:#b3261e}
+.v2w-sum{max-height:36vh;overflow:auto;margin:8px 0;font-size:12px;display:flex;flex-direction:column;gap:3px}
+/* 6.26.0 release summary: headline + view switcher */
+.pl-rv-head{margin:6px 0 10px;padding:10px 14px;border-radius:10px;font-size:14px;border:1px solid #cfe3d6;background:#f0f9f3}
+.pl-rv-head.warn{border-color:#f0d9a8;background:#fff8e8}
+.pl-rv-nav{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px;border-bottom:1px solid #d5e1ec}
+.pl-rv-nav button{border:0;background:none;padding:8px 14px;font-weight:600;font-size:13px;color:#4a5b6c;cursor:pointer;border-bottom:3px solid transparent}
+.pl-rv-nav button[aria-selected=true]{color:#0b5cab;border-bottom-color:#0b5cab}
+.pl-rv-nav small{background:#e8f0f7;border-radius:9px;padding:1px 7px;margin-left:4px}
+.pl-hm-strip{margin-bottom:12px}
+.pl-rv-body .pl-card.collapsed>*:not(h3){display:revert!important}

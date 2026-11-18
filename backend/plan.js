@@ -165,7 +165,7 @@ async function loadRefs(sf, teamId) {
 // Mandatory: project = name + the team's program; epic = name + team + project + planned release (+ planned effort in days).
 const EPIC_NAME_MAX = 80; // ADM_Epic__c.Name length in GUS
 const PROJECT_NAME_MAX = 80; // PPM_Project__c.Name length in GUS
-async function ensureProject(sf, teamId, project) {
+async function ensureProject(sf, teamId, project, programOverride) {
   const rawName = String((project && project.name) || '').trim(), name = text(project && project.name, 120), method = text(project && project.method, 1000);
   if (project && gid(project.gusId)) {
     if (method) { try { await sf.update('PPM_Project__c', gid(project.gusId), { V2MOM_Method__c: method }); } catch (_) { /* method is best effort on an existing project */ } }
@@ -173,7 +173,7 @@ async function ensureProject(sf, teamId, project) {
   }
   if (!name) throw new Error('Enter the project (measure) name.');
   if (rawName.length > PROJECT_NAME_MAX) throw new Error(`Project name is ${rawName.length} characters; GUS allows at most ${PROJECT_NAME_MAX}.`);
-  const program = await teamProgram(sf, teamId);
+  const program = programOverride || await teamProgram(sf, teamId);
   if (!program) throw new Error('This team has no GUS program for the planning release, so a project cannot be created. Ask a plan administrator.');
   const hit = ((await sf.query(`SELECT Id FROM PPM_Project__c WHERE Name = '${soql(name)}' AND Program__c = '${program.id}' LIMIT 1`)).records || [])[0];
   if (hit) {
@@ -184,6 +184,53 @@ async function ensureProject(sf, teamId, project) {
   if (!ok(c) || !newId(c)) throw new Error('GUS rejected the project: ' + plain(errText(c)));
   refsCache.delete(teamId);
   return { id: newId(c), created: true, program };
+}
+
+/** V2MOM import wizard, step 1 of the GUS side: find the program the user named (exact name, case-insensitive). Defaults to the team's own program. */
+async function resolveProgram(sf, teamId, name) {
+  planKey(teamId);
+  const n = String(name || '').trim();
+  if (!n) return teamProgram(sf, teamId);
+  const rows = (await sf.query(`SELECT Id, Name FROM PPM_Program__c WHERE Name = '${soql(n)}' LIMIT 5`)).records || [];
+  const hit = rows.find(r => r.Name.toLowerCase() === n.toLowerCase()) || rows[0];
+  return hit ? { id: hit.Id, name: hit.Name } : null;
+}
+const slug = v => String(v || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+/** Creates (or reuses) one GUS project per selected measure under the named program, then adds them to this team's plan.
+ *  items: [{ code, name, short, method }]. Existing projects with the same name in the program are reused and get the method. */
+async function importV2mom(sf, store, teamId, input) {
+  planKey(teamId);
+  const items = (Array.isArray(input && input.items) ? input.items : []).slice(0, 150);
+  if (!items.length) throw new Error('Select at least one measure to import.');
+  const program = await resolveProgram(sf, teamId, input && input.programName);
+  if (!program) throw new Error(input && String(input.programName || '').trim() ? `No GUS program named “${String(input.programName).trim()}” was found. Check the spelling (it must match the program name in GUS).` : 'This team has no GUS program yet. Enter the GUS program name.');
+  const prefix = slug(input && input.prefix) || slug(teamId).slice(0, 8) || 'v2';
+  const results = [];
+  for (const it of items) {
+    const name = String(it.name || '').trim(), res = { code: String(it.code || ''), name };
+    try {
+      if (!name) throw new Error('Name is empty.');
+      const r = await ensureProject(sf, teamId, { name, method: it.method }, program);
+      Object.assign(res, { gusId: r.id, created: r.created, ok: true });
+    } catch (e) { Object.assign(res, { ok: false, error: String(e && e.message || e) }); }
+    results.push(res);
+  }
+  // Add the projects to this team's plan (shared catalog is updated by savePlan)
+  const done = results.filter(r => r.ok);
+  let added = 0;
+  if (done.length) {
+    const cur = await getPlan(store, teamId), plan = cleanPlan(cur.plan);
+    for (const r of done) {
+      const it = items[results.indexOf(r)], code = String(it.code || '');
+      let p = plan.projects.find(x => x.gusId === r.gusId);
+      if (!p) { p = { id: (prefix + '-m' + slug(code)).slice(0, 40) || ('v2-' + r.gusId), name: r.name, short: String(it.short || '').slice(0, 60), method: '', theme: '', gusId: r.gusId }; plan.projects.push(p); added++; }
+      Object.assign(p, { name: r.name, short: String(it.short || p.short || '').slice(0, 60), method: String(it.method || p.method || '').slice(0, 1000), gusId: r.gusId, programId: program.id, programName: program.name });
+    }
+    plan.hiddenProjects = (plan.hiddenProjects || []).filter(h => !plan.projects.some(p => p.id === h));
+    await savePlan(store, teamId, plan, cur.revision);
+    refsCache.delete(teamId);
+  }
+  return { program, results, added, created: results.filter(r => r.created).length };
 }
 async function createProject(sf, teamId, input) {
   planKey(teamId);
@@ -226,11 +273,13 @@ async function createEpic(sf, teamId, input) {
   // The planned release is optional at creation; it is tagged in GUS as soon as one is chosen (now or when the plan is committed).
   const rel = releaseId ? await teamReleases(sf, teamId, false).then(r => new Set(r.map(x => x.Id)), () => null) : null;
   if (releaseId && rel && !rel.has(releaseId)) throw new Error('That release is not one of this team\'s planned releases.');
+  const prio = Number(input && input.priority);
+  if (!(input && input.priority !== '' && input.priority != null) || !Number.isFinite(prio) || prio < 0) throw new Error('Select the epic priority.');
   const proj = await ensureProject(sf, teamId, input && input.project);
   const effort = days(input && input.effort);
   const hit = ((await sf.query(`SELECT Id FROM ADM_Epic__c WHERE Name = '${soql(name)}' AND Team__c = '${teamId}' LIMIT 1`)).records || [])[0];
   if (hit) return { gusId: hit.Id, projectGusId: proj.id, projectCreated: proj.created, created: false };
-  const base = { Name: name, Team__c: teamId, Project__c: proj.id, ...(releaseId ? { Planned_Release__c: releaseId } : {}), Development_Lead__c: leadId, Planned_Story_Points__c: effort };
+  const base = { Name: name, Team__c: teamId, Project__c: proj.id, ...(releaseId ? { Planned_Release__c: releaseId } : {}), Development_Lead__c: leadId, Planned_Story_Points__c: effort, Priority__c: prio };
   // The epic owner is the development lead; if GUS refuses that owner, fall back to the default owner.
   let c = await sf.create('ADM_Epic__c', { ...base, OwnerId: leadId }).catch(e => ({ success: false, errors: [String(e && e.message || e)] }));
   if (!ok(c) || !newId(c)) c = await sf.create('ADM_Epic__c', base);
@@ -530,4 +579,4 @@ async function commitRun(sf, store, teamId, confirm, includeBtl, acknowledged) {
   return { results, failed: results.filter(x => !x.ok).length, plan: saved && saved.plan, revision: saved && saved.revision, saveError };
 }
 
-module.exports = { getPlan, savePlan, getRefs, commitPlan, createProject, deleteProject, createEpic, listEpics, findEpics, createWorkstream, syncEpics, review, cleanPlan };
+module.exports = { importV2mom, resolveProgram, teamProgram, getPlan, savePlan, getRefs, commitPlan, createProject, deleteProject, createEpic, listEpics, findEpics, createWorkstream, syncEpics, review, cleanPlan };

@@ -1,5 +1,14 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.0-GA (18 November 2026)
+
+- **V2MOM Import** button next to "Open in GUS": a 3-step wizard reads a V2MOM Google Sheet link (link-shared) or an .xlsx, filters measures by owner, lets you pick and rename them, then creates them as GUS projects under the program you name (default: the team's program) and adds them to the current team's plan with their V2MOM methods. Projects join the shared catalog.
+- Anyone can now create epics, workstreams, projects and save plans to GUS (the plan-administrator restriction is removed; GUS still enforces its own permissions).
+- Priority is mandatory when adding an epic (defaults to P0), is written to GUS, is inherited by new workstreams, and the Priority column is shown by default in the planner grid (added once to existing saved column choices).
+- Planner heading renamed "V2MOM Measures & Epics Plan".
+- Planned release summary revamped: one headline sentence, then a view switcher (Overview, Priority board, Executive epics, Saved in GUS) with Overview open, instead of a stack of collapsed cards.
+- Mocked only; not checked in a signed-in browser.
+
 ## 6.25.3-GA (18 November 2026)
 
 Planned summary: "By theme / method" and "By priority" are now one section with a Theme / method | Priority switch. Mocked only; not checked in a browser.

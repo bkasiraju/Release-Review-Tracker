@@ -17,9 +17,9 @@ function saveFilters(){P.view.flag='';P.view.kpi='';const t=H.team&&H.team.Id;if
 // Grid columns: chooser order = default order; the first GDEF are shown until the user picks their own (saved in this browser).
 const GCOL={project:'Project',name:'Epic Name',ws:'Workstream',owners:'Epic Owner',engs:'Workstream Owner(s)',estimate:'Epic Est',days:'WS Est',line:'ATL/BTL',sprint:'Sprint',priority:'Priority',status:'Status',release:'Release',theme:'Theme',wstatus:'WS status',doc:'Doc',gus:'GUS',hrp:'HRP V2MOM method',v2mom:'CFS V2MOM',pmethod:'V2MOM method (project)'};
 const GW={project:112,name:230,ws:200,owners:120,priority:84,estimate:84,status:116,engs:170,days:72,sprint:120,release:150,line:104,theme:130,wstatus:116,doc:150,gus:84,hrp:130,v2mom:130,pmethod:240,act:92};
-const GDEF=['project','name','ws','owners','engs','days','estimate','line','theme'],GKEY='pl-grid-cols';
+const GDEF=['project','name','ws','owners','engs','days','estimate','line','priority','theme'],GKEY='pl-grid-cols';
 let memCols; // in-memory source of truth: localStorage can be blocked inside the GUS Apps frame, so the session always works and storage is best-effort persistence
-const gridCols=()=>{let v=memCols;if(v===undefined){try{v=JSON.parse(localStorage.getItem(GKEY));}catch(_){}}const keep=Array.isArray(v)?v.filter(k=>GCOL[k]):null;if(!keep||!keep.length)return GDEF.slice();const o=[...new Set(keep)],i=o.indexOf('estimate');if(i>=0&&o[i+1]==='days'){o[i]='days';o[i+1]='estimate';}return o;};
+const gridCols=()=>{let v=memCols;if(v===undefined){try{v=JSON.parse(localStorage.getItem(GKEY));}catch(_){}}const keep=Array.isArray(v)?v.filter(k=>GCOL[k]):null;if(keep&&keep.length&&!keep.includes('priority')&&!memCols&&!localStorage.getItem(GKEY+'-pri')){keep.splice(Math.max(keep.indexOf('line')+1,keep.length),0,'priority');try{localStorage.setItem(GKEY+'-pri','1');localStorage.setItem(GKEY,JSON.stringify(keep));}catch(_){}}if(!keep||!keep.length)return GDEF.slice();const o=[...new Set(keep)],i=o.indexOf('estimate');if(i>=0&&o[i+1]==='days'){o[i]='days';o[i+1]='estimate';}return o;};
 const setGridCols=l=>{memCols=l||null;try{if(l)localStorage.setItem(GKEY,JSON.stringify(l));else localStorage.removeItem(GKEY);}catch(_){}};
 const priOpts=v=>{const n=v==null||v===''?0:Number(v),L=[0,1,2,3,4,5];if(!L.includes(n))L.push(n);return L.sort((a,b)=>a-b).map(x=>`<option value="${x}"${x===n?' selected':''}>P${x}</option>`).join('');};
 const relNum=r=>{const m=String(r.name||'').match(/(\d+)\s*$/);return m?Number(m[1]):-1;};
@@ -48,7 +48,7 @@ function wireDrag(el){
     const k=e.workstreams.findIndex(w=>w.id===wid),n=k+(ev.key==='ArrowUp'?-1:1);if(n<0||n>=e.workstreams.length)return;
     moveWs(wid,e.id,n);draw();queueSave();P.el.querySelector(`[data-w="${wid}"] [data-grip]`)?.focus();};
 }
-// "+ Project" / "+ Epic": a sectioned dialog that creates the record in GUS right away (plan administrators only).
+// "+ Project" / "+ Epic": a sectioned dialog that creates the record in GUS right away (any signed-in user).
 const crField=(label,hint,ctl,cls)=>`<label class="pl-cr-f${cls?' '+cls:''}"><span>${label}${hint?` <small>${hint}</small>`:''}</span>${ctl}</label>`;
 const crSection=(title,body)=>`<section class="pl-cr-s"><h3>${title}</h3><div class="pl-cr-g">${body}</div></section>`;
 const crAuto=rows=>`<div class="pl-cr-chips" aria-label="Set automatically">${rows.map(([k,v])=>`<span class="pl-cr-chip" title="${esc(k)}: ${esc(v)}"><i>${esc(k)}</i>${esc(v)}</span>`).join('')}</div>`;
@@ -65,9 +65,8 @@ function crDialog(title,sub,bodyHtml,okLabel,submit){
     b.onclick=()=>set(!m.classList.contains('pl-cr-wide'));x.before(b);let w=false;try{w=!!localStorage.getItem('ri-cr-wide');}catch(_){}set(w);}
   const ok=el.querySelector('[data-ok]'),err=el.querySelector('.pl-cr-err');
   const fail=m=>{err.textContent=m;err.hidden=!m;};
-  let allowed=false,busy=false;
-  el._gate=true;const sync=()=>{ok.disabled=(el._gate&&!allowed)||busy;};el._sync=sync;el._deny=()=>fail(el._gate&&!allowed?'Creating records in GUS is restricted to the plan administrators.':'');
-  call('connection',{}).then(c=>{allowed=!!(c&&c.canCommit);if(!allowed&&el._gate)fail('Creating records in GUS is restricted to the plan administrators.');sync();},()=>{allowed=true;sync();});
+  let busy=false;
+  const sync=()=>{ok.disabled=busy;};el._sync=sync;el._deny=()=>{};
   const go=async()=>{if(ok.disabled)return;fail('');busy=true;ok.textContent='Creating…';sync();
     try{await submit(el,fail);}catch(e){fail(String(e&&e.message||e));}finally{busy=false;ok.textContent=ok.dataset.label||okLabel;sync();}};
   ok.onclick=go;
@@ -218,10 +217,12 @@ function newEpicAt(pid){
       crField('Find any GUS epic','<span data-fnote>W-number, epic Id / GUS link, or name</span>',`<span class="pl-cr-find"><input class="hub-inline" type="search" data-fq placeholder="e.g. W-12345678, a3Q… or part of the epic name" autocomplete="off" aria-label="Find a GUS epic"><button type="button" class="button" data-fgo>Search</button></span>`,'s12 pl-cr-pick')+
       crField('GUS epic','<span data-pcnt>loading…</span>',`<select class="hub-inline" data-xe><option value="">Loading epics from GUS…</option></select>`,'s9 pl-cr-pick')+
       atl('s3 pl-cr-pick').replace('data-l','data-xl')+
+      crField('Priority','required',`<select class="hub-inline" data-xp required>${priOpts(0)}</select>`,'s3 pl-cr-pick')+
       `<span class="pl-cr-pinfo s12 pl-cr-pick" data-xi></span>`+
       crField('Epic name',`<span data-cnt>0 / ${EPIC_NAME_MAX}</span>`,`<textarea class="hub-inline" rows="2" data-n placeholder="Epic name" autocomplete="off"></textarea>`,'s9 pl-cr-new')+
       `<p class="pl-cr-fit s12 pl-cr-new" data-efit role="status"></p>`+
       atl('s3 pl-cr-new')+
+      crField('Priority','required · P0 is highest',`<select class="hub-inline" data-pri required>${priOpts(0)}</select>`,'s3 pl-cr-new')+
       crField('Development lead','required · epic owner',`<select class="hub-inline" data-o><option value="" selected>Select a team member…</option>${lead.map(m=>opt(m.id,m.name,false)).join('')}</select>`,'s6 pl-cr-new')+
       crField('Planned release','',`<select class="hub-inline" data-r>${opt('','— None (set after planning) —',true)}${rel.map(r=>opt(r.id,r.name,false)).join('')}</select>`,'s6 pl-cr-new'))+
     crSection('Workstreams <small>optional · each is created in GUS as a story under the epic</small>',
@@ -238,20 +239,21 @@ function newEpicAt(pid){
       if(md==='pick'){
         const x=xeps.find(g=>g.id===el.querySelector('[data-xe]').value);if(!x)throw new Error('Pick a GUS epic, or switch to “Create new epic”.');
         if(pl.epics.some(g=>g.gusId===x.id))throw new Error('That epic is already in the table.');
-        const line=el.querySelector('[data-xl]').value;e=newEpic(pr.id);e.name=x.name;e.gusId=x.id;e.foreign=!!(x.teamId&&String(x.teamId).slice(0,15)!==String(H.team.Id).slice(0,15));e.releaseId=x.releaseId;e.releaseName=x.releaseName;e.line=line;
+        const line=el.querySelector('[data-xl]').value;e=newEpic(pr.id);e.name=x.name;e.gusId=x.id;e.foreign=!!(x.teamId&&String(x.teamId).slice(0,15)!==String(H.team.Id).slice(0,15));e.releaseId=x.releaseId;e.releaseName=x.releaseName;e.line=line;e.priority=x.priority!=null?x.priority:Number(el.querySelector('[data-xp]').value)||0;
         e.owners=x.leadId?[x.leadId]:[];e.ownerNames=x.leadId?[x.leadName]:[];
         // GUS keeps the epic's planned points; carry them as one workstream so the epic total (sum of workstreams) still matches and is never overwritten.
-        e.workstreams=x.points>0?[{id:uid('w'),name:'Planned in GUS',priority:0,engId:'',engName:'',engIds:[],engNames:[],days:x.points,sprint:'',line}]:[];
+        e.workstreams=x.points>0?[{id:uid('w'),name:'Planned in GUS',priority:0,engId:'',engName:'',engIds:[],engNames:[],days:x.points,sprint:'',line}].map(w=>(w.priority=e.priority,w)):[];
         msg=`Added GUS epic “${x.name}” to the table.`;
       }else{
-        const name=el.querySelector('[data-n].hub-inline').value.trim(),releaseId=el.querySelector('[data-r]').value,line=el.querySelector('[data-l]').value,leadId=el.querySelector('[data-o]').value,leadName=(P.members.find(m=>m.id===leadId)||{}).name||'';
+        const name=el.querySelector('[data-n].hub-inline').value.trim(),releaseId=el.querySelector('[data-r]').value,line=el.querySelector('[data-l]').value,leadId=el.querySelector('[data-o]').value,pri=el.querySelector('[data-pri]').value,leadName=(P.members.find(m=>m.id===leadId)||{}).name||'';
         if(!name){el.querySelector('[data-n]').focus();throw new Error('Enter the epic name.');}
         if(name.length>EPIC_NAME_MAX){el.querySelector('[data-n]').focus();throw new Error(`Epic name is ${name.length} characters; GUS allows at most ${EPIC_NAME_MAX}. Shorten it by ${name.length-EPIC_NAME_MAX}.`);}
         if(!leadId){el.querySelector('[data-o]').focus();throw new Error('Select the development lead.');}
-        const r=await call('plan-create-epic',{teamId:H.team.Id,epic:{name,releaseId,leadId,project:{gusId:pr.gusId,name:pr.name,method:pr.method}}});
+        if(pri===''||!Number.isFinite(Number(pri))){el.querySelector('[data-pri]').focus();throw new Error('Select the epic priority.');}
+        const r=await call('plan-create-epic',{teamId:H.team.Id,epic:{name,releaseId,leadId,priority:Number(pri),project:{gusId:pr.gusId,name:pr.name,method:pr.method}}});
         pr.gusId=r.projectGusId||pr.gusId;
-        const rr=rel.find(x=>x.id===releaseId);e=newEpic(pr.id);e.name=name;e.gusId=r.gusId;e.releaseId=rr?rr.id:'';e.releaseName=rr?rr.name:'';e.owners=[leadId];e.ownerNames=[leadName];e.line=line;
-        if(rows.length)e.workstreams=[];else e.workstreams.forEach(w=>{w.line=line;});
+        const rr=rel.find(x=>x.id===releaseId);e=newEpic(pr.id);e.name=name;e.gusId=r.gusId;e.releaseId=rr?rr.id:'';e.releaseName=rr?rr.name:'';e.owners=[leadId];e.ownerNames=[leadName];e.line=line;e.priority=Number(pri);
+        if(rows.length)e.workstreams=[];else e.workstreams.forEach(w=>{w.line=line;w.priority=e.priority;});
         msg=r.created?`Created epic “${name}” in GUS.`:`Epic “${name}” already existed in GUS and was linked.`;
       }
       if(!P.gsnap)snapGus();
@@ -265,7 +267,7 @@ function newEpicAt(pid){
       let r;
       try{r=await call('plan-create-workstream',{teamId:H.team.Id,workstream:{epicGusId:e.gusId,name:x.name,assigneeId:x.engId,tagId,days:x.days,projectShort:projShort(pr)}});}
       catch(err){throw new Error(`The epic is in the table, but workstream “${x.name}” was not created in GUS: ${String(err&&err.message||err)} Fix it and press the button again; workstreams already created are kept.`);}
-      const m=eng.find(g=>g.id===x.engId),w={id:uid('w'),gusId:r.gusId,name:x.name,priority:0,engId:m?m.id:'',engName:m?m.name:'',engIds:m?[m.id]:[],engNames:m?[m.name]:[],days:x.days,sprint:'',line:e.line};
+      const m=eng.find(g=>g.id===x.engId),w={id:uid('w'),gusId:r.gusId,name:x.name,priority:e.priority==null?0:e.priority,engId:m?m.id:'',engName:m?m.name:'',engIds:m?[m.id]:[],engNames:m?[m.name]:[],days:x.days,sprint:'',line:e.line};
       e.workstreams.push(w);made.ws.set(x.r,w);if(r.warnings&&r.warnings.length)window.toast?.('Themes were not fully applied: '+r.warnings[0],true);
       try{localStorage.setItem(tagKey,tagId);}catch(_){}
     }
@@ -588,12 +590,16 @@ function drawRps(){
   const ord=l=>l.slice().sort((a,b)=>prank(a)-prank(b)||epics.indexOf(a)-epics.indexOf(b));
   const sm2=new Map();epics.forEach(e=>sm2.set(e.status||'Planned',(sm2.get(e.status||'Planned')||0)+1));const stc=[...sm2.entries()].map(([k,v])=>`<span class="pl-bl"><i style="background:${SC[k]||'#6b7f93'}"></i>${esc(k)} ${v}</span>`).join('');
   const boardHtml=`<section class="pl-card pl-board"><h3>${icon('board','teal')} Priority board <small>${epics.length} epics</small></h3><div class="pl-bl-row">${stc}</div><p class="note">Drag an epic onto another to take its priority and place, or change the priority in the list. Changes save automatically.</p><div class="pl-bh"><span></span><span>Priority</span><span>Epic</span><span>Planned release</span><span>Status</span><span>Progress</span><span>Effort</span><span>Owner</span><span>Project</span></div>${grp('Above the line (ABL)',ord(epics.filter(e=>e.line==='ABL')))}${grp('Below the line (BTL)',ord(epics.filter(e=>e.line!=='ABL')))}</section>`;
-  el.innerHTML=`<div class="pl-rps-top">${donut}${prio}</div>${health}${boardHtml}${execHtml}${savedHtml}`;
-  /* every summary section starts collapsed; the heading toggles it (state kept in P.open) */
-  [['.pl-donut-card','r-donut'],['.pl-prio-card','r-prio'],['.pl-board','r-board'],['.pl-saved','r-saved']].forEach(([q,k])=>{const c=el.querySelector('section'+q);if(c)c.dataset.fk=k;});
-  const hc=[...el.querySelectorAll(':scope > section.pl-card')].find(c=>!c.dataset.fk&&!c.classList.contains('pl-exec'));if(hc)hc.dataset.fk='r-health';
-  el.querySelectorAll('section.pl-card[data-fk]').forEach(c=>{const k=c.dataset.fk,h=c.querySelector(':scope > h3'),on=P.open[k]===true;if(!h)return;
-    h.innerHTML=`<button type="button" class="pl-fold" data-fold="${k}" aria-expanded="${on}"><span aria-hidden="true">${on?'▾':'▸'}</span> ${h.innerHTML}</button>`;c.classList.toggle('collapsed',!on);});
+  // Executive view: one headline, then one section at a time (Overview is open by default) instead of a stack of collapsed cards.
+  const RV=[['overview','Overview'],['board','Priority board',epics.length],['exec','Executive epics',ablEpics.length],['saved','Saved in GUS',saved.length+'/'+epics.length]];
+  const rv=RV.some(x=>x[0]===P.rv)?P.rv:'overview',abl=epics.filter(e=>e.line==='ABL').length;
+  const risks=[noOwner&&`${noOwner} epic${noOwner===1?'':'s'} without an owner`,noRel&&`${noRel} without a release`,unas&&`${unas} unassigned workstream${unas===1?'':'s'}`,load>100&&`capacity ${load}% used`].filter(Boolean);
+  const headline=`<div class="pl-rv-head ${risks.length?'warn':'ok'}"><b>${epics.length} epic${epics.length===1?'':'s'}</b> planned (${abl} above the line), <b>${fmt(tot)} pts</b> across ${ts.length} theme${ts.length===1?'':'s'}. ${risks.length?'<b>Needs attention:</b> '+esc(risks.join(' · '))+'.':'No planning gaps found.'}</div>`;
+  const nav=`<div class="pl-rv-nav" role="tablist" aria-label="Release summary view">${RV.map(([k,l,n])=>`<button type="button" role="tab" data-rv="${k}" aria-selected="${rv===k}">${l}${n!=null?` <small>${n}</small>`:''}</button>`).join('')}</div>`;
+  const stripH=`<div class="pl-hm pl-hm-strip">${hm.map(([l,v,t])=>`<div class="${t||''}"><b>${v}</b><span>${l}</span></div>`).join('')}</div>`;
+  const bodies={overview:`${stripH}<div class="pl-rps-top">${donut}${prio}</div>`,board:boardHtml,exec:execHtml.replace(' collapsed','').replace(/<button type="button" class="pl-fold"[^>]*>.*?<\/span> (.*?)<\/button><small>.*?<\/small>/,'$1'),saved:savedHtml};
+  el.innerHTML=headline+nav+`<div class="pl-rv-body">${bodies[rv]}</div>`;
+  if(rv==='exec'&&P.open.exec===false){P.open.exec=true;}
   if(!el.dataset.board){el.dataset.board='1';let drag=null;
     const clr=()=>el.querySelectorAll('.pl-br-over').forEach(x=>x.classList.remove('pl-br-over'));
     el.addEventListener('dragstart',ev=>{const r=ev.target.closest&&ev.target.closest('.pl-br');if(!r)return;drag=r.dataset.be;ev.dataTransfer.effectAllowed='move';ev.dataTransfer.setData('text/plain',drag);r.classList.add('pl-br-drag');});
@@ -944,7 +950,7 @@ function onClick(ev){
   const mb=t.closest('.ms .cs-btn');if(mb){openMsPop(mb,c);return;}
   const tb=t.closest('[data-tab]');if(tb){setTab(tb.dataset.tab);return;}
   const rp=t.closest('[data-rps]');if(rp){openRps(rp.dataset.rps,rp);return;}
-  const sb=t.closest('[data-sumby]');if(sb){P.sumBy=sb.dataset.sumby;drawSummary();return;}
+  const rvb=t.closest('[data-rv]');if(rvb){P.rv=rvb.dataset.rv;drawRps();return;}const sb=t.closest('[data-sumby]');if(sb){P.sumBy=sb.dataset.sumby;drawSummary();return;}
   const fd=t.closest('[data-fold]')||(t.closest('.pl-card>h3>small')?.parentElement.querySelector('[data-fold]'));if(fd){P.open[fd.dataset.fold]=!P.open[fd.dataset.fold];drawSummary();return;}
   const fa=t.closest('[data-fold-all]');if(fa){const c=collapsed();c.clear();if(fa.dataset.foldAll==='1')pl.projects.forEach(p=>c.add('p:'+p.id));try{localStorage.setItem(colKey(),JSON.stringify([...c]));}catch(_){}drawPlanner();wire();return;}
   const mt=t.closest('[data-m-toggle]');if(mt){const k=mt.dataset.mToggle;if(P.mOpen.has(k))P.mOpen.delete(k);else P.mOpen.add(k);drawPlanner();wire();return;}
@@ -1089,12 +1095,11 @@ H.register({id:'plan',label:'Release Planning (Quarterly)',icon:'plan',tone:'gre
     <div id="pl-warn"></div>
     <div class="pl-tabs" role="tablist" aria-label="Release planning views"><button type="button" role="tab" data-tab="plan" class="on" aria-selected="true"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="4" width="14" height="12" rx="2"/><path d="M3 8.5h14M8 8.5V16"/></svg>Release Planner</button><button type="button" role="tab" data-tab="rps" aria-selected="false"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 16V9M10 16V4M16 16v-5"/></svg>Planned Release Summary</button></div>
     <div id="pl-main"><div id="pl-sum"></div>
-    <section id="pl-fs" class="pl-fs"><div class="pl-planner-h"><h3>${icon('plan','green')} Projects &amp; epics</h3><span class="pl-planner-btns"><button type="button" class="button" id="pl-fs-btn" aria-pressed="false" title="Show Projects &amp; epics full screen">Full screen</button><button type="button" class="button" id="pl-export" title="Download an Excel template with the current plan, column headers and dropdown lists">Export template</button><button type="button" class="button" id="pl-import" title="Import plan rows from the exported template">Import</button><input type="file" id="pl-import-file" accept=".xlsx" hidden></span></div><div id="pl-tools" class="pl-tools"></div><div id="pl-planner"></div></section></div><div id="pl-rps" hidden></div>`;
+    <section id="pl-fs" class="pl-fs"><div class="pl-planner-h"><h3>${icon('plan','green')} V2MOM Measures &amp; Epics Plan</h3><span class="pl-planner-btns"><button type="button" class="button" id="pl-fs-btn" aria-pressed="false" title="Show Projects &amp; epics full screen">Full screen</button><button type="button" class="button" id="pl-export" title="Download an Excel template with the current plan, column headers and dropdown lists">Export template</button><button type="button" class="button" id="pl-import" title="Import plan rows from the exported template">Import</button><input type="file" id="pl-import-file" accept=".xlsx" hidden></span></div><div id="pl-tools" class="pl-tools"></div><div id="pl-planner"></div></section></div><div id="pl-rps" hidden></div>`;
     {const hd=el.querySelector('.executive-heading'),tb=el.querySelector('.pl-tabs'),ac=hd&&hd.querySelector('.heading-actions');if(hd&&tb&&ac){tb.title='Plan projects, epics and workstreams for '+H.team.Name+'. Effort is in days; epics above the line (ABL) are saved to GUS when you confirm.';tb.appendChild(ac);hd.remove();}}
     P.tab='plan';
     // Review & save to GUS is limited to the plan administrators (also enforced by the backend); disabled until the backend confirms.
-    {const cb=el.querySelector('#pl-commit');if(cb){cb.disabled=true;cb.title='Checking permission…';call('connection',{}).then(c=>{if(c&&c.canCommit){cb.disabled=false;cb.title='';}else cb.title='Saving to GUS is restricted to the plan administrators. Your plan is still saved automatically in this app.';},()=>{cb.title='Could not verify permission to save to GUS.';});}}
-    el.oninput=onInput;
+        el.oninput=onInput;
     el.onchange=ev=>{if(ev.target.id==='pl-rel'){pickRel(ev.target.value);return;}if(ev.target.closest('#pl-start,#pl-end')){const s=el.querySelector('#pl-start').value,e=el.querySelector('#pl-end').value;if(P.plan&&P.plan.window.releaseId){P.plan.window.releaseId='';const rs=el.querySelector('#pl-rel');if(rs)rs.value='';}if(s&&e&&s<=e&&P.plan){P.plan.window={start:s,end:e};drawSummary();queueSave();}else if(s&&e&&s>e)window.toast?.('End date must be on or after the start date.',true);return;}onInput(ev);};
     document.querySelectorAll('#pl-back').forEach(x=>x.remove());
     const bar=document.querySelector('.dashboard-bar');if(bar){const bk=document.createElement('a');bk.href='#/home';bk.id='pl-back';bk.className='pl-back';bk.title='Back to Team Hub — Team Hub for this team';bk.innerHTML='<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M12 4 6 10l6 6M6 10h10"/></svg><span>Back to Team Hub</span>';
