@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.5.0-GA (18 November 2026)
+
+Follow-up to the 6.4.0-GA review caveats: workstream theme short forms match whole words only ("Roadmaps" is no longer MAPS, "VegaCache Interface" is not VC-FACE); every GUS rejection message when creating projects, epics, workstream stories, themes and plan updates now reads as plain text (object errors no longer print as `[object Object]`, HTML is stripped); the "no theme short form" warning now tells users to ask a plan administrator. Verified by unit tests only (focused plan tests pass; full-suite baseline of 38 pre-existing failures unchanged); not verified against live GUS.
+
 ## 6.4.0-GA (18 November 2026)
 
 Workstream theme short forms are now fixed per team: Message Queue = MQ, MAPS = MAPS, Caching Services = VC, VegaCache FACE = VC-FACE, VegaStore = VS (theme `R<release>_<short>_Workstream`, e.g. `R268_VC-FACE_Workstream`). A team with no short form no longer falls into a shared catch-all theme: the workstream is still created and a warning explains that no theme was applied. A theme-creation race is now recovered when GUS answers "duplicate value" as well as "already exists", and GUS error objects are formatted as text instead of `[object Object]`. Verified by unit tests only (focused plan tests pass; full-suite baseline of 38 pre-existing failures unchanged); not verified against live GUS. Assumption to confirm: Caching Services maps to VC.

@@ -223,3 +223,20 @@ test('workstream theme short forms per team; unmapped team warns and applies no 
   assert.deepEqual(created,['R268_MQ_Workstream']);   // create really ran and lost the race
   assert.deepEqual(rr.warnings,[]);assert.deepEqual(assigned,[THEME]);
 });
+
+test('theme short forms need whole words, and GUS error objects read as text',async()=>{
+  const EP='a0XEE00000EPC0001A',TAG='a1TEE00000TAG0001A';
+  const sf=team=>({async query(q){
+      if(/FROM ADM_Scrum_Team__c/.test(q))return {records:[{Name:team}]};
+      if(/FROM ADM_Epic__c/.test(q))return {records:[{Id:EP,Name:'E'}]};
+      if(/FROM ADM_Product_Tag__c/.test(q))return {records:[{Id:TAG}]};
+      if(/FROM RecordType/.test(q))return {records:[{Id:'0129000000006gDAAQ'}]};
+      return {records:[]};},
+    async create(o){return o==='ADM_Work__c'?{success:false,errors:[{message:'<b>Field</b> required',statusCode:'REQUIRED_FIELD_MISSING'},{statusCode:'ONLY_CODE'}]}:{success:true,id:'a0pEE000000000NEW1'};}});
+  await assert.rejects(plan.createWorkstream(sf('Roadmaps Team'),'a00B0000000w4ZqIAI',{epicGusId:EP,name:'API',tagId:TAG}),e=>/Field required, ONLY_CODE/.test(e.message)&&!/[<>]|\[object/.test(e.message));
+  const ok=(team,id)=>({...sf(team),async create(o){return {success:true,id:'a0WEE0000000000001'};}});
+  const r=await plan.createWorkstream(ok('Roadmaps Team'),'a00B0000000w4ZrIAI',{epicGusId:EP,name:'API',tagId:TAG});
+  assert.deepEqual(r.themes,[]);assert.match(r.warnings[0],/no theme short form/);
+  const v=await plan.createWorkstream(ok('VegaCache Interface'),'a00B0000000w4ZsIAI',{epicGusId:EP,name:'API2',tagId:TAG});
+  assert.deepEqual(v.themes,['R268_VC_Workstream']);   // \bface\b does not match "Interface"
+});

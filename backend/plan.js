@@ -12,6 +12,8 @@ const gid = v => SF_ID.test(String(v || '')) ? String(v) : '';
 const lid = (v, i, p) => LOCAL.test(String(v || '')) ? String(v) : p + i;
 const soql = s => String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 const ok = r => r && r.success !== false && !(r.errors && r.errors.length);
+const errText = c => ((c && c.errors) || []).map(x => (x && (x.message || x.statusCode || x.errorCode)) || x).join(', ');
+const plain = m => String(m || '').replace(/<[^>]*(?:>|$)/g, '').replace(/[<>]/g, '').replace(/\s+/g, ' ').trim(); // GUS error text can carry HTML links
 const newId = r => (r && (r.id || r.Id)) || '';
 
 const crypto = require('crypto');
@@ -165,7 +167,7 @@ async function ensureProject(sf, teamId, project) {
     return { id: hit.Id, created: false, program };
   }
   const c = await sf.create('PPM_Project__c', { Name: name, Program__c: program.id, ...(method ? { V2MOM_Method__c: method } : {}) });
-  if (!ok(c) || !newId(c)) throw new Error('GUS rejected the project: ' + ((c && c.errors) || []).join(', '));
+  if (!ok(c) || !newId(c)) throw new Error('GUS rejected the project: ' + plain(errText(c)));
   refsCache.delete(teamId);
   return { id: newId(c), created: true, program };
 }
@@ -214,7 +216,7 @@ async function createEpic(sf, teamId, input) {
   // The epic owner is the development lead; if GUS refuses that owner, fall back to the default owner.
   let c = await sf.create('ADM_Epic__c', { ...base, OwnerId: leadId }).catch(e => ({ success: false, errors: [String(e && e.message || e)] }));
   if (!ok(c) || !newId(c)) c = await sf.create('ADM_Epic__c', base);
-  if (!ok(c) || !newId(c)) throw new Error('GUS rejected the epic: ' + ((c && c.errors) || []).join(', '));
+  if (!ok(c) || !newId(c)) throw new Error('GUS rejected the epic: ' + plain(errText(c)));
   refsCache.delete(teamId);
   return { gusId: newId(c), projectGusId: proj.id, projectCreated: proj.created, created: true };
 }
@@ -223,15 +225,13 @@ async function createEpic(sf, teamId, input) {
 // One generic theme marks it, so workstreams are easy to tell apart from engineers' user stories.
 const WS_PREFIX = 'WS: ', THEME_NAME_MAX = 80;
 // One generic theme separates workstream stories from the engineers' user stories: R<release>_<team>_Workstream, e.g. R268_MQ_Workstream.
-const THEME_SHORT = [[/message queue/i, 'MQ'], [/maps|managed async/i, 'MAPS'], [/vegacache.*face/i, 'VC-FACE'], [/vegastore/i, 'VS'], [/vegacache|caching services/i, 'VC']];
+const THEME_SHORT = [[/message queue/i, 'MQ'], [/\bmaps\b|managed async/i, 'MAPS'], [/vegacache.*\bface\b/i, 'VC-FACE'], [/vegastore/i, 'VS'], [/vegacache|caching services/i, 'VC']];
 const themeShort = name => (THEME_SHORT.find(([re]) => re.test(String(name || ''))) || [])[1] || '';
 const wsThemeName = (release, short) => short ? `R${release}_${short}_Workstream`.slice(0, THEME_NAME_MAX) : '';
 async function teamName(sf, teamId) {
   const t = ((await sf.query(`SELECT Name FROM ADM_Scrum_Team__c WHERE Id = '${teamId}' LIMIT 1`)).records || [])[0];
   return t ? t.Name : '';
 }
-const errText = c => ((c && c.errors) || []).map(x => (x && (x.message || x.errorCode)) || x).join(', ');
-const plain = m => String(m || '').replace(/<[^>]*(?:>|$)/g, '').replace(/[<>]/g, '').replace(/\s+/g, ' ').trim(); // GUS error text can carry HTML links
 // GUS theme names are unique across the org, so a theme another team (or an earlier run) already owns is reused instead of re-created.
 async function ensureTheme(sf, teamId, name) {
   const find = async scope => (((await sf.query(`SELECT Id FROM ADM_Theme__c WHERE Name = '${soql(name)}'${scope} LIMIT 1`)).records || [])[0] || {}).Id;
@@ -272,7 +272,7 @@ async function createWorkstream(sf, teamId, input) {
     if (!rt) throw new Error('Could not find the User Story record type in GUS.');
     const f = { Subject__c: subject, Epic__c: epicId, Scrum_Team__c: teamId, RecordTypeId: rt.Id, Product_Tag__c: tagId, Details__c: wsDetails(epic.Name, name, days(input && input.days)), ...(assigneeId ? { Assignee__c: assigneeId } : {}) };
     const c = await sf.create('ADM_Work__c', f);
-    if (!ok(c) || !newId(c)) throw new Error('GUS rejected the workstream story: ' + ((c && c.errors) || []).join(', '));
+    if (!ok(c) || !newId(c)) throw new Error('GUS rejected the workstream story: ' + plain(errText(c)));
     workId = newId(c); created = true;
   }
   // Themes are best effort: the story exists either way, and a retry only adds what is missing.
@@ -280,7 +280,7 @@ async function createWorkstream(sf, teamId, input) {
   const release = ((epic.Planned_Release__r && epic.Planned_Release__r.Name || '').match(/\d{3,}/) || [PROGRAM_RELEASE])[0];
   try {
     const t = wsThemeName(release, themeShort(await teamName(sf, teamId)));
-    if (!t) warnings.push('Workstream theme not applied: this team has no theme short form (MQ, MAPS, VC, VC-FACE, VS). Add one in the planner code.');
+    if (!t) warnings.push('Workstream theme not applied: this team has no theme short form (MQ, MAPS, VC, VC-FACE, VS). Ask a plan administrator to add it.');
     else { await assignTheme(sf, await ensureTheme(sf, teamId, t), workId); themes.push(t); }
   } catch (e) { warnings.push(plain(e && e.message || e).slice(0, 200)); }
   return { gusId: workId, created, themes, warnings };
@@ -309,7 +309,7 @@ async function syncEpics(sf, teamId, epics) {
       if (!mine) throw new Error('Epic does not belong to this team.');
       let r = await sf.update('ADM_Epic__c', id, f);
       if (r && !ok(r) && f.OwnerId) { delete f.OwnerId; r = await sf.update('ADM_Epic__c', id, f); }
-      if (r && !ok(r)) throw new Error((r.errors || []).join(', ') || 'GUS rejected the update.');
+      if (r && !ok(r)) throw new Error(plain(errText(r)) || 'GUS rejected the update.');
       out.push({ gusId: id, ok: true });
     } catch (e) { out.push({ gusId: id, ok: false, err: String(e && e.message || e) }); }
   }
@@ -433,7 +433,7 @@ async function commitRun(sf, store, teamId, confirm, includeBtl, acknowledged) {
         if (hit) { projectId = hit.Id; r.project = 'linked existing project'; }
         else {
           const c = await sf.create('PPM_Project__c', { Name: project.name, Program__c: program.id, ...(project.method ? { V2MOM_Method__c: project.method } : {}) });
-          if (!ok(c) || !newId(c)) throw new Error('GUS rejected the project: ' + ((c && c.errors) || []).join(', '));
+          if (!ok(c) || !newId(c)) throw new Error('GUS rejected the project: ' + plain(errText(c)));
           projectId = newId(c); r.project = 'created project';
         }
         done.projects.set(project.id, projectId);
@@ -446,7 +446,7 @@ async function commitRun(sf, store, teamId, confirm, includeBtl, acknowledged) {
       const extra = { Description__c: epicDescription(e, project, includeBtl === true) };
       if (e.owners && e.owners[0]) { extra.Development_Lead__c = e.owners[0]; extra.OwnerId = e.owners[0]; } // the epic owner is the development lead
       const attempt = async (fn) => {
-        try { const x = await fn({ ...fields, ...extra }); if (x && !ok(x)) throw new Error((x.errors || []).join(', ')); return x; }
+        try { const x = await fn({ ...fields, ...extra }); if (x && !ok(x)) throw new Error(plain(errText(x))); return x; }
         catch (err) { r.note = 'saved without description/lead (' + String(err && err.message || err).slice(0, 120) + ')'; return fn(fields); }
       };
       let epicId = e.gusId;
@@ -460,7 +460,7 @@ async function commitRun(sf, store, teamId, confirm, includeBtl, acknowledged) {
         r.action = e.gusId ? 'updated' : 'linked and updated existing epic';
       } else {
         const c = await attempt(f => sf.create('ADM_Epic__c', { Name: e.name, Team__c: teamId, ...f }));
-        if (!ok(c) || !newId(c)) throw new Error('GUS rejected the epic: ' + ((c && c.errors) || []).join(', '));
+        if (!ok(c) || !newId(c)) throw new Error('GUS rejected the epic: ' + plain(errText(c)));
         epicId = newId(c); r.action = 'created';
       }
       done.epics.set(e.id, epicId); r.gusId = epicId; r.ok = true;
