@@ -11,11 +11,15 @@ const shortOf=()=>{const H=window.Hub;return String(H.team&&(H.team.short||H.tea
 // HTML export / "Publish to web" page: every <table> becomes one tab; its name is the "Mx)" title found in its first rows, else M1, M2…
 function htmlTabs(text){
   const doc=new DOMParser().parseFromString(text,'text/html'),out={};let n=0;
+  const cell=c=>c.textContent.replace(/\u00a0/g,' ').split(/\r?\n/).map(l=>l.replace(/[ \t]+/g,' ').trim()).join('\n').trim();
   doc.querySelectorAll('table').forEach(t=>{
-    if(t.closest('table')!==t)return;
-    const rows=[...t.querySelectorAll('tr')].map(r=>[...r.children].filter(c=>/^t[dh]$/i.test(c.tagName)).flatMap(c=>{const v=c.textContent.replace(/\s+/g,' ').trim(),sp=Math.max(1,+c.getAttribute('colspan')||1);return [v,...Array(sp-1).fill('')];})).filter(r=>r.some(Boolean));
+    if(t.parentElement&&t.parentElement.closest('table'))return;
+    const rows=[...t.querySelectorAll('tr')].map(r=>[...r.children].filter(c=>/^t[dh]$/i.test(c.tagName)).flatMap(c=>{const sp=Math.max(1,+c.getAttribute('colspan')||1);return [cell(c),...Array(sp-1).fill('')];})).filter(r=>r.some(Boolean));
     if(rows.length<3)return;n++;
-    let name='';for(const r of rows.slice(0,6)){const m=r.map(c=>/^M(\d+)\s*[):.\-–]/.exec(c)).find(Boolean);if(m){name='M'+m[1];break;}}
+    // The method title is usually a heading just above the table ("M1 · Title (15G 9Y 1R)"); keep it as the first row so the parser can name the method.
+    let h=t.previousElementSibling,title='';for(let i=0;h&&i<3&&!title;i++,h=h.previousElementSibling){const x=h.textContent.replace(/\s+/g,' ').trim();if(/^M\d+\s*[):.\-–·]/.test(x))title=x.replace(/\s*\([^()]*\)\s*$/,'');}
+    if(title)rows.unshift([title]);
+    let name='';for(const r of rows.slice(0,6)){const m=r.map(c=>/^M(\d+)\s*[):.\-–·]/.exec(c)).find(Boolean);if(m){name='M'+m[1];break;}}
     out[name&&!out[name]?name:'M'+n]=rows;});
   return out;
 }

@@ -13,10 +13,10 @@ const MAX_TABS = 12, MAX_ROWS = 600;
 function findHeader(rows) {
   for (let r = 0; r < Math.min(rows.length, 40); r++) {
     const cells = (rows[r] || []).map(low);
-    const measure = cells.findIndex(c => /measure/.test(c) && !/metric|outcome/.test(c));
+    const measure = cells.findIndex(c => /measure|^title$|^objective$/.test(c) && !/metric|outcome/.test(c));
     const owner = cells.findIndex(c => /owner/.test(c));
     if (measure < 0 || owner < 0) continue;
-    let code = cells.findIndex(c => /^(#|no\.?|id|code|ref)$/.test(c));
+    let code = cells.findIndex(c => /^(#|no\.?|id|code|ref)$|#$/.test(c));
     if (code < 0) code = measure > 0 ? measure - 1 : -1;
     const refs = cells.map((c, i) => /^v2mom\s*ref/.test(c) ? i : -1).filter(i => i >= 0);
     return { row: r, measure, owner, code, refs };
@@ -27,7 +27,7 @@ function findHeader(rows) {
 function tabTitle(rows, tab) {
   for (let r = 0; r < Math.min(rows.length, 6); r++) for (const c of rows[r] || []) {
     const t = norm(c);
-    if (/^M\d+\s*[):.\-–]/.test(t)) return t.replace(/^M(\d+)\s*[):.\-–]\s*/, 'M$1: ');
+    if (/^M\d+\s*[):.\-–·]/.test(t)) return t.replace(/^M(\d+)\s*[):.\-–·]\s*/, 'M$1: ');
   }
   return tab;
 }
@@ -51,7 +51,7 @@ function parseSheets(sheets, opts = {}) {
     let found = 0;
     for (let r = h.row + 1; r < list.length; r++) {
       const row = list[r] || [];
-      const code = norm(row[h.code]), name = norm(row[h.measure]), owner = norm(row[h.owner]);
+      const code = norm(row[h.code]), name = norm(String(row[h.measure] == null ? '' : row[h.measure]).split(/\r?\n/).find(l => norm(l)) || ''), owner = norm(row[h.owner]);
       if (!name || !CODE.test(code)) continue;
       if (code.split('.').length < 3 && !owner) continue; // two-level codes without an owner are section headings
       const refText = h.refs.map(i => norm(row[i])).filter(Boolean).join(' | ');

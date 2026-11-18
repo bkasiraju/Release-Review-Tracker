@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.6-GA (18 November 2026)
+
+V2MOM import: the HTML snapshot layout (headings like "M1 · Title (15G 9Y 1R)" above tables with HRP# / Title / Status / Owner / Comment columns) is now read. The Measure column may be called Title or Objective, the code column may end in "#", the method name is taken from the heading above each table, and only the first line of a multi-line title is used as the measure name. Checked against HRP-V2MOM-Snapshot-2026-11-18_2.html with the parser: 78 measures across 5 methods, 29 owned by Amit Kumar. The browser-side HTML reading itself was not run in a browser.
+
 ## 6.26.5-GA (18 November 2026)
 
 Import wizard fixes: the "No measures matched" message printed "[object Object]"; it now lists each tab with the reason (no Measure/Owner header row, or how many measures were found and none owned by the names given). The Cancel / Parse sheet / Back / Continue buttons had broken sizing from the shared button styles and overlapped; the wizard now has its own button style. Mocked only; not checked in a browser.
