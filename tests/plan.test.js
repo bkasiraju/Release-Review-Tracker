@@ -149,9 +149,9 @@ test('createWorkstream makes a parent User Story with the Workstream + per-works
   const r=await plan.createWorkstream(sf,T,inp);
   const w=log.find(x=>x[0]==='c'&&x[1]==='ADM_Work__c')[2];
   assert.deepEqual(w,{Subject__c:'WS: API changes',Epic__c:EP,Scrum_Team__c:T,RecordTypeId:'0129000000006gDAAQ',Product_Tag__c:TAG,Details__c:'Workstream "API changes" of epic "E". Engineers add their work items as child stories of this story (Parent).',Assignee__c:ENG});
-  assert.equal(r.created,true);assert.deepEqual(r.themes,['Workstream','WS: HRP M1 › API changes']);assert.equal(log.filter(x=>x[1]==='ADM_Theme_Assignment__c').length,2);
+  assert.equal(r.created,true);assert.deepEqual(r.themes,['R268_MQ_Workstream']);assert.equal(log.filter(x=>x[1]==='ADM_Theme_Assignment__c').length,1);
   const again=await plan.createWorkstream(sf,T,inp);   // retry: nothing duplicated
-  assert.equal(again.created,false);assert.equal(log.filter(x=>x[0]==='c').length,5);
+  assert.equal(again.created,false);assert.equal(log.filter(x=>x[0]==='c').length,3);
   await assert.rejects(plan.createWorkstream(sf,T,{...inp,epicGusId:'a0XEE00000OTHER01A'}),/does not belong/);
   await assert.rejects(plan.createWorkstream(sf,T,{...inp,tagId:'a1TEE00000OTHER01A'}),/product tag/);
   await assert.rejects(plan.createWorkstream(sf,T,{...inp,tagId:''}),/product tag/);
@@ -176,21 +176,24 @@ test('deleteProject only deletes an empty project in the team program',async()=>
   assert.equal(del.length,1);
 });
 
-test('createWorkstream reuses a theme GUS says already exists (another team owns it) and never leaks HTML',async()=>{
-  const EP='a0XEE00000EPC0001A',TAG='a1TEE00000TAG0001A',THEME='a0pEE000001Dfb3YAC',assigned=[];let work=null;
-  const sf={async query(q){
-      if(/FROM ADM_Epic__c/.test(q))return {records:[{Id:EP,Name:'E'}]};
+test('createWorkstream tags the story with R<release>_<team>_Workstream, reusing an org-wide theme and never leaking HTML',async()=>{
+  const EP='a0XEE00000EPC0001A',TAG='a1TEE00000TAG0001A',THEME='a0pEE000001Dfb3YAC';let work=null;const created=[],assigned=[];
+  const mk=(o={})=>({async query(q){
+      if(/FROM ADM_Epic__c/.test(q))return {records:[{Id:EP,Name:'E',Planned_Release__r:o.rel?{Name:o.rel}:null}]};
+      if(/FROM ADM_Scrum_Team__c/.test(q))return {records:[{Name:o.team||'Message Queue'}]};
       if(/FROM ADM_Product_Tag__c/.test(q))return {records:[{Id:TAG}]};
       if(/FROM RecordType/.test(q))return {records:[{Id:'0129000000006gDAAQ'}]};
       if(/FROM ADM_Work__c/.test(q))return {records:work?[{Id:work}]:[]};
-      if(/FROM ADM_Theme__c/.test(q))return {records:q.includes('Scrum_Team__c')?[]:[{Id:THEME}]};
+      if(/FROM ADM_Theme__c/.test(q))return {records:o.exists&&!q.includes('Scrum_Team__c')?[{Id:THEME}]:[]};
       return {records:[]};},
-    async create(o,f){if(o==='ADM_Work__c'){work='a0WEE0000000000001';return {success:true,id:work};}
-      if(o==='ADM_Theme__c')return {success:false,errors:['A <a href="/'+THEME+'">theme</a> with this name already exists. Please specify a different name.']};
-      assigned.push(f.Theme__c);return {success:true,id:'a0qEE0000000000001'};}};
-  const r=await plan.createWorkstream(sf,T,{epicGusId:EP,name:'API',tagId:TAG});
-  assert.deepEqual(r.warnings,[]);assert.deepEqual(assigned,[THEME,THEME]);
-  const sf2={...sf,async create(o,f){if(o==='ADM_Theme__c')return {success:false,errors:['<b>boom</b> denied']};return sf.create(o,f);}};
-  const r2=await plan.createWorkstream(sf2,T,{epicGusId:EP,name:'API',tagId:TAG});
-  assert.ok(r2.warnings.length&&r2.warnings.every(w=>!/[<>]/.test(w)),JSON.stringify(r2.warnings));
+    async create(obj,f){if(obj==='ADM_Work__c'){work='a0WEE0000000000001';return {success:true,id:work};}
+      if(obj==='ADM_Theme__c'){created.push(f.Name);return o.fail?{success:false,errors:['A <a href="/x">theme</a> <img src=x denied']}:{success:true,id:'a0pEE000000000NEW1'};}
+      assigned.push(f.Theme__c);return {success:true,id:'a0qEE0000000000001'};}});
+  const inp={epicGusId:EP,name:'API',tagId:TAG};
+  let r=await plan.createWorkstream(mk({exists:true}),T,inp);   // theme owned elsewhere: reused, nothing created
+  assert.deepEqual(r.themes,['R268_MQ_Workstream']);assert.deepEqual(r.warnings,[]);assert.deepEqual(created,[]);assert.deepEqual(assigned,[THEME]);
+  work=null;r=await plan.createWorkstream(mk({rel:'MAPS 269',team:'Managed Async Processing Service (MAPS)'}),'a00B0000000w4ZiIAI',inp);   // release + team vary
+  assert.deepEqual(created,['R269_MAPS_Workstream']);
+  work=null;r=await plan.createWorkstream(mk({fail:true}),T,inp);
+  assert.ok(r.warnings.length===1&&!/[<>]/.test(r.warnings[0]),JSON.stringify(r.warnings));
 });

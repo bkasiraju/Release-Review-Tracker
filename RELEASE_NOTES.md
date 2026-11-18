@@ -2,7 +2,7 @@
 
 ## 6.3.0-GA (18 November 2026)
 
-Fix: adding a workstream no longer shows "Themes were not fully applied: A <a href=…>theme</a> with this name already exists". GUS theme names are unique across the org, so when a theme (the shared "Workstream" theme or the per-workstream one) already exists under another team, it is now reused and assigned instead of re-created. Any remaining GUS error text is stripped of HTML before it is shown. Verified by unit tests only (focused plan tests pass; full-suite baseline of 38 pre-existing failures unchanged); not verified against live GUS.
+Workstream stories now carry a single generic theme named `R<release>_<team>_Workstream` (for example `R268_MQ_Workstream`) that separates workstreams from engineers' user stories. The release number comes from the epic's planned release (falling back to the planning release 268) and the team short name from the team. The per-workstream theme (`WS: <project> › <name>`) and the bare `Workstream` theme are no longer applied; themes already created in GUS are left untouched. An existing theme with that name, even one owned by another team, is reused instead of failing with "A theme with this name already exists", and GUS error text is stripped of HTML (including unclosed tags) before it is shown. Verified by unit tests only (focused plan tests pass; full-suite baseline of 38 pre-existing failures unchanged); not verified against live GUS.
 
 ## 6.2.0-GA (18 November 2026)
 
