@@ -2,7 +2,7 @@
 
 ## 6.7.0-GA (18 November 2026)
 
-Release Planning grid: the "+" (add workstream) button now appears on every workstream row, not just the first and last. It adds the new workstream directly below that row. Order can still be changed with the grip handle on each row (drag, or Up/Down keys). Epic delete stays on the first row. Verified by syntax check and unit tests only; not checked in a signed-in browser.
+Release Planning grid: the "+" (add workstream) button now appears on every workstream row, not just the first and last. It adds the new workstream directly below that row. Order can still be changed with the grip handle on each row (drag, or Up/Down keys). Epic delete stays on the first row. The "open in GUS" button on project and epic rows now uses the box-with-arrow icon instead of the circled arrow. Review fixes: the Theme input placeholder is now HTML-escaped (it became a default column in 6.6.0), the V2MOM chip font declaration is valid, and a dead CSS rule was removed. Verified by syntax check and unit tests only; not checked in a signed-in browser.
 
 ## 6.6.0-GA (18 November 2026)
 
