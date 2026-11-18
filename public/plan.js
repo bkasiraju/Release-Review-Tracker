@@ -794,14 +794,12 @@ function wireColFilters(){const root=P.el.querySelector('#pl-planner');if(!root)
 function drawTools(){
   const box=P.el.querySelector('#pl-tools'),pl=P.plan;if(!box||!pl)return;const V=P.view;
   const themes=[...new Set(pl.epics.map(epicTheme))].sort(),engs=P.members.filter(isEng);
-  restoreFilters();
+  restoreFilters();V.q='';V.tok=[];
   const mfLabel=(k,list)=>{const sel=V[k];if(!sel.length)return 'All';const nm=v=>(list.find(x=>x[0]===v)||[v,v])[1];return sel.length===1?nm(sel[0]):sel.length+' selected';};
   const sel=(k,label,list)=>`<div class="pl-tf pl-mf${V[k].length?' on':''}" data-mf="${k}"><span>${label}</span><button type="button" class="pl-mf-btn" aria-haspopup="true" aria-expanded="false" aria-label="${label} filter"><b>${esc(mfLabel(k,list))}</b><i aria-hidden="true">▾</i></button><div class="pl-mf-pop" hidden><input type="search" class="hub-inline" placeholder="Search ${label.toLowerCase()}…" aria-label="Search ${label}"><div class="pl-mf-acts"><button type="button" data-mf-all>Select all</button><button type="button" data-mf-none>Clear</button></div><ul>${list.map(([v,l])=>`<li data-t="${esc(String(l).toLowerCase())}"><label><input type="checkbox" value="${esc(v)}"${V[k].includes(v)?' checked':''}> <span>${esc(l)}</span></label></li>`).join('')||'<li class="note">Nothing to filter yet</li>'}</ul></div></div>`;
   const rels=[...new Map(pl.epics.filter(e=>e.releaseId).map(e=>[e.releaseId,e.releaseName||(P.refs.releases.find(r=>r.id===e.releaseId)||{}).name||e.releaseId])).entries()];
   const keepGt=box.querySelector(':scope > .pl-grid-tools');
-  box.innerHTML=`<div class="pl-tf pl-q pl-gs"><span>Search</span><div class="pl-gs-box"><span class="pl-gs-chips">${V.tok.map((t,i)=>`<span class="pl-gs-chip" title="${esc(SK[t.k]+': '+t.v)}"><b>${esc(SK[t.k])}:</b> ${esc(t.v)}<button type="button" data-tok-x="${i}" aria-label="Remove ${esc(SK[t.k])} filter ${esc(t.v)}">×</button></span>`).join('')}</span><input type="search" class="hub-inline" data-v="q" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="pl-gs-sug" aria-autocomplete="list" placeholder="Search by project, epic, workstream or person" aria-label="Search the planner" value="${esc(V.q)}"></div><div class="pl-gs-sug" id="pl-gs-sug" role="listbox" hidden></div></div>`+
-    
-    sel('release','Release',rels)+sel('line','ATL/BTL',[['ABL','ABL'],['BTL','BTL']])+sel('eng','Engineer',engs.map(m=>[m.id,m.name]))+sel('theme','Theme',themes.map(t=>[t,t]))+
+  box.innerHTML=sel('release','Release',rels)+sel('line','ATL/BTL',[['ABL','ABL'],['BTL','BTL']])+sel('eng','Engineer',engs.map(m=>[m.id,m.name]))+sel('theme','Theme',themes.map(t=>[t,t]))+
     `<button type="button" class="button small pl-clear${filtersOn(V)?' pl-clear-on':''}" data-clear-view${filtersOn(V)?'':' disabled'}>Clear filters</button><span class="note pl-count" id="pl-count" role="status" aria-live="polite"></span>`;
   if(keepGt)box.appendChild(keepGt);
   box.querySelectorAll('select').forEach(x=>H.customSelect(x));
@@ -814,21 +812,6 @@ function drawTools(){
     if(e.target.closest('[data-mf-none]')){V[k]=[];w.querySelectorAll('li input').forEach(i=>{i.checked=false;});saveFilters();refresh(w);return;}};
   box.onchange=e=>{const i=e.target.closest('.pl-mf li input');if(!i)return;const w=i.closest('.pl-mf'),k=w.dataset.mf;V[k]=[...w.querySelectorAll('li input:checked')].map(x=>x.value);saveFilters();refresh(w);};
   box.addEventListener('input',e=>{const q=e.target.closest('.pl-mf-pop input[type=search]');if(!q)return;const t=q.value.trim().toLowerCase();q.closest('.pl-mf-pop').querySelectorAll('li[data-t]').forEach(li=>{li.hidden=!!t&&!li.dataset.t.includes(t);});});
-  const gi=box.querySelector('.pl-gs input'),gp=box.querySelector('.pl-gs-sug');let gl=[],ga=-1;
-  const gClose=()=>{gp.hidden=true;gi.setAttribute('aria-expanded','false');ga=-1;};
-  const gAdd=(k,v,x)=>{if(!V.tok.some(t=>t.k===k&&t.v.toLowerCase()===v.toLowerCase()))V.tok.push({k,v,x});V.q='';drawTools();drawPlanner();wire();const i=P.el.querySelector('#pl-tools .pl-gs input');if(i)i.focus();};
-  const gShow=()=>{gl=skSuggest(gi.value);ga=-1;if(!gl.length){const q=gi.value.trim();gp.innerHTML=q.length>=3||/^\w+:/.test(q)?`<div class="pl-gs-empty">No matches for “${esc(q)}”</div>`:'';gp.hidden=!gp.innerHTML;gi.setAttribute('aria-expanded',String(!gp.hidden));return;}
-    gp.innerHTML=gl.map((x,i)=>`<button type="button" class="pl-gs-opt" role="option" data-gs="${i}"><span class="pl-gs-k">${esc(SK[x.k])}</span><span class="pl-gs-v">${esc(x.v)}</span><span class="pl-gs-n">${x.n} epic${x.n===1?'':'s'}</span></button>`).join('');gp.hidden=false;gi.setAttribute('aria-expanded','true');};
-  const gMark=()=>gp.querySelectorAll('.pl-gs-opt').forEach((b,i)=>{b.classList.toggle('on',i===ga);b.setAttribute('aria-selected',String(i===ga));if(i===ga)b.scrollIntoView({block:'nearest'});});
-  gi.addEventListener('input',gShow);gi.addEventListener('focus',()=>{if(gi.value.trim())gShow();});
-  gp.addEventListener('mousedown',e=>{const b=e.target.closest('[data-gs]');if(!b)return;e.preventDefault();const x=gl[+b.dataset.gs];if(x)gAdd(x.k,x.v,true);});
-  gi.addEventListener('keydown',e=>{
-    if(e.key==='ArrowDown'||e.key==='ArrowUp'){if(gp.hidden)gShow();if(!gl.length)return;e.preventDefault();ga=(ga+(e.key==='ArrowDown'?1:-1)+gl.length)%gl.length;gMark();}
-    else if(e.key==='Enter'){const m=/^\s*([a-z0-9]+)\s*:\s*(.+)$/i.exec(gi.value);if(ga>=0&&gl[ga]){e.preventDefault();gAdd(gl[ga].k,gl[ga].v,true);}else if(m&&SA[m[1].toLowerCase()]){e.preventDefault();const k=SA[m[1].toLowerCase()],v=m[2].trim();gAdd(k,/^(atl|btl)$/i.test(m[1])&&k==='line'?m[1].toUpperCase().replace('ATL','ABL'):v,false);}}
-    else if(e.key==='Escape'&&!gp.hidden){gClose();e.stopPropagation();}
-    else if(e.key==='Backspace'&&!gi.value&&V.tok.length){V.tok.pop();drawTools();drawPlanner();wire();const i=P.el.querySelector('#pl-tools .pl-gs input');if(i)i.focus();}});
-  gi.addEventListener('blur',()=>setTimeout(gClose,120));
-  box.querySelectorAll('[data-tok-x]').forEach(b=>b.addEventListener('click',()=>{V.tok.splice(+b.dataset.tokX,1);drawTools();drawPlanner();wire();}));
   box.onkeydown=e=>{if(e.key==='Escape'&&e.target.closest('.pl-mf')){const w=e.target.closest('.pl-mf');closeAll();w.querySelector('.pl-mf-btn').focus();e.stopPropagation();}};
   if(!P.mfDoc){P.mfDoc=true;document.addEventListener('mousedown',e=>{if(e.target.closest('.pl-mf'))return;document.querySelectorAll('.pl-mf-pop').forEach(p=>{p.hidden=true;});});}
 }

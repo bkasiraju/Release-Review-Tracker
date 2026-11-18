@@ -1,5 +1,13 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.24.2-GA (18 November 2026)
+
+Fixed a syntax error in `app.js` (introduced in 6.24.0) that stopped the whole page loading. Added a test that every `public/*.js` file parses, so this cannot ship again. 6.24.0 and 6.24.1 must not be used.
+
+## 6.24.1-GA (18 November 2026)
+
+Removed the global Search bar (and its suggestions and chips) from Release Planning; the column filters and the Release, ATL/BTL, Engineer and Theme filters replace it. Any saved search text or chips are cleared on load so nothing filters invisibly. Mocked only; not checked in a browser.
+
 ## 6.24.0-GA (18 November 2026)
 
 - Release Planning: the Release Window dates show only when "Custom dates" is selected; picking a planned release hides them because the release supplies the dates.
