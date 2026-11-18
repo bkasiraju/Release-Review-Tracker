@@ -1,8 +1,12 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.20.1-GA (18 November 2026)
+
+Fix for 6.20.0: the first manual edit of a release date after picking a planned release no longer snaps back. Also: a release with no GUS dates is no longer left half-cleared, ended releases show as "Saved release", and tile tooltips no longer double-escape "&" and apostrophes. Mocked GUS only; not checked in a browser.
+
 ## 6.20.0-GA (18 November 2026)
 
-New "Planned Release" dropdown above the Release Window dates in Release Planning. Each option shows the GUS planned release with its start and end dates; picking one fills the window dates automatically from GUS, and the capacity figures recalculate. "Custom dates" lets you type your own dates, and editing a date by hand switches the dropdown back to Custom. The choice is saved with the plan. Releases without dates in GUS cannot fill the window. Also includes the 6.18.0 darker green row highlight (project and epic rows) and the 6.19.0 compact summary tiles; the open-in-GUS icon and the +Epic and V2MOM buttons keep their own hover colours on a highlighted row. Mocked GUS only; not checked in a browser.
+New "Planned Release" dropdown above the Release Window dates in Release Planning. Each option shows the GUS planned release with its start and end dates; picking one fills the window dates automatically from GUS, and the capacity figures recalculate. "Custom dates" lets you type your own dates, and editing a date by hand switches the dropdown back to Custom. The choice is saved with the plan. Releases without dates in GUS cannot fill the window. A release that has since ended still shows as "Saved release" instead of silently reverting to Custom. Also includes the 6.18.0 darker green row highlight (project and epic rows) and the 6.19.0 compact summary tiles; the open-in-GUS icon and the +Epic and V2MOM buttons keep their own hover colours on a highlighted row. Mocked GUS only; not checked in a browser.
 
 ## 6.19.0-GA (18 November 2026)
 
