@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.3-GA (18 November 2026)
+
+V2MOM import wizard: step 1 simplified to the sheet link (or .xlsx) and the owners to import, with the tab list tucked under "Advanced". Inputs are now styled full-width, the close button sits in the header, and the Cancel / Parse buttons are aligned. Mocked only; not checked in a browser.
+
 ## 6.26.2-GA (18 November 2026)
 
 Planner: removed the Release, ATL/BTL, Engineer and Theme filter bar (with Clear filters and the epic count); the column filters in the grid header replace it. Filter values saved earlier are cleared so nothing filters invisibly. Mocked only; not checked in a browser.

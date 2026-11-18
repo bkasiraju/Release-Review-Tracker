@@ -12,7 +12,7 @@ function open(){
   const H=window.Hub;if(!H){alert('The hub is still loading. Try again in a moment.');return;}
   if(!H.hasTeam()){window.toast?.('Pick a team first. The import creates projects for the selected team.',true);return;}
   const ov=document.createElement('div');ov.className='nd-overlay';
-  ov.innerHTML=`<div class="nd-modal pl-modal v2w" role="dialog" aria-modal="true" aria-label="V2MOM measures import"><div class="nd-h"><h2>V2MOM measures import <small>${esc(H.team.Name)}</small></h2><button type="button" class="nd-x" data-x aria-label="Close">×</button></div><div class="nd-b" data-b></div></div>`;
+  ov.innerHTML=`<div class="nd-modal pl-modal v2w" role="dialog" aria-modal="true" aria-label="V2MOM measures import"><div class="v2w-h"><h2>V2MOM measures import <small>${esc(H.team.Name)}</small></h2><button type="button" class="nd-x" data-x aria-label="Close">×</button></div><div class="nd-b" data-b></div></div>`;
   H.popHost().appendChild(ov);
   const b=ov.querySelector('[data-b]'),close=()=>ov.remove();
   ov.addEventListener('click',e=>{if(e.target===ov||e.target.closest('[data-x]'))close();});
@@ -21,13 +21,13 @@ function open(){
   call('plan-refs',{teamId:H.team.Id}).then(r=>{programs=r.programs||[];}).catch(()=>{});
 
   const step1=(err)=>{
-    b.innerHTML=`<p class="note">Step 1 of 3 · Read the V2MOM sheet. Measures are matched to the owners you list; each becomes a GUS project for <b>${esc(H.team.Name)}</b>.</p>
-    <label class="pl-cr-f"><span>Google Sheet link <small>must be shared with “anyone with the link”, or upload an .xlsx instead</small></span><input class="hub-inline" data-url type="url" placeholder="https://docs.google.com/spreadsheets/d/…" value="${esc(get('url'))}"></label>
-    <label class="pl-cr-f"><span>Or upload .xlsx</span><input class="hub-inline" data-file type="file" accept=".xlsx"></label>
-    <label class="pl-cr-f"><span>Tabs (methods) <small>comma-separated; for .xlsx, tabs named M1, M2… are used when empty</small></span><input class="hub-inline" data-tabs value="${esc(get('tabs')||'M1, M2, M3, M4, M5')}"></label>
-    <label class="pl-cr-f"><span>Owner filter <small>comma-separated names; empty = all owners</small></span><input class="hub-inline" data-own placeholder="e.g. Jane Doe, Raj Patel" value="${esc(get('owners'))}"></label>
+    b.innerHTML=`<p class="v2w-step">Step 1 of 3 · Read the sheet</p>
+    <label class="v2w-f"><span>Google Sheet link</span><input class="v2w-in" data-url type="url" placeholder="https://docs.google.com/spreadsheets/d/…" value="${esc(get('url'))}"><small>Shared with “anyone with the link”. Or upload an .xlsx below.</small></label>
+    <label class="v2w-f"><span>Or upload .xlsx</span><input class="v2w-in" data-file type="file" accept=".xlsx"></label>
+    <label class="v2w-f"><span>Owners to import</span><input class="v2w-in" data-own placeholder="Jane Doe, Raj Patel (empty = everyone)" value="${esc(get('owners'))}"><small>Comma-separated names, matched against the Owner column.</small></label>
+    <details class="v2w-adv"><summary>Advanced: tabs</summary><label class="v2w-f"><span>Method tabs</span><input class="v2w-in" data-tabs value="${esc(get('tabs')||'M1, M2, M3, M4, M5')}"><small>For an .xlsx, tabs named M1, M2… are used if this is empty.</small></label></details>
     <p class="pl-cr-err" role="alert" ${err?'':'hidden'}>${esc(err||'')}</p>
-    <div class="pl-cr-foot"><span class="note">Nothing is created until you confirm in step 3.</span><span class="pl-cr-btns"><button type="button" class="button" data-x>Cancel</button><button type="button" class="button primary" data-go>Parse sheet</button></span></div>`;
+    <div class="v2w-foot"><span class="pl-cr-btns"><button type="button" class="button" data-x>Cancel</button><button type="button" class="button brand" data-go>Parse sheet</button></span></div>`;
     const go=b.querySelector('[data-go]'),er=b.querySelector('.pl-cr-err');
     go.onclick=async()=>{
       const url=b.querySelector('[data-url]').value.trim(),f=b.querySelector('[data-file]').files[0],owners=b.querySelector('[data-own]').value,tabsTxt=b.querySelector('[data-tabs]').value;
@@ -50,14 +50,14 @@ function open(){
     if(!ms.length){b.innerHTML=`<p class="pl-cr-err" role="alert">No measures matched. ${parsed.skipped?esc(parsed.skipped+' rows were skipped. '):''}Check the owner names and tabs.</p><div class="pl-cr-foot"><span></span><span class="pl-cr-btns"><button type="button" class="button" data-back>Back</button></span></div>`;b.querySelector('[data-back]').onclick=()=>step1();return;}
     const byTab=new Map();ms.forEach((m,i)=>{if(!byTab.has(m.method))byTab.set(m.method,[]);byTab.get(m.method).push([m,i]);});
     b.innerHTML=`<p class="note">Step 2 of 3 · ${ms.length} measure${ms.length===1?'':'s'} across ${byTab.size} method${byTab.size===1?'':'s'}${parsed.owners&&parsed.owners.length?' for '+esc(parsed.owners.join(', ')):''}. Untick any you do not want, and edit names if needed.</p>
-    <div class="v2w-bar"><label>Project prefix <input class="hub-inline" data-pre value="${esc(pre)}" maxlength="12" style="width:90px"></label>
-    <label>Method value <select class="hub-inline" data-mm><option value="refs">V2MOM refs from the sheet</option><option value="tab">Sheet method (M1, M2…)</option></select></label>
+    <div class="v2w-bar"><label>Project prefix <input class="v2w-in" data-pre value="${esc(pre)}" maxlength="12" style="width:90px"></label>
+    <label>Method value <select class="v2w-in" data-mm><option value="refs">V2MOM refs from the sheet</option><option value="tab">Sheet method (M1, M2…)</option></select></label>
     <button type="button" class="button small" data-all>Select all</button><button type="button" class="button small" data-none>Select none</button><span class="note" data-cnt></span></div>
     <div class="v2w-list" data-list></div><p class="pl-cr-err" role="alert" hidden></p>
     <div class="pl-cr-foot"><span class="note">Next: choose the GUS program.</span><span class="pl-cr-btns"><button type="button" class="button" data-back>Back</button><button type="button" class="button primary" data-next>Continue</button></span></div>`;
     const list=b.querySelector('[data-list]'),pe=b.querySelector('[data-pre]'),mm=b.querySelector('[data-mm]'),cnt=b.querySelector('[data-cnt]');
     const nameFor=m=>`${pe.value.trim()} M${m.code} - ${m.name}`.replace(/\s+/g,' ').trim();
-    const draw=()=>{list.innerHTML=[...byTab].map(([t,arr])=>`<section class="v2w-g"><h4>${esc(t)} <small>${arr.length}</small></h4>${arr.map(([m,i])=>{const nm=nameFor(m);return `<div class="v2w-r"><input type="checkbox" data-i="${i}" checked aria-label="Import ${esc(m.code)}"><div><input class="hub-inline" data-n="${i}" value="${esc(nm)}"><small class="v2w-c" data-c="${i}"></small><small>${esc(m.ownerText||'')}${m.refText?' · '+esc(m.refText):''}</small></div></div>`;}).join('')}</section>`).join('');count();};
+    const draw=()=>{list.innerHTML=[...byTab].map(([t,arr])=>`<section class="v2w-g"><h4>${esc(t)} <small>${arr.length}</small></h4>${arr.map(([m,i])=>{const nm=nameFor(m);return `<div class="v2w-r"><input type="checkbox" data-i="${i}" checked aria-label="Import ${esc(m.code)}"><div><input class="v2w-in" data-n="${i}" value="${esc(nm)}"><small class="v2w-c" data-c="${i}"></small><small>${esc(m.ownerText||'')}${m.refText?' · '+esc(m.refText):''}</small></div></div>`;}).join('')}</section>`).join('');count();};
     const count=()=>{const n=list.querySelectorAll('[data-i]:checked').length;cnt.textContent=n+' selected';list.querySelectorAll('[data-n]').forEach(x=>{const c=list.querySelector(`[data-c="${x.dataset.n}"]`),l=x.value.trim().length;c.textContent=l+' / '+NAME_MAX;c.classList.toggle('bad',l>NAME_MAX);});};
     draw();
     pe.oninput=()=>{const cur=[...list.querySelectorAll('[data-i]')].map(x=>x.checked);draw();list.querySelectorAll('[data-i]').forEach((x,k)=>{x.checked=cur[k];});count();};
@@ -76,7 +76,7 @@ function open(){
   const step3=(items,prefix)=>{
     const def=get('program')||(teamProg&&teamProg.name)||'';
     b.innerHTML=`<p class="note">Step 3 of 3 · Choose the GUS program. ${items.length} project${items.length===1?'':'s'} will be created under it (existing projects with the same name are reused) and added to <b>${esc(H.team.Name)}</b>'s plan.</p>
-    <label class="pl-cr-f"><span>GUS program name <small>exact name of the PPM program${teamProg?`; this team's default is ${esc(teamProg.name)}`:''}</small></span><input class="hub-inline" data-prog list="v2w-progs" value="${esc(def)}" placeholder="e.g. ${esc(H.team.short||H.team.Name)} - 268"><datalist id="v2w-progs">${programs.map(p=>`<option value="${esc(p.name)}">`).join('')}</datalist></label>
+    <label class="pl-cr-f"><span>GUS program name <small>exact name of the PPM program${teamProg?`; this team's default is ${esc(teamProg.name)}`:''}</small></span><input class="v2w-in" data-prog list="v2w-progs" value="${esc(def)}" placeholder="e.g. ${esc(H.team.short||H.team.Name)} - 268"><datalist id="v2w-progs">${programs.map(p=>`<option value="${esc(p.name)}">`).join('')}</datalist></label>
     <div class="v2w-sum">${items.map(i=>`<div>${esc(i.name)} <small>${esc(i.method)}</small></div>`).join('')}</div>
     <p class="pl-cr-err" role="alert" hidden></p>
     <div class="pl-cr-foot"><span class="note">Created in GUS immediately when you confirm.</span><span class="pl-cr-btns"><button type="button" class="button" data-back>Back</button><button type="button" class="button primary" data-ok>Create in GUS</button></span></div>`;
