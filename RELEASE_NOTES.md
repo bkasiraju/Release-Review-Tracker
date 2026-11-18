@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.9.0-GA (18 November 2026)
+
+Shared HRP V2MOM projects. The 24 FY27 HRP measures owned by Amit Kumar (GCP method excluded) are added once to the shared project catalog, named `HRP M1.1.1 - <measure>`, with the V2MOM method set to the refs from the FY27 HRP V2MOM Review sheet (`HPS M2.1.1 | HPS M2.1.2 | ...`, or `NO V2MOM Reference`). Every team's Release Planning lists them. They are plan-level projects: nothing is created in GUS until a team commits an epic under one, and then the method is written to the GUS project as before. Removing a project from the dashboard now hides it for that team only (saved in that team's plan as `hiddenProjects`); before, removing it deleted it from the shared catalog for every team. Leaves, holidays and on-call were already saved per team in GUS Apps storage and used in the capacity calculation; tests now cover that round trip. Verified by unit tests only (5 new); not checked in a signed-in browser or against live GUS. Refs come from the review sheet, which is not the same version as the snapshot.
+
 ## 6.8.0-GA (18 November 2026)
 
 The open-in-GUS icon button is smaller (18px button, 11px icon). CSS only; not checked in a signed-in browser.

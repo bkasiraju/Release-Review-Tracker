@@ -16,6 +16,7 @@ const errText = c => ((c && c.errors) || []).map(x => (x && (x.message || x.stat
 const plain = m => String(m || '').replace(/<[^>]*(?:>|$)/g, '').replace(/[<>]/g, '').replace(/\s+/g, ' ').trim(); // GUS error text can carry HTML links
 const newId = r => (r && (r.id || r.Id)) || '';
 
+const { SEED_VERSION, SEED_PROJECTS } = require('./seed-projects');
 const crypto = require('crypto');
 const hash = o => crypto.createHash('sha256').update(JSON.stringify(o)).digest('hex').slice(0, 24);
 const wsEngNames = w => (w.engNames && w.engNames.length ? w.engNames : [w.engName].filter(Boolean)).join(', ');
@@ -71,7 +72,9 @@ function cleanPlan(input) {
     people[k] = { name: text(v && v.name, 80), leave: days(v && v.leave), holiday: days(v && v.holiday), oncall: days(v && v.oncall), ...(v && v.total != null && v.total !== '' ? { total: days(v.total) } : {}) };
   }
   const last = p.lastCommit && typeof p.lastCommit === 'object' ? { at: text(p.lastCommit.at, 40), created: Number(p.lastCommit.created) || 0, updated: Number(p.lastCommit.updated) || 0 } : null;
-  return { window: { start: ISO.test(w.start) ? w.start : '', end: ISO.test(w.end) ? w.end : '' }, people, projects, epics, lastCommit: last };
+  // Catalog projects this team removed from its own dashboard (the shared catalog and other teams are untouched)
+  const hiddenProjects = [...new Set((Array.isArray(p.hiddenProjects) ? p.hiddenProjects : []).filter(v => LOCAL.test(String(v || ''))).map(String))].slice(0, MAX.projects);
+  return { window: { start: ISO.test(w.start) ? w.start : '', end: ISO.test(w.end) ? w.end : '' }, people, projects, epics, hiddenProjects, lastCommit: last };
 }
 
 // Programs are per team and release, named "<Team> - <release>" in GUS
@@ -84,14 +87,20 @@ const PFIELDS = ['name', 'short', 'method', 'theme', 'gusId', 'programId', 'prog
 const sameProject = (a, b) => !!a && !!b && PFIELDS.every(k => (a[k] || '') === (b[k] || ''));
 async function getCatalog(store) {
   const doc = await store.get('settings', CATALOG_KEY);
-  const list = doc && Array.isArray(doc.projects) ? doc.projects : [];
+  let list = doc && Array.isArray(doc.projects) ? doc.projects : [];
+  if (!doc || doc.seedVersion !== SEED_VERSION) { // first read after a seed bump: add the missing seed projects once
+    const have = new Set(list.map(x => x && x.id));
+    list = [...list, ...SEED_PROJECTS.filter(x => !have.has(x.id))].slice(0, MAX.projects);
+    try { await store.put('settings', CATALOG_KEY, { projects: list, seedVersion: SEED_VERSION }); } catch (_) { /* seeded in memory; retried on the next read */ }
+  }
   return cleanPlan({ projects: list }).projects;
 }
 function mergeCatalog(plan, catalog) {
   const byId = new Map(catalog.map(c => [c.id, c]));
-  const projects = plan.projects.map(p => byId.has(p.id) ? { ...p, ...Object.fromEntries(PFIELDS.map(k => [k, byId.get(p.id)[k]])) } : p);
+  const hidden = new Set(plan.hiddenProjects || []), used = new Set(plan.epics.map(e => e.projectId));
+  const projects = plan.projects.filter(p => !hidden.has(p.id) || used.has(p.id)).map(p => byId.has(p.id) ? { ...p, ...Object.fromEntries(PFIELDS.map(k => [k, byId.get(p.id)[k]])) } : p);
   const have = new Set(projects.map(p => p.id));
-  for (const c of catalog) if (!have.has(c.id) && projects.length < MAX.projects) projects.push(c);
+  for (const c of catalog) if (!have.has(c.id) && !hidden.has(c.id) && projects.length < MAX.projects) projects.push(c);
   return { ...plan, projects };
 }
 async function getPlan(store, teamId) {
@@ -102,12 +111,11 @@ async function savePlan(store, teamId, plan, expected) {
   const key = planKey(teamId), next = cleanPlan(plan);
   const prevDoc = await store.get('settings', key), prev = new Map(cleanPlan(prevDoc && prevDoc.plan).projects.map(p => [p.id, p]));
   const saved = await store.put('settings', key, { plan: next }, expected === undefined ? undefined : expected);
-  // Publish what this save changed (added, edited, removed projects) to the shared catalog so other teams see it.
+  // Publish what this save changed (added or edited projects) to the shared catalog so other teams see it. Removing a project only hides it for this team (hiddenProjects).
   try {
     const cat = new Map((await getCatalog(store)).map(c => [c.id, c]));
     let dirty = false;
     for (const p of next.projects) if (!sameProject(prev.get(p.id), p) && !sameProject(cat.get(p.id), p)) { cat.set(p.id, p); dirty = true; }
-    for (const id of prev.keys()) if (!next.projects.some(p => p.id === id) && cat.delete(id)) dirty = true;
     if (dirty) await store.put('settings', CATALOG_KEY, { projects: [...cat.values()].slice(0, 300) });
   } catch (_) { /* the team plan is saved; the catalog catches up on the next save */ }
   return { plan: mergeCatalog(cleanPlan(saved.plan), await getCatalog(store).catch(() => [])), revision: saved.revision, updatedAt: saved.updatedAt };

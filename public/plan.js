@@ -472,7 +472,7 @@ const msel=(f,ids,label,empty)=>{const mem=P.members.filter(isEng);
 const uid=p=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 const r2=n=>Math.round(n*100)/100,fmt=n=>String(r2(Number(n)||0));
 const iso=d=>d.toISOString().slice(0,10);
-const emptyPlan=()=>{const s=new Date(),e=new Date(Date.now()+91*864e5);return {window:{start:iso(s),end:iso(e)},people:{},projects:[],epics:[],lastCommit:null};};
+const emptyPlan=()=>{const s=new Date(),e=new Date(Date.now()+91*864e5);return {window:{start:iso(s),end:iso(e)},people:{},projects:[],epics:[],hiddenProjects:[],lastCommit:null};};
 
 // ── Capacity model (pure, recomputed on every edit) ─────────────────────────
 function workdays(start,end){
@@ -948,7 +948,7 @@ function delProjectDlg(pid,opener){
   go.onclick=async()=>{err.hidden=true;go.disabled=true;let warn=false,msg=`Removed “${projLabel(p)}” from the dashboard.`;
     try{
       if(gus&&gus.checked){await call('plan-delete-project',{teamId:H.team.Id,project:{gusId:p.gusId}});msg=`Deleted “${projLabel(p)}” from GUS and the dashboard.`;}
-      pl.projects=pl.projects.filter(x=>x.id!==pid);pl.epics=pl.epics.filter(e=>e.projectId!==pid);
+      pl.projects=pl.projects.filter(x=>x.id!==pid);pl.epics=pl.epics.filter(e=>e.projectId!==pid);pl.hiddenProjects=[...new Set([...(pl.hiddenProjects||[]),pid])]; // hidden for this team only; other teams keep the shared project
       closeModal();draw();queueSave();window.toast?.(msg,warn);
     }catch(e){err.textContent=String(e&&e.message||e)+(gus&&gus.checked?' The project was kept on the dashboard.':'');err.hidden=false;sync();}};
 }
