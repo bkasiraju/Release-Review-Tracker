@@ -2360,3 +2360,18 @@ input[type=file].v2w-in{padding:5px}
 .v2w .v2w-btn:disabled{opacity:.55;cursor:default}
 .v2w .v2w-btn:focus-visible{outline:2px solid #0b5cab;outline-offset:2px}
 .v2w-why{margin:6px 0 10px 18px;font-size:12px}
+/* 6.26.7 review step layout */
+.v2w .v2w-bar{display:flex!important;flex-wrap:wrap;gap:8px 12px;align-items:center;margin:8px 0}
+.v2w .v2w-bar label{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;margin:0}
+.v2w .v2w-bar .v2w-in{width:auto!important;min-width:0}
+.v2w .v2w-cnt{margin-left:auto;font-size:12px;font-weight:700;color:#0b5cab;background:none;border:0;padding:0}
+.v2w .v2w-hint{font-size:12px;color:#5b6b7c;background:none!important;border:0!important;padding:0!important}
+.v2w .v2w-list{max-height:52vh;overflow:auto;padding:2px 12px}
+.v2w .v2w-g h4{position:sticky;top:0;background:#fff;margin:0;padding:10px 0 6px;font-size:13px;z-index:1}
+.v2w .v2w-r{display:grid!important;grid-template-columns:20px minmax(0,1fr);gap:0 10px;align-items:start;padding:8px 0;border-top:1px solid #eef3f8}
+.v2w .v2w-ck{width:16px!important;height:16px!important;margin:7px 0 0!important;padding:0!important;justify-self:start!important}
+.v2w .v2w-rb{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 10px;min-width:0}
+.v2w .v2w-rb .v2w-in{grid-column:1;width:100%!important;min-width:0}
+.v2w .v2w-rb .v2w-c{grid-column:2;align-self:center;font-size:11px;white-space:nowrap;color:#5b6b7c}
+.v2w .v2w-rb .v2w-c.bad{color:#b3261e;font-weight:700}
+.v2w .v2w-rb .v2w-o{grid-column:1 / -1;font-size:11px;color:#5b6b7c;line-height:1.35;overflow-wrap:anywhere}
