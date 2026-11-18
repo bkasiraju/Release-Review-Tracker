@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.1-GA (18 November 2026)
+
+Fixed the V2MOM Import button: the wizard script read `window.Hub` before hub.js had loaded, so clicking it threw "Cannot read properties of undefined (reading 'hasTeam')". It now looks the hub up when clicked. The ERR_TOO_MANY_REDIRECTS lines for GUS profile photos are a GUS session issue, unrelated to this app. Mocked only; not checked in a browser.
+
 ## 6.26.0-GA (18 November 2026)
 
 - **V2MOM Import** button next to "Open in GUS": a 3-step wizard reads a V2MOM Google Sheet link (link-shared) or an .xlsx, filters measures by owner, lets you pick and rename them, then creates them as GUS projects under the program you name (default: the team's program) and adds them to the current team's plan with their V2MOM methods. Projects join the shared catalog.

@@ -2,13 +2,14 @@
  * under the program the user names, for the current team. Opened from the button next to "Open in GUS". */
 (function(){
 'use strict';
-const H=window.Hub,esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const NAME_MAX=80,call=(a,d)=>window.api(a,d);
-const LS=k=>'ri-v2mom-'+k+'-'+(H.team&&H.team.Id);
+const LS=k=>'ri-v2mom-'+k+'-'+(window.Hub.team&&window.Hub.team.Id);
 const get=k=>{try{return localStorage.getItem(LS(k))||'';}catch(_){return '';}},put=(k,v)=>{try{localStorage.setItem(LS(k),v);}catch(_){}};
-const shortOf=()=>String(H.team&&(H.team.short||H.team.Name)||'').replace(/[^A-Za-z0-9&]+/g,' ').trim().split(' ').map((w,i,a)=>a.length>1?w[0].toUpperCase():w).join('').slice(0,8);
+const shortOf=()=>{const H=window.Hub;return String(H.team&&(H.team.short||H.team.Name)||'').replace(/[^A-Za-z0-9&]+/g,' ').trim().split(' ').map((w,i,a)=>a.length>1?w[0].toUpperCase():w).join('').slice(0,8);};
 
 function open(){
+  const H=window.Hub;if(!H){alert('The hub is still loading. Try again in a moment.');return;}
   if(!H.hasTeam()){window.toast?.('Pick a team first. The import creates projects for the selected team.',true);return;}
   const ov=document.createElement('div');ov.className='nd-overlay';
   ov.innerHTML=`<div class="nd-modal pl-modal v2w" role="dialog" aria-modal="true" aria-label="V2MOM measures import"><div class="nd-h"><h2>V2MOM measures import <small>${esc(H.team.Name)}</small></h2><button type="button" class="nd-x" data-x aria-label="Close">×</button></div><div class="nd-b" data-b></div></div>`;
