@@ -133,9 +133,10 @@ test('syncEpics writes grid edits to GUS epics of this team only and reports fai
   assert.match(r.results[1].err,/does not belong/);assert.match(r.results[2].err,/at most 80/);
 });
 
-test('createWorkstream makes a parent User Story with the Workstream + per-workstream themes, idempotently',async()=>{
+test('createWorkstream makes a parent User Story with the R<release>_<team>_Workstream theme, idempotently',async()=>{
   const EP='a0XEE00000EPC0001A',TAG='a1TEE00000TAG0001A',log=[],themes=new Map(),assigned=new Set();let nid=0,work=null;
   const sf={async query(q){log.push(['q',q]);
+      if(/FROM ADM_Scrum_Team__c/.test(q))return {records:[{Name:'Message Queue'}]};
       if(/FROM ADM_Epic__c/.test(q))return {records:q.includes(EP)?[{Id:EP,Name:'E'}]:[]};
       if(/FROM ADM_Product_Tag__c/.test(q))return {records:q.includes(TAG)?[{Id:TAG}]:[]};
       if(/FROM RecordType/.test(q))return {records:[{Id:'0129000000006gDAAQ'}]};
@@ -145,7 +146,7 @@ test('createWorkstream makes a parent User Story with the Workstream + per-works
       return {records:[]};},
     async create(o,f){log.push(['c',o,f]);const id=o.slice(4,7)+'EE0000000'+String(++nid).padStart(6,'0');
       if(o==='ADM_Work__c')work=id;if(o==='ADM_Theme__c')themes.set(f.Name,id);if(o==='ADM_Theme_Assignment__c')assigned.add(f.Theme__c+f.Work__c);return {success:true,id};}};
-  const inp={epicGusId:EP,name:'API changes',assigneeId:ENG,tagId:TAG,projectShort:'HRP M1'};
+  const inp={epicGusId:EP,name:'API changes',assigneeId:ENG,tagId:TAG,};
   const r=await plan.createWorkstream(sf,T,inp);
   const w=log.find(x=>x[0]==='c'&&x[1]==='ADM_Work__c')[2];
   assert.deepEqual(w,{Subject__c:'WS: API changes',Epic__c:EP,Scrum_Team__c:T,RecordTypeId:'0129000000006gDAAQ',Product_Tag__c:TAG,Details__c:'Workstream "API changes" of epic "E". Engineers add their work items as child stories of this story (Parent).',Assignee__c:ENG});
@@ -196,4 +197,28 @@ test('createWorkstream tags the story with R<release>_<team>_Workstream, reusing
   assert.deepEqual(created,['R269_MAPS_Workstream']);
   work=null;r=await plan.createWorkstream(mk({fail:true}),T,inp);
   assert.ok(r.warnings.length===1&&!/[<>]/.test(r.warnings[0]),JSON.stringify(r.warnings));
+});
+
+test('workstream theme short forms per team; unmapped team warns and applies no theme; duplicate wording and object errors are handled',async()=>{
+  const EP='a0XEE00000EPC0001A',TAG='a1TEE00000TAG0001A',THEME='a0pEE000001Dfb3YAC';let work,team,created,assigned,first;
+  const mk=(o={})=>({async query(q){
+      if(/FROM ADM_Scrum_Team__c/.test(q))return {records:[{Name:team}]};
+      if(/FROM ADM_Epic__c/.test(q))return {records:[{Id:EP,Name:'E'}]};
+      if(/FROM ADM_Product_Tag__c/.test(q))return {records:[{Id:TAG}]};
+      if(/FROM RecordType/.test(q))return {records:[{Id:'0129000000006gDAAQ'}]};
+      if(/FROM ADM_Work__c/.test(q))return {records:work?[{Id:work}]:[]};
+      if(/FROM ADM_Theme__c/.test(q)){const hit=o.race&&!first;first=false;return {records:hit?[]:o.race?[{Id:THEME}]:[]};}
+      return {records:[]};},
+    async create(obj,f){if(obj==='ADM_Work__c'){work='a0WEE0000000000001';return {success:true,id:work};}
+      if(obj==='ADM_Theme__c'){created.push(f.Name);return o.race?{success:false,errors:[{message:'duplicate value found: Name duplicates value on record',statusCode:'DUPLICATE_VALUE'}]}:{success:true,id:'a0pEE000000000NEW1'};}
+      assigned.push(f.Theme__c);return {success:true,id:'a0qEE0000000000001'};}});
+  const run=async(name,o,id)=>{work=null;team=name;created=[];assigned=[];first=false;return plan.createWorkstream(mk(o),id,{epicGusId:EP,name:'API',tagId:TAG});};
+  const ids=['a00B0000000w4ZjIAI','a00B0000000w4ZkIAI','a00B0000000w4ZlIAI','a00B0000000w4ZmIAI','a00B0000000w4ZnIAI','a00B0000000w4ZoIAI'];
+  const cases=[['Message Queue','MQ'],['Managed Async Processing Service (MAPS)','MAPS'],['VegaCache FACE','VC-FACE'],['VegaStore','VS'],['Caching Services','VC']];
+  for(const [i,[n,sh]] of cases.entries()){const r=await run(n,{},ids[i]);assert.deepEqual(r.themes,[`R268_${sh}_Workstream`],n);assert.deepEqual(created,[`R268_${sh}_Workstream`]);}
+  const u=await run('Some Other Team',{},ids[5]);   // no short form: no shared catch-all theme
+  assert.deepEqual(u.themes,[]);assert.equal(u.warnings.length,1);assert.match(u.warnings[0],/no theme short form/);assert.deepEqual(created,[]);assert.deepEqual(assigned,[]);
+  first=true;work=null;team='Message Queue';created=[];assigned=[];   // lost a creation race: GUS answers DUPLICATE_VALUE, theme is re-found
+  const rr=await plan.createWorkstream(mk({race:true}),'a00B0000000w4ZpIAI',{epicGusId:EP,name:'API',tagId:TAG});
+  assert.deepEqual(rr.warnings,[]);assert.deepEqual(assigned,[THEME]);
 });

@@ -220,10 +220,17 @@ async function createEpic(sf, teamId, input) {
 }
 
 // A workstream in GUS is a parent User Story ("WS: <name>") on the epic, so engineers' own stories hang under it via Parent__c.
-// Two themes mark it: the shared "Workstream" theme (find every workstream) and one per workstream (find the stories under it).
+// One generic theme marks it, so workstreams are easy to tell apart from engineers' user stories.
 const WS_PREFIX = 'WS: ', THEME_NAME_MAX = 80;
 // One generic theme separates workstream stories from the engineers' user stories: R<release>_<team>_Workstream, e.g. R268_MQ_Workstream.
-const wsThemeName = (release, short) => `R${release}_${String(short || '').replace(/[^A-Za-z0-9]+/g, '')}_Workstream`.replace('__', '_').slice(0, THEME_NAME_MAX);
+const THEME_SHORT = [[/message queue/i, 'MQ'], [/maps|managed async/i, 'MAPS'], [/vegacache.*face/i, 'VC-FACE'], [/vegastore/i, 'VS'], [/vegacache|caching services/i, 'VC']];
+const themeShort = name => (THEME_SHORT.find(([re]) => re.test(String(name || ''))) || [])[1] || '';
+const wsThemeName = (release, short) => short ? `R${release}_${short}_Workstream`.slice(0, THEME_NAME_MAX) : '';
+async function teamName(sf, teamId) {
+  const t = ((await sf.query(`SELECT Name FROM ADM_Scrum_Team__c WHERE Id = '${teamId}' LIMIT 1`)).records || [])[0];
+  return t ? t.Name : '';
+}
+const errText = c => ((c && c.errors) || []).map(x => (x && (x.message || x.errorCode)) || x).join(', ');
 const plain = m => String(m || '').replace(/<[^>]*(?:>|$)/g, '').replace(/[<>]/g, '').replace(/\s+/g, ' ').trim(); // GUS error text can carry HTML links
 // GUS theme names are unique across the org, so a theme another team (or an earlier run) already owns is reused instead of re-created.
 async function ensureTheme(sf, teamId, name) {
@@ -234,15 +241,15 @@ async function ensureTheme(sf, teamId, name) {
   try { c = await sf.create('ADM_Theme__c', { Name: name, Scrum_Team__c: teamId, Active__c: true }); }
   catch (e) { c = { errors: [String(e && e.message || e)] }; }
   if (ok(c) && newId(c)) return newId(c);
-  const msg = ((c && c.errors) || []).map(x => (x && x.message) || x).join(', ');
-  if (/already exists/i.test(msg)) { const id = await find(''); if (id) return id; } // created by someone else a moment ago
+  const msg = errText(c);
+  if (/already exists|duplicate/i.test(msg)) { const id = await find(''); if (id) return id; } // created by someone else a moment ago
   throw new Error('GUS rejected the theme "' + name + '": ' + plain(msg));
 }
 async function assignTheme(sf, themeId, workId) {
   const hit = ((await sf.query(`SELECT Id FROM ADM_Theme_Assignment__c WHERE Theme__c = '${themeId}' AND Work__c = '${workId}' LIMIT 1`)).records || [])[0];
   if (hit) return;
   const c = await sf.create('ADM_Theme_Assignment__c', { Theme__c: themeId, Work__c: workId });
-  if (!ok(c)) throw new Error('GUS rejected the theme assignment: ' + ((c && c.errors) || []).join(', '));
+  if (!ok(c)) throw new Error('GUS rejected the theme assignment: ' + plain(errText(c)));
 }
 // GUS rejects a User Story whose details are under 20 characters.
 const wsDetails = (epic, name, d) => `Workstream "${name}" of epic "${epic}"${d ? ` (planned ${d} days)` : ''}. Engineers add their work items as child stories of this story (Parent).`.slice(0, 2000);
@@ -272,8 +279,9 @@ async function createWorkstream(sf, teamId, input) {
   const themes = [], warnings = [];
   const release = ((epic.Planned_Release__r && epic.Planned_Release__r.Name || '').match(/\d{3,}/) || [PROGRAM_RELEASE])[0];
   try {
-    const t = wsThemeName(release, await teamShort(sf, teamId));
-    await assignTheme(sf, await ensureTheme(sf, teamId, t), workId); themes.push(t);
+    const t = wsThemeName(release, themeShort(await teamName(sf, teamId)));
+    if (!t) warnings.push('Workstream theme not applied: this team has no theme short form (MQ, MAPS, VC, VC-FACE, VS). Add one in the planner code.');
+    else { await assignTheme(sf, await ensureTheme(sf, teamId, t), workId); themes.push(t); }
   } catch (e) { warnings.push(plain(e && e.message || e).slice(0, 200)); }
   return { gusId: workId, created, themes, warnings };
 }
