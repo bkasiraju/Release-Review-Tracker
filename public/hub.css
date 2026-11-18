@@ -2239,7 +2239,6 @@ html body[data-hub=plan] .pl-g-proj .pl-open-gus.pl-open-inline svg{width:12px;h
 
 /* 6.18.0 darker green row highlight */
 html body[data-hub=plan] .pl-g-proj:hover td,html body .pl-g-proj:hover td,html body[data-hub=plan] .pl-grid tbody tr[data-e]:hover>td{background:#b7dcc2!important}
-html body[data-hub=plan] .pl-g-proj:hover .pl-pj-mt,html body[data-hub=plan] .pl-g-proj:hover .pl-pj-add,html body[data-hub=plan] .pl-g-proj:hover .pl-open-gus{background:#e6f4ea}
 
 /* 6.19.0 compact, clearer KPI tiles */
 html body[data-hub=plan] .pl-kpis{gap:8px!important;margin:0 0 10px!important}
@@ -2251,3 +2250,7 @@ html body[data-hub=plan] .pl-kpi b{font-size:18px!important;line-height:1.1!impo
 html body[data-hub=plan] .pl-kpi b i{font-size:11px!important;margin-left:2px;font-style:normal}
 html body[data-hub=plan] .pl-kpi-b small{font-size:10.5px!important;line-height:1.25!important;color:#4b5b6e!important;-webkit-line-clamp:1!important}
 html body[data-hub=plan] .pl-kpi .pl-chip{top:5px!important;right:6px!important;font-size:9.5px!important;padding:0 6px!important;line-height:15px}
+
+/* 6.20.0 planned release picker */
+html body[data-hub=plan] .pl-dates{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+html body[data-hub=plan] #pl-rel{min-width:260px;max-width:420px;height:32px}

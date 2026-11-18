@@ -75,7 +75,7 @@ function cleanPlan(input) {
   const last = p.lastCommit && typeof p.lastCommit === 'object' ? { at: text(p.lastCommit.at, 40), created: Number(p.lastCommit.created) || 0, updated: Number(p.lastCommit.updated) || 0 } : null;
   // Catalog projects this team removed from its own dashboard (the shared catalog and other teams are untouched)
   const hiddenProjects = [...new Set((Array.isArray(p.hiddenProjects) ? p.hiddenProjects : []).filter(v => LOCAL.test(String(v || ''))).map(String))].slice(0, MAX.projects);
-  return { window: { start: ISO.test(w.start) ? w.start : '', end: ISO.test(w.end) ? w.end : '' }, people, projects, epics, hiddenProjects, lastCommit: last };
+  return { window: { start: ISO.test(w.start) ? w.start : '', end: ISO.test(w.end) ? w.end : '', releaseId: gid(w.releaseId) }, people, projects, epics, hiddenProjects, lastCommit: last };
 }
 
 // Programs are per team and release, named "<Team> - <release>" in GUS
@@ -148,7 +148,7 @@ async function loadRefs(sf, teamId) {
   const seen = new Map(used.map(r => [r.p, { id: r.p, name: r.n, programId: r.g || '', programName: r.gn || '' }]));
   for (const r of inProg) seen.set(r.Id, { ...(seen.get(r.Id) || { id: r.Id, name: r.Name, programId: teamProg.id, programName: teamProg.name }), method: r.V2MOM_Method__c || '' });
   return {
-    releases: releases.map(r => ({ id: r.Id, name: r.Name })),
+    releases: releases.map(r => ({ id: r.Id, name: r.Name, start: r.Start_Date__c || '', end: r.End_Date__c || '' })),
     programs: programs.map(r => ({ id: r.Id, name: r.Name })),
     projects: [...seen.values()].sort((a, b) => a.name.localeCompare(b.name)),
     sprints: sprints.map(r => ({ name: r.Name, start: r.Start_Date__c, end: r.End_Date__c })),
@@ -374,10 +374,10 @@ const releasePrefix = n => String(n || '').replace(/\s*-?\s*\d+\s*$/, '').trim()
 async function teamReleases(sf, teamId, futureOnly) {
   const when = futureOnly ? ' AND (End_Date__c >= TODAY OR End_Date__c = null)' : '';
   // The team lookup and the team's own releases do not depend on each other, so they run together.
-  const [short, ownRes] = await Promise.all([teamShort(sf, teamId).catch(() => null), sf.query(`SELECT Id, Name FROM ADM_Planned_Release__c WHERE Team__c = '${teamId}'${when} ORDER BY Start_Date__c, Name LIMIT 100`)]);
+  const [short, ownRes] = await Promise.all([teamShort(sf, teamId).catch(() => null), sf.query(`SELECT Id, Name, Start_Date__c, End_Date__c FROM ADM_Planned_Release__c WHERE Team__c = '${teamId}'${when} ORDER BY Start_Date__c, Name LIMIT 100`)]);
   const own = ownRes.records || [];
   if (!short) return own;
-  const byName = ((await sf.query(`SELECT Id, Name FROM ADM_Planned_Release__c WHERE Name LIKE '${soql(short)} %'${when} ORDER BY Start_Date__c, Name LIMIT 100`).catch(() => ({}))).records || []);
+  const byName = ((await sf.query(`SELECT Id, Name, Start_Date__c, End_Date__c FROM ADM_Planned_Release__c WHERE Name LIKE '${soql(short)} %'${when} ORDER BY Start_Date__c, Name LIMIT 100`).catch(() => ({}))).records || []);
   const seen = new Set(), names = new Set(), mine = [...own, ...byName].filter(r => !seen.has(r.Id) && seen.add(r.Id) && releasePrefix(r.Name) === short.toLowerCase() && !names.has(r.Name) && names.add(r.Name));
   return mine.length ? mine : own;
 }

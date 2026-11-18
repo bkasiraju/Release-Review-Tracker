@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.20.0-GA (18 November 2026)
+
+New "Planned Release" dropdown above the Release Window dates in Release Planning. Each option shows the GUS planned release with its start and end dates; picking one fills the window dates automatically from GUS, and the capacity figures recalculate. "Custom dates" lets you type your own dates, and editing a date by hand switches the dropdown back to Custom. The choice is saved with the plan. Releases without dates in GUS cannot fill the window. Also includes the 6.18.0 darker green row highlight (project and epic rows) and the 6.19.0 compact summary tiles; the open-in-GUS icon and the +Epic and V2MOM buttons keep their own hover colours on a highlighted row. Mocked GUS only; not checked in a browser.
+
 ## 6.19.0-GA (18 November 2026)
 
 The ten summary tiles at the top of Release Planning are smaller (about 50px tall instead of 72px). Each tile now has a clearer, darker label in capitals, a bold value with its unit (d = days), and a one-line explanation underneath; hover a tile to read the full explanation. The status chip stays at the top right. Mocked GUS only; not checked in a browser.
