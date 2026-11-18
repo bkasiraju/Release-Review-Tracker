@@ -2202,3 +2202,18 @@ html body .pl-grid .pl-cf::placeholder{color:#9aa8b6}
 html body .pl-grid .pl-cf:focus{outline:2px solid #cfe6fb;border-color:#0176d3}
 html body .pl-grid .pl-cf:not(:placeholder-shown){background:#eaf3fb;border-color:#9cc3e6}
 html body .pl-grid .pl-cf-clear{height:24px;padding:0 8px;font-size:12px;color:#0b5cab;background:#fff;border:1px solid #c5d9ee;border-radius:6px;cursor:pointer}
+/* 6.14.0 compact planner: smaller type, one neutral palette, no per-project colour lines */
+html body[data-hub=plan] .pl-grid th{font-size:11px!important;padding:6px 6px!important;text-transform:none}
+html body[data-hub=plan] .pl-g-proj td{padding:4px 10px!important;border-top:1px solid #e1e8ef!important;background:#f8fafc}
+html body[data-hub=plan] .pl-g-proj:first-of-type td{border-top:0!important}
+html body[data-hub=plan] .pl-g-proj td,html body[data-hub=plan] .pl-g-proj td:first-child{box-shadow:inset 3px 0 color-mix(in srgb,var(--pc,#a8b7c7) 45%,#fff)!important}
+html body[data-hub=plan] .pl-g-proj .pl-pj-n{font-size:12.5px;font-weight:600;color:#16325c}
+html body[data-hub=plan] .pl-g-proj .pl-pj-mt{font-size:10.5px;padding:0 7px;line-height:1.6}
+html body[data-hub=plan] .pl-g-proj .pl-pj-m{font-size:11px}
+html body[data-hub=plan] .pl-g-proj .pl-gsum i{font-size:10.5px;padding:2px 8px}
+html body[data-hub=plan] .pl-g-proj .pl-pj-add{height:22px;font-size:11px;padding:0 8px}
+html body[data-hub=plan] .pl-g-proj .pl-pj-del{height:22px;width:26px;font-size:11px}
+html body[data-hub=plan] .pl-g-proj .pl-open-gus{width:16px;height:16px}
+html body[data-hub=plan] .pl-g-proj .pl-caret{font-size:11px;width:18px;height:18px}
+html body .pl-grid .pl-cf{height:22px!important;min-height:22px!important;font-size:11px!important}
+html body[data-hub=plan] .pl-grid .pl-cf-row th{top:28px}

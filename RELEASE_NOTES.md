@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.14.0-GA (18 November 2026)
+
+Compact Release Planning table. Smaller type throughout: column headers 11px, project names 12.5px (were 14px bold), V2MOM chip, epic/ABL/BTL counters and "+ Epic"/delete buttons 10.5-11px, and tighter project rows. The per-project coloured lines are gone; project rows use one thin neutral separator with a faint left accent in the project colour. Same structure and columns. Also the column search boxes are now 22px. Note: 6.11.1 to 6.13.1 were uploaded but their activation was rejected (the review verdict used an invalid recommendation value), so they were not live until 6.13.1-GA was activated; this release includes all of them. Not checked in a browser.
+
 ## 6.13.1-GA (18 November 2026)
 
 Review fixes for the column search. The Doc, HRP V2MOM and CFS V2MOM column searches now look at what those columns show (the Doc search matched nothing before). Searches in a column you then hide no longer filter silently. Creating an epic, clicking a summary tile, or "Clear filters" also clears the column searches, and "Clear filters" is enabled when only column searches are set. Typing no longer pulls focus back from a cell you clicked into, and the search boxes keep their 24px size. Not checked in a browser.
