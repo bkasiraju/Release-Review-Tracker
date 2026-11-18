@@ -325,7 +325,7 @@ async function moveSelected(btn){
     const {next,current}=await nextSprint();
     if(!next){window.toast?.('No next sprint exists for this team yet. Create it in GUS first.',true);return;}
     const n=S.sel.size;
-    if(!await H.confirm({title:`Move ${n} work item${n>1?'s':''} to the next sprint?`,message:`Move ${n} work item${n>1?'s':''} from ${current.Name} to ${next.Name}?\n\nThis updates the Sprint field in GUS. Closed items are not moved.`,ok:'Move'}))return;
+    if(!await window.Hub.confirm({title:`Move ${n} work item${n>1?'s':''} to the next sprint?`,message:`Move ${n} work item${n>1?'s':''} from ${current.Name} to ${next.Name}?\n\nThis updates the Sprint field in GUS. Closed items are not moved.`,ok:'Move'}))return;
     btn.textContent='Moving…';
     const r=await call('sprint-move-next',{teamId:S.teamId,sprintId:S.sprintId,ids:[...S.sel]});
     S.sel.clear();nextCache.clear();

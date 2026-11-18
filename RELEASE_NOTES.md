@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.22.2-GA (18 November 2026)
+
+Full screen: the "+ Epic" and "+ Project" dialogs, the confirmation dialogs, the tooltips and the other pop-ups were drawn behind the planner while it was in browser full screen, so they could not be seen. They are now attached inside the full-screen element so they always appear on top, and they move there if you enter or leave full screen while one is open. Also fixes from the 6.22.1 review: "Move to next sprint" no longer fails with "H is not defined", Escape now closes the confirmation dialog and the Open in GUS menu instead of being swallowed by the page, and the Create drafts / Review & save button keeps its permission tooltip. Mocked only; not checked in a browser.
+
 ## 6.22.1-GA (18 November 2026)
 
 Review fixes. The in-app confirm dialog definition no longer fails when the page loads (it also stopped the new Open in GUS menu from working). The "Create N drafts in GUS" button is now always visible: it counts only above-the-line drafts, and when there are none it reads "Review & save to GUS" again, because that action still re-saves project, priority and description changes that edits do not send on their own. The Open in GUS menu opens leftwards on the planner so it is not cut off, and the arrow keys are safer. Mocked only; not checked in a browser.

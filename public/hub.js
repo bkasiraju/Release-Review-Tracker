@@ -397,6 +397,7 @@ const escHandlers=new Map();
 H.onEsc=(id,fn)=>escHandlers.set(id,fn);
 document.addEventListener('keydown',e=>{
   if(e.key!=='Escape'||e.repeat||e.defaultPrevented)return;
+  if(document.querySelector('.hub-confirm-ov')||(e.target.closest&&e.target.closest('.gus-menu')))return; // the confirm dialog / GUS menu handle their own Escape
   const om=document.querySelector('.cs.open');if(om){om.classList.remove('open');om.querySelector('.cs-btn').setAttribute('aria-expanded','false');e.preventDefault();e.stopImmediatePropagation();return;}
   const id=document.body.dataset.hub;if(!id||id==='epics'||document.querySelector('.nd-overlay'))return;
   if(!(escHandlers.get(id)&&escHandlers.get(id)())){
@@ -492,6 +493,8 @@ async function boot(){
   if(H.standalone)setFocus(true);
   H.prefetch(H.team.Id);H.preloadPeople();
 }
+/** Where body-level popups (dialogs, tooltips, pickers) must attach: in native full screen only the fullscreen element's subtree is drawn. */
+H.popHost=()=>document.fullscreenElement||document.body;
 window.Hub=H;
 document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,0));
 })();
@@ -508,7 +511,7 @@ window.Hub.confirm=o=>new Promise(res=>{
   const done=v=>{document.removeEventListener('keydown',key,true);ov.remove();try{prev&&prev.focus&&prev.focus();}catch(_){}res(v);};
   const key=e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();done(false);}else if(e.key==='Tab'){const b=[...ov.querySelectorAll('button')],i=b.indexOf(document.activeElement);e.preventDefault();b[(i+(e.shiftKey?-1:1)+b.length)%b.length].focus();}};
   ov.addEventListener('click',e=>{const b=e.target.closest('[data-hc]');if(b)done(b.dataset.hc==='1');else if(e.target===ov)done(false);});
-  document.addEventListener('keydown',key,true);document.body.appendChild(ov);ov.querySelector('[data-hc="1"]').focus();
+  document.addEventListener('keydown',key,true);window.Hub.popHost().appendChild(ov);ov.querySelector('[data-hc="1"]').focus();
 });
 
 /* Open in GUS menu: toggle, close on outside click / Escape, arrow-key navigation */

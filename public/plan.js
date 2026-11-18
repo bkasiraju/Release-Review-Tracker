@@ -465,7 +465,7 @@ function confirmAt(btn,msg,onOk){
   document.querySelectorAll('.pl-confirm').forEach(x=>x.remove());
   const d=document.createElement('div');d.className='pl-confirm';d.setAttribute('role','alertdialog');d.setAttribute('aria-label',msg);
   d.innerHTML=`<p>${esc(msg)}</p><div><button type="button" class="button small" data-no>Cancel</button><button type="button" class="button small danger" data-yes>Delete</button></div>`;
-  document.body.appendChild(d);
+  H.popHost().appendChild(d);
   const r=btn.getBoundingClientRect(),w=d.offsetWidth,h=d.offsetHeight;
   d.style.left=Math.max(8,Math.min(innerWidth-w-8,r.left+r.width/2-w/2))+'px';d.style.top=(r.top-h-8<8?r.bottom+8:r.top-h-8)+'px';
   const close=()=>{d.remove();document.removeEventListener('mousedown',away,true);document.removeEventListener('keydown',key,true);btn.focus();};
@@ -663,7 +663,7 @@ document.addEventListener('focusout',hideTip);document.addEventListener('keydown
 function hideTip(){if(ttEl){ttEl.remove();ttEl=null;}}
 function showTip(host){
   const x=P.engRows&&P.engRows.find(r=>String(r.id)===host.dataset.tipEng);if(!x||!x.cap){return;}
-  hideTip();ttEl=document.createElement('div');ttEl.className='pl-tt';ttEl.setAttribute('role','tooltip');ttEl.innerHTML=engTipHtml(x);document.body.appendChild(ttEl);
+  hideTip();ttEl=document.createElement('div');ttEl.className='pl-tt';ttEl.setAttribute('role','tooltip');ttEl.innerHTML=engTipHtml(x);H.popHost().appendChild(ttEl);
   const r=host.getBoundingClientRect(),w=ttEl.offsetWidth,h=ttEl.offsetHeight;
   let left=Math.min(Math.max(8,r.right-w),innerWidth-w-8),top=r.top-h-8;if(top<8)top=Math.min(r.bottom+8,innerHeight-h-8);
   ttEl.style.left=left+'px';ttEl.style.top=top+'px';
@@ -694,7 +694,7 @@ function applyKpi(a){
   const g=P.el.querySelector('#pl-planner');if(g&&P.tab!=='rps')g.scrollIntoView({block:'nearest'});
 }
 // Epics are created in GUS when added and most edits sync automatically; this button creates ABL drafts (e.g. imported) and re-saves project, priority and description.
-function syncCommitBtn(){const b=P.el&&P.el.querySelector('#pl-commit');if(!b||!P.plan)return;const n=P.plan.epics.filter(e=>!e.gusId&&e.line==='ABL').length;b.hidden=false;b.textContent=n?`Create ${n} draft${n===1?'':'s'} in GUS`:'Review & save to GUS';b.title=n?'':'Re-save project, priority and description changes to GUS';}
+function syncCommitBtn(){const b=P.el&&P.el.querySelector('#pl-commit');if(!b||!P.plan)return;const n=P.plan.epics.filter(e=>!e.gusId&&e.line==='ABL').length;b.hidden=false;b.textContent=n?`Create ${n} draft${n===1?'':'s'} in GUS`:'Review & save to GUS';if(!b.disabled)b.title=n?'':'Re-save project, priority and description changes to GUS';}
 function drawSummary(){
   syncCommitBtn();
   if(P.tab==='rps')drawRps();
@@ -883,7 +883,7 @@ function openMsPop(btn,c){
   if(c.w){const e=findE(c.e),w=e&&e.workstreams.find(x=>x.id===c.w);if(!w)return;cur=wsEngs(w);}else if(c.e){const e=findE(c.e);if(!e)return;cur=e.owners||[];}else return;
   const mem=P.members.filter(isEng),pop=document.createElement('div');pop.className='pl-mspop';pop.setAttribute('role','dialog');pop.setAttribute('aria-label',f==='owners'?'Epic owners':'Workstream owners');
   pop.innerHTML=`<b>${f==='owners'?'Epic owners':'Workstream owners'}</b><div class="pl-ms-l">${mem.map(m=>`<label><input type="checkbox" value="${esc(m.id)}"${cur.includes(m.id)?' checked':''}> ${esc(m.name)}</label>`).join('')||'<p class="note">No team members</p>'}</div><div class="pl-ms-a"><button type="button" class="button" data-x>Cancel</button><button type="button" class="button primary" data-ok>Save</button></div>`;
-  document.body.appendChild(pop);
+  H.popHost().appendChild(pop);
   const r=btn.getBoundingClientRect(),h=pop.offsetHeight,w=pop.offsetWidth;
   pop.style.left=Math.max(8,Math.min(r.left,innerWidth-w-8))+'px';pop.style.top=(r.top-h-6>=8?r.top-h-6:Math.min(r.bottom+6,innerHeight-h-8))+'px';
   const off=ev=>{if(!pop.contains(ev.target)&&!btn.contains(ev.target))end();},esc_=ev=>{if(ev.key==='Escape'){end();btn.focus();}};
@@ -931,7 +931,7 @@ function toggleFs(force){
   const b=box.querySelector('#pl-fs-btn');if(b){b.textContent=on?'Exit full screen':'Full screen';b.setAttribute('aria-pressed',String(on));}
   try{if(on&&!document.fullscreenElement&&box.requestFullscreen)box.requestFullscreen().catch(()=>{});else if(!on&&document.fullscreenElement)document.exitFullscreen().catch(()=>{});}catch(_){}
 }
-document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement)toggleFs(false);});
+document.addEventListener('fullscreenchange',()=>{const host=H.popHost();document.querySelectorAll('.nd-overlay,.hub-confirm-ov,.pl-tt,#ui-tooltip').forEach(x=>{if(x.parentNode!==host)host.appendChild(x);});if(!document.fullscreenElement)toggleFs(false);});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.querySelector('.pl-fs-on')&&!document.querySelector('.cs.open,.ms.open')){toggleFs(false);e.stopImmediatePropagation();}},true);
 function onClick(ev){
   const t=ev.target,c=ctxOf(t),pl=P.plan;
@@ -1001,7 +1001,7 @@ function delProjectDlg(pid,opener){
 function openModal(title,body,opener){
   closeModal();const el=document.createElement('div');el.className='nd-overlay';
   el.innerHTML=`<div class="nd-modal pl-modal" role="dialog" aria-modal="true" aria-labelledby="pl-mt"><div class="nd-head"><h2 id="pl-mt">${esc(title)}</h2><button type="button" class="nd-x" data-close aria-label="Close">×</button></div><div id="pl-mb">${body}</div></div>`;
-  document.body.appendChild(el);
+  H.popHost().appendChild(el);
   modal={el,opener,key:e=>{if(e.key==='Escape'){e.stopImmediatePropagation();e.preventDefault();closeModal();}}};document.addEventListener('keydown',modal.key,true);
   el.addEventListener('click',e=>{if(e.target===el||e.target.closest('[data-close]'))closeModal();});
   (el.querySelector('input,button.primary')||el.querySelector('[data-close]')).focus();return el;
