@@ -215,6 +215,7 @@ function newEpicAt(pid){
   const body=
     crSection('Epic',`<div class="pl-cr-seg" role="tablist" aria-label="Epic source"><button type="button" role="tab" data-mode="new">Create new epic</button><button type="button" role="tab" data-mode="pick">Add existing GUS epic</button></div>`+
       `<div class="pl-cr-pinfo s12"><b>Project</b> ${esc(projLabel(pr))}${pr.method?` · V2MOM: ${esc(pr.method)}`:''}${pr.gusId?'':' · new — created with the epic'}</div>`+
+      crField('Find any GUS epic','<span data-fnote>W-number, epic Id / GUS link, or name</span>',`<span class="pl-cr-find"><input class="hub-inline" type="search" data-fq placeholder="e.g. W-12345678, a3Q… or part of the epic name" autocomplete="off" aria-label="Find a GUS epic"><button type="button" class="button" data-fgo>Search</button></span>`,'s12 pl-cr-pick')+
       crField('GUS epic','<span data-pcnt>loading…</span>',`<select class="hub-inline" data-xe><option value="">Loading epics from GUS…</option></select>`,'s9 pl-cr-pick')+
       atl('s3 pl-cr-pick').replace('data-l','data-xl')+
       `<span class="pl-cr-pinfo s12 pl-cr-pick" data-xi></span>`+
@@ -280,8 +281,21 @@ function newEpicAt(pid){
   const sync=()=>{const f=filled();tagBox.hidden=!f||!!lastTag;el._gate=md==='new'||f>0;el._sync();el._deny();
     okb.dataset.label=okb.textContent=md==='pick'?(f?'Add epic & create workstreams':'Add epic'):'Create in GUS';
     note.textContent=md==='pick'?(f?'Adds the epic to this table and creates the workstreams in GUS.':'Adds the existing GUS epic to this table; nothing new is created.'):(f?`Creates the epic and ${f} workstream${f>1?'s':''} in GUS.`:'Created in GUS immediately when you confirm.');};
-  const showX=()=>{const x=xeps.find(g=>g.id===xSel.value);xInfo.textContent=x?[x.leadName&&'Lead: '+x.leadName,x.releaseName&&'Release: '+x.releaseName,x.points&&x.points+' days planned'].filter(Boolean).join('  ·  '):'';xInfo.title=xInfo.textContent;};
+  const showX=()=>{const x=xeps.find(g=>g.id===xSel.value);xInfo.textContent=x?[x.projectId&&x.projectId!==pr.gusId&&`Currently in project “${x.projectName||x.projectId}” — will be tagged to this project when saved to GUS`,x.leadName&&'Lead: '+x.leadName,x.releaseName&&'Release: '+x.releaseName,x.points&&x.points+' days planned'].filter(Boolean).join('  ·  '):'';xInfo.title=xInfo.textContent;};
   xSel.onchange=showX;
+  // Search all of GUS (not just this project): by the W-number of a work item in the epic, an epic Id/link, or epic name. Results are added to the list and can be tagged to this project.
+  const fq=el.querySelector('[data-fq]'),fnote=el.querySelector('[data-fnote]');let fseq=0;
+  const xlabel=g=>g.name+(g.projectId===pr.gusId&&pr.gusId?'':` — ${g.projectName||'no project'}${g.teamName?' · '+g.teamName:''}`);
+  const fill=(keep)=>{const inPlan=new Set(pl.epics.map(e=>e.gusId).filter(Boolean)),L=xeps.filter(g=>!inPlan.has(g.id));
+    xSel.innerHTML=`<option value="">${L.length?'Select an epic…':'No epics found'}</option>`+L.map(g=>opt(g.id,xlabel(g),g.id===keep)).join('');showX();};
+  const runFind=async()=>{const q=fq.value.trim(),my=++fseq;if(q.length<3){fnote.textContent='Type at least 3 characters.';return;}
+    fnote.textContent='Searching GUS…';try{const r=await call('plan-find-epics',{teamId:H.team.Id,query:q});if(my!==fseq)return;
+      const have=new Set(xeps.map(g=>g.id));(r.epics||[]).forEach(g=>{if(!have.has(g.id))xeps.push(g);});
+      const inPlan=new Set(pl.epics.map(e=>e.gusId).filter(Boolean)),hits=(r.epics||[]).filter(g=>!inPlan.has(g.id));
+      fnote.textContent=hits.length?`${hits.length} found${r.note?' · '+r.note:''}`:((r.epics||[]).length?'Already in the table':(r.note||'No epics found'));
+      fill(hits[0]&&hits[0].id);if(hits.length===1)xSel.value=hits[0].id;showX();}
+    catch(e){if(my===fseq)fnote.textContent=String(e&&e.message||e).slice(0,90);}};
+  el.querySelector('[data-fgo]').onclick=runFind;fq.addEventListener('keydown',ev=>{if(ev.key==='Enter'){ev.preventDefault();ev.stopPropagation();runFind();}});
   const setMode=k=>{md=k;
     el.querySelectorAll('[data-mode]').forEach(b=>{const on=b.dataset.mode===k;b.classList.toggle('on',on);b.setAttribute('aria-selected',String(on));});
     el.querySelectorAll('.pl-cr-new').forEach(n=>{n.hidden=k!=='new';});el.querySelectorAll('.pl-cr-pick').forEach(n=>{n.hidden=k!=='pick';});
@@ -291,7 +305,7 @@ function newEpicAt(pid){
   wsr.addEventListener('input',sync);
   wsr.addEventListener('click',ev=>{const x=ev.target.closest('[data-wx]');if(!x)return;if(wsr.children.length>1)x.closest('.pl-wsr').remove();else{x.closest('.pl-wsr').querySelectorAll('input').forEach(i=>{i.value='';});}sync();});
   call('plan-gus-epics',{teamId:H.team.Id}).then(r=>{const inPlan=new Set(pl.epics.map(e=>e.gusId).filter(Boolean));xeps=(r.epics||[]).filter(g=>!inPlan.has(g.id)&&pr.gusId&&g.projectId===pr.gusId);
-    xSel.innerHTML=xeps.length?`<option value="">Select an epic…</option>`+xeps.map(g=>opt(g.id,g.name,false)).join(''):opt('',pr.gusId?'No other epics of this project in GUS':'This project is not in GUS yet, so it has no GUS epics',true);
+    xSel.innerHTML=xeps.length?`<option value="">Select an epic…</option>`+xeps.map(g=>opt(g.id,g.name,false)).join(''):opt('',pr.gusId?'No other epics of this project — use Find above for any GUS epic':'Use Find above to add any GUS epic',true);
     pc.textContent=`${xeps.length} of this project not yet in the table`;},e=>{xSel.innerHTML=opt('','Could not load GUS epics',true);pc.textContent=String(e&&e.message||e).slice(0,60);});
   setMode('new');
 }
@@ -758,10 +772,10 @@ const wire=()=>{P.el.querySelectorAll('#pl-planner select').forEach(s=>H.customS
 let cfTimer;
 /** Inline column searches: update the filter and redraw the grid, keeping focus and caret in the box being typed in. */
 function wireColFilters(){const root=P.el.querySelector('#pl-planner');if(!root)return;
-  const redraw=(focus,pos,keep=true)=>{if(!P.plan)return;drawPlanner();drawTools();wire();if(focus&&keep){const i=P.el.querySelector(`.pl-cf[data-cf="${focus}"]`);if(i){i.focus();try{i.setSelectionRange(pos,pos);}catch(_){}}}};
+  const redraw=(focus,pos,keep=true)=>{if(!P.plan)return;drawTools();drawPlanner();wire();if(focus&&keep){const i=P.el.querySelector(`.pl-cf[data-cf="${focus}"]`);if(i){i.focus();try{i.setSelectionRange(pos,pos);}catch(_){}}}};
   root.querySelectorAll('.pl-cf').forEach(i=>{const go=()=>{const k=i.dataset.cf,pos=i.selectionStart;P.view.col=P.view.col||{};P.view.col[k]=i.value;clearTimeout(cfTimer);cfTimer=setTimeout(()=>redraw(k,pos,document.activeElement===i),150);};
     i.addEventListener('input',ev=>{if(!ev.isComposing)go();}); // wait for IME composition to finish
-    i.addEventListener('compositionend',go);});
+    i.addEventListener('compositionstart',()=>clearTimeout(cfTimer));i.addEventListener('compositionend',go);});
   const c=root.querySelector('[data-cf-clear]');if(c)c.onclick=()=>{P.view.col={};redraw();const f=P.el.querySelector('.pl-cf');if(f)f.focus();};}
 function drawTools(){
   const box=P.el.querySelector('#pl-tools'),pl=P.plan;if(!box||!pl)return;const V=P.view;

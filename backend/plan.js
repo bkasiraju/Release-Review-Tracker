@@ -307,6 +307,26 @@ async function listEpics(sf, teamId) {
   return { epics: rows.map(r => ({ id: r.Id, name: r.Name, projectId: r.Project__c || '', projectName: (r.Project__r && r.Project__r.Name) || '', method: (r.Project__r && r.Project__r.V2MOM_Method__c) || '', programId: (r.Project__r && r.Project__r.Program__c) || '', programName: (r.Project__r && r.Project__r.Program__r && r.Project__r.Program__r.Name) || '', releaseId: r.Planned_Release__c || '', releaseName: (r.Planned_Release__r && r.Planned_Release__r.Name) || '', leadId: r.Development_Lead__c || '', leadName: (r.Development_Lead__r && r.Development_Lead__r.Name) || '', points: Number(r.Planned_Story_Points__c) || 0 })) };
 }
 
+const EPIC_SEL = 'Id, Name, Team__r.Name, Project__c, Project__r.Name, Project__r.V2MOM_Method__c, Project__r.Program__c, Project__r.Program__r.Name, Planned_Release__c, Planned_Release__r.Name, Development_Lead__c, Development_Lead__r.Name, Planned_Story_Points__c';
+const epicRow = r => ({ id: r.Id, name: r.Name, teamName: (r.Team__r && r.Team__r.Name) || '', projectId: r.Project__c || '', projectName: (r.Project__r && r.Project__r.Name) || '', method: (r.Project__r && r.Project__r.V2MOM_Method__c) || '', programId: (r.Project__r && r.Project__r.Program__c) || '', programName: (r.Project__r && r.Project__r.Program__r && r.Project__r.Program__r.Name) || '', releaseId: r.Planned_Release__c || '', releaseName: (r.Planned_Release__r && r.Planned_Release__r.Name) || '', leadId: r.Development_Lead__c || '', leadName: (r.Development_Lead__r && r.Development_Lead__r.Name) || '', points: Number(r.Planned_Story_Points__c) || 0 });
+/** Find any GUS epic (any team or project) by a work item W-number (its epic), an epic record Id or a GUS link, or part of the epic name, so it can be tagged into a project. */
+async function findEpics(sf, teamId, query) {
+  planKey(teamId);
+  const q = text(query, 200);
+  if (q.length < 3) throw new Error('Type at least 3 characters, a W-number, or an epic Id.');
+  const w = /^\s*W-?(\d{4,9})\s*$/i.exec(q), idm = /\b(a3Q[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?)\b/.exec(q);
+  let where, note = '';
+  if (idm) where = `Id = '${idm[1]}'`;
+  else if (w) {
+    const wi = ((await sf.query(`SELECT Epic__c FROM ADM_Work__c WHERE Name = 'W-${w[1]}' LIMIT 1`)).records || [])[0];
+    if (!wi) return { epics: [], note: `No work item W-${w[1]} found.` };
+    if (!wi.Epic__c) return { epics: [], note: `W-${w[1]} is not linked to an epic.` };
+    where = `Id = '${gid(wi.Epic__c)}'`; note = `Epic of W-${w[1]}`;
+  } else where = `Name LIKE '%${soql(q).replace(/[%_]/g, '\\$&')}%'`;
+  const rows = (await sf.query(`SELECT ${EPIC_SEL} FROM ADM_Epic__c WHERE ${where} ORDER BY Name LIMIT 25`)).records || [];
+  return { epics: rows.map(epicRow), note };
+}
+
 // Write edits made in the plan grid through to epics that already exist in GUS (name, development lead = owner, planned release, effort).
 async function syncEpics(sf, teamId, epics) {
   planKey(teamId);
@@ -497,4 +517,4 @@ async function commitRun(sf, store, teamId, confirm, includeBtl, acknowledged) {
   return { results, failed: results.filter(x => !x.ok).length, plan: saved && saved.plan, revision: saved && saved.revision, saveError };
 }
 
-module.exports = { getPlan, savePlan, getRefs, commitPlan, createProject, deleteProject, createEpic, listEpics, createWorkstream, syncEpics, review, cleanPlan };
+module.exports = { getPlan, savePlan, getRefs, commitPlan, createProject, deleteProject, createEpic, listEpics, findEpics, createWorkstream, syncEpics, review, cleanPlan };

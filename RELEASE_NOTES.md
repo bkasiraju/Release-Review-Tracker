@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.16.0-GA (18 November 2026)
+
+Add any GUS epic to a project. In "Add epic" > "Add existing GUS epic" there is a new "Find any GUS epic" search. Enter the W-number of a work item (its epic is added), an epic Id or a GUS epic link, or part of the epic's name, and the matching epics from any team or project are listed (with their current project and team). Pick one, choose ABL/BTL, optionally add workstreams, and it is added to the table; saving the plan to GUS tags the epic to this project (its project is changed to this one). The dialog tells you when the epic currently belongs to another project. The list still starts with the project's own GUS epics. Also fixes from the 6.15.0 review: the "x of y epics" count no longer disappears while typing in a column search, and an input-method composition is no longer cut off by a pending redraw. Note that GUS epics have no W-number of their own; a W-number resolves to the epic of that work item. Tested against a mocked GUS only; not checked in a browser.
+
 ## 6.15.0-GA (18 November 2026)
 
 Remaining review items for the planner table. Project rows have 10px side padding as intended. The blue drop-position line shows again when dragging an epic row. The project row's GUS link, expand arrow, "+ Epic" and delete buttons are 24px click targets. Column search: the "x of y epics" count is announced to screen readers, typing with an input-method editor (Chinese, Japanese, etc.) is no longer interrupted by the redraw, "Clear filters" updates while you type in a column search, and the Status search matches the epic's own status only (workstream statuses are searched in the "WS status" column). Not checked in a browser.
