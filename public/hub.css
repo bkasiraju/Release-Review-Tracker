@@ -2254,3 +2254,6 @@ html body[data-hub=plan] .pl-kpi .pl-chip{top:5px!important;right:6px!important;
 /* 6.20.0 planned release picker */
 html body[data-hub=plan] .pl-dates{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
 html body[data-hub=plan] #pl-rel{min-width:260px;max-width:420px;height:32px}
+
+/* 6.21.0 draft button hidden when nothing to create */
+.heading-actions #pl-commit[hidden]{display:none!important}

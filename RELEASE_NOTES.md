@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.21.0-GA (18 November 2026)
+
+"Review & save to GUS" is now "Create N drafts in GUS" and only appears while the plan has epics that are not in GUS yet (for example epics from an import or below-the-line epics). Epics added in the app are created in GUS straight away and edits to saved epics sync automatically, so once everything is in GUS the button is hidden. The review dialog is unchanged. Mocked GUS only; not checked in a browser.
+
 ## 6.20.1-GA (18 November 2026)
 
 Fix for 6.20.0: the first manual edit of a release date after picking a planned release no longer snaps back. Also: a release with no GUS dates is no longer left half-cleared, ended releases show as "Saved release", and tile tooltips no longer double-escape "&" and apostrophes. Mocked GUS only; not checked in a browser.
