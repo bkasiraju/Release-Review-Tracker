@@ -2234,5 +2234,5 @@ html body[data-hub=plan] .pl-g-proj .pl-pj-del{min-width:26px}
 .pl-cr-find{display:flex;gap:8px;align-items:center}.pl-cr-find input{flex:1 1 auto;min-width:0}.pl-cr-find .button{flex:0 0 auto}
 
 /* 6.17.0 project open link sits next to the measure name */
-html body[data-hub=plan] .pl-g-proj .pl-open-gus.pl-open-inline{width:22px;height:22px;margin:0 8px 0 4px;flex:none;vertical-align:middle}
+html body[data-hub=plan] .pl-g-proj .pl-open-gus.pl-open-inline{width:24px;height:24px;margin:0 0 0 -4px;flex:none;vertical-align:middle}
 html body[data-hub=plan] .pl-g-proj .pl-open-gus.pl-open-inline svg{width:12px;height:12px}
