@@ -941,7 +941,8 @@ function provisionDlg(opener){
     <ul class="pl-iss" data-out></ul><p class="pl-del-err" role="alert" hidden></p>
     <div class="nd-actions"><button type="button" class="button" data-close>Close</button><button type="button" class="button primary" data-go>Create in GUS</button></div>`,opener);
   const go=el.querySelector('[data-go]'),out=el.querySelector('[data-out]');
-  go.onclick=async()=>{go.disabled=true;let made=0,bad=0;
+  go.onclick=async()=>{go.disabled=true;let made=0,bad=0;try{await flush();}catch(_){}
+    if(P.state==='conflict'){go.disabled=false;window.toast?.('Your plan changed elsewhere. Reload Release Planning, then try again.',true);return;}
     for(const t of teams){
       const li=document.createElement('li');li.textContent=`${t.short||t.Name}: working…`;out.appendChild(li);
       try{const r=await call('plan-provision-projects',{teamId:t.Id});made+=r.created+r.linked;bad+=r.failed;
@@ -949,7 +950,7 @@ function provisionDlg(opener){
       }catch(e){bad++;li.textContent=`${t.short||t.Name}: ${String(e&&e.message||e)}`;}
     }
     go.textContent='Done';window.toast?.(`Shared projects: ${made} created or linked${bad?`, ${bad} problem${bad===1?'':'s'}`:''}.`,!!bad);
-    try{await flush();const g=await call('plan-get',{teamId:H.team.Id});P.plan=g.plan;P.rev=g.revision;draw();}catch(_){/* reopen Release Planning to refresh */}
+    try{const g=await call('plan-get',{teamId:H.team.Id});P.plan=g.plan;P.rev=g.revision;draw();}catch(_){/* reopen Release Planning to refresh */}
   };
 }
 function delProjectDlg(pid,opener){

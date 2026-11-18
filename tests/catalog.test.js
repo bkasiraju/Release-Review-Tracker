@@ -80,3 +80,15 @@ test('provisioning reports a team with no GUS program instead of failing',async(
   const store=mkStore(),sf={async query(q){return {records:/Scrum_Team/.test(q)?[{Name:'Ghost'}]:[]};}};
   const r=await plan.provisionProjects(sf,store,'a00B0000000w4ZlIAI');assert.equal(r.created,0);assert.match(r.errors[0],/No GUS program/);
 });
+
+test('provisioning replaces a link to another program, and keeps links when the plan is saved meanwhile',async()=>{
+  const store=mkStore(),T1='a00B0000000w4ZmIAI',PROG='a1FEE00000PROGXXA';
+  const first=(await plan.getPlan(store,T1)).plan;first.projects[0].gusId='a1PEE00000OTHER01A';first.projects[0].programId='a1FEE00000OTHERPA';
+  await plan.savePlan(store,T1,first,null);
+  let made=0;const sf={async query(q){if(/Scrum_Team/.test(q))return {records:[{Name:'Team Beta'}]};if(/PPM_Program/.test(q))return {records:[{Id:PROG,Name:'Team Beta - 268'}]};return {records:[]};},
+    async create(){made++;if(made===3){const p=(await plan.getPlan(store,T1));p.plan.window={start:'2026-12-01',end:'2027-02-01'};await plan.savePlan(store,T1,p.plan,p.revision);}return {success:true,id:'a1PEE0000000'+String(made).padStart(3,'0')+'A'};},async update(){return {success:true};}};
+  const r=await plan.provisionProjects(sf,store,T1);
+  assert.equal(r.created,24);assert.ok(!r.saveError);
+  const got=(await plan.getPlan(store,T1)).plan;
+  assert.ok(got.projects.every(p=>p.gusId&&p.programId===PROG));assert.equal(got.window.start,'2026-12-01'); // the save made during provisioning survived
+});

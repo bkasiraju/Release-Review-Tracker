@@ -161,7 +161,7 @@ async function loadRefs(sf, teamId) {
 // Mandatory: project = name + the team's program; epic = name + team + project + planned release (+ planned effort in days).
 const EPIC_NAME_MAX = 80; // ADM_Epic__c.Name length in GUS
 const PROJECT_NAME_MAX = 80; // PPM_Project__c.Name length in GUS
-async function ensureProject(sf, teamId, project) {
+async function ensureProject(sf, teamId, project, knownProgram) {
   const rawName = String((project && project.name) || '').trim(), name = text(project && project.name, 120), method = text(project && project.method, 1000);
   if (project && gid(project.gusId)) {
     if (method) { try { await sf.update('PPM_Project__c', gid(project.gusId), { V2MOM_Method__c: method }); } catch (_) { /* method is best effort on an existing project */ } }
@@ -169,7 +169,7 @@ async function ensureProject(sf, teamId, project) {
   }
   if (!name) throw new Error('Enter the project (measure) name.');
   if (rawName.length > PROJECT_NAME_MAX) throw new Error(`Project name is ${rawName.length} characters; GUS allows at most ${PROJECT_NAME_MAX}.`);
-  const program = await teamProgram(sf, teamId);
+  const program = knownProgram || await teamProgram(sf, teamId);
   if (!program) throw new Error('This team has no GUS program for the planning release, so a project cannot be created. Ask a plan administrator.');
   const hit = ((await sf.query(`SELECT Id FROM PPM_Project__c WHERE Name = '${soql(name)}' AND Program__c = '${program.id}' LIMIT 1`)).records || [])[0];
   if (hit) {
@@ -184,18 +184,33 @@ async function ensureProject(sf, teamId, project) {
 // Create the shared seeded projects in this team's own GUS program (find-or-create by name, so it is safe to run again) and save the GUS links in the team's plan.
 async function provisionProjects(sf, store, teamId) {
   planKey(teamId);
+  if (inFlight.has(teamId)) throw new Error('A save to GUS is already running for this team. Wait for it to finish, then try again.');
+  inFlight.add(teamId);
+  try { return await provisionRun(sf, store, teamId); } finally { inFlight.delete(teamId); }
+}
+async function provisionRun(sf, store, teamId) {
   const program = await teamProgram(sf, teamId);
   if (!program) return { teamId, program: '', created: 0, linked: 0, failed: 0, errors: ['No GUS program "<team> - ' + PROGRAM_RELEASE + '" for this team.'] };
-  const { plan, revision } = await getPlan(store, teamId), seeded = new Set(SEED_PROJECTS.map(x => x.id)), out = { teamId, program: program.name, created: 0, linked: 0, failed: 0, errors: [] };
+  const seeded = new Set(SEED_PROJECTS.map(x => x.id)), out = { teamId, program: program.name, created: 0, linked: 0, failed: 0, errors: [] }, links = new Map();
+  const { plan } = await getPlan(store, teamId);
   for (const p of plan.projects) {
-    if (!seeded.has(p.id) || p.gusId) continue;
+    // Already linked inside this team's own program: nothing to do. A link from any other program is replaced by this team's project.
+    if (!seeded.has(p.id) || (p.gusId && p.programId === program.id)) continue;
     try {
-      const r = await ensureProject(sf, teamId, { name: p.name, method: p.method });
-      p.gusId = r.id; p.programId = program.id; p.programName = program.name;
+      const r = await ensureProject(sf, teamId, { name: p.name, method: p.method }, program);
+      links.set(p.id, r.id);
       if (r.created) out.created++; else out.linked++;
     } catch (err) { out.failed++; if (out.errors.length < 3) out.errors.push(`${p.short || p.name}: ${plain(err && err.message || err)}`); }
   }
-  if (out.created || out.linked) await savePlan(store, teamId, plan, revision);
+  if (links.size) { // the GUS calls can take a while: apply the links to a fresh copy of the plan so a save made meanwhile is not lost
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const fresh = await getPlan(store, teamId);
+      for (const p of fresh.plan.projects) if (links.has(p.id)) { p.gusId = links.get(p.id); p.programId = program.id; p.programName = program.name; }
+      try { await savePlan(store, teamId, fresh.plan, fresh.revision); out.saveError = ''; break; }
+      catch (err) { out.saveError = plain(err && err.message || err); }
+    }
+    if (out.saveError) out.errors.push('Projects exist in GUS but the plan could not be saved (' + out.saveError + '). Run this again to link them.');
+  }
   return out;
 }
 async function createProject(sf, teamId, input) {
