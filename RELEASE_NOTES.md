@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.8.0-GA (18 November 2026)
+
+The open-in-GUS icon button is smaller (18px button, 11px icon). CSS only; not checked in a signed-in browser.
+
 ## 6.7.0-GA (18 November 2026)
 
 Release Planning grid: the "+" (add workstream) button now appears on every workstream row, not just the first and last. It adds the new workstream directly below that row. Order can still be changed with the grip handle on each row (drag, or Up/Down keys). Epic delete stays on the first row. The "open in GUS" button on project and epic rows now uses the box-with-arrow icon instead of the circled arrow. Review fixes: the Theme input placeholder is now HTML-escaped (it became a default column in 6.6.0), the V2MOM chip font declaration is valid, and a dead CSS rule was removed. Also: a workstream added with the New workstream dialog now inherits the epic's ABL/BTL (it was always BTL before, so it did not count toward ABL capacity), and the project title row keeps its flex layout so the V2MOM chip sits on one line. Verified by syntax check and unit tests only; not checked in a signed-in browser.

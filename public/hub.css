@@ -2176,3 +2176,7 @@ html body .pl-g-proj .pl-pj-n{flex:0 1 auto;font-size:14px;font-weight:700}
 html body .pl-g-proj .pl-pj-mt{flex:0 0 auto;border:1px solid #c9d6e2;background:#fff;color:#4b647a;border-radius:999px;padding:1px 9px;font:inherit;font-size:11px;font-weight:600;line-height:1.5;cursor:pointer}
 html body .pl-g-proj .pl-pj-mt:hover,html body .pl-g-proj .pl-pj-mt[aria-expanded="true"]{background:#e8f0f8;color:#032d60;border-color:#a8bfd6}
 html body .pl-g-proj .pl-pj-m{display:block;flex:1 1 0;min-width:0;max-width:none;font-size:12px;color:#4b647a;font-weight:400;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* Open-in-GUS icon: smaller button and glyph */
+html body .pl-open-gus,html body .pl-g-proj .pl-open-gus{width:18px;height:18px;border-radius:5px}
+html body .pl-open-gus svg{width:11px;height:11px}
+html body .pl-grid td:has(>.pl-open-gus) input.hub-inline{width:calc(100% - 26px)!important}
