@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.23.0-GA (18 November 2026)
+
+The Team selector now sits in the same place on every page: at the right end of the page bar, directly before "Back to Team Hub" where that button is shown. The separate Team box inside the Release Planning toolbar is gone, since the page-bar selector does the same job. The Planned Release dropdown now has a visible border like the other controls. Mocked only; not checked in a browser.
+
 ## 6.22.4-GA (18 November 2026)
 
 The "Open in GUS" menu button now has white text and arrow on its blue background; the text was rendering dark and hard to read. Mocked only; not checked in a browser.

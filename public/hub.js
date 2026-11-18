@@ -87,7 +87,15 @@ const GUS_LINKS={
 };
 /** Keep the "Open in GUS" bar directly below the page heading (pages re-render their own markup). */
 let gusEl=null; // keep a handle: the planner re-renders its markup and would otherwise orphan the bar
+/** One team selector on every page: right end of the page bar, directly before "Back to Team Hub" when that is shown. */
+function placeTeam(){
+  const bar=$('dashboard-controls'),t=document.querySelector('label.hub-team');if(!bar||!t)return;
+  const back=bar.querySelector('#pl-back');
+  if(back){if(t.parentNode!==bar||t.nextElementSibling!==back)bar.insertBefore(t,back);}
+  else if(t.parentNode!==bar||bar.lastElementChild!==t)bar.append(t);
+}
 function placeGus(){
+  placeTeam();
   const el=gusEl||$('gus-links'),hp=$('hub-panel');if(!el||!hp)return;
   const vis=x=>!x.closest('.hidden')&&x.getClientRects().length,h=[...document.querySelectorAll('main .executive-heading')].find(vis);
   const sum=$('selected-release-summary');let row=$('ctl-row');

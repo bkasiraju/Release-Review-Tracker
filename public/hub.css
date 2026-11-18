@@ -2276,3 +2276,10 @@ body[data-hub=plan] .gus-links .gus-mlist{left:auto;right:0}
 /* 6.22.4 Open in GUS button: light text on the blue pill (the button inherited dark text) */
 html body .gus-links .gus-mbtn,html body .gus-links .gus-mbtn:hover,html body .gus-links .gus-mbtn:focus{color:#fff!important;-webkit-text-fill-color:#fff}
 html body .gus-links .gus-mbtn svg{stroke:#fff!important}
+
+/* 6.23.0 one team selector in the page bar, before Back to Team Hub */
+.dashboard-bar>.hub-team{margin:0 0 0 auto;flex:none}
+.dashboard-bar>.release-toolbar:not([hidden]):not(.hidden)~.hub-team{margin-left:0}
+.dashboard-bar>.hub-team .tiny-label{font-size:11px;font-weight:700;letter-spacing:.06em;color:#5b6b7c}
+body[data-hub=plan] .dashboard-bar>.hub-team{margin-right:156px}
+html body[data-hub=plan] #pl-rel{height:32px;padding:0 10px;border:1px solid #c9d6e2;border-radius:6px;background:#fff;color:#16325c;font-size:12px;font-weight:600}
