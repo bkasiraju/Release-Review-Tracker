@@ -17,6 +17,10 @@
       else{endGroup();grp=/group/.test(r.className)?r:null;has=false;r.classList.remove('cf-hide');show=true;}
     }));
     endGroup();
+    // Nothing matches: say so in one compact row instead of leaving a blank panel
+    let none=t.querySelector('tbody tr.cf-none');const any=[...t.tBodies].some(b=>[...b.rows].some(r=>!r.classList.contains('cf-hide')&&!r.classList.contains('cf-none')));
+    if(ids.length&&!any){if(!none){none=document.createElement('tr');none.className='cf-none';const td=document.createElement('td');td.colSpan=n;td.textContent='No rows match the column filters.';none.appendChild(td);t.tBodies[0].appendChild(none);}}
+    else if(none)none.remove();
     const clr=t.querySelector('.cf-clear');if(clr)clr.hidden=!ids.length;
   }
   function inject(t){
