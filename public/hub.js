@@ -107,7 +107,9 @@ function renderGusLinks(id){
   if(!el){el=document.createElement('nav');el.id='gus-links';el.className='gus-links';el.setAttribute('aria-label','Open in GUS');$('hub-panel').before(el);watchGus();}gusEl=el;
   el.hidden=id==='home';
   const l=GUS_LINKS[id]||GUS_LINKS.home;
-  el.innerHTML='<span class="gus-links-label">Open in GUS</span>'+l.map(([t,u,primary])=>`<a class="gus-link${primary?' primary':''}" href="${u}" target="_blank" rel="noopener noreferrer">${t}<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M8 4H4v12h12v-4M11 4h5v5M16 4l-7 7"/></svg></a>`).join('');
+  const ext='<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M8 4H4v12h12v-4M11 4h5v5M16 4l-7 7"/></svg>',item=([t,u])=>`<a class="gus-mi" role="menuitem" tabindex="-1" href="${u}" target="_blank" rel="noopener noreferrer">${t}${ext}</a>`;
+  const mk=l.filter(x=>/^New /.test(x[0])),go=l.filter(x=>!/^New /.test(x[0]));
+  el.innerHTML=`<div class="gus-menu"><button type="button" class="gus-link primary gus-mbtn" aria-haspopup="menu" aria-expanded="false" aria-controls="gus-menu-list">Open in GUS<svg class="gus-car" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 8l5 5 5-5"/></svg></button><div class="gus-mlist" id="gus-menu-list" role="menu" aria-label="Open in GUS" hidden>${mk.length?'<span class="gus-mh" role="presentation">Create</span>'+mk.map(item).join(''):''}${go.length?'<span class="gus-mh" role="presentation">Go to list</span>'+go.map(item).join(''):''}</div></div>`;
 }
 H.go=(id,opts={})=>{
   if(id!=='home')parkOverview();
@@ -508,3 +510,18 @@ H.confirm=o=>new Promise(res=>{
   ov.addEventListener('click',e=>{const b=e.target.closest('[data-hc]');if(b)done(b.dataset.hc==='1');else if(e.target===ov)done(false);});
   document.addEventListener('keydown',key,true);document.body.appendChild(ov);ov.querySelector('[data-hc="1"]').focus();
 });
+
+/* Open in GUS menu: toggle, close on outside click / Escape, arrow-key navigation */
+(function(){
+  const close=(m,focus)=>{const b=m.querySelector('.gus-mbtn'),l=m.querySelector('.gus-mlist');l.hidden=true;b.setAttribute('aria-expanded','false');if(focus)b.focus();};
+  const open=m=>{const l=m.querySelector('.gus-mlist');l.hidden=false;m.querySelector('.gus-mbtn').setAttribute('aria-expanded','true');const f=l.querySelector('.gus-mi');if(f)f.focus();};
+  document.addEventListener('click',e=>{const m=e.target.closest&&e.target.closest('.gus-menu');
+    document.querySelectorAll('.gus-menu').forEach(x=>{if(x!==m)close(x);});
+    if(m&&e.target.closest('.gus-mbtn')){const l=m.querySelector('.gus-mlist');l.hidden?open(m):close(m);}
+    else if(m&&e.target.closest('.gus-mi'))close(m);});
+  document.addEventListener('keydown',e=>{const m=e.target.closest&&e.target.closest('.gus-menu');if(!m)return;
+    if(e.key==='Escape'){close(m,true);return;}
+    const items=[...m.querySelectorAll('.gus-mi')],i=items.indexOf(document.activeElement);
+    if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();if(m.querySelector('.gus-mlist').hidden){open(m);return;}items[(i+(e.key==='ArrowDown'?1:-1)+items.length)%items.length].focus();}
+    else if(e.key==='Tab')close(m);});
+})();

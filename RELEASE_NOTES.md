@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.22.0-GA (18 November 2026)
+
+The row of "Open in GUS" chips (New Epic, Epics, Projects, Programs and the equivalents on other pages) is now one "Open in GUS" menu. Open it to pick a destination: "Create" items (New Epic, New work item …) and "Go to list" items (Epics, Projects, Programs …). It opens in a new GUS tab, closes on Escape or an outside click, and works with the arrow keys. Same links as before on every page. Mocked only; not checked in a browser.
+
 ## 6.21.0-GA (18 November 2026)
 
 "Review & save to GUS" is now "Create N drafts in GUS" and only appears while the plan has epics that are not in GUS yet (for example epics from an import or below-the-line epics). Epics added in the app are created in GUS straight away and edits to saved epics sync automatically, so once everything is in GUS the button is hidden. The review dialog is unchanged. Mocked GUS only; not checked in a browser.
