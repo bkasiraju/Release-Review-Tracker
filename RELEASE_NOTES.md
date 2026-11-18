@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.4-GA (18 November 2026)
+
+V2MOM import wizard: besides a Google Sheet link and .xlsx, it now reads an .html export (File > Download > Web page in Google Sheets, or a Publish-to-web page). Every table is a method tab, named from its "Mx)" title. PDF is rejected with a clear message: PDF has no table structure, so owners and columns cannot be recovered reliably. Mocked only; the HTML reader has not been run against a real export or in a browser.
+
 ## 6.26.3-GA (18 November 2026)
 
 V2MOM import wizard: step 1 simplified to the sheet link (or .xlsx) and the owners to import, with the tab list tucked under "Advanced". Inputs are now styled full-width, the close button sits in the header, and the Cancel / Parse buttons are aligned. Mocked only; not checked in a browser.

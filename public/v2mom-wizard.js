@@ -8,6 +8,18 @@ const LS=k=>'ri-v2mom-'+k+'-'+(window.Hub.team&&window.Hub.team.Id);
 const get=k=>{try{return localStorage.getItem(LS(k))||'';}catch(_){return '';}},put=(k,v)=>{try{localStorage.setItem(LS(k),v);}catch(_){}};
 const shortOf=()=>{const H=window.Hub;return String(H.team&&(H.team.short||H.team.Name)||'').replace(/[^A-Za-z0-9&]+/g,' ').trim().split(' ').map((w,i,a)=>a.length>1?w[0].toUpperCase():w).join('').slice(0,8);};
 
+// HTML export / "Publish to web" page: every <table> becomes one tab; its name is the "Mx)" title found in its first rows, else M1, M2…
+function htmlTabs(text){
+  const doc=new DOMParser().parseFromString(text,'text/html'),out={};let n=0;
+  doc.querySelectorAll('table').forEach(t=>{
+    if(t.closest('table')!==t)return;
+    const rows=[...t.querySelectorAll('tr')].map(r=>[...r.children].filter(c=>/^t[dh]$/i.test(c.tagName)).flatMap(c=>{const v=c.textContent.replace(/\s+/g,' ').trim(),sp=Math.max(1,+c.getAttribute('colspan')||1);return [v,...Array(sp-1).fill('')];})).filter(r=>r.some(Boolean));
+    if(rows.length<3)return;n++;
+    let name='';for(const r of rows.slice(0,6)){const m=r.map(c=>/^M(\d+)\s*[):.\-–]/.exec(c)).find(Boolean);if(m){name='M'+m[1];break;}}
+    out[name&&!out[name]?name:'M'+n]=rows;});
+  return out;
+}
+
 function open(){
   const H=window.Hub;if(!H){alert('The hub is still loading. Try again in a moment.');return;}
   if(!H.hasTeam()){window.toast?.('Pick a team first. The import creates projects for the selected team.',true);return;}
@@ -22,10 +34,10 @@ function open(){
 
   const step1=(err)=>{
     b.innerHTML=`<p class="v2w-step">Step 1 of 3 · Read the sheet</p>
-    <label class="v2w-f"><span>Google Sheet link</span><input class="v2w-in" data-url type="url" placeholder="https://docs.google.com/spreadsheets/d/…" value="${esc(get('url'))}"><small>Shared with “anyone with the link”. Or upload an .xlsx below.</small></label>
-    <label class="v2w-f"><span>Or upload .xlsx</span><input class="v2w-in" data-file type="file" accept=".xlsx"></label>
+    <label class="v2w-f"><span>Google Sheet link</span><input class="v2w-in" data-url type="url" placeholder="https://docs.google.com/spreadsheets/d/…" value="${esc(get('url'))}"><small>Shared with “anyone with the link”, or upload a file below.</small></label>
+    <label class="v2w-f"><span>Or upload a file</span><input class="v2w-in" data-file type="file" accept=".xlsx,.html,.htm"><small>.xlsx or .html (Google Sheets: File › Download). PDF tables lose their columns, so PDF is not supported.</small></label>
     <label class="v2w-f"><span>Owners to import</span><input class="v2w-in" data-own placeholder="Jane Doe, Raj Patel (empty = everyone)" value="${esc(get('owners'))}"><small>Comma-separated names, matched against the Owner column.</small></label>
-    <details class="v2w-adv"><summary>Advanced: tabs</summary><label class="v2w-f"><span>Method tabs</span><input class="v2w-in" data-tabs value="${esc(get('tabs')||'M1, M2, M3, M4, M5')}"><small>For an .xlsx, tabs named M1, M2… are used if this is empty.</small></label></details>
+    <details class="v2w-adv"><summary>Advanced: tabs</summary><label class="v2w-f"><span>Method tabs</span><input class="v2w-in" data-tabs value="${esc(get('tabs')||'M1, M2, M3, M4, M5')}"><small>For an .xlsx, tabs named M1, M2… are used if this is empty. HTML files use every table.</small></label></details>
     <p class="pl-cr-err" role="alert" ${err?'':'hidden'}>${esc(err||'')}</p>
     <div class="v2w-foot"><span class="pl-cr-btns"><button type="button" class="button" data-x>Cancel</button><button type="button" class="button brand" data-go>Parse sheet</button></span></div>`;
     const go=b.querySelector('[data-go]'),er=b.querySelector('.pl-cr-err');
@@ -35,7 +47,11 @@ function open(){
       er.hidden=true;go.disabled=true;go.textContent='Reading…';
       try{
         let payload={teamId:H.team.Id,owners,tabs};
-        if(f){const all=await window.PlanIO.read(await f.arrayBuffer());sheets={};Object.keys(all).filter(k=>tabs.length?tabs.some(t=>t.toLowerCase()===k.toLowerCase()):/^M\d+/i.test(k)).forEach(k=>{sheets[k]=all[k];});
+        if(f){
+          const ext=(/\.([a-z0-9]+)$/i.exec(f.name)||[])[1]||'';let all;
+          if(/^pdf$/i.test(ext))throw new Error('PDF cannot be read reliably (tables lose their columns). In Google Sheets use File › Download › Microsoft Excel (.xlsx) or Web page (.html), or paste the sheet link.');
+          if(/^html?$/i.test(ext)){all=htmlTabs(await f.text());if(!Object.keys(all).length)throw new Error('No tables were found in that HTML file. Use File › Download › Web page (.html) from Google Sheets, or upload the .xlsx.');sheets=all;}
+          else{all=await window.PlanIO.read(await f.arrayBuffer());sheets={};Object.keys(all).filter(k=>tabs.length?tabs.some(t=>t.toLowerCase()===k.toLowerCase()):/^M\d+/i.test(k)).forEach(k=>{sheets[k]=all[k];});}
           if(!Object.keys(sheets).length)throw new Error('No matching tabs found in that file. Check the tab names (M1, M2, …).');payload.sheets=sheets;}
         else if(url)payload.url=url;else throw new Error('Paste a Google Sheet link or choose an .xlsx file.');
         parsed=await call('plan-v2mom-parse',payload);teamProg=parsed.teamProgram;
