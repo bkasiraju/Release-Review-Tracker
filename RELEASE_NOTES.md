@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.16.1-GA (18 November 2026)
+
+Review fixes for the epic search. An epic found from another team is now only tagged to the project: saving the plan changes its project and nothing else (its release, effort, priority, description and owner are left alone), and the release and effort checks are skipped for it, so it can no longer block saving the rest of the plan. The dialog says so when you pick one. Epics of your own team are saved in full as before. Results found by the search are no longer lost if the project's epic list finishes loading afterwards. Edits made in the grid to another team's epic are not written to GUS (only the project tag is). Mocked GUS only; not checked in a browser.
+
 ## 6.16.0-GA (18 November 2026)
 
 Add any GUS epic to a project. In "Add epic" > "Add existing GUS epic" there is a new "Find any GUS epic" search. Enter the W-number of a work item (its epic is added), an epic Id or a GUS epic link, or part of the epic's name, and the matching epics from any team or project are listed (with their current project and team). Pick one, choose ABL/BTL, optionally add workstreams, and it is added to the table; saving the plan to GUS tags the epic to this project (its project is changed to this one). The dialog tells you when the epic currently belongs to another project. The list still starts with the project's own GUS epics. Also fixes from the 6.15.0 review: the "x of y epics" count no longer disappears while typing in a column search, and an input-method composition is no longer cut off by a pending redraw. Note that GUS epics have no W-number of their own; a W-number resolves to the epic of that work item. Tested against a mocked GUS only; not checked in a browser.

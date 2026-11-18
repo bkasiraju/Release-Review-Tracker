@@ -238,7 +238,7 @@ function newEpicAt(pid){
       if(md==='pick'){
         const x=xeps.find(g=>g.id===el.querySelector('[data-xe]').value);if(!x)throw new Error('Pick a GUS epic, or switch to “Create new epic”.');
         if(pl.epics.some(g=>g.gusId===x.id))throw new Error('That epic is already in the table.');
-        const line=el.querySelector('[data-xl]').value;e=newEpic(pr.id);e.name=x.name;e.gusId=x.id;e.releaseId=x.releaseId;e.releaseName=x.releaseName;e.line=line;
+        const line=el.querySelector('[data-xl]').value;e=newEpic(pr.id);e.name=x.name;e.gusId=x.id;e.foreign=!!(x.teamId&&String(x.teamId).slice(0,15)!==String(H.team.Id).slice(0,15));e.releaseId=x.releaseId;e.releaseName=x.releaseName;e.line=line;
         e.owners=x.leadId?[x.leadId]:[];e.ownerNames=x.leadId?[x.leadName]:[];
         // GUS keeps the epic's planned points; carry them as one workstream so the epic total (sum of workstreams) still matches and is never overwritten.
         e.workstreams=x.points>0?[{id:uid('w'),name:'Planned in GUS',priority:0,engId:'',engName:'',engIds:[],engNames:[],days:x.points,sprint:'',line}]:[];
@@ -281,7 +281,7 @@ function newEpicAt(pid){
   const sync=()=>{const f=filled();tagBox.hidden=!f||!!lastTag;el._gate=md==='new'||f>0;el._sync();el._deny();
     okb.dataset.label=okb.textContent=md==='pick'?(f?'Add epic & create workstreams':'Add epic'):'Create in GUS';
     note.textContent=md==='pick'?(f?'Adds the epic to this table and creates the workstreams in GUS.':'Adds the existing GUS epic to this table; nothing new is created.'):(f?`Creates the epic and ${f} workstream${f>1?'s':''} in GUS.`:'Created in GUS immediately when you confirm.');};
-  const showX=()=>{const x=xeps.find(g=>g.id===xSel.value);xInfo.textContent=x?[x.projectId&&x.projectId!==pr.gusId&&`Currently in project “${x.projectName||x.projectId}” — will be tagged to this project when saved to GUS`,x.leadName&&'Lead: '+x.leadName,x.releaseName&&'Release: '+x.releaseName,x.points&&x.points+' days planned'].filter(Boolean).join('  ·  '):'';xInfo.title=xInfo.textContent;};
+  const showX=()=>{const x=xeps.find(g=>g.id===xSel.value);xInfo.textContent=x?[x.teamId&&String(x.teamId).slice(0,15)!==String(H.team.Id).slice(0,15)&&`Epic of team ${x.teamName||'another team'}: only its project is changed; nothing else on it is edited`,x.projectId&&x.projectId!==pr.gusId&&`Currently in project “${x.projectName||x.projectId}” — will be tagged to this project when saved to GUS`,x.leadName&&'Lead: '+x.leadName,x.releaseName&&'Release: '+x.releaseName,x.points&&x.points+' days planned'].filter(Boolean).join('  ·  '):'';xInfo.title=xInfo.textContent;};
   xSel.onchange=showX;
   // Search all of GUS (not just this project): by the W-number of a work item in the epic, an epic Id/link, or epic name. Results are added to the list and can be tagged to this project.
   const fq=el.querySelector('[data-fq]'),fnote=el.querySelector('[data-fnote]');let fseq=0;
@@ -304,9 +304,10 @@ function newEpicAt(pid){
   el.querySelector('[data-wadd]').onclick=()=>{if(wsr.children.length>=10)return;wsr.insertAdjacentHTML('beforeend',wsRow());wsr.lastElementChild.querySelector('input').focus();};
   wsr.addEventListener('input',sync);
   wsr.addEventListener('click',ev=>{const x=ev.target.closest('[data-wx]');if(!x)return;if(wsr.children.length>1)x.closest('.pl-wsr').remove();else{x.closest('.pl-wsr').querySelectorAll('input').forEach(i=>{i.value='';});}sync();});
-  call('plan-gus-epics',{teamId:H.team.Id}).then(r=>{const inPlan=new Set(pl.epics.map(e=>e.gusId).filter(Boolean));xeps=(r.epics||[]).filter(g=>!inPlan.has(g.id)&&pr.gusId&&g.projectId===pr.gusId);
+  call('plan-gus-epics',{teamId:H.team.Id}).then(r=>{const inPlan=new Set(pl.epics.map(e=>e.gusId).filter(Boolean)),found=xeps.filter(g=>!(r.epics||[]).some(o=>o.id===g.id));xeps=(r.epics||[]).filter(g=>!inPlan.has(g.id)&&pr.gusId&&g.projectId===pr.gusId).concat(found);const had=xSel.value;
     xSel.innerHTML=xeps.length?`<option value="">Select an epic…</option>`+xeps.map(g=>opt(g.id,g.name,false)).join(''):opt('',pr.gusId?'No other epics of this project — use Find above for any GUS epic':'Use Find above to add any GUS epic',true);
-    pc.textContent=`${xeps.length} of this project not yet in the table`;},e=>{xSel.innerHTML=opt('','Could not load GUS epics',true);pc.textContent=String(e&&e.message||e).slice(0,60);});
+    if(found.length)fill(had);
+    pc.textContent=`${xeps.length-found.length} of this project not yet in the table`;},e=>{xSel.innerHTML=opt('','Could not load GUS epics',true);pc.textContent=String(e&&e.message||e).slice(0,60);});
   setMode('new');
 }
 // ── Export template / import (xlsx) ────────────────────────────────────────
