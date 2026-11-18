@@ -813,8 +813,9 @@ function drawTools(){
   const sel=(k,label,list)=>`<div class="pl-tf pl-mf${V[k].length?' on':''}" data-mf="${k}"><span>${label}</span><button type="button" class="pl-mf-btn" aria-haspopup="true" aria-expanded="false" aria-label="${label} filter"><b>${esc(mfLabel(k,list))}</b><i aria-hidden="true">▾</i></button><div class="pl-mf-pop" hidden><input type="search" class="hub-inline" placeholder="Search ${label.toLowerCase()}…" aria-label="Search ${label}"><div class="pl-mf-acts"><button type="button" data-mf-all>Select all</button><button type="button" data-mf-none>Clear</button></div><ul>${list.map(([v,l])=>`<li data-t="${esc(String(l).toLowerCase())}"><label><input type="checkbox" value="${esc(v)}"${V[k].includes(v)?' checked':''}> <span>${esc(l)}</span></label></li>`).join('')||'<li class="note">Nothing to filter yet</li>'}</ul></div></div>`;
   const rels=[...new Map(pl.epics.filter(e=>e.releaseId).map(e=>[e.releaseId,e.releaseName||(P.refs.releases.find(r=>r.id===e.releaseId)||{}).name||e.releaseId])).entries()];
   const keepGt=box.querySelector(':scope > .pl-grid-tools');
-  box.innerHTML=sel('release','Release',rels)+sel('line','ATL/BTL',[['ABL','ABL'],['BTL','BTL']])+sel('eng','Engineer',engs.map(m=>[m.id,m.name]))+sel('theme','Theme',themes.map(t=>[t,t]))+
-    `<button type="button" class="button small pl-clear${filtersOn(V)?' pl-clear-on':''}" data-clear-view${filtersOn(V)?'':' disabled'}>Clear filters</button><span class="note pl-count" id="pl-count" role="status" aria-live="polite"></span>`;
+  // The Release / ATL-BTL / Engineer / Theme filters were replaced by the column filters; drop any value saved earlier so nothing filters invisibly.
+  if(MF.some(k=>V[k].length)){MF.forEach(k=>{V[k]=[];});saveFilters();}
+  box.innerHTML='';
   if(keepGt)box.appendChild(keepGt);
   box.querySelectorAll('select').forEach(x=>H.customSelect(x));
   const lists={};MF.forEach(k=>{const w=box.querySelector(`[data-mf=${k}]`);if(w)lists[k]=[...w.querySelectorAll('li input')].map(i=>[i.value,i.nextElementSibling.textContent]);});

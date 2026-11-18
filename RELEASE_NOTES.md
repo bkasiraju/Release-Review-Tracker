@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.2-GA (18 November 2026)
+
+Planner: removed the Release, ATL/BTL, Engineer and Theme filter bar (with Clear filters and the epic count); the column filters in the grid header replace it. Filter values saved earlier are cleared so nothing filters invisibly. Mocked only; not checked in a browser.
+
 ## 6.26.1-GA (18 November 2026)
 
 Fixed the V2MOM Import button: the wizard script read `window.Hub` before hub.js had loaded, so clicking it threw "Cannot read properties of undefined (reading 'hasTeam')". It now looks the hub up when clicked. The ERR_TOO_MANY_REDIRECTS lines for GUS profile photos are a GUS session issue, unrelated to this app. Mocked only; not checked in a browser.
