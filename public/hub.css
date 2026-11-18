@@ -2282,3 +2282,8 @@ html body .gus-links .gus-mbtn svg{stroke:#fff!important}
 .dashboard-bar>.hub-team .tiny-label{font-size:11px;font-weight:700;letter-spacing:.06em;color:#5b6b7c}
 .dashboard-bar:has(>#pl-back)>.hub-team{margin-right:156px}
 html body[data-hub=plan] #pl-rel{height:32px;padding:0 10px;border:1px solid #c9d6e2;border-radius:6px;background:#fff;color:#16325c;font-size:12px;font-weight:600}
+
+/* 6.23.1 keep the team selector on the first row, level with Back to Team Hub */
+@media(min-width:900px){body.hub-own .dashboard-bar{flex-wrap:nowrap!important;align-items:center}
+body.hub-own .dashboard-bar>.hub-team{order:99;margin-left:auto;align-self:center;min-height:36px}
+body.hub-own .dashboard-bar>.hub-nav{min-width:0;flex:0 1 auto}}

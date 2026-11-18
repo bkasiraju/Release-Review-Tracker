@@ -123,7 +123,7 @@ H.go=(id,opts={})=>{
   if(id!=='home')parkOverview();
   const p=H.pages.get(id)||H.pages.get('home');id=p.id;
   H.current=id;document.body.dataset.hub=id;
-  const own=!p.legacy;$('hub-panel').classList.toggle('hidden',!own);
+  const own=!p.legacy;$('hub-panel').classList.toggle('hidden',!own);document.body.classList.toggle('hub-own',own);
   if(p.legacy)legacy(p.legacy);
   if(id!=='plan')document.querySelectorAll('#pl-back').forEach(x=>x.remove());
   renderNav();renderCurrent();renderGusLinks(id);placeGus();
