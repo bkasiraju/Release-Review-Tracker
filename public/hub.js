@@ -500,7 +500,7 @@ document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,0));
 document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('#ri-home');if(!a)return;e.preventDefault();window.Hub.go('home');});
 
 /** In-app confirmation dialog (replaces the browser's native confirm): H.confirm({title,message,ok,cancel,danger}) → Promise<boolean>. Esc / backdrop / Cancel resolve false. */
-H.confirm=o=>new Promise(res=>{
+window.Hub.confirm=o=>new Promise(res=>{
   o=typeof o==='string'?{message:o}:(o||{});
   const prev=document.activeElement,esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   const ov=document.createElement('div');ov.className='hub-confirm-ov';
@@ -522,6 +522,6 @@ H.confirm=o=>new Promise(res=>{
   document.addEventListener('keydown',e=>{const m=e.target.closest&&e.target.closest('.gus-menu');if(!m)return;
     if(e.key==='Escape'){close(m,true);return;}
     const items=[...m.querySelectorAll('.gus-mi')],i=items.indexOf(document.activeElement);
-    if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();if(m.querySelector('.gus-mlist').hidden){open(m);return;}items[(i+(e.key==='ArrowDown'?1:-1)+items.length)%items.length].focus();}
+    if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();if(m.querySelector('.gus-mlist').hidden){open(m);return;}if(items.length)items[i<0?(e.key==='ArrowDown'?0:items.length-1):(i+(e.key==='ArrowDown'?1:-1)+items.length)%items.length].focus();}
     else if(e.key==='Tab')close(m);});
 })();
