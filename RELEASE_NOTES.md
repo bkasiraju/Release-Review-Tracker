@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.12.0-GA (18 November 2026)
+
+Release Planning table styling. Column headers are larger (12px, bold, dark blue) instead of the 10px grey. Project rows no longer use a different bright colour line per project: they have one thin neutral separator, a soft left accent in the project's colour, a light background and a hover state. The ABL/BTL counters, "+ Epic" and delete buttons are larger and use the same blue and neutral palette as the rest of the dashboard. CSS only; not checked in a browser.
+
 ## 6.11.1-GA (18 November 2026)
 
 Review fixes for 6.11.0-GA. The automatic linking of a team's shared projects to its own GUS projects is now saved (it was applied on screen but the save was skipped because the planner reset to "saved" right after). On commit, a shared project still linked to another team's program is treated as unlinked and found or created by name in this team's own program, so epics never go under another team's GUS project. Removed an unused parameter. Unit tests only; not checked in a browser.

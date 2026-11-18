@@ -2180,3 +2180,18 @@ html body .pl-g-proj .pl-pj-m{display:block;flex:1 1 0;min-width:0;max-width:non
 html body .pl-open-gus,html body .pl-g-proj .pl-open-gus{width:18px;height:18px;border-radius:5px}
 html body .pl-open-gus svg{width:11px;height:11px}
 html body .pl-grid td:has(>.pl-open-gus) input.hub-inline{width:calc(100% - 26px)!important}
+/* 6.12.0 planner table: readable headers, calm project rows */
+html body[data-hub=plan] .pl-grid th{font-size:12px!important;font-weight:700!important;color:#16325c!important;letter-spacing:.01em;padding:9px 8px!important;background:#f3f6f9!important;border-bottom:1px solid #d8e2ec}
+html body[data-hub=plan] .pl-grid th.c-ws{text-align:left!important}
+html body .pl-g-proj td{background:#f7f9fc;border-top:1px solid #d8e2ec;padding:8px 10px;box-shadow:none}
+html body .pl-g-proj td:first-child,html body .pl-g-proj td{box-shadow:inset 4px 0 color-mix(in srgb,var(--pc,#a8b7c7) 60%,#fff)}
+html body .pl-g-proj:hover td{background:#eef4fa}
+html body .pl-g-proj .pl-pj-n{font-size:14px;font-weight:600;color:#16325c}
+html body .pl-g-proj .pl-gsum i{font-size:12px;padding:4px 10px;background:#fff;border:1px solid #d8e2ec;color:#44546a}
+html body .pl-g-proj .pl-gsum i.abl{color:#0b5cab;border-color:#c5d9ee;background:#f2f8fd}
+html body .pl-g-proj .pl-gsum i.btl{color:#7a5b10;border-color:#e6dab0;background:#fdf9ec}
+html body .pl-g-proj .pl-pj-add{height:26px;font-size:12px;font-weight:600;color:#0b5cab;border-color:#c5d9ee;background:#fff}
+html body .pl-g-proj .pl-pj-add:hover{background:#eaf3fb}
+html body .pl-g-proj .pl-pj-mt{font-size:11.5px;color:#44546a;background:#fff}
+html body .pl-g-proj .pl-pj-del{height:26px;width:30px;color:#8a949e;border-color:#d8e2ec;background:#fff}
+html body .pl-g-proj .pl-pj-del:hover{color:#a61a14;background:#fdecea;border-color:#e3b9b6}
