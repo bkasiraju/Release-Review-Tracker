@@ -207,10 +207,10 @@ test('workstream theme short forms per team; unmapped team warns and applies no 
       if(/FROM ADM_Product_Tag__c/.test(q))return {records:[{Id:TAG}]};
       if(/FROM RecordType/.test(q))return {records:[{Id:'0129000000006gDAAQ'}]};
       if(/FROM ADM_Work__c/.test(q))return {records:work?[{Id:work}]:[]};
-      if(/FROM ADM_Theme__c/.test(q)){const hit=o.race&&!first;first=false;return {records:hit?[]:o.race?[{Id:THEME}]:[]};}
+      if(/FROM ADM_Theme__c/.test(q)){return {records:o.race&&!first?[{Id:THEME}]:[]};}
       return {records:[]};},
     async create(obj,f){if(obj==='ADM_Work__c'){work='a0WEE0000000000001';return {success:true,id:work};}
-      if(obj==='ADM_Theme__c'){created.push(f.Name);return o.race?{success:false,errors:[{message:'duplicate value found: Name duplicates value on record',statusCode:'DUPLICATE_VALUE'}]}:{success:true,id:'a0pEE000000000NEW1'};}
+      if(obj==='ADM_Theme__c'){created.push(f.Name);first=false;return o.race?{success:false,errors:[{message:'duplicate value found: Name duplicates value on record',statusCode:'DUPLICATE_VALUE'}]}:{success:true,id:'a0pEE000000000NEW1'};}
       assigned.push(f.Theme__c);return {success:true,id:'a0qEE0000000000001'};}});
   const run=async(name,o,id)=>{work=null;team=name;created=[];assigned=[];first=false;return plan.createWorkstream(mk(o),id,{epicGusId:EP,name:'API',tagId:TAG});};
   const ids=['a00B0000000w4ZjIAI','a00B0000000w4ZkIAI','a00B0000000w4ZlIAI','a00B0000000w4ZmIAI','a00B0000000w4ZnIAI','a00B0000000w4ZoIAI'];
@@ -220,5 +220,6 @@ test('workstream theme short forms per team; unmapped team warns and applies no 
   assert.deepEqual(u.themes,[]);assert.equal(u.warnings.length,1);assert.match(u.warnings[0],/no theme short form/);assert.deepEqual(created,[]);assert.deepEqual(assigned,[]);
   first=true;work=null;team='Message Queue';created=[];assigned=[];   // lost a creation race: GUS answers DUPLICATE_VALUE, theme is re-found
   const rr=await plan.createWorkstream(mk({race:true}),'a00B0000000w4ZpIAI',{epicGusId:EP,name:'API',tagId:TAG});
+  assert.deepEqual(created,['R268_MQ_Workstream']);   // create really ran and lost the race
   assert.deepEqual(rr.warnings,[]);assert.deepEqual(assigned,[THEME]);
 });
