@@ -1,5 +1,11 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.24.0-GA (18 November 2026)
+
+- Release Planning: the Release Window dates show only when "Custom dates" is selected; picking a planned release hides them because the release supplies the dates.
+- Every data table now has a per-column filter row under its header (new `colfilter.js`), with a Clear button. The Release Planner grid keeps its own column search. Mocked only; not checked in a signed-in browser.
+- Fetch: when every failed epic reports "Session expired or invalid", the toast now says the GUS session expired and to reload and retry, instead of listing each epic.
+
 ## 6.23.1-GA (18 November 2026)
 
 The Team selector stays on the top row of the page bar, level with and just before "Back to Team Hub", instead of dropping to a row of its own. Mocked only; not checked in a browser.
