@@ -150,13 +150,13 @@ async function loadRefs(sf, teamId) {
 const EPIC_NAME_MAX = 80; // ADM_Epic__c.Name length in GUS
 const PROJECT_NAME_MAX = 80; // PPM_Project__c.Name length in GUS
 async function ensureProject(sf, teamId, project) {
-  const name = text(project && project.name, 120), method = text(project && project.method, 1000);
+  const rawName = String((project && project.name) || '').trim(), name = text(project && project.name, 120), method = text(project && project.method, 1000);
   if (project && gid(project.gusId)) {
     if (method) { try { await sf.update('PPM_Project__c', gid(project.gusId), { V2MOM_Method__c: method }); } catch (_) { /* method is best effort on an existing project */ } }
     return { id: gid(project.gusId), created: false };
   }
   if (!name) throw new Error('Enter the project (measure) name.');
-  if (name.length > PROJECT_NAME_MAX) throw new Error(`Project name is ${name.length} characters; GUS allows at most ${PROJECT_NAME_MAX}.`);
+  if (rawName.length > PROJECT_NAME_MAX) throw new Error(`Project name is ${rawName.length} characters; GUS allows at most ${PROJECT_NAME_MAX}.`);
   const program = await teamProgram(sf, teamId);
   if (!program) throw new Error('This team has no GUS program for the planning release, so a project cannot be created. Ask a plan administrator.');
   const hit = ((await sf.query(`SELECT Id FROM PPM_Project__c WHERE Name = '${soql(name)}' AND Program__c = '${program.id}' LIMIT 1`)).records || [])[0];
@@ -368,6 +368,7 @@ function review(plan, releaseIds, program, includeBtl) {
     if (!project) problems.push('Select a project');
     else {
       if (!project.name) problems.push('Project needs a name');
+      else if (!project.gusId && project.name.length > PROJECT_NAME_MAX) problems.push(`Project name is ${project.name.length} characters; GUS allows ${PROJECT_NAME_MAX}. Shorten it in Projects`);
       if (!project.gusId && !program) problems.push(`No “${PROGRAM_RELEASE}” program found in GUS for this team, so project “${project.name || '?'}” cannot be tagged to one`);
     }
     if (!e.gusId && e.name && plan.epics.some(o => o !== e && !o.gusId && o.name.toLowerCase() === e.name.toLowerCase() && (includeBtl || o.line === 'ABL'))) problems.push('Another unsaved epic has the same name; rename one so GUS does not get duplicates');

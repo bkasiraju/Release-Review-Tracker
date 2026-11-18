@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.2.0-GA (18 November 2026)
+
+Follow-up to the 6.1.0-GA review caveats: the plan commit review now blocks a new (not yet in GUS) project whose name is over 80 characters, with a pointer to the Projects panel; the server message reports the real length; the suggestion box no longer offers an empty suggestion. Verified by unit tests only; not render-verified in a browser.
+
 ## 6.1.0-GA (18 November 2026)
 
 Release Planning search box placeholder simplified to "Search by project, epic, workstream or person". Release Planning "Add project" and "Add epic": when a Project (Measure) or Epic name exceeds the GUS limit of 80 characters, the dialog shows a live counter and a smart suggestion that fits (collapses "Expanded Name (ACRC)" to "ACRC", abbreviates common words, drops trailing timing such as "by Q3", then cuts at a clause or word boundary) with a one-click "Use suggestion" button. Project names over 80 are now rejected up front on both client and server instead of surfacing GUS's "data value too large" error. Verification: unit tests for the shortener and plan backend pass; not render-verified in a signed-in browser. 6.0.0-GA (GOLDEN) and 5.1.1-GA (PLATINUM) are unchanged.

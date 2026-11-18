@@ -13,3 +13,9 @@ test('result always fits and keeps the leading code',()=>{
   const r=smartShorten(long,80);assert.ok(r.length<=80,r);assert.ok(r.startsWith('HRP M2.3.4:'),r);
 });
 test('unbroken text is hard-truncated with an ellipsis',()=>{const r=smartShorten('x'.repeat(200),80);assert.equal(r.length,80);assert.ok(r.endsWith('…'));});
+test('review blocks a new project name over 80 characters',()=>{
+  const {review}=require('../backend/plan.js');
+  const plan={projects:[{id:'p1',name:'x'.repeat(81),gusId:''}],epics:[{id:'e1',projectId:'p1',name:'Epic',line:'ABL',releaseId:'',workstreams:[]}]};
+  const out=review(plan,null,{id:'a',name:'Prog'},false);
+  assert.ok(JSON.stringify(out).includes('Project name is 81 characters'));
+});

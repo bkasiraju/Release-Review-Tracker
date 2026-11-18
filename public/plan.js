@@ -103,8 +103,8 @@ function smartShorten(name,max){
 function fitSuggest(input,max,box,what){
   const upd=()=>{const v=input.value.trim(),L=v.length;if(L<=max){box.innerHTML='';return;}
     const sug=smartShorten(v,max);
-    box.innerHTML=`${esc(what)} is ${L} characters; GUS allows at most ${max}. Suggested (${sug.length}/${max}): <b>${esc(sug)}</b> <button type="button" class="button small" data-fit>Use suggestion</button>`;
-    box.querySelector('[data-fit]').onclick=()=>{input.value=sug;input.dispatchEvent(new Event('input',{bubbles:true}));input.focus();};};
+    box.innerHTML=`${esc(what)} is ${L} characters; GUS allows at most ${max}. Suggested (${sug.length}/${max}): <b>${esc(sug)}</b>${sug?' <button type="button" class="button small" data-fit>Use suggestion</button>':''}`;
+    const use=box.querySelector('[data-fit]');if(use)use.onclick=()=>{input.value=sug;input.dispatchEvent(new Event('input',{bubbles:true}));input.focus();};};
   input.addEventListener('input',upd);upd();return upd;
 }
 const crUser=()=>(P.user&&P.user.name)||'You (signed-in GUS user)';
