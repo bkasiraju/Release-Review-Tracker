@@ -23,23 +23,28 @@
     if(t.matches(SKIP)||t.closest('[data-nocf]')||!t.tHead||t.tHead.rows.length!==1)return;
     const h=t.tHead.rows[0];if(h.cells.length<2||[...h.cells].some(c=>c.colSpan>1))return;
     if(!t.tBodies.length)return;
+    const sample=[...t.tBodies].flatMap(b=>[...b.rows]).filter(r=>r.cells.length===h.cells.length&&![...r.cells].some(c=>c.colSpan>1)).slice(0,8);
+    if(!sample.length)return; // nothing to judge yet; the observer retries when rows arrive
+    // Only text columns get a filter: skip blank headers, action columns, and columns made of dropdowns or buttons
+    const textCol=i=>{const lab=norm(h.cells[i].textContent);if(!lab||/^(actions?|links?|#|summary|nudge)$/.test(lab))return false;
+      return sample.some(r=>{const c=r.cells[i];if(c.querySelector('select,input:not([type=search]),textarea'))return false;const clone=c.cloneNode(true);clone.querySelectorAll('button,svg,select,script,style').forEach(x=>x.remove());return norm(clone.textContent).length>0;});};
     const key=keyOf(t,h);t.dataset.cfKey=key;h.classList.add('cf-hd');
     const f=saved.get(key)||{};
     const row=document.createElement('tr');row.className='cf-row';
     [...h.cells].forEach((c,i)=>{
       const th=document.createElement('th'),lab=norm(c.textContent);
-      if(lab&&!/^(actions?|links?|#)$/.test(lab)){
+      if(textCol(i)){
         const inp=document.createElement('input');inp.type='search';inp.className='cf-in';inp.placeholder='Filter';inp.autocomplete='off';inp.value=f[i]||'';
         inp.setAttribute('aria-label','Filter '+c.textContent.replace(/[↕↑↓▲▼]/g,'').trim());
         ['click','keydown','keyup','mousedown'].forEach(e=>inp.addEventListener(e,ev=>ev.stopPropagation()));
         inp.addEventListener('input',()=>{const s=saved.get(key)||{};s[i]=inp.value.trim().toLowerCase();saved.set(key,s);apply(t);});
         th.appendChild(inp);
-      }else if(i===h.cells.length-1){th.innerHTML='';}
+      }
       row.appendChild(th);
     });
-    const last=row.lastElementChild,b=document.createElement('button');b.type='button';b.className='cf-clear';b.textContent='Clear';b.hidden=true;b.title='Clear column filters';
+    const b=document.createElement('button');b.type='button';b.className='cf-clear';b.textContent='Clear';b.hidden=true;b.title='Clear column filters';
     b.addEventListener('click',ev=>{ev.stopPropagation();saved.set(key,{});row.querySelectorAll('.cf-in').forEach(i=>{i.value='';});apply(t);});
-    if(last&&!last.firstChild)last.appendChild(b);else row.querySelector('th:last-child').appendChild(b);
+    const slot=[...row.children].find(x=>!x.firstChild)||row.lastElementChild;slot.appendChild(b);
     t.tHead.appendChild(row);
     apply(t);
   }

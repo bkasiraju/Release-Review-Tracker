@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.25.1-GA (18 November 2026)
+
+Column filters now appear only on text columns. The blank expand column, action columns (Actions, Links, Summary, Nudge) and columns made of dropdowns or buttons (Epic Status, Review Status) no longer get a filter box. Mocked only; not checked in a browser.
+
 ## 6.25.0-GA (18 November 2026)
 
 - Release Planning: new "Group by" (Project or Priority) above the grid, and a "By priority" card in the planned summary showing ABL and BTL days per priority.
