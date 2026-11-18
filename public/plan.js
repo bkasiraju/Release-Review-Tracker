@@ -149,7 +149,7 @@ function newProjectAt(){
   const count=()=>{const L=n.value.trim().length;ncnt.textContent=`${L} / ${PROJECT_NAME_MAX}`;ncnt.classList.toggle('over',L>PROJECT_NAME_MAX);n.classList.toggle('bad',L>PROJECT_NAME_MAX);};
   n.addEventListener('input',count);
   const fillPick=()=>{const x=avail.find(a=>a.id===g.value);if(!x)return;if(!shTouched)sh.value=shortProj(x.name);m.value=x.method||m.value;};
-  const setMode=k=>{md=k;setTimeout(showX,0);sh.value='';m.value='';n.value='';shTouched=false;hint.hidden=true;fit();count();el._gate=k==='new';el._sync();el._deny();el.querySelectorAll('[data-mode]').forEach(b=>{const on=b.dataset.mode===k;b.classList.toggle('on',on);b.setAttribute('aria-selected',String(on));});
+  const setMode=k=>{md=k;sh.value='';m.value='';n.value='';shTouched=false;hint.hidden=true;fit();count();el._gate=k==='new';el._sync();el._deny();el.querySelectorAll('[data-mode]').forEach(b=>{const on=b.dataset.mode===k;b.classList.toggle('on',on);b.setAttribute('aria-selected',String(on));});
     el.querySelector('.pl-cr-pick').hidden=k!=='pick';el.querySelector('.pl-cr-new').hidden=k!=='new';ok.textContent=k==='pick'?'Add project':'Create in GUS';
     el.querySelector('.pl-cr-foot .note').textContent=k==='pick'?'Links the existing GUS project; nothing new is created.':'Created in GUS immediately when you confirm.';
     if(k==='pick')fillPick();(k==='pick'?g:n).focus();};
@@ -281,7 +281,7 @@ function newEpicAt(pid){
   const sync=()=>{const f=filled();tagBox.hidden=!f||!!lastTag;el._gate=md==='new'||f>0;el._sync();el._deny();
     okb.dataset.label=okb.textContent=md==='pick'?(f?'Add epic & create workstreams':'Add epic'):'Create in GUS';
     note.textContent=md==='pick'?(f?'Adds the epic to this table and creates the workstreams in GUS.':'Adds the existing GUS epic to this table; nothing new is created.'):(f?`Creates the epic and ${f} workstream${f>1?'s':''} in GUS.`:'Created in GUS immediately when you confirm.');};
-  const showX=()=>{const x=xeps.find(g=>g.id===xSel.value);xInfo.textContent=x?[x.teamId&&String(x.teamId).slice(0,15)!==String(H.team.Id).slice(0,15)&&`Epic of team ${x.teamName||'another team'}: only its project is changed; nothing else on it is edited`,x.projectId&&x.projectId!==pr.gusId&&`Currently in project “${x.projectName||x.projectId}” — will be tagged to this project when saved to GUS`,x.leadName&&'Lead: '+x.leadName,x.releaseName&&'Release: '+x.releaseName,x.points&&x.points+' days planned'].filter(Boolean).join('  ·  '):'';xInfo.title=xInfo.textContent;const fo=!!(x&&x.teamId&&String(x.teamId).slice(0,15)!==String(H.team.Id).slice(0,15));wsSec.hidden=md==='pick'&&fo;if(wsSec.hidden)wsr.querySelectorAll('input').forEach(i=>{i.value='';});};
+  const showX=()=>{const x=xeps.find(g=>g.id===xSel.value);xInfo.textContent=x?[x.teamId&&String(x.teamId).slice(0,15)!==String(H.team.Id).slice(0,15)&&`Epic of team ${x.teamName||'another team'}: only its project is changed; nothing else on it is edited`,x.projectId&&x.projectId!==pr.gusId&&`Currently in project “${x.projectName||x.projectId}” — will be tagged to this project when saved to GUS`,x.leadName&&'Lead: '+x.leadName,x.releaseName&&'Release: '+x.releaseName,x.points&&x.points+' days planned'].filter(Boolean).join('  ·  '):'';xInfo.title=xInfo.textContent;const fo=!!(x&&x.teamId&&String(x.teamId).slice(0,15)!==String(H.team.Id).slice(0,15));wsSec.hidden=md==='pick'&&fo;if(wsSec.hidden){wsr.querySelectorAll('input').forEach(i=>{i.value='';});sync();}};
   xSel.onchange=showX;
   // Search all of GUS (not just this project): by the W-number of a work item in the epic, an epic Id/link, or epic name. Results are added to the list and can be tagged to this project.
   const fq=el.querySelector('[data-fq]'),fnote=el.querySelector('[data-fnote]');let fseq=0;
@@ -295,8 +295,8 @@ function newEpicAt(pid){
       fnote.textContent=hits.length?`${hits.length} found${r.note?' · '+r.note:''}`:((r.epics||[]).length?'Already in the table':(r.note||'No epics found'));
       fill(hits[0]&&hits[0].id);if(hits.length===1)xSel.value=hits[0].id;showX();}
     catch(e){if(my===fseq)fnote.textContent=String(e&&e.message||e).slice(0,90);}};
-  el.querySelector('[data-fgo]').onclick=runFind;fq.addEventListener('keydown',ev=>{if(ev.key==='Enter'&&!ev.isComposing){ev.preventDefault();ev.stopPropagation();runFind();}});
-  const setMode=k=>{md=k;
+  el.querySelector('[data-fgo]').onclick=runFind;fq.addEventListener('keydown',ev=>{if(ev.key==='Enter'){ev.preventDefault();ev.stopPropagation();if(!ev.isComposing)runFind();}});
+  const setMode=k=>{md=k;showX();
     el.querySelectorAll('[data-mode]').forEach(b=>{const on=b.dataset.mode===k;b.classList.toggle('on',on);b.setAttribute('aria-selected',String(on));});
     el.querySelectorAll('.pl-cr-new').forEach(n=>{n.hidden=k!=='new';});el.querySelectorAll('.pl-cr-pick').forEach(n=>{n.hidden=k!=='pick';});
     sync();(k==='pick'?xSel:el.querySelector('[data-n].hub-inline')).focus();};

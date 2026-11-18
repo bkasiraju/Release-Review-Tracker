@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.16.3-GA (18 November 2026)
+
+Review fixes for 6.16.2. Switching from "Add existing GUS epic" back to "Create new epic" now shows the Workstreams section again after another team's epic was picked (and a stray error when opening Add project is gone). Pressing Enter while composing text in the find box no longer submits the dialog. The Add button label updates after the workstream inputs are cleared. Mocked GUS only; not checked in a browser.
+
 ## 6.16.2-GA (18 November 2026)
 
 Follow-up fixes for the epic search. Saving the plan now looks up each epic's real team in GUS instead of trusting the flag saved in the browser, so another team's epic can never have its release, effort or description overwritten. Epics found by search are no longer dropped when they belong to your team but to a different project. Workstreams are hidden when you pick another team's epic (they cannot be created under it). Inline grid edits to another team's epic are skipped rather than failing. Pressing Enter while composing text in the search box no longer submits. Mocked GUS only; not checked in a browser.
