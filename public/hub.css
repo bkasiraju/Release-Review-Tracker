@@ -2272,3 +2272,7 @@ html body .gus-links .gus-mi{display:flex;align-items:center;justify-content:spa
 html body .gus-links .gus-mi:hover,html body .gus-links .gus-mi:focus{background:#e8f1fb;text-decoration:none}
 html body .gus-links .gus-mi svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;color:#5b6b7c}
 body[data-hub=plan] .gus-links .gus-mlist{left:auto;right:0}
+
+/* 6.22.4 Open in GUS button: light text on the blue pill (the button inherited dark text) */
+html body .gus-links .gus-mbtn,html body .gus-links .gus-mbtn:hover,html body .gus-links .gus-mbtn:focus{color:#fff!important;-webkit-text-fill-color:#fff}
+html body .gus-links .gus-mbtn svg{stroke:#fff!important}

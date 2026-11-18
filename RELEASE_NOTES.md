@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.22.4-GA (18 November 2026)
+
+The "Open in GUS" menu button now has white text and arrow on its blue background; the text was rendering dark and hard to read. Mocked only; not checked in a browser.
+
 ## 6.22.3-GA (18 November 2026)
 
 Review fixes for the full-screen pop-ups. Toast messages (save results, GUS errors) are now visible while the planner is full screen. Pop-ups opened in the page-wide Focus mode stay inside the page body, so they keep their styling. Escape closes an open dialog first instead of leaving full screen. Mocked only; not checked in a browser.
