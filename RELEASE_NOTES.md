@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.5-GA (18 November 2026)
+
+Import wizard fixes: the "No measures matched" message printed "[object Object]"; it now lists each tab with the reason (no Measure/Owner header row, or how many measures were found and none owned by the names given). The Cancel / Parse sheet / Back / Continue buttons had broken sizing from the shared button styles and overlapped; the wizard now has its own button style. Mocked only; not checked in a browser.
+
 ## 6.26.4-GA (18 November 2026)
 
 V2MOM import wizard: besides a Google Sheet link and .xlsx, it now reads an .html export (File > Download > Web page in Google Sheets, or a Publish-to-web page). Every table is a method tab, named from its "Mx)" title. PDF is rejected with a clear message: PDF has no table structure, so owners and columns cannot be recovered reliably. Mocked only; the HTML reader has not been run against a real export or in a browser.

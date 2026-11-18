@@ -39,7 +39,7 @@ function open(){
     <label class="v2w-f"><span>Owners to import</span><input class="v2w-in" data-own placeholder="Jane Doe, Raj Patel (empty = everyone)" value="${esc(get('owners'))}"><small>Comma-separated names, matched against the Owner column.</small></label>
     <details class="v2w-adv"><summary>Advanced: tabs</summary><label class="v2w-f"><span>Method tabs</span><input class="v2w-in" data-tabs value="${esc(get('tabs')||'M1, M2, M3, M4, M5')}"><small>For an .xlsx, tabs named M1, M2… are used if this is empty. HTML files use every table.</small></label></details>
     <p class="pl-cr-err" role="alert" ${err?'':'hidden'}>${esc(err||'')}</p>
-    <div class="v2w-foot"><span class="pl-cr-btns"><button type="button" class="button" data-x>Cancel</button><button type="button" class="button brand" data-go>Parse sheet</button></span></div>`;
+    <div class="v2w-foot"><span class="pl-cr-btns"><button type="button" class="v2w-btn" data-x>Cancel</button><button type="button" class="v2w-btn pri" data-go>Parse sheet</button></span></div>`;
     const go=b.querySelector('[data-go]'),er=b.querySelector('.pl-cr-err');
     go.onclick=async()=>{
       const url=b.querySelector('[data-url]').value.trim(),f=b.querySelector('[data-file]').files[0],owners=b.querySelector('[data-own]').value,tabsTxt=b.querySelector('[data-tabs]').value;
@@ -63,14 +63,15 @@ function open(){
 
   const step2=()=>{
     const pre=get('prefix')||shortOf(),ms=parsed.measures||[];
-    if(!ms.length){b.innerHTML=`<p class="pl-cr-err" role="alert">No measures matched. ${parsed.skipped?esc(parsed.skipped+' rows were skipped. '):''}Check the owner names and tabs.</p><div class="pl-cr-foot"><span></span><span class="pl-cr-btns"><button type="button" class="button" data-back>Back</button></span></div>`;b.querySelector('[data-back]').onclick=()=>step1();return;}
+    if(!ms.length){const why=[...(parsed.skipped||[]).map(x=>`${x.tab}: ${x.reason}`),...(parsed.tabs||[]).map(t=>`${t.tab}: ${t.measures} measure${t.measures===1?'':'s'} found${parsed.owners&&parsed.owners.length?', none owned by '+parsed.owners.join(' / '):''}`)];
+      b.innerHTML=`<p class="v2w-step">No measures matched</p><ul class="v2w-why">${why.map(x=>`<li>${esc(x)}</li>`).join('')||'<li>The sheet had no readable tabs.</li>'}</ul><p class="note">The sheet needs a header row with a “Measure” column and an “Owner” column, and measure codes like 1.1.1. Check the owner spelling and the tab names.</p><div class="v2w-foot"><span class="pl-cr-btns"><button type="button" class="v2w-btn" data-back>Back</button></span></div>`;b.querySelector('[data-back]').onclick=()=>step1();return;}
     const byTab=new Map();ms.forEach((m,i)=>{if(!byTab.has(m.method))byTab.set(m.method,[]);byTab.get(m.method).push([m,i]);});
     b.innerHTML=`<p class="note">Step 2 of 3 · ${ms.length} measure${ms.length===1?'':'s'} across ${byTab.size} method${byTab.size===1?'':'s'}${parsed.owners&&parsed.owners.length?' for '+esc(parsed.owners.join(', ')):''}. Untick any you do not want, and edit names if needed.</p>
     <div class="v2w-bar"><label>Project prefix <input class="v2w-in" data-pre value="${esc(pre)}" maxlength="12" style="width:90px"></label>
     <label>Method value <select class="v2w-in" data-mm><option value="refs">V2MOM refs from the sheet</option><option value="tab">Sheet method (M1, M2…)</option></select></label>
-    <button type="button" class="button small" data-all>Select all</button><button type="button" class="button small" data-none>Select none</button><span class="note" data-cnt></span></div>
+    <button type="button" class="v2w-btn sm" data-all>Select all</button><button type="button" class="v2w-btn sm" data-none>Select none</button><span class="note" data-cnt></span></div>
     <div class="v2w-list" data-list></div><p class="pl-cr-err" role="alert" hidden></p>
-    <div class="pl-cr-foot"><span class="note">Next: choose the GUS program.</span><span class="pl-cr-btns"><button type="button" class="button" data-back>Back</button><button type="button" class="button primary" data-next>Continue</button></span></div>`;
+    <div class="pl-cr-foot"><span class="note">Next: choose the GUS program.</span><span class="pl-cr-btns"><button type="button" class="v2w-btn" data-back>Back</button><button type="button" class="v2w-btn pri" data-next>Continue</button></span></div>`;
     const list=b.querySelector('[data-list]'),pe=b.querySelector('[data-pre]'),mm=b.querySelector('[data-mm]'),cnt=b.querySelector('[data-cnt]');
     const nameFor=m=>`${pe.value.trim()} M${m.code} - ${m.name}`.replace(/\s+/g,' ').trim();
     const draw=()=>{list.innerHTML=[...byTab].map(([t,arr])=>`<section class="v2w-g"><h4>${esc(t)} <small>${arr.length}</small></h4>${arr.map(([m,i])=>{const nm=nameFor(m);return `<div class="v2w-r"><input type="checkbox" data-i="${i}" checked aria-label="Import ${esc(m.code)}"><div><input class="v2w-in" data-n="${i}" value="${esc(nm)}"><small class="v2w-c" data-c="${i}"></small><small>${esc(m.ownerText||'')}${m.refText?' · '+esc(m.refText):''}</small></div></div>`;}).join('')}</section>`).join('');count();};
@@ -95,7 +96,7 @@ function open(){
     <label class="pl-cr-f"><span>GUS program name <small>exact name of the PPM program${teamProg?`; this team's default is ${esc(teamProg.name)}`:''}</small></span><input class="v2w-in" data-prog list="v2w-progs" value="${esc(def)}" placeholder="e.g. ${esc(H.team.short||H.team.Name)} - 268"><datalist id="v2w-progs">${programs.map(p=>`<option value="${esc(p.name)}">`).join('')}</datalist></label>
     <div class="v2w-sum">${items.map(i=>`<div>${esc(i.name)} <small>${esc(i.method)}</small></div>`).join('')}</div>
     <p class="pl-cr-err" role="alert" hidden></p>
-    <div class="pl-cr-foot"><span class="note">Created in GUS immediately when you confirm.</span><span class="pl-cr-btns"><button type="button" class="button" data-back>Back</button><button type="button" class="button primary" data-ok>Create in GUS</button></span></div>`;
+    <div class="pl-cr-foot"><span class="note">Created in GUS immediately when you confirm.</span><span class="pl-cr-btns"><button type="button" class="v2w-btn" data-back>Back</button><button type="button" class="v2w-btn pri" data-ok>Create in GUS</button></span></div>`;
     b.querySelector('[data-back]').onclick=()=>step2();
     const ok=b.querySelector('[data-ok]'),er=b.querySelector('.pl-cr-err');
     ok.onclick=async()=>{
@@ -111,7 +112,7 @@ function open(){
     const bad=r.results.filter(x=>!x.ok);
     b.innerHTML=`<p class="note"><b>${r.results.length-bad.length}</b> of ${r.results.length} projects are in program <b>${esc(r.program.name)}</b> (${r.created} newly created in GUS, ${r.added} added to the plan).</p>
     <div class="v2w-sum">${r.results.map(x=>`<div class="${x.ok?'':'bad'}">${x.ok?'✓':'✗'} ${esc(x.name)} <small>${x.ok?(x.created?'created':'already existed'):esc(x.error)}</small></div>`).join('')}</div>
-    <div class="pl-cr-foot"><span></span><span class="pl-cr-btns"><button type="button" class="button primary" data-view>Open planner</button></span></div>`;
+    <div class="pl-cr-foot"><span></span><span class="pl-cr-btns"><button type="button" class="v2w-btn pri" data-view>Open planner</button></span></div>`;
     b.querySelector('[data-view]').onclick=()=>{close();H.go('plan');if(H.current==='plan')location.reload();};
   };
   step1();

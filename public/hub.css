@@ -2352,3 +2352,11 @@ input[type=file].v2w-in{padding:5px}
 .v2w .pl-cr-btns{display:flex;gap:8px}
 .v2w .pl-cr-err{color:#b3261e;margin:6px 0;font-size:12px}
 .v2w-r .v2w-in{width:100%}
+/* 6.26.5 wizard buttons (self-contained: the shared .button rules overrode sizing here) */
+.v2w .v2w-btn{all:unset;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;min-width:84px;height:34px;padding:0 16px;border:1px solid #b9c7d6;border-radius:6px;background:#fff;color:#0b3a66;font:600 13px/1 inherit;font-family:inherit;cursor:pointer;white-space:nowrap}
+.v2w .v2w-btn:hover{background:#eef4fa}
+.v2w .v2w-btn.pri{background:#0b5cab;border-color:#0b5cab;color:#fff}.v2w .v2w-btn.pri:hover{background:#094c8d}
+.v2w .v2w-btn.sm{min-width:0;height:28px;padding:0 10px;font-size:12px}
+.v2w .v2w-btn:disabled{opacity:.55;cursor:default}
+.v2w .v2w-btn:focus-visible{outline:2px solid #0b5cab;outline-offset:2px}
+.v2w-why{margin:6px 0 10px 18px;font-size:12px}
