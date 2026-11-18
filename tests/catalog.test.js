@@ -48,3 +48,9 @@ test('leave, holiday and on-call are saved per team in the plan and read back',a
   assert.deepEqual(got,{name:'Ann',leave:3,holiday:2,oncall:4,total:50});
   assert.deepEqual((await plan.getPlan(store,B)).plan.people,{});
 });
+
+test('a project edit keeps seedVersion so the catalog is not re-seeded on every read',async()=>{
+  const store=mkStore(),a=(await plan.getPlan(store,A)).plan;a.projects[0].method='HPS M1.1.1';
+  await plan.savePlan(store,A,a,null);
+  const doc=store.mem['plan-projects'];assert.equal(doc.seedVersion,1);assert.equal(doc.projects.length,24);
+});

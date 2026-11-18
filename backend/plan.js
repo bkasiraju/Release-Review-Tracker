@@ -100,7 +100,7 @@ function mergeCatalog(plan, catalog) {
   const hidden = new Set(plan.hiddenProjects || []), used = new Set(plan.epics.map(e => e.projectId));
   const projects = plan.projects.filter(p => !hidden.has(p.id) || used.has(p.id)).map(p => byId.has(p.id) ? { ...p, ...Object.fromEntries(PFIELDS.map(k => [k, byId.get(p.id)[k]])) } : p);
   const have = new Set(projects.map(p => p.id));
-  for (const c of catalog) if (!have.has(c.id) && !hidden.has(c.id) && projects.length < MAX.projects) projects.push(c);
+  for (const c of catalog) if (!have.has(c.id) && (!hidden.has(c.id) || used.has(c.id)) && projects.length < MAX.projects) projects.push(c);
   return { ...plan, projects };
 }
 async function getPlan(store, teamId) {
@@ -116,7 +116,7 @@ async function savePlan(store, teamId, plan, expected) {
     const cat = new Map((await getCatalog(store)).map(c => [c.id, c]));
     let dirty = false;
     for (const p of next.projects) if (!sameProject(prev.get(p.id), p) && !sameProject(cat.get(p.id), p)) { cat.set(p.id, p); dirty = true; }
-    if (dirty) await store.put('settings', CATALOG_KEY, { projects: [...cat.values()].slice(0, 300) });
+    if (dirty) await store.put('settings', CATALOG_KEY, { projects: [...cat.values()].slice(0, MAX.projects), seedVersion: SEED_VERSION }); // keep seedVersion or the next read re-seeds and rewrites the catalog
   } catch (_) { /* the team plan is saved; the catalog catches up on the next save */ }
   return { plan: mergeCatalog(cleanPlan(saved.plan), await getCatalog(store).catch(() => [])), revision: saved.revision, updatedAt: saved.updatedAt };
 }
@@ -186,7 +186,7 @@ async function createProject(sf, teamId, input) {
   return { gusId: r.id, created: r.created, programId: program ? program.id : '', programName: program ? program.name : '' };
 }
 /** Deletes a project (measure) in GUS. Guarded: it must sit in this team's program and have no epics left in GUS, so shared work is never lost. */
-async function deleteProject(sf, teamId, input) {
+async function deleteProject(sf, teamId, input, store) {
   planKey(teamId);
   const id = gid(input && input.gusId);
   if (!id) throw new Error('This project is not in GUS.');
@@ -204,6 +204,10 @@ async function deleteProject(sf, teamId, input) {
     throw new Error('GUS refused to delete the project: ' + String(e && e.message || e));
   }
   refsCache.delete(teamId);
+  if (store) try { // other teams must not keep pointing at the deleted GUS project
+    const doc = await store.get('settings', CATALOG_KEY);
+    if (doc && Array.isArray(doc.projects) && doc.projects.some(x => x && x.gusId === id)) await store.put('settings', CATALOG_KEY, { ...doc, projects: doc.projects.map(x => x && x.gusId === id ? { ...x, gusId: '' } : x) });
+  } catch (_) { /* the project is deleted in GUS; the catalog entry is cleared on a later edit */ }
   return { deleted: true, gusId: id, name: hit.Name };
 }
 async function createEpic(sf, teamId, input) {
