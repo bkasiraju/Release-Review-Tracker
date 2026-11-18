@@ -222,12 +222,22 @@ async function createEpic(sf, teamId, input) {
 // A workstream in GUS is a parent User Story ("WS: <name>") on the epic, so engineers' own stories hang under it via Parent__c.
 // Two themes mark it: the shared "Workstream" theme (find every workstream) and one per workstream (find the stories under it).
 const WS_PREFIX = 'WS: ', WS_MARKER = 'Workstream', THEME_NAME_MAX = 80;
+const plain = m => String(m || '').replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim(); // GUS error text can carry HTML links
+// GUS theme names are unique across the org, so a theme another team (or an earlier run) already owns is reused instead of re-created.
 async function ensureTheme(sf, teamId, name) {
-  const hit = ((await sf.query(`SELECT Id FROM ADM_Theme__c WHERE Name = '${soql(name)}' AND Scrum_Team__c = '${teamId}' LIMIT 1`)).records || [])[0];
-  if (hit) return hit.Id;
-  const c = await sf.create('ADM_Theme__c', { Name: name, Scrum_Team__c: teamId, Active__c: true });
-  if (!ok(c) || !newId(c)) throw new Error('GUS rejected the theme "' + name + '": ' + ((c && c.errors) || []).join(', '));
-  return newId(c);
+  const find = async scope => (((await sf.query(`SELECT Id FROM ADM_Theme__c WHERE Name = '${soql(name)}'${scope} LIMIT 1`)).records || [])[0] || {}).Id;
+  const mine = await find(` AND Scrum_Team__c = '${teamId}'`);
+  if (mine) return mine;
+  let c;
+  try { c = await sf.create('ADM_Theme__c', { Name: name, Scrum_Team__c: teamId, Active__c: true }); }
+  catch (e) { c = { errors: [String(e && e.message || e)] }; }
+  if (ok(c) && newId(c)) return newId(c);
+  const msg = ((c && c.errors) || []).join(', ');
+  if (/already exists/i.test(msg)) {
+    const id = (msg.match(/\/(a0p[A-Za-z0-9]{12,15})/) || [])[1] || await find('');
+    if (id) return id;
+  }
+  throw new Error('GUS rejected the theme "' + name + '": ' + plain(msg));
 }
 async function assignTheme(sf, themeId, workId) {
   const hit = ((await sf.query(`SELECT Id FROM ADM_Theme_Assignment__c WHERE Theme__c = '${themeId}' AND Work__c = '${workId}' LIMIT 1`)).records || [])[0];
@@ -264,7 +274,7 @@ async function createWorkstream(sf, teamId, input) {
   const wsTheme = (WS_PREFIX + (text(input && input.projectShort, 30) ? text(input.projectShort, 30) + ' › ' : '') + name).slice(0, THEME_NAME_MAX);
   for (const t of [WS_MARKER, wsTheme]) {
     try { await assignTheme(sf, await ensureTheme(sf, teamId, t), workId); themes.push(t); }
-    catch (e) { warnings.push(String(e && e.message || e).slice(0, 200)); }
+    catch (e) { warnings.push(plain(e && e.message || e).slice(0, 200)); }
   }
   return { gusId: workId, created, themes, warnings };
 }

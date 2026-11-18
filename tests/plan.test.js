@@ -175,3 +175,22 @@ test('deleteProject only deletes an empty project in the team program',async()=>
   await assert.rejects(plan.deleteProject(mk(),T,{gusId:'bad id'}),/not in GUS/);
   assert.equal(del.length,1);
 });
+
+test('createWorkstream reuses a theme GUS says already exists (another team owns it) and never leaks HTML',async()=>{
+  const EP='a0XEE00000EPC0001A',TAG='a1TEE00000TAG0001A',THEME='a0pEE000001Dfb3YAC',assigned=[];let work=null;
+  const sf={async query(q){
+      if(/FROM ADM_Epic__c/.test(q))return {records:[{Id:EP,Name:'E'}]};
+      if(/FROM ADM_Product_Tag__c/.test(q))return {records:[{Id:TAG}]};
+      if(/FROM RecordType/.test(q))return {records:[{Id:'0129000000006gDAAQ'}]};
+      if(/FROM ADM_Work__c/.test(q))return {records:work?[{Id:work}]:[]};
+      if(/FROM ADM_Theme__c/.test(q))return {records:q.includes('Scrum_Team__c')?[]:[{Id:THEME}]};
+      return {records:[]};},
+    async create(o,f){if(o==='ADM_Work__c'){work='a0WEE0000000000001';return {success:true,id:work};}
+      if(o==='ADM_Theme__c')return {success:false,errors:['A <a href="/'+THEME+'">theme</a> with this name already exists. Please specify a different name.']};
+      assigned.push(f.Theme__c);return {success:true,id:'a0qEE0000000000001'};}};
+  const r=await plan.createWorkstream(sf,T,{epicGusId:EP,name:'API',tagId:TAG});
+  assert.deepEqual(r.warnings,[]);assert.deepEqual(assigned,[THEME,THEME]);
+  const sf2={...sf,async create(o,f){if(o==='ADM_Theme__c')return {success:false,errors:['<b>boom</b> denied']};return sf.create(o,f);}};
+  const r2=await plan.createWorkstream(sf2,T,{epicGusId:EP,name:'API',tagId:TAG});
+  assert.ok(r2.warnings.length&&r2.warnings.every(w=>!/[<>]/.test(w)),JSON.stringify(r2.warnings));
+});

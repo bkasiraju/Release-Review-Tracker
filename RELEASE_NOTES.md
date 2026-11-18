@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.3.0-GA (18 November 2026)
+
+Fix: adding a workstream no longer shows "Themes were not fully applied: A <a href=…>theme</a> with this name already exists". GUS theme names are unique across the org, so when a theme (the shared "Workstream" theme or the per-workstream one) already exists under another team, it is now reused and assigned instead of re-created. Any remaining GUS error text is stripped of HTML before it is shown. Verified by unit tests only (focused plan tests pass; full-suite baseline of 38 pre-existing failures unchanged); not verified against live GUS.
+
 ## 6.2.0-GA (18 November 2026)
 
 Follow-up to the 6.1.0-GA review caveats: the plan commit review now blocks a new (not yet in GUS) project whose name is over 80 characters, with a pointer to the Projects panel; the server message reports the real length; the suggestion box no longer offers an empty suggestion. Verified by unit tests only; not render-verified in a browser.
