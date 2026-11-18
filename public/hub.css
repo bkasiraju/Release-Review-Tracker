@@ -2217,3 +2217,8 @@ html body[data-hub=plan] .pl-g-proj .pl-open-gus{width:16px;height:16px}
 html body[data-hub=plan] .pl-g-proj .pl-caret{font-size:11px;width:18px;height:18px}
 html body .pl-grid .pl-cf{height:22px!important;min-height:22px!important;font-size:11px!important}
 html body[data-hub=plan] .pl-grid .pl-cf-row th{top:28px}
+/* 6.14.1 review fixes: epic/workstream rows share the faint accent, filter row stays compact, hover works */
+html body[data-hub=plan] .pl-grid tr[data-e] td:first-child,html body[data-hub=plan] .pl-grid tr.abl.pl-g-first td:first-child{box-shadow:inset 3px 0 color-mix(in srgb,var(--pc,#a8b7c7) 45%,#fff)!important}
+html body[data-hub=plan] .pl-grid .pl-cf-row th{padding:3px 6px!important}
+html body[data-hub=plan] .pl-g-proj:hover td{background:#eef4fa}
+html body[data-hub=plan] .pl-grid thead tr:first-child th{height:28px;line-height:16px;box-sizing:border-box}
