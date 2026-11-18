@@ -107,3 +107,9 @@ test('commit looks up the real team of an epic instead of trusting the saved for
   assert.equal(r.failed,0);const u=updates.find(x=>x[0]==='ADM_Epic__c');
   assert.deepEqual(Object.keys(u[2]),['Project__c']);
 });
+
+test('cleanPlan keeps added and removed engineers, dropping malformed ids',()=>{
+  const c=plan.cleanPlan({window:win,hiddenEng:[ENG,'bad',ENG],extraEng:[{id:A,name:'Added Person'},{id:'nope',name:'x'},{id:A,name:'Added Person'}]});
+  assert.deepEqual(c.hiddenEng,[ENG]);
+  assert.deepEqual(c.extraEng,[{id:A,name:'Added Person'}]);
+});

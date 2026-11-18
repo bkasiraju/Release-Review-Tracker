@@ -1,5 +1,12 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.25.0-GA (18 November 2026)
+
+- Release Planning: new "Group by" (Project or Priority) above the grid, and a "By priority" card in the planned summary showing ABL and BTL days per priority.
+- Release Review: "Priority" added to the Group by list (reads the GUS epic Priority field; epics fetched before this build show "Not reported" until the next refresh).
+- Leaves, holidays & on-call: engineers can be removed from the plan (×) and any member of any CFS team can be added from a picker. Stored in the plan only; the GUS team roster is unchanged and existing workstream assignments are kept.
+- Mocked only; not checked in a signed-in browser.
+
 ## 6.24.2-GA (18 November 2026)
 
 Fixed a syntax error in `app.js` (introduced in 6.24.0) that stopped the whole page loading. Added a test that every `public/*.js` file parses, so this cannot ship again. 6.24.0 and 6.24.1 must not be used.

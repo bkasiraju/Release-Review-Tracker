@@ -1,7 +1,7 @@
 'use strict';
 const {URL}=require('url');
 const {plainText}=require('./comments');
-const EPIC_FIELDS={name:'Name',project:'Project__r.Name',health:'Health__c',comments:'Epic_Health_Comments__c',pathToGreen:'Path_to_Green__c',completion:'Percent_Of_Work_Items_Complete__c',planned:'Planned_Story_Points__c',actual:'Actual_Story_Points_on_Epic__c',closed:'Storypoints_Closed__c',inProgress:'Storypoints_In_Progress__c',newPoints:'Storypoints_New__c',waiting:'Storypoints_In_Waiting__c',owner:'Owner.Name',lead:'Development_Lead__r.Name',team:'Team__r.Name',modified:'LastModifiedDate'};
+const EPIC_FIELDS={name:'Name',project:'Project__r.Name',health:'Health__c',priority:'Priority__c',comments:'Epic_Health_Comments__c',pathToGreen:'Path_to_Green__c',completion:'Percent_Of_Work_Items_Complete__c',planned:'Planned_Story_Points__c',actual:'Actual_Story_Points_on_Epic__c',closed:'Storypoints_Closed__c',inProgress:'Storypoints_In_Progress__c',newPoints:'Storypoints_New__c',waiting:'Storypoints_In_Waiting__c',owner:'Owner.Name',lead:'Development_Lead__r.Name',team:'Team__r.Name',modified:'LastModifiedDate'};
 const WORK_FIELDS={number:'Name',title:'Subject__c',status:'Status__c',assignee:'Assignee__r.Name',sprint:'Sprint__r.Name',sprintStart:'Sprint__r.Start_Date__c',sprintEnd:'Sprint__r.End_Date__c',points:'Story_Points__c',priority:'Priority__c'};
 const FIELD_PATH=/^[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*$/;
 function validId(id){if(typeof id!=='string'||!/^([a-zA-Z0-9]{15}|[a-zA-Z0-9]{18})$/.test(id))throw Error('Use a GUS epic record link or a 15/18-character Salesforce record ID.');return id.slice(0,15);}

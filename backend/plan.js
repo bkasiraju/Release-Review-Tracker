@@ -75,7 +75,10 @@ function cleanPlan(input) {
   const last = p.lastCommit && typeof p.lastCommit === 'object' ? { at: text(p.lastCommit.at, 40), created: Number(p.lastCommit.created) || 0, updated: Number(p.lastCommit.updated) || 0 } : null;
   // Catalog projects this team removed from its own dashboard (the shared catalog and other teams are untouched)
   const hiddenProjects = [...new Set((Array.isArray(p.hiddenProjects) ? p.hiddenProjects : []).filter(v => LOCAL.test(String(v || ''))).map(String))].slice(0, MAX.projects);
-  return { window: { start: ISO.test(w.start) ? w.start : '', end: ISO.test(w.end) ? w.end : '', releaseId: gid(w.releaseId) }, people, projects, epics, hiddenProjects, lastCommit: last };
+  // Engineers this team removed from its roster view / added from other CFS teams (the GUS roster itself is untouched)
+  const hiddenEng = [...new Set((Array.isArray(p.hiddenEng) ? p.hiddenEng : []).map(gid).filter(Boolean))].slice(0, MAX.people);
+  const extraEng = [...new Map((Array.isArray(p.extraEng) ? p.extraEng : []).filter(v => v && gid(v.id)).map(v => [gid(v.id), { id: gid(v.id), name: text(v.name, 80) }])).values()].slice(0, MAX.people);
+  return { window: { start: ISO.test(w.start) ? w.start : '', end: ISO.test(w.end) ? w.end : '', releaseId: gid(w.releaseId) }, people, projects, epics, hiddenProjects, hiddenEng, extraEng, lastCommit: last };
 }
 
 // Programs are per team and release, named "<Team> - <release>" in GUS

@@ -2298,3 +2298,12 @@ thead tr.cf-row th{position:static!important;padding:4px 6px;background:#f7fafc!
 .cf-in:focus{outline:2px solid #0176d3;outline-offset:0;border-color:#0176d3}
 .cf-clear{height:28px;padding:0 8px;border:0;background:none;color:#0176d3;font:inherit;font-size:12px;cursor:pointer}
 .cf-clear[hidden]{display:none}
+
+/* 6.25.0: planner Group by */
+.pl-gb{display:inline-flex;align-items:center;gap:6px;margin-right:8px;font-size:12px;color:#444}
+.pl-gb select{height:32px}
+
+/* 6.25.0: engineers add/remove in Leaves modal */
+.pl-leaves-h,.pl-leaves-r{grid-template-columns:minmax(130px,1.6fr) repeat(4,1fr) .7fr 28px!important}
+.pl-leaves-r .pl-rm{width:26px;height:26px;border:0;background:none;color:#8a2a2a;font-size:18px;line-height:1;cursor:pointer}
+.pl-eng-add{display:flex;gap:10px;align-items:flex-end;margin:12px 0 4px}.pl-eng-add label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:#444;min-width:280px}
