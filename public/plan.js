@@ -149,7 +149,7 @@ function newProjectAt(){
   const count=()=>{const L=n.value.trim().length;ncnt.textContent=`${L} / ${PROJECT_NAME_MAX}`;ncnt.classList.toggle('over',L>PROJECT_NAME_MAX);n.classList.toggle('bad',L>PROJECT_NAME_MAX);};
   n.addEventListener('input',count);
   const fillPick=()=>{const x=avail.find(a=>a.id===g.value);if(!x)return;if(!shTouched)sh.value=shortProj(x.name);m.value=x.method||m.value;};
-  const setMode=k=>{md=k;sh.value='';m.value='';n.value='';shTouched=false;hint.hidden=true;fit();count();el._gate=k==='new';el._sync();el._deny();el.querySelectorAll('[data-mode]').forEach(b=>{const on=b.dataset.mode===k;b.classList.toggle('on',on);b.setAttribute('aria-selected',String(on));});
+  const setMode=k=>{md=k;setTimeout(showX,0);sh.value='';m.value='';n.value='';shTouched=false;hint.hidden=true;fit();count();el._gate=k==='new';el._sync();el._deny();el.querySelectorAll('[data-mode]').forEach(b=>{const on=b.dataset.mode===k;b.classList.toggle('on',on);b.setAttribute('aria-selected',String(on));});
     el.querySelector('.pl-cr-pick').hidden=k!=='pick';el.querySelector('.pl-cr-new').hidden=k!=='new';ok.textContent=k==='pick'?'Add project':'Create in GUS';
     el.querySelector('.pl-cr-foot .note').textContent=k==='pick'?'Links the existing GUS project; nothing new is created.':'Created in GUS immediately when you confirm.';
     if(k==='pick')fillPick();(k==='pick'?g:n).focus();};
@@ -276,12 +276,12 @@ function newEpicAt(pid){
   const nm=el.querySelector('textarea[data-n]'),cnt=el.querySelector('[data-cnt]'),errEl=el.querySelector('.pl-cr-err');
   fitSuggest(nm,EPIC_NAME_MAX,el.querySelector('[data-efit]'),'Epic name');
   nm.oninput=()=>{const L=nm.value.trim().length,over=L>EPIC_NAME_MAX;cnt.textContent=`${L} / ${EPIC_NAME_MAX}`;cnt.classList.toggle('over',over);nm.classList.toggle('bad',over);errEl.textContent=over?`Epic name is ${L} characters; GUS allows at most ${EPIC_NAME_MAX}. Shorten it by ${L-EPIC_NAME_MAX}.`:'';errEl.hidden=!over;};
-  const xSel=el.querySelector('[data-xe]'),xInfo=el.querySelector('[data-xi]'),pc=el.querySelector('[data-pcnt]'),okb=el.querySelector('[data-ok]'),note=el.querySelector('.pl-cr-foot .note'),wsr=el.querySelector('[data-wsrows]'),tagBox=el.querySelector('[data-tagbox]');
+  const xSel=el.querySelector('[data-xe]'),xInfo=el.querySelector('[data-xi]'),pc=el.querySelector('[data-pcnt]'),okb=el.querySelector('[data-ok]'),note=el.querySelector('.pl-cr-foot .note'),wsr=el.querySelector('[data-wsrows]'),tagBox=el.querySelector('[data-tagbox]'),wsSec=wsr.closest('.pl-cr-s');
   const filled=()=>[...wsr.querySelectorAll('[data-wn]')].filter(i=>i.value.trim()).length;
   const sync=()=>{const f=filled();tagBox.hidden=!f||!!lastTag;el._gate=md==='new'||f>0;el._sync();el._deny();
     okb.dataset.label=okb.textContent=md==='pick'?(f?'Add epic & create workstreams':'Add epic'):'Create in GUS';
     note.textContent=md==='pick'?(f?'Adds the epic to this table and creates the workstreams in GUS.':'Adds the existing GUS epic to this table; nothing new is created.'):(f?`Creates the epic and ${f} workstream${f>1?'s':''} in GUS.`:'Created in GUS immediately when you confirm.');};
-  const showX=()=>{const x=xeps.find(g=>g.id===xSel.value);xInfo.textContent=x?[x.teamId&&String(x.teamId).slice(0,15)!==String(H.team.Id).slice(0,15)&&`Epic of team ${x.teamName||'another team'}: only its project is changed; nothing else on it is edited`,x.projectId&&x.projectId!==pr.gusId&&`Currently in project “${x.projectName||x.projectId}” — will be tagged to this project when saved to GUS`,x.leadName&&'Lead: '+x.leadName,x.releaseName&&'Release: '+x.releaseName,x.points&&x.points+' days planned'].filter(Boolean).join('  ·  '):'';xInfo.title=xInfo.textContent;};
+  const showX=()=>{const x=xeps.find(g=>g.id===xSel.value);xInfo.textContent=x?[x.teamId&&String(x.teamId).slice(0,15)!==String(H.team.Id).slice(0,15)&&`Epic of team ${x.teamName||'another team'}: only its project is changed; nothing else on it is edited`,x.projectId&&x.projectId!==pr.gusId&&`Currently in project “${x.projectName||x.projectId}” — will be tagged to this project when saved to GUS`,x.leadName&&'Lead: '+x.leadName,x.releaseName&&'Release: '+x.releaseName,x.points&&x.points+' days planned'].filter(Boolean).join('  ·  '):'';xInfo.title=xInfo.textContent;const fo=!!(x&&x.teamId&&String(x.teamId).slice(0,15)!==String(H.team.Id).slice(0,15));wsSec.hidden=md==='pick'&&fo;if(wsSec.hidden)wsr.querySelectorAll('input').forEach(i=>{i.value='';});};
   xSel.onchange=showX;
   // Search all of GUS (not just this project): by the W-number of a work item in the epic, an epic Id/link, or epic name. Results are added to the list and can be tagged to this project.
   const fq=el.querySelector('[data-fq]'),fnote=el.querySelector('[data-fnote]');let fseq=0;
@@ -295,7 +295,7 @@ function newEpicAt(pid){
       fnote.textContent=hits.length?`${hits.length} found${r.note?' · '+r.note:''}`:((r.epics||[]).length?'Already in the table':(r.note||'No epics found'));
       fill(hits[0]&&hits[0].id);if(hits.length===1)xSel.value=hits[0].id;showX();}
     catch(e){if(my===fseq)fnote.textContent=String(e&&e.message||e).slice(0,90);}};
-  el.querySelector('[data-fgo]').onclick=runFind;fq.addEventListener('keydown',ev=>{if(ev.key==='Enter'){ev.preventDefault();ev.stopPropagation();runFind();}});
+  el.querySelector('[data-fgo]').onclick=runFind;fq.addEventListener('keydown',ev=>{if(ev.key==='Enter'&&!ev.isComposing){ev.preventDefault();ev.stopPropagation();runFind();}});
   const setMode=k=>{md=k;
     el.querySelectorAll('[data-mode]').forEach(b=>{const on=b.dataset.mode===k;b.classList.toggle('on',on);b.setAttribute('aria-selected',String(on));});
     el.querySelectorAll('.pl-cr-new').forEach(n=>{n.hidden=k!=='new';});el.querySelectorAll('.pl-cr-pick').forEach(n=>{n.hidden=k!=='pick';});
@@ -304,7 +304,7 @@ function newEpicAt(pid){
   el.querySelector('[data-wadd]').onclick=()=>{if(wsr.children.length>=10)return;wsr.insertAdjacentHTML('beforeend',wsRow());wsr.lastElementChild.querySelector('input').focus();};
   wsr.addEventListener('input',sync);
   wsr.addEventListener('click',ev=>{const x=ev.target.closest('[data-wx]');if(!x)return;if(wsr.children.length>1)x.closest('.pl-wsr').remove();else{x.closest('.pl-wsr').querySelectorAll('input').forEach(i=>{i.value='';});}sync();});
-  call('plan-gus-epics',{teamId:H.team.Id}).then(r=>{const inPlan=new Set(pl.epics.map(e=>e.gusId).filter(Boolean)),found=xeps.filter(g=>!(r.epics||[]).some(o=>o.id===g.id));xeps=(r.epics||[]).filter(g=>!inPlan.has(g.id)&&pr.gusId&&g.projectId===pr.gusId).concat(found);const had=xSel.value;
+  call('plan-gus-epics',{teamId:H.team.Id}).then(r=>{const inPlan=new Set(pl.epics.map(e=>e.gusId).filter(Boolean)),own=(r.epics||[]).filter(g=>!inPlan.has(g.id)&&pr.gusId&&g.projectId===pr.gusId),found=xeps.filter(g=>!own.some(o=>o.id===g.id));xeps=own.concat(found);const had=xSel.value;
     xSel.innerHTML=xeps.length?`<option value="">Select an epic…</option>`+xeps.map(g=>opt(g.id,g.name,false)).join(''):opt('',pr.gusId?'No other epics of this project — use Find above for any GUS epic':'Use Find above to add any GUS epic',true);
     if(found.length)fill(had);
     pc.textContent=`${xeps.length-found.length} of this project not yet in the table`;},e=>{xSel.innerHTML=opt('','Could not load GUS epics',true);pc.textContent=String(e&&e.message||e).slice(0,60);});
@@ -618,7 +618,7 @@ const gusSnap=e=>({name:e.name||'',leadId:(e.owners&&e.owners[0])||'',releaseId:
 function snapGus(){P.gsnap=new Map((P.plan?P.plan.epics:[]).filter(e=>e.gusId).map(e=>[e.gusId,JSON.stringify(gusSnap(e))]));}
 async function syncGus(){
   if(!P.plan||P.noGusSync)return;if(!P.gsnap)snapGus();
-  const todo=P.plan.epics.filter(e=>e.gusId&&P.gsnap.get(e.gusId)!==JSON.stringify(gusSnap(e)));if(!todo.length)return;
+  const todo=P.plan.epics.filter(e=>e.gusId&&!e.foreign&&P.gsnap.get(e.gusId)!==JSON.stringify(gusSnap(e)));if(!todo.length)return;
   const sent=todo.map(e=>({e,s:gusSnap(e)}));
   try{
     const r=await call('plan-sync-epics',{teamId:H.team.Id,epics:sent.map(x=>({gusId:x.e.gusId,...x.s}))});

@@ -95,3 +95,15 @@ test('an epic of another team is only tagged to the project on commit',async()=>
   assert.equal(r.failed,0);const u=updates.find(x=>x[0]==='ADM_Epic__c');
   assert.deepEqual(Object.keys(u[2]),['Project__c']);assert.equal(u[2].Project__c,OWN);
 });
+
+test('commit looks up the real team of an epic instead of trusting the saved foreign flag',async()=>{
+  const store=mkStore(),T1='a00B0000000w4ZnIAI',PROG='a1FEE00000PROGYYA',OWN='a1PEE00000OWN0001A',updates=[];
+  const base=(await plan.getPlan(store,T1)).plan,p0=base.projects[0];
+  base.epics=[{id:'e1',projectId:p0.id,name:'Sneaky epic',line:'ABL',releaseId:'',gusId:'a3QEE000002q44n2AA',foreign:false,workstreams:[]}];
+  await plan.savePlan(store,T1,base,null);
+  const sf={async query(q){if(/FROM ADM_Epic__c WHERE Id IN/.test(q))return {records:[{Id:'a3QEE000002q44n2AA',Team__c:'a00B0000000OTHER99'}]};if(/Scrum_Team/.test(q))return {records:[{Name:'Team Gamma'}]};if(/PPM_Program/.test(q))return {records:[{Id:PROG,Name:'Team Gamma - 268'}]};if(/FROM PPM_Project__c/.test(q))return {records:[{Id:OWN}]};return {records:[]};},
+    async create(){return {success:true,id:OWN};},async update(o,id,f){updates.push([o,id,f]);return {success:true};}};
+  const r=await plan.commitPlan(sf,store,T1,true,false,true);
+  assert.equal(r.failed,0);const u=updates.find(x=>x[0]==='ADM_Epic__c');
+  assert.deepEqual(Object.keys(u[2]),['Project__c']);
+});

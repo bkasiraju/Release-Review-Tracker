@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.16.2-GA (18 November 2026)
+
+Follow-up fixes for the epic search. Saving the plan now looks up each epic's real team in GUS instead of trusting the flag saved in the browser, so another team's epic can never have its release, effort or description overwritten. Epics found by search are no longer dropped when they belong to your team but to a different project. Workstreams are hidden when you pick another team's epic (they cannot be created under it). Inline grid edits to another team's epic are skipped rather than failing. Pressing Enter while composing text in the search box no longer submits. Mocked GUS only; not checked in a browser.
+
 ## 6.16.1-GA (18 November 2026)
 
 Review fixes for the epic search. An epic found from another team is now only tagged to the project: saving the plan changes its project and nothing else (its release, effort, priority, description and owner are left alone), and the release and effort checks are skipped for it, so it can no longer block saving the rest of the plan. The dialog says so when you pick one. Epics of your own team are saved in full as before. Results found by the search are no longer lost if the project's epic list finishes loading afterwards. Edits made in the grid to another team's epic are not written to GUS (only the project tag is). Mocked GUS only; not checked in a browser.

@@ -452,6 +452,13 @@ async function commitRun(sf, store, teamId, confirm, includeBtl, acknowledged) {
   const program = await teamProgram(sf, teamId);
   // A shared project linked to another team's program (older shared links) is treated as unlinked: it is found or created by name in this team's own program.
   if (program) { const seeded = new Set(SEED_PROJECTS.map(x => x.id)); for (const p of plan.projects) if (seeded.has(p.id) && p.gusId && p.programId !== program.id) { p.gusId = ''; p.programId = ''; p.programName = ''; } }
+  // Do not trust the browser's flag for epics of other teams: look up each saved epic's real team (best effort; the flag is kept if the lookup fails).
+  const teamOf = new Map();
+  const gids = [...new Set(plan.epics.map(e => e.gusId).filter(Boolean))];
+  for (let i = 0; i < gids.length; i += 150) {
+    try { for (const r of (await sf.query(`SELECT Id, Team__c FROM ADM_Epic__c WHERE Id IN (${gids.slice(i, i + 150).map(x => `'${gid(x)}'`).join(',')})`)).records || []) teamOf.set(String(r.Id).slice(0, 15), String(r.Team__c || '').slice(0, 15)); } catch (_) { /* keep the saved flags */ }
+  }
+  for (const e of plan.epics) if (e.gusId && teamOf.has(String(e.gusId).slice(0, 15))) e.foreign = teamOf.get(String(e.gusId).slice(0, 15)) !== String(teamId).slice(0, 15);
   const preview = review(plan, rel, program, includeBtl === true);
   if (!confirm) return { preview };
   if (!preview.items.length) throw new Error('No epics to save. Mark epics ABL (or include below-the-line epics) to save them to GUS.');
@@ -511,7 +518,7 @@ async function commitRun(sf, store, teamId, confirm, includeBtl, acknowledged) {
   // Record the GUS ids on a fresh copy so concurrent engineer edits are kept and a retry never duplicates records.
   const fresh = await getPlan(store, teamId), next = fresh.plan;
   for (const p of next.projects) if (done.projects.has(p.id)) p.gusId = done.projects.get(p.id);
-  for (const e of next.epics) if (done.epics.has(e.id)) { e.gusId = done.epics.get(e.id); if (done.synced.has(e.id)) e.synced = done.synced.get(e.id); }
+  for (const e of next.epics) if (done.epics.has(e.id)) { const pe = plan.epics.find(x => x.id === e.id); if (pe) e.foreign = pe.foreign === true; e.gusId = done.epics.get(e.id); if (done.synced.has(e.id)) e.synced = done.synced.get(e.id); }
   const good = results.filter(x => x.ok);
   next.lastCommit = { at: new Date().toISOString(), created: good.filter(x => x.action === 'created').length, updated: good.filter(x => x.action !== 'created' && !x.skipped).length };
   let saved = null, saveError = null;
