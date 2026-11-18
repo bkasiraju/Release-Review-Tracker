@@ -177,7 +177,7 @@ function newWorkstreamAt(epicId,afterWid){
     const e=pl.epics.find(x=>x.id===el.querySelector('[data-e]').value),name=el.querySelector('[data-n]').value.trim(),gid=el.querySelector('[data-g]').value,days=Number(el.querySelector('[data-d]').value)||0;
     if(!e)throw new Error('Choose the epic.');
     if(!name){el.querySelector('[data-n]').focus();throw new Error('Enter the workstream name.');}
-    const m=eng.find(x=>x.id===gid),w={id:uid('w'),name,priority:0,engId:m?m.id:'',engName:m?m.name:'',engIds:m?[m.id]:[],engNames:m?[m.name]:[],days,sprint:''};
+    const m=eng.find(x=>x.id===gid),w={id:uid('w'),name,priority:0,engId:m?m.id:'',engName:m?m.name:'',engIds:m?[m.id]:[],engNames:m?[m.name]:[],days,sprint:'',line:e.line==='BTL'?'BTL':'ABL'};
     let msg=`Added workstream “${name}”.`,warn=false;
     if(useGus()){
       const tagId=el.querySelector('[data-t]').value;
