@@ -66,3 +66,8 @@ test('commit treats a shared project linked to another program as unlinked and u
   const r=await plan.commitPlan(sf,store,T1,true,false,true);
   assert.equal(r.failed,0);const ep=made.find(m=>m[0]==='ADM_Epic__c');assert.equal(ep[1].Project__c,'a1PEE00000OWN0001A');
 });
+
+test('column search text covers epic and workstream values',()=>{
+  const src=require('node:fs').readFileSync(require('node:path').join(__dirname,'../public/plan.js'),'utf8');
+  assert.match(src,/function colText\(k,e,p\)/);assert.match(src,/data-cf="\$\{k\}"/);
+});
