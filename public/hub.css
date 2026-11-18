@@ -2222,3 +2222,11 @@ html body[data-hub=plan] .pl-grid tr[data-e] td:first-child,html body[data-hub=p
 html body[data-hub=plan] .pl-grid .pl-cf-row th{padding:3px 6px!important}
 html body[data-hub=plan] .pl-g-proj:hover td{background:#eef4fa}
 html body[data-hub=plan] .pl-grid thead tr:first-child th{height:28px;line-height:16px;box-sizing:border-box}
+/* 6.15.0 remaining review items: project-row padding, drop indicator, 24px targets */
+html body[data-hub=plan] .pl-grid-wrap .pl-grid tr.pl-g-proj td{padding-left:10px!important;padding-right:10px!important}
+html body[data-hub=plan] .pl-grid tr[data-e].pl-drop-above td:first-child{box-shadow:inset 3px 0 color-mix(in srgb,var(--pc,#a8b7c7) 45%,#fff),inset 0 3px 0 #1b73b3!important}
+html body[data-hub=plan] .pl-grid tr[data-e].pl-drop-below td:first-child{box-shadow:inset 3px 0 color-mix(in srgb,var(--pc,#a8b7c7) 45%,#fff),inset 0 -3px 0 #1b73b3!important}
+html body[data-hub=plan] .pl-g-proj .pl-open-gus{width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center}
+html body[data-hub=plan] .pl-g-proj .pl-caret{box-sizing:border-box;width:24px;height:24px;padding:0}
+html body[data-hub=plan] .pl-g-proj .pl-pj-add,html body[data-hub=plan] .pl-g-proj .pl-pj-del{height:24px;min-height:24px;box-sizing:border-box}
+html body[data-hub=plan] .pl-g-proj .pl-pj-del{min-width:26px}

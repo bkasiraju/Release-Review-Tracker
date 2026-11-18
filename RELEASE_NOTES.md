@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.15.0-GA (18 November 2026)
+
+Remaining review items for the planner table. Project rows have 10px side padding as intended. The blue drop-position line shows again when dragging an epic row. The project row's GUS link, expand arrow, "+ Epic" and delete buttons are 24px click targets. Column search: the "x of y epics" count is announced to screen readers, typing with an input-method editor (Chinese, Japanese, etc.) is no longer interrupted by the redraw, "Clear filters" updates while you type in a column search, and the Status search matches the epic's own status only (workstream statuses are searched in the "WS status" column). Not checked in a browser.
+
 ## 6.14.1-GA (18 November 2026)
 
 Review fixes for 6.14.0-GA. Epic and workstream rows had kept a bright 7px project-colour bar at the left; they now use the same faint 3px accent as the project rows, so no bright coloured lines remain in the table. The column search row keeps its compact height, project rows highlight on hover again, and the header row has a fixed 28px height so the search row sits flush under it. Not checked in a browser.

@@ -758,8 +758,10 @@ const wire=()=>{P.el.querySelectorAll('#pl-planner select').forEach(s=>H.customS
 let cfTimer;
 /** Inline column searches: update the filter and redraw the grid, keeping focus and caret in the box being typed in. */
 function wireColFilters(){const root=P.el.querySelector('#pl-planner');if(!root)return;
-  const redraw=(focus,pos,keep=true)=>{if(!P.plan)return;drawPlanner();wire();if(focus&&keep){const i=P.el.querySelector(`.pl-cf[data-cf="${focus}"]`);if(i){i.focus();try{i.setSelectionRange(pos,pos);}catch(_){}}}};
-  root.querySelectorAll('.pl-cf').forEach(i=>i.addEventListener('input',()=>{const k=i.dataset.cf,pos=i.selectionStart;P.view.col=P.view.col||{};P.view.col[k]=i.value;clearTimeout(cfTimer);cfTimer=setTimeout(()=>redraw(k,pos,document.activeElement===i),150);}));
+  const redraw=(focus,pos,keep=true)=>{if(!P.plan)return;drawPlanner();drawTools();wire();if(focus&&keep){const i=P.el.querySelector(`.pl-cf[data-cf="${focus}"]`);if(i){i.focus();try{i.setSelectionRange(pos,pos);}catch(_){}}}};
+  root.querySelectorAll('.pl-cf').forEach(i=>{const go=()=>{const k=i.dataset.cf,pos=i.selectionStart;P.view.col=P.view.col||{};P.view.col[k]=i.value;clearTimeout(cfTimer);cfTimer=setTimeout(()=>redraw(k,pos,document.activeElement===i),150);};
+    i.addEventListener('input',ev=>{if(!ev.isComposing)go();}); // wait for IME composition to finish
+    i.addEventListener('compositionend',go);});
   const c=root.querySelector('[data-cf-clear]');if(c)c.onclick=()=>{P.view.col={};redraw();const f=P.el.querySelector('.pl-cf');if(f)f.focus();};}
 function drawTools(){
   const box=P.el.querySelector('#pl-tools'),pl=P.plan;if(!box||!pl)return;const V=P.view;
@@ -772,7 +774,7 @@ function drawTools(){
   box.innerHTML=`<div class="pl-tf pl-q pl-gs"><span>Search</span><div class="pl-gs-box"><span class="pl-gs-chips">${V.tok.map((t,i)=>`<span class="pl-gs-chip" title="${esc(SK[t.k]+': '+t.v)}"><b>${esc(SK[t.k])}:</b> ${esc(t.v)}<button type="button" data-tok-x="${i}" aria-label="Remove ${esc(SK[t.k])} filter ${esc(t.v)}">×</button></span>`).join('')}</span><input type="search" class="hub-inline" data-v="q" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="pl-gs-sug" aria-autocomplete="list" placeholder="Search by project, epic, workstream or person" aria-label="Search the planner" value="${esc(V.q)}"></div><div class="pl-gs-sug" id="pl-gs-sug" role="listbox" hidden></div></div>`+
     
     sel('release','Release',rels)+sel('line','ATL/BTL',[['ABL','ABL'],['BTL','BTL']])+sel('eng','Engineer',engs.map(m=>[m.id,m.name]))+sel('theme','Theme',themes.map(t=>[t,t]))+
-    `<button type="button" class="button small pl-clear${filtersOn(V)?' pl-clear-on':''}" data-clear-view${filtersOn(V)?'':' disabled'}>Clear filters</button><span class="note pl-count" id="pl-count"></span>`;
+    `<button type="button" class="button small pl-clear${filtersOn(V)?' pl-clear-on':''}" data-clear-view${filtersOn(V)?'':' disabled'}>Clear filters</button><span class="note pl-count" id="pl-count" role="status" aria-live="polite"></span>`;
   if(keepGt)box.appendChild(keepGt);
   box.querySelectorAll('select').forEach(x=>H.customSelect(x));
   const lists={};MF.forEach(k=>{const w=box.querySelector(`[data-mf=${k}]`);if(w)lists[k]=[...w.querySelectorAll('li input')].map(i=>[i.value,i.nextElementSibling.textContent]);});
@@ -812,7 +814,7 @@ function colText(k,e,p){const ws=e.workstreams||[],sk=n=>skVals(n,e,p).join(' ')
   switch(k){
     case 'project':t=sk('project');break;case 'name':t=e.name||'';break;case 'ws':t=sk('ws');break;case 'owners':t=sk('owner');break;case 'engs':t=sk('eng');break;
     case 'days':t=ws.map(w=>w.days||'').join(' ');break;case 'estimate':t=String(epicDays(e));break;case 'line':t=sk('line')+(e.line==='ABL'?' above':' below');break;
-    case 'priority':t='P'+(e.priority==null?0:e.priority);break;case 'status':case 'wstatus':t=sk('status');break;case 'sprint':t=sk('sprint');break;case 'release':t=sk('release');break;
+    case 'priority':t='P'+(e.priority==null?0:e.priority);break;case 'status':t=e.status||'Planned';break;case 'wstatus':t=ws.map(w=>w.status||'').join(' ');break;case 'sprint':t=sk('sprint');break;case 'release':t=sk('release');break;
     case 'theme':t=sk('theme');break;case 'gus':t=e.gusId?'gus saved':'draft';break;case 'doc':t=e.doc||'';break;case 'hrp':t=e.hrp||'';break;case 'v2mom':t=e.v2mom||'';break;case 'pmethod':t=sk('method');break;
   }return t.toLowerCase();}
 function skVals(k,e,p){const ws=e.workstreams||[];
