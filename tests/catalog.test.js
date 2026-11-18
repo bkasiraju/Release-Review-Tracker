@@ -54,3 +54,29 @@ test('a project edit keeps seedVersion so the catalog is not re-seeded on every 
   await plan.savePlan(store,A,a,null);
   const doc=store.mem['plan-projects'];assert.equal(doc.seedVersion,1);assert.equal(doc.projects.length,24);
 });
+
+test('provisioning creates the seeded projects in this team\'s own program and saves the links per team',async()=>{
+  const store=mkStore(),T1='a00B0000000w4ZjIAI',T2='a00B0000000w4ZkIAI',made=[],existing=new Set(['HRP M1.1.1 - HRP meets all defined goals on the E360 dashboard']);
+  const sf=(prog)=>({async query(q){
+    if(/FROM ADM_Scrum_Team__c/.test(q))return {records:[{Name:prog==='MQ - 268'?'Message Queue':'Team Alpha'}]};
+    if(/FROM PPM_Program__c/.test(q))return {records:[{Id:'a1FEE00000PROG'+prog.length+'A',Name:prog}]};
+    const m=q.match(/FROM PPM_Project__c WHERE Name = '(.*)' AND/);if(m&&existing.has(m[1].replace(/\\'/g,"'")))return {records:[{Id:'a1PEE00000EXIST1A'}]};
+    return {records:[]};},
+    async create(o,f){made.push([f.Program__c,f.Name,f.V2MOM_Method__c]);return {success:true,id:'a1PEE0000000'+String(made.length).padStart(3,'0')+'A'};},
+    async update(){return {success:true};}});
+  const r1=await plan.provisionProjects(sf('MQ - 268'),store,T1);
+  assert.equal(r1.created,23);assert.equal(r1.linked,1);assert.equal(r1.failed,0);
+  const p1=(await plan.getPlan(store,T1)).plan.projects;
+  assert.ok(p1.every(p=>p.gusId&&p.programName==='MQ - 268'));
+  assert.ok(made.every(m=>m[0]==='a1FEE00000PROG'+'MQ - 268'.length+'A'));
+  assert.equal(made.find(m=>/M5\.5\.1/.test(m[1]))[2],'HPS M6.2.2');
+  // another team still has no GUS link until it is provisioned, and gets its own ids
+  const p2=(await plan.getPlan(store,T2)).plan.projects;assert.equal(p2.length,24);assert.ok(p2.every(p=>!p.gusId));
+  const r2=await plan.provisionProjects(sf('Team Alpha - 268'),store,T2);assert.equal(r2.created+r2.linked,24);
+  const again=await plan.provisionProjects(sf('MQ - 268'),store,T1);assert.equal(again.created+again.linked,0);
+});
+
+test('provisioning reports a team with no GUS program instead of failing',async()=>{
+  const store=mkStore(),sf={async query(q){return {records:/Scrum_Team/.test(q)?[{Name:'Ghost'}]:[]};}};
+  const r=await plan.provisionProjects(sf,store,'a00B0000000w4ZlIAI');assert.equal(r.created,0);assert.match(r.errors[0],/No GUS program/);
+});

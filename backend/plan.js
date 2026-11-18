@@ -83,7 +83,9 @@ const PROGRAM_RELEASE = '268';
 // Projects (and their V2MOM method) are shared by every team: one catalog in storage, merged into each team's plan on read.
 // Each team's saved plan still lists the projects its epics use; the catalog is authoritative for the project fields.
 const CATALOG_KEY = 'plan-projects';
-const PFIELDS = ['name', 'short', 'method', 'theme', 'gusId', 'programId', 'programName'];
+// The GUS link (gusId, program) is per team: each team's projects live in its own program, so those fields are never shared.
+const PFIELDS = ['name', 'short', 'method', 'theme'];
+const teamLess = c => ({ ...c, gusId: '', programId: '', programName: '' });
 const sameProject = (a, b) => !!a && !!b && PFIELDS.every(k => (a[k] || '') === (b[k] || ''));
 async function getCatalog(store) {
   const doc = await store.get('settings', CATALOG_KEY);
@@ -100,7 +102,7 @@ function mergeCatalog(plan, catalog) {
   const hidden = new Set(plan.hiddenProjects || []), used = new Set(plan.epics.map(e => e.projectId));
   const projects = plan.projects.filter(p => !hidden.has(p.id) || used.has(p.id)).map(p => byId.has(p.id) ? { ...p, ...Object.fromEntries(PFIELDS.map(k => [k, byId.get(p.id)[k]])) } : p);
   const have = new Set(projects.map(p => p.id));
-  for (const c of catalog) if (!have.has(c.id) && (!hidden.has(c.id) || used.has(c.id)) && projects.length < MAX.projects) projects.push(c);
+  for (const c of catalog) if (!have.has(c.id) && (!hidden.has(c.id) || used.has(c.id)) && projects.length < MAX.projects) projects.push(teamLess(c));
   return { ...plan, projects };
 }
 async function getPlan(store, teamId) {
@@ -115,7 +117,7 @@ async function savePlan(store, teamId, plan, expected) {
   try {
     const cat = new Map((await getCatalog(store)).map(c => [c.id, c]));
     let dirty = false;
-    for (const p of next.projects) if (!sameProject(prev.get(p.id), p) && !sameProject(cat.get(p.id), p)) { cat.set(p.id, p); dirty = true; }
+    for (const p of next.projects) if (!sameProject(prev.get(p.id), p) && !sameProject(cat.get(p.id), p)) { cat.set(p.id, teamLess(p)); dirty = true; }
     if (dirty) await store.put('settings', CATALOG_KEY, { projects: [...cat.values()].slice(0, MAX.projects), seedVersion: SEED_VERSION }); // keep seedVersion or the next read re-seeds and rewrites the catalog
   } catch (_) { /* the team plan is saved; the catalog catches up on the next save */ }
   return { plan: mergeCatalog(cleanPlan(saved.plan), await getCatalog(store).catch(() => [])), revision: saved.revision, updatedAt: saved.updatedAt };
@@ -178,6 +180,23 @@ async function ensureProject(sf, teamId, project) {
   if (!ok(c) || !newId(c)) throw new Error('GUS rejected the project: ' + plain(errText(c)));
   refsCache.delete(teamId);
   return { id: newId(c), created: true, program };
+}
+// Create the shared seeded projects in this team's own GUS program (find-or-create by name, so it is safe to run again) and save the GUS links in the team's plan.
+async function provisionProjects(sf, store, teamId) {
+  planKey(teamId);
+  const program = await teamProgram(sf, teamId);
+  if (!program) return { teamId, program: '', created: 0, linked: 0, failed: 0, errors: ['No GUS program "<team> - ' + PROGRAM_RELEASE + '" for this team.'] };
+  const { plan, revision } = await getPlan(store, teamId), seeded = new Set(SEED_PROJECTS.map(x => x.id)), out = { teamId, program: program.name, created: 0, linked: 0, failed: 0, errors: [] };
+  for (const p of plan.projects) {
+    if (!seeded.has(p.id) || p.gusId) continue;
+    try {
+      const r = await ensureProject(sf, teamId, { name: p.name, method: p.method });
+      p.gusId = r.id; p.programId = program.id; p.programName = program.name;
+      if (r.created) out.created++; else out.linked++;
+    } catch (err) { out.failed++; if (out.errors.length < 3) out.errors.push(`${p.short || p.name}: ${plain(err && err.message || err)}`); }
+  }
+  if (out.created || out.linked) await savePlan(store, teamId, plan, revision);
+  return out;
 }
 async function createProject(sf, teamId, input) {
   planKey(teamId);
@@ -493,4 +512,4 @@ async function commitRun(sf, store, teamId, confirm, includeBtl, acknowledged) {
   return { results, failed: results.filter(x => !x.ok).length, plan: saved && saved.plan, revision: saved && saved.revision, saveError };
 }
 
-module.exports = { getPlan, savePlan, getRefs, commitPlan, createProject, deleteProject, createEpic, listEpics, createWorkstream, syncEpics, review, cleanPlan };
+module.exports = { getPlan, savePlan, getRefs, commitPlan, createProject, provisionProjects, deleteProject, createEpic, listEpics, createWorkstream, syncEpics, review, cleanPlan };

@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.10.0-GA (18 November 2026)
+
+Per-team GUS projects. The Projects menu has a new "Create shared projects in GUS for all teams" button (plan administrators only, with a confirmation step). For each team in the dashboard it creates the shared HRP projects in that team's own GUS program ("<team> - 268") with their V2MOM method, or links the project if one with the same name already exists there, then saves the GUS links in that team's plan. Safe to run again. The GUS link and program are now per team: they are no longer shared through the project catalog, so each team's projects belong to its own program. A team with no GUS program is reported and skipped. Unit tests only; nothing has been created in GUS yet, and not checked in a browser.
+
 ## 6.9.1-GA (18 November 2026)
 
 Review fixes for the shared HRP projects: editing a project no longer drops the catalog's seed marker (which caused repeated catalog rewrites and possible lost updates), deleting a project from GUS now clears its GUS link for other teams, and a hidden project an epic still uses is kept. Open and not fixed: simultaneous edits to the shared catalog by two teams are still last-write-wins; re-adding a hidden GUS project can create a duplicate; the first team to commit a seeded project creates it in its own GUS program and other teams then attach to it. Unit tests only.
