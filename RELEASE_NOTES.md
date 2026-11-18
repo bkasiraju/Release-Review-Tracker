@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.11.1-GA (18 November 2026)
+
+Review fixes for 6.11.0-GA. The automatic linking of a team's shared projects to its own GUS projects is now saved (it was applied on screen but the save was skipped because the planner reset to "saved" right after). On commit, a shared project still linked to another team's program is treated as unlinked and found or created by name in this team's own program, so epics never go under another team's GUS project. Removed an unused parameter. Unit tests only; not checked in a browser.
+
 ## 6.11.0-GA (18 November 2026)
 
 The shared HRP projects are now created in GUS for the teams, not by users. The "Create shared projects in GUS for all teams" button added in 6.10.0-GA is removed. The 24 `HRP M…` projects (with V2MOM methods) were created once in the GUS programs MQ - 268, MAPS - 268, VegaCache - 268, VegaCache FACE - 268 and VegaStore - 268 (120 records). Release Planning now links each team's shared projects to its own GUS project automatically when the plan opens (exact name match in the team's program), so epics commit under the team's own project. Caching Services has no "Caching Services - 268" program in GUS, so no projects were created for it. Unit tests only; not checked in a browser.

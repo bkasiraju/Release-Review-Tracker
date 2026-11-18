@@ -1010,7 +1010,7 @@ function linkSharedProjects(){
   const prog=P.refs&&P.refs.program;if(!prog||!P.plan)return;
   const byName=new Map((P.refs.projects||[]).filter(r=>r.programId===prog.id).map(r=>[r.name,r]));let n=0;
   for(const p of P.plan.projects){if(!/^hrp-m/.test(p.id)||(p.gusId&&p.programId===prog.id))continue;const r=byName.get(p.name);if(r){p.gusId=r.id;p.programId=prog.id;p.programName=prog.name;n++;}}
-  if(n)queueSave();
+  return n;
 }
 async function load(el){
   const my=++P.seq;clearTimeout(P.timer);P.state='idle';P.plan=null;
@@ -1018,11 +1018,11 @@ async function load(el){
   try{
     const id=H.team.Id,[g,refs,members]=await Promise.all([call('plan-get',{teamId:id}),call('plan-refs',{teamId:id}).catch(e=>({releases:[],programs:[],projects:[],sprints:[],warnings:[e.message]})),H.members().catch(()=>[])]);
     if(my!==P.seq)return;
-    P.noGusSync=false;P.plan=g.plan.window.start?g.plan:{...g.plan,window:emptyPlan().window};setTimeout(snapGus,0);P.rev=g.revision;P.plan.epics.forEach(deriveLine);P.refs=refs;P.members=members;linkSharedProjects();
+    P.noGusSync=false;P.plan=g.plan.window.start?g.plan:{...g.plan,window:emptyPlan().window};setTimeout(snapGus,0);P.rev=g.revision;P.plan.epics.forEach(deriveLine);P.refs=refs;P.members=members;const linked=linkSharedProjects();
     const w=refs.warnings||[];el.querySelector('#pl-warn').innerHTML=w.length?`<p class="note pl-warn">Some GUS lists did not load (${esc(w.join('; '))}). Pickers may be incomplete.</p>`:'';
     el.querySelector('#pl-start').value=P.plan.window.start;el.querySelector('#pl-end').value=P.plan.window.end;
     el.querySelector('#pl-last').textContent=P.plan.lastCommit&&P.plan.lastCommit.at?`Last saved to GUS ${new Date(P.plan.lastCommit.at).toLocaleString()} (${P.plan.lastCommit.created} created, ${P.plan.lastCommit.updated} updated)`:'';
-    draw();setState('idle');
+    draw();setState('idle');if(linked)queueSave(); // after idle, or the save would be skipped
   }catch(e){if(my===P.seq)el.querySelector('#pl-sum').innerHTML=`<div class="empty-state hub-empty"><h3>Could not load the plan</h3><p>${esc(e.message)}</p></div>`;}
 }
 H.register({id:'plan',label:'Release Planning (Quarterly)',icon:'plan',tone:'green',desc:'Plan projects, epics and effort against team capacity',needsTeam:true,

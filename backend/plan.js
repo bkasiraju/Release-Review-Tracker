@@ -161,7 +161,7 @@ async function loadRefs(sf, teamId) {
 // Mandatory: project = name + the team's program; epic = name + team + project + planned release (+ planned effort in days).
 const EPIC_NAME_MAX = 80; // ADM_Epic__c.Name length in GUS
 const PROJECT_NAME_MAX = 80; // PPM_Project__c.Name length in GUS
-async function ensureProject(sf, teamId, project, knownProgram) {
+async function ensureProject(sf, teamId, project) {
   const rawName = String((project && project.name) || '').trim(), name = text(project && project.name, 120), method = text(project && project.method, 1000);
   if (project && gid(project.gusId)) {
     if (method) { try { await sf.update('PPM_Project__c', gid(project.gusId), { V2MOM_Method__c: method }); } catch (_) { /* method is best effort on an existing project */ } }
@@ -169,7 +169,7 @@ async function ensureProject(sf, teamId, project, knownProgram) {
   }
   if (!name) throw new Error('Enter the project (measure) name.');
   if (rawName.length > PROJECT_NAME_MAX) throw new Error(`Project name is ${rawName.length} characters; GUS allows at most ${PROJECT_NAME_MAX}.`);
-  const program = knownProgram || await teamProgram(sf, teamId);
+  const program = await teamProgram(sf, teamId);
   if (!program) throw new Error('This team has no GUS program for the planning release, so a project cannot be created. Ask a plan administrator.');
   const hit = ((await sf.query(`SELECT Id FROM PPM_Project__c WHERE Name = '${soql(name)}' AND Program__c = '${program.id}' LIMIT 1`)).records || [])[0];
   if (hit) {
@@ -428,6 +428,8 @@ async function commitRun(sf, store, teamId, confirm, includeBtl, acknowledged) {
   const { plan } = await getPlan(store, teamId);
   const rel = await teamReleases(sf, teamId, false).then(r => new Set(r.map(x => x.Id)), () => null);
   const program = await teamProgram(sf, teamId);
+  // A shared project linked to another team's program (older shared links) is treated as unlinked: it is found or created by name in this team's own program.
+  if (program) { const seeded = new Set(SEED_PROJECTS.map(x => x.id)); for (const p of plan.projects) if (seeded.has(p.id) && p.gusId && p.programId !== program.id) { p.gusId = ''; p.programId = ''; p.programName = ''; } }
   const preview = review(plan, rel, program, includeBtl === true);
   if (!confirm) return { preview };
   if (!preview.items.length) throw new Error('No epics to save. Mark epics ABL (or include below-the-line epics) to save them to GUS.');

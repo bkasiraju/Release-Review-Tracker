@@ -54,3 +54,15 @@ test('a project edit keeps seedVersion so the catalog is not re-seeded on every 
   await plan.savePlan(store,A,a,null);
   const doc=store.mem['plan-projects'];assert.equal(doc.seedVersion,1);assert.equal(doc.projects.length,24);
 });
+
+test('commit treats a shared project linked to another program as unlinked and uses this team\'s own',async()=>{
+  const store=mkStore(),T1='a00B0000000w4ZnIAI',PROG='a1FEE00000PROGYYA',REL='a1EEE00000REL0001A',made=[];
+  const base=(await plan.getPlan(store,T1)).plan,p0=base.projects[0];
+  p0.gusId='a1PEE00000OTHER01A';p0.programId='a1FEE00000OTHERPA';
+  base.epics=[{id:'e1',projectId:p0.id,name:'Epic',line:'ABL',releaseId:REL,releaseName:'R',workstreams:[{id:'w1',name:'x',days:3}]}];
+  await plan.savePlan(store,T1,base,null);
+  const sf={async query(q){if(/Scrum_Team/.test(q))return {records:[{Name:'Team Gamma'}]};if(/PPM_Program/.test(q))return {records:[{Id:PROG,Name:'Team Gamma - 268'}]};if(/Planned_Release__c/.test(q))return {records:[{Id:REL}]};if(/FROM PPM_Project__c/.test(q))return {records:[{Id:'a1PEE00000OWN0001A'}]};return {records:[]};},
+    async create(o,f){made.push([o,f]);return {success:true,id:'a1XEE00000EPIC001A'};},async update(){return {success:true};}};
+  const r=await plan.commitPlan(sf,store,T1,true,false,true);
+  assert.equal(r.failed,0);const ep=made.find(m=>m[0]==='ADM_Epic__c');assert.equal(ep[1].Project__c,'a1PEE00000OWN0001A');
+});
