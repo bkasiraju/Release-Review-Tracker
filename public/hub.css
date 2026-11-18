@@ -2236,3 +2236,7 @@ html body[data-hub=plan] .pl-g-proj .pl-pj-del{min-width:26px}
 /* 6.17.0 project open link sits next to the measure name */
 html body[data-hub=plan] .pl-g-proj .pl-open-gus.pl-open-inline{width:24px;height:24px;margin:0 0 0 -4px;flex:none;vertical-align:middle}
 html body[data-hub=plan] .pl-g-proj .pl-open-gus.pl-open-inline svg{width:12px;height:12px}
+
+/* 6.18.0 darker green row highlight */
+html body[data-hub=plan] .pl-g-proj:hover td,html body .pl-g-proj:hover td,html body[data-hub=plan] .pl-grid tbody tr[data-e]:hover>td{background:#b7dcc2!important}
+html body[data-hub=plan] .pl-g-proj:hover .pl-pj-mt,html body[data-hub=plan] .pl-g-proj:hover .pl-pj-add,html body[data-hub=plan] .pl-g-proj:hover .pl-open-gus{background:#e6f4ea}

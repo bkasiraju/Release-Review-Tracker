@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.18.0-GA (18 November 2026)
+
+The row under the mouse in the Release Planning table is now highlighted in a darker green (project rows and epic rows). Mocked GUS only; not checked in a browser.
+
 ## 6.17.1-GA (18 November 2026)
 
 Review fixes for the project open-in-GUS link. It is now 24px (matching the other project-row controls) with even spacing, clicking it while a menu is open opens GUS instead of only closing the menu, and its screen-reader label names the project. Mocked GUS only; not checked in a browser.
