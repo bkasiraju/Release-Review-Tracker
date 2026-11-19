@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.35-GA (19 November 2026)
+
+Project dialog: the GUS program box was filled in with the team program, and the browser list only shows entries that match the text already typed, so no other program could be picked. The box now clears when you click it (the old value comes back if you pick nothing) and shows every program ending in - 268; any other program name can still be typed. Not checked in a browser.
+
 ## 6.26.34-GA (19 November 2026)
 
 Epics and workstreams created from the planner are saved to the shared team plan on the backend immediately after GUS creates them, instead of after the 1.5 second autosave delay, so they show for every user of the team even if the tab is closed or the team switched right away. If another user saved the plan first, the new epic is added to their latest plan and saved again; if saving still fails, the toast says the item is in GUS but not yet in the shared plan and the Retry button at the top of the table saves it. Not checked in a browser.

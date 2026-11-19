@@ -167,6 +167,9 @@ function newProjectAt(){
       paint();pgm.textContent=`${r.projects.length} project${r.projects.length===1?'':'s'} in ${r.program.name}.`;
       if(md==='new'&&avail.length&&!n.value.trim())setMode('pick');
     }catch(err){if(seq===pgSeq)pgm.textContent='Could not load that program: '+(err&&err.message||err);}};
+  // A datalist only lists options that match the text already in the box, so a filled-in program hid every other one: clear it on focus (restored if nothing is chosen) to show the full list.
+  pg.onfocus=()=>{pg._prev=pg.value;pg.value='';pg.placeholder='Type to search programs, or pick one';};
+  pg.onblur=()=>{if(!pg.value.trim()&&pg._prev){pg.value=pg._prev;}};
   g.onchange=fillPick;sh.oninput=()=>{shTouched=true;};
   n.oninput=()=>{const v=n.value.trim(),hit=known.get(v.toLowerCase()),local=pl.projects.find(x=>x.name.toLowerCase()===v.toLowerCase());
     if(!shTouched)sh.value=(local&&local.short)||(v?shortProj(v):'');
