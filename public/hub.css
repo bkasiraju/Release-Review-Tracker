@@ -2502,3 +2502,7 @@ html body[data-hub=plan] .pl-tabs button[data-tab] svg{animation:none!important}
 html body[data-hub=plan] .pl-tabs button[data-tab=plan] svg{color:#0f8a55}html body[data-hub=plan] .pl-tabs button[data-tab=rps] svg{color:#0b7f99}
 html body[data-hub=plan] .pl-tabs>.heading-actions{margin-bottom:6px}
 html body[data-hub=plan] #pl-main>.pl-tabs,html body[data-hub=plan] .executive-heading+.pl-tabs{margin-top:0!important}
+/* 6.26.29 Group by control gets the same subtle border as the buttons */
+html body[data-hub=plan] .pl-hdr .pl-gb .cs-btn,html body[data-hub=plan] .pl-hdr .pl-gb select.hub-inline{border:1px solid #cfd9e3!important;border-radius:6px!important;background:#fff!important;height:28px!important;min-height:28px!important;padding:0 10px!important;box-shadow:none!important;font-size:12px}
+html body[data-hub=plan] .pl-hdr .pl-gb .cs-btn:hover{border-color:#a9bccf!important}
+html body[data-hub=plan] .pl-hdr .pl-gb .cs-btn:focus-visible{outline:2px solid #0b5cab;outline-offset:1px}

@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.29-GA (19 November 2026)
+
+Planner Group by dropdown now has the same subtle border, radius and height as the neighbouring buttons. CSS only; not checked in a browser.
+
 ## 6.26.28-GA (19 November 2026)
 
 Release Planner / Planned Release Summary are styled as real tabs (underlined bar, the active tab joined to the page with a coloured top edge) instead of pill buttons, and the gap between the page header and the tabs is reduced. CSS only; not checked in a browser. The remaining gap above the tabs may come from the page header's own spacing, which I did not change.
