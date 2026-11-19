@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.94-GA
+
+- Overview metric cards and health tiles are now compact: smaller type, tighter padding, flat light tints, no oversized icons.
+
 ## 6.26.93-GA
 
 - Name tooltip now opens beside the name, level with its own row, so it no longer covers the rows above or below.
