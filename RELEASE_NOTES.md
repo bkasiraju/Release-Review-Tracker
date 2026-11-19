@@ -1,6 +1,6 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
-## 6.26.80-GA
+## 6.26.81-GA
 
 - Fixed the "Open in GUS" icon overlapping the "N workstreams · Nd" text on collapsed epic rows. The caret, icon, name and GUS link now sit in one flex row inside the Epic Name cell.
 
