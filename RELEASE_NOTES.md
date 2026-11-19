@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.23-GA (19 November 2026)
+
+Fixed the planner header order from 6.26.22: an older, more specific CSS rule kept + Project, Projects and Epics ahead of the title. Line 1 is now the title, Group by, Collapse/Expand all and Full screen, and line 2 holds + Project, Projects, Epics, Columns, Open in GUS and Import / Export. CSS only; not checked in a browser.
+
 ## 6.26.22-GA (19 November 2026)
 
 Planner header: line 1 holds the title, Group by, Collapse all / Expand all and Full screen. Line 2, right-aligned, holds + Project, Projects, Epics, Columns, Open in GUS and Import / Export. CSS only; not checked in a browser.

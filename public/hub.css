@@ -2473,3 +2473,5 @@ html body[data-hub=plan] .pl-hdr .pl-tl>.pl-tg[aria-label="Open lists"]{order:7}
 html body[data-hub=plan] .pl-hdr .pl-grid-tools>.pl-cols{order:8;border-left:1px solid #d8e2ec;padding-right:12px}
 html body[data-hub=plan] .pl-hdr .gus-links{order:9;margin:0 0 0 0!important;padding-left:12px;border-left:1px solid #d8e2ec}
 html body[data-hub=plan] .pl-hdr .pl-dm{order:10;margin-left:8px}
+/* 6.26.23 the old .pl-tools .pl-grid-tools .pl-tl rule out-ranked display:contents, leaving the groups in the wrong order */
+html body[data-hub=plan] .pl-hdr #pl-tools.pl-tools .pl-grid-tools .pl-tl,html body[data-hub=plan] .pl-hdr #pl-tools.pl-tools .pl-grid-tools,html body[data-hub=plan] .pl-hdr #pl-tools.pl-tools{display:contents!important}
