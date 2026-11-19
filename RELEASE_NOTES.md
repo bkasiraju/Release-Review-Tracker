@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.98-GA
+
+- "Unplanned" is now **Remaining** (Remaining capacity in the metrics): the available days not yet planned as ABL or BTL. Updated in the engineer headers, hover card, legend and planning metrics.
+
 ## 6.26.97-GA
 
 - **Move to project…** on each epic row: pick a project, the dashboard updates instantly and the new project is written to GUS in the background (validated against the team program). Workstreams, priority and engineers stay with the epic. A stale dashboard never overwrites a project changed in GUS: the project is only sent when it was changed here.
