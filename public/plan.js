@@ -1336,11 +1336,11 @@ window.addEventListener('beforeunload',e=>{if(P.state==='dirty'||P.state==='savi
 window.addEventListener('hub:team',()=>{closeModal();clearTimeout(P.timer);});
 
 /** Hovering a project, epic or workstream name shows its full text in a bright tooltip; clicking a row keeps it at full opacity. */
-(()=>{let nt=null;const off=()=>{if(nt){nt.remove();nt=null;}};
+(()=>{let nt=null,tm=0,cur=null;const off=()=>{clearTimeout(tm);tm=0;cur=null;if(nt){nt.remove();nt=null;}};
   const host=e=>e.target.closest&&e.target.closest('.pl-grid input[data-f="name"],.pl-grid .pl-pj-n,.pl-grid input[data-pf="name"]');
-  document.addEventListener('mouseover',e=>{const h=host(e);if(!h){off();return;}const t=(h.value!=null&&h.tagName==='INPUT'?h.value:h.textContent||'').trim();if(!t||document.activeElement===h){off();return;}
-    off();nt=document.createElement('div');nt.className='pl-nt';nt.setAttribute('role','tooltip');nt.textContent=t;H.popHost().appendChild(nt);
-    const r=h.getBoundingClientRect(),w=nt.offsetWidth,ht=nt.offsetHeight;nt.style.left=Math.min(Math.max(8,r.left+12),innerWidth-w-8)+'px';nt.style.top=(r.top-ht-8<8?r.bottom+8:r.top-ht-8)+'px';});
+  document.addEventListener('mouseover',e=>{const h=host(e);if(h&&h===cur)return;off();if(!h)return;const t=(h.value!=null&&h.tagName==='INPUT'?h.value:h.textContent||'').trim();if(!t||document.activeElement===h)return;
+    cur=h;tm=setTimeout(()=>{tm=0;if(!h.isConnected)return;nt=document.createElement('div');nt.className='pl-nt';nt.setAttribute('role','tooltip');nt.textContent=t;H.popHost().appendChild(nt);
+      const r=h.getBoundingClientRect(),w=nt.offsetWidth,ht=nt.offsetHeight;nt.style.left=Math.min(Math.max(8,r.left+12),innerWidth-w-8)+'px';nt.style.top=(r.top-ht-8<8?r.bottom+8:r.top-ht-8)+'px';},1500);});
   document.addEventListener('focusin',e=>{if(host(e))off();});window.addEventListener('scroll',off,true);document.addEventListener('mousedown',off);
   document.addEventListener('click',e=>{const tr=e.target.closest&&e.target.closest('.pl-grid tbody tr');if(!tr)return;document.querySelectorAll('.pl-grid tr.pl-row-on').forEach(x=>x!==tr&&x.classList.remove('pl-row-on'));tr.classList.add('pl-row-on');});
 })();

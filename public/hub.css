@@ -2812,3 +2812,5 @@ html body .pl-epv-s{justify-self:start;font-size:11px;font-weight:700;padding:2p
 html body .pl-epv-d{font-weight:800;color:#4338ca;text-align:right}html body .pl-epv-w .pl-epv-d{font-weight:700}
 html body .pl-epv-go{border:1px solid #c7d2fe;background:#eef2ff;color:#4338ca;border-radius:8px;height:28px;cursor:pointer;font-size:14px}html body .pl-epv-go:hover{background:#4338ca;color:#fff}
 html body .pl-epv-g{margin-top:8px}html body .pl-epv-none{padding:8px 16px}
+/* 6.26.91 subtle name tooltip */
+html body .pl-nt{background:#f8fafc!important;color:#334155!important;border:1px solid #dbe3ec;border-radius:8px;padding:6px 10px;font:500 12px/1.4 inherit;box-shadow:0 4px 14px rgba(15,23,42,.1)!important}

@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.91-GA
+
+- Name tooltip is now subtle (light background, small text) and appears after a 1.5 second hover.
+
 ## 6.26.90-GA
 
 - Overview: five bright metric cards (Total payload, P0, P1, P2, BTL/P3, each opening its full screen view) plus a health row (epics, workstreams, engineers, in GUS, capacity used, headroom, no owner, no release).
