@@ -2436,3 +2436,5 @@ html body[data-hub=plan] .pl-kg.pk{--g:#2e844a}html body[data-hub=plan] .pl-kg.u
 html body[data-hub=plan] .pl-hdr{position:sticky;top:0;z-index:40;box-shadow:0 2px 8px rgba(22,50,74,.08)}
 html body[data-hub=plan] .pl-fs.pl-fs-on .pl-hdr{top:-18px;padding-top:0}
 html body[data-hub=plan] .pl-fs.pl-fs-on{padding-top:18px}
+/* 6.26.15 Collapse all / Expand all at the end of the toolbar */
+html body[data-hub=plan] .pl-hdr .pl-grid-tools>.pl-tg{padding:0 0 0 12px;margin-left:12px;border-left:1px solid #d8e2ec}
