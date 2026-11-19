@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.20-GA (19 November 2026)
+
+Planner header layout: the title, grid controls (+ Project, Projects, Epics, Group by, Columns, Collapse all, Expand all) and Full screen share the first line; Open in GUS and the Import / Export menu sit on the second line, right-aligned. CSS only; not checked in a browser.
+
 ## 6.26.19-GA (19 November 2026)
 
 Planner header: V2MOM Import, file Import and Export template are merged into one "Import / Export" menu with a short description under each item. Full screen stays separate. The V2MOM Import chip is hidden on the planner (it is now in the menu) and stays on other pages. Not checked in a browser.
