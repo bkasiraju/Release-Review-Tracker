@@ -2415,3 +2415,20 @@ html body[data-hub=plan] .pl-bar .pl-planner-btns>.button{margin-left:8px}
 html body[data-hub=plan] .pl-bar .pl-planner-btns #pl-fs-btn{margin-left:12px;padding-left:12px}
 html body[data-hub=plan] .pl-bar .pl-planner-btns .button{height:28px!important;font-size:12px!important;padding:0 10px!important}
 html body[data-hub=plan] .pl-bar .gus-link{height:28px;box-sizing:border-box}
+/* 6.26.11 planning metrics: collapsed by default, grouped, compact tiles */
+html body[data-hub=plan] .pl-kbox{border:1px solid #d8e2ec;border-radius:10px;background:#fff;margin:0 0 10px}
+html body[data-hub=plan] .pl-kbox>h3{display:flex;align-items:center;gap:12px;margin:0;padding:7px 12px;font-size:13px}
+html body[data-hub=plan] .pl-kbox>h3 .pl-fold{font-weight:700;color:#16324a;white-space:nowrap}
+html body[data-hub=plan] .pl-kbox .pl-kbrief{flex:1 1 auto;min-width:0;font-size:12px;color:#44546a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html body[data-hub=plan] .pl-kbox .pl-kbrief b{color:#16324a}
+html body[data-hub=plan] .pl-kbox>h3>small{font-size:11px;color:#0b5cab;cursor:pointer}
+html body[data-hub=plan] .pl-kgs{display:flex;flex-direction:column;gap:8px;padding:2px 12px 12px;border-top:1px solid #e6edf4}
+html body[data-hub=plan] .pl-kg{display:grid;grid-template-columns:96px minmax(0,1fr);gap:10px;align-items:start;padding-top:8px}
+html body[data-hub=plan] .pl-kg h4{margin:6px 0 0;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#5b6b7c}
+html body[data-hub=plan] .pl-kg .pl-kpis{grid-template-columns:repeat(auto-fill,minmax(172px,1fr))!important;gap:6px!important;margin:0!important}
+html body[data-hub=plan] .pl-kg .pl-kpi{min-height:0!important;padding:5px 8px!important;gap:7px!important}
+html body[data-hub=plan] .pl-kg .pl-kpi .cfs-icon{width:22px!important;height:22px!important;min-width:22px}
+html body[data-hub=plan] .pl-kg .pl-kpi b{font-size:16px!important}
+html body[data-hub=plan] .pl-kg .pl-kpi .pl-chip{display:none}
+html body[data-hub=plan] .pl-kg.pk{--g:#2e844a}html body[data-hub=plan] .pl-kg.uk h4{color:#a85d0a}html body[data-hub=plan] .pl-kg.pk h4{color:#2e844a}
+@media(max-width:900px){html body[data-hub=plan] .pl-kg{grid-template-columns:1fr}}
