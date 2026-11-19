@@ -270,7 +270,7 @@ function newEpicAt(pid){
         e.owners=x.leadId?[x.leadId]:[];e.ownerNames=x.leadId?[x.leadName]:[];
         // GUS keeps the epic's planned points; carry them as one workstream so the epic total (sum of workstreams) still matches and is never overwritten.
         e.workstreams=x.points>0?[{id:uid('w'),name:'Planned in GUS',priority:0,engId:'',engName:'',engIds:[],engNames:[],days:x.points,sprint:'',line}].map(w=>(w.priority=e.priority,w)):[];
-        msg=`Added GUS epic “${x.name}” to the table.`;
+        msg=`Added GUS epic “${x.name}” to the table. Its workstreams are not imported: add them manually.`;
       }else{
         const name=el.querySelector('[data-n].hub-inline').value.trim(),releaseId=el.querySelector('[data-r]').value,line=el.querySelector('[data-l]').value,leadId=el.querySelector('[data-o]').value,pri=el.querySelector('[data-pri]').value,leadName=(P.members.find(m=>m.id===leadId)||{}).name||'';
         if(!name){el.querySelector('[data-n]').focus();throw new Error('Enter the epic name.');}
@@ -312,8 +312,11 @@ function newEpicAt(pid){
   fitSuggest(nm,EPIC_NAME_MAX,el.querySelector('[data-efit]'),'Epic name');
   nm.oninput=()=>{const L=nm.value.trim().length,over=L>EPIC_NAME_MAX;cnt.textContent=`${L} / ${EPIC_NAME_MAX}`;cnt.classList.toggle('over',over);nm.classList.toggle('bad',over);errEl.textContent=over?`Epic name is ${L} characters; GUS allows at most ${EPIC_NAME_MAX}. Shorten it by ${L-EPIC_NAME_MAX}.`:'';errEl.hidden=!over;};
   const xSel=el.querySelector('[data-xe]'),xInfo=el.querySelector('[data-xi]'),pc=el.querySelector('[data-pcnt]'),okb=el.querySelector('[data-ok]'),note=el.querySelector('.pl-cr-foot .note'),wsr=el.querySelector('[data-wsrows]'),tagBox=el.querySelector('[data-tagbox]'),wsSec=wsr.closest('.pl-cr-s');
+  const dis=document.createElement('p');dis.className='pl-cr-disc';dis.setAttribute('role','note');dis.hidden=true;
+  dis.innerHTML='<b>Workstreams are not imported.</b> There is no way to trace the workstreams of an existing GUS epic, so they are not brought into the dashboard. Add them manually below, or later with + on the epic. Only the epic itself, its owner, release and planned points are imported.';
+  xInfo.after(dis);
   const filled=()=>[...wsr.querySelectorAll('[data-wn]')].filter(i=>i.value.trim()).length;
-  const sync=()=>{const f=filled();tagBox.hidden=!f||!!lastTag;el._gate=md==='new'||f>0;el._sync();el._deny();
+  const sync=()=>{dis.hidden=md!=='pick';const f=filled();tagBox.hidden=!f||!!lastTag;el._gate=md==='new'||f>0;el._sync();el._deny();
     okb.dataset.label=okb.textContent=md==='pick'?(f?'Add epic & create workstreams':'Add epic'):'Create in GUS';
     note.textContent=md==='pick'?(f?'Adds the epic to this table and creates the workstreams in GUS.':'Adds the existing GUS epic to this table; nothing new is created.'):(f?`Creates the epic and ${f} workstream${f>1?'s':''} in GUS.`:'Created in GUS immediately when you confirm.');};
   const showX=()=>{const x=xeps.find(g=>g.id===xSel.value);xInfo.textContent=x?[x.teamId&&String(x.teamId).slice(0,15)!==String(H.team.Id).slice(0,15)&&`Epic of team ${x.teamName||'another team'}: only its project is changed; nothing else on it is edited`,x.projectId&&x.projectId!==pr.gusId&&`Currently in project “${x.projectName||x.projectId}” — will be tagged to this project when saved to GUS`,x.leadName&&'Lead: '+x.leadName,x.releaseName&&'Release: '+x.releaseName,x.points&&x.points+' days planned'].filter(Boolean).join('  ·  '):'';xInfo.title=xInfo.textContent;const fo=!!(x&&x.teamId&&String(x.teamId).slice(0,15)!==String(H.team.Id).slice(0,15));wsSec.hidden=md==='pick'&&fo;if(wsSec.hidden){wsr.querySelectorAll('input').forEach(i=>{i.value='';});sync();}};

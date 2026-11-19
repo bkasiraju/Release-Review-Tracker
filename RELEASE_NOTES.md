@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.49-GA (19 November 2026)
+
+Adding an existing GUS epic now shows a note in the dialog, and again in the confirmation toast, that its workstreams are not imported (there is no way to trace the workstreams of an older epic) and have to be added manually. Not checked in a browser.
+
 ## 6.26.48-GA (19 November 2026)
 
 Project rows now carry a dark blue "P" badge and epic rows a soft teal "E" badge before the name, so the levels are recognisable at a glance. Not checked in a browser.

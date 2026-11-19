@@ -2585,3 +2585,6 @@ html body[data-hub=plan] .pl-grid tr[data-e]:not([data-wr]) td.c-ws{background-c
 .pl-ty{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:5px;font:700 11px/1 system-ui,sans-serif;font-style:normal;flex:0 0 18px;margin-right:6px;vertical-align:middle;user-select:none}
 .pl-ty-p{background:#1d4f7c;color:#fff}
 .pl-ty-e{background:#e4f3f6;color:#0f6075;border:1px solid #a8d3dc}
+/* 6.26.49 disclaimer when an existing GUS epic is added */
+.pl-cr-disc{margin:8px 0 0;padding:8px 10px;border:1px solid #f0d9ae;border-left:3px solid #d99a1f;border-radius:6px;background:#fff8ec;color:#5a4310;font-size:12px;line-height:1.45}
+.pl-cr-disc[hidden]{display:none}
