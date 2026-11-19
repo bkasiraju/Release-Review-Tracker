@@ -2559,3 +2559,10 @@ html body[data-hub=plan] .pl-grid tr[data-e] td.c-name{padding-left:20px!importa
 .pl-cr-auto{margin:8px 0 0;padding:0;font:12px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;color:#3b4a5a}
 .pl-cr-auto>div{white-space:normal;overflow-wrap:anywhere}
 .pl-cr-auto i{font-style:normal;color:#6a7b8c}
+/* 6.26.43 told apart at a glance: project rows (blue-grey band), epic cells (soft blue), workstream cells (soft amber) */
+html body[data-hub=plan] .pl-grid tr[data-e] td.c-project,html body[data-hub=plan] .pl-grid tr[data-e] td.c-name,html body[data-hub=plan] .pl-grid tr[data-e] td.c-owners,html body[data-hub=plan] .pl-grid tr[data-e] td.c-priority,html body[data-hub=plan] .pl-grid tr[data-e] td.c-estimate,html body[data-hub=plan] .pl-grid tr[data-e] td.c-status,html body[data-hub=plan] .pl-grid tr[data-e] td.c-release{background-color:#f2f8fd!important}
+html body[data-hub=plan] .pl-grid tr[data-e] td.c-engs,html body[data-hub=plan] .pl-grid tr[data-e] td.c-days,html body[data-hub=plan] .pl-grid tr[data-e] td.c-sprint{background-color:#fff8ec!important}
+html body[data-hub=plan] .pl-grid tr[data-e]:hover td.c-project,html body[data-hub=plan] .pl-grid tr[data-e]:hover td.c-name,html body[data-hub=plan] .pl-grid tr[data-e]:hover td.c-owners,html body[data-hub=plan] .pl-grid tr[data-e]:hover td.c-priority,html body[data-hub=plan] .pl-grid tr[data-e]:hover td.c-estimate,html body[data-hub=plan] .pl-grid tr[data-e]:hover td.c-status,html body[data-hub=plan] .pl-grid tr[data-e]:hover td.c-release{background-color:#e6f1fb!important}
+html body[data-hub=plan] .pl-grid tr[data-e]:hover td.c-engs,html body[data-hub=plan] .pl-grid tr[data-e]:hover td.c-days,html body[data-hub=plan] .pl-grid tr[data-e]:hover td.c-sprint{background-color:#fdf0d8!important}
+html body[data-hub=plan] .pl-grid tr[data-wr] td.c-engs{border-left:2px solid #f0d9ae}
+html body[data-hub=plan] .pl-g-proj td{background-color:#dde8f3!important}

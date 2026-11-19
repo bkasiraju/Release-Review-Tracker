@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.43-GA (19 November 2026)
+
+Planner grid: project (measure) rows have a blue-grey band, epic cells a soft blue tint and workstream cells (engineers, days, sprint) a soft amber tint with a thin divider, so the three levels are easy to tell apart. Hover darkens each tint. CSS only; not checked in a browser.
+
 ## 6.26.42-GA (19 November 2026)
 
 Add project, New workstream and Add epic dialogs now close the moment the input passes validation. The GUS calls and the plan save carry on in the background, with a "Saving in the background" toast and a result toast when done. If GUS rejects something, the dialog comes back with the error and everything that was typed, so nothing is lost. Not checked in a browser.
