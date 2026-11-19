@@ -832,8 +832,10 @@ document.addEventListener('mouseover',e=>{const h=e.target.closest&&e.target.clo
   if(h){if(!(ttEl&&ttEl.dataset.for===h.dataset.tipEng))showTip(h);}
   else if(ttEl&&!P.ttPin&&!inTip&&!P.ttT)P.ttT=setTimeout(()=>{P.ttT=0;if(!P.ttPin)hideTip();},350);});
 document.addEventListener('focusin',e=>{const h=e.target.closest&&e.target.closest('[data-tip-eng]');if(h)showTip(h);});
-document.addEventListener('focusout',()=>{if(!P.ttPin)hideTip();});document.addEventListener('click',e=>{const h=e.target.closest&&e.target.closest('[data-tip-eng]');if(h){if(!(ttEl&&ttEl.dataset.for===h.dataset.tipEng))showTip(h);P.ttPin=!!ttEl;return;}if(P.ttPin&&!(e.target.closest&&e.target.closest('.pl-tt')))hideTip();});document.addEventListener('keydown',e=>{if(e.key==='Escape')hideTip();});window.addEventListener('scroll',hideTip,true);
-document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-eng-detail]');if(!b||!P.el)return;hideTip();P.rv='eng';P.evFocus=b.dataset.engDetail;setTab('rps');});
+document.addEventListener('focusout',e=>{if(!P.ttPin&&!(e.relatedTarget&&e.relatedTarget.closest&&e.relatedTarget.closest('.pl-tt')))hideTip();});document.addEventListener('click',e=>{const h=e.target.closest&&e.target.closest('[data-tip-eng]');if(h){if(!(ttEl&&ttEl.dataset.for===h.dataset.tipEng))showTip(h);P.ttPin=!!ttEl;return;}if(P.ttPin&&!(e.target.closest&&e.target.closest('.pl-tt')))hideTip();});document.addEventListener('keydown',e=>{if(e.key==='Escape')hideTip();});window.addEventListener('scroll',hideTip,true);
+const openEngDetail=b=>{if(!P.el)return;hideTip();P.rv='eng';P.evFocus=b.dataset.engDetail;setTab('rps');};
+document.addEventListener('mousedown',e=>{const b=e.target.closest&&e.target.closest('[data-eng-detail]');if(!b)return;e.preventDefault();e.stopPropagation();P.engGo=Date.now();openEngDetail(b);},true);
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-eng-detail]');if(!b)return;if(P.engGo&&Date.now()-P.engGo<1000){P.engGo=0;return;}openEngDetail(b);});
 function hideTip(){clearTimeout(P.ttT);P.ttT=0;P.ttPin=false;if(ttEl){ttEl.remove();ttEl=null;}}
 function showTip(host){
   const x=P.engRows&&P.engRows.find(r=>String(r.id)===host.dataset.tipEng);if(!x||!x.cap){return;}
