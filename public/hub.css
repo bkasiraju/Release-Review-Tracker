@@ -2531,3 +2531,7 @@ html body[data-hub=plan] .pl-hdr .pl-gb .cs-btn,html body[data-hub=plan] .pl-hdr
 html body[data-hub=plan] .pl-hdr .pl-tg{gap:4px}
 html body[data-hub=plan] .pl-hdr .pl-planner-h h3{font-size:14px}
 html body[data-hub=plan] .pl-hdr .pl-dm>button.button[data-dm-toggle]{height:24px!important;min-height:24px!important;padding:0 8px!important;font-size:11.5px!important;line-height:22px!important;border-radius:5px!important;margin:0!important}
+/* 6.26.32 equal separators: every section after the first has 12px space, a 1px line, then 12px space */
+html body[data-hub=plan] .pl-hdr .pl-tl>.pl-tg[aria-label="Open lists"],html body[data-hub=plan] .pl-hdr .pl-grid-tools>.pl-cols,html body[data-hub=plan] .pl-hdr .gus-links,html body[data-hub=plan] .pl-hdr .pl-dm,html body[data-hub=plan] .pl-hdr .pl-grid-tools>.pl-gb,html body[data-hub=plan] .pl-hdr .pl-grid-tools>.pl-tg[aria-label=Rows]{margin:0 0 0 12px!important;padding:0 0 0 12px!important;border:0!important;border-left:1px solid #d8e2ec!important}
+html body[data-hub=plan] .pl-hdr .pl-tl>.pl-tg[aria-label=Add]{padding:0!important;border:0!important;margin-right:0!important}
+html body[data-hub=plan] .pl-hdr #pl-fs-btn{margin:0 0 0 8px!important;padding:0 8px!important;border:1px solid #cfd9e3!important}

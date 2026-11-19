@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.32-GA (19 November 2026)
+
+Planner header separators now have equal spacing (12px, line, 12px) between every section: + Project | Projects, Epics | Columns | Import / Export | Group by | Collapse/Expand all, Full screen. CSS only; not checked in a browser.
+
 ## 6.26.31-GA (19 November 2026)
 
 Planner header is now a single line, right aligned: + Project, Projects, Epics, Columns, Open in GUS, Import / Export, Group by, Collapse/Expand all, Full screen. No second line. Controls are smaller (24px high, 11.5px text). CSS only; not checked in a browser.
