@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.39-GA (19 November 2026)
+
+The planned release error now says which release was selected (name, dates and the GUS team it is filed under), which team it was checked against and which upcoming releases that team has. A release filed directly under the team is always accepted. The commit review names the release too. Not checked against live GUS or in a browser.
+
 ## 6.26.38-GA (19 November 2026)
 
 Fixes two errors on Caching Services. (1) "That release is not one of this team's planned releases" when creating an epic with VegaCache 268: the check used a list capped at 100 rows ordered oldest first, so upcoming releases could be missing; it now checks the upcoming releases first (the same list the picker shows), and the commit review does the same. (2) "No 268 program found in GUS for this team": the program was looked up as "<team name> - 268", which does not exist for Caching Services; it now also tries "<planned release name> - 268" (VegaCache - 268) and then the 268 program the team's existing epics already use. Not checked against live GUS or in a browser.

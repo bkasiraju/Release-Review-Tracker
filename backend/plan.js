@@ -275,6 +275,17 @@ async function deleteProject(sf, teamId, input, store) {
   } catch (_) { /* the project is deleted in GUS; the catalog entry is cleared on a later edit */ }
   return { deleted: true, gusId: id, name: hit.Name };
 }
+// Why a planned release cannot be used for this team, spelled out (which release, which team, what is available); '' when it is fine.
+async function releaseProblem(sf, teamId, releaseId) {
+  const [upcoming, all] = await Promise.all([teamReleases(sf, teamId, true).catch(() => []), teamReleases(sf, teamId, false).catch(() => [])]);
+  if ([...upcoming, ...all].some(x => x.Id === releaseId)) return '';
+  const r = ((await sf.query(`SELECT Id, Name, Team__c, Team__r.Name, Start_Date__c, End_Date__c FROM ADM_Planned_Release__c WHERE Id = '${releaseId}' LIMIT 1`)).records || [])[0];
+  if (r && String(r.Team__c).slice(0, 15) === String(teamId).slice(0, 15)) return '';
+  const tn = await teamName(sf, teamId).catch(() => '');
+  const avail = upcoming.map(x => x.Name).join(', ') || 'none found';
+  if (!r) return `The selected release (Id ${releaseId}) was not found in GUS. Team “${tn}” has these upcoming planned releases: ${avail}.`;
+  return `Planned release “${r.Name}” (${r.Start_Date__c || '?'} to ${r.End_Date__c || '?'}, filed in GUS under team “${(r.Team__r && r.Team__r.Name) || 'none'}”) is not one of team “${tn}” planned releases. Upcoming planned releases for this team: ${avail}.`;
+}
 async function createEpic(sf, teamId, input) {
   planKey(teamId);
   const name = text(input && input.name, 255), releaseId = gid(input && input.releaseId);
@@ -283,8 +294,8 @@ async function createEpic(sf, teamId, input) {
   const leadId = gid(input && input.leadId);
   if (!leadId) throw new Error('Select the development lead.');
   // The planned release is optional at creation; it is tagged in GUS as soon as one is chosen (now or when the plan is committed).
-  const rel = releaseId ? await teamReleases(sf, teamId, true).then(async r => { const ids = new Set(r.map(x => x.Id)); return ids.has(releaseId) ? ids : new Set((await teamReleases(sf, teamId, false)).map(x => x.Id)); }, () => null) : null; // the picker lists upcoming releases, so check those first: the full list is capped and can miss them
-  if (releaseId && rel && !rel.has(releaseId)) throw new Error('That release is not one of this team\'s planned releases.');
+  const relErr = releaseId ? await releaseProblem(sf, teamId, releaseId) : '';
+  if (relErr) throw new Error(relErr);
   const prio = Number(input && input.priority);
   if (!(input && input.priority !== '' && input.priority != null) || !Number.isFinite(prio) || prio < 0) throw new Error('Select the epic priority.');
   const proj = await ensureProject(sf, teamId, input && input.project);
@@ -502,7 +513,7 @@ function review(plan, releaseIds, program, includeBtl) {
     if (e.name && e.name.length > EPIC_NAME_MAX) problems.push(`Epic name is ${e.name.length} characters; GUS allows ${EPIC_NAME_MAX}`);
     if (e.foreign) { /* another team's epic: only its project is set, so its release and effort are not checked */ }
     else if (!e.releaseId) problems.push('Select a planned release');
-    else if (releaseIds && !releaseIds.has(e.releaseId)) problems.push('Planned release does not belong to this team');
+    else if (releaseIds && !releaseIds.has(e.releaseId)) problems.push(`Planned release “${e.releaseName || e.releaseId}” is not one of this team’s planned releases`);
     if (!e.foreign && !(effort > 0)) problems.push('Add effort (days) on at least one workstream');
     const dl = deltaOf(e, project, includeBtl), item = { delta: dl.changes, epicId: e.id, name: e.name, project: project ? project.name : '', program: project ? (project.gusId ? project.programName : (program ? program.name : '')) : '', projectAction: project ? (project.gusId ? 'existing' : 'create-or-link') : '', release: e.releaseName, priority: e.priority, effort, action: dl.action, problems, line: e.line, status: e.status, theme: e.theme, hrp: e.hrp, v2mom: e.v2mom, doc: e.doc, owners: e.ownerNames || [], workstreams: e.workstreams.filter(w => includeBtl || wsLine(e, w) === 'ABL').map(w => ({ flag: e.gusId ? dl.wsFlags[w.id] : 'new', name: w.name, eng: (w.engNames && w.engNames.length ? w.engNames : [w.engName].filter(Boolean)).join(', '), days: w.days, status: w.status })), description: epicDescription(e, project, includeBtl) };
     items.push(item);
