@@ -806,11 +806,12 @@ function drawPlanner(){
     const rows=[],fold=collapsed();
     const emit=e=>{
       const cE=fold.has('e:'+e.id)&&e.workstreams.length>0;
-      const ws=cE?[null]:(e.workstreams.length?e.workstreams:[null]);
+      const ws=cE?[null]:[null,...e.workstreams]; // the epic is its own row; every workstream is listed under it on a row of its own
       ws.forEach((w,j)=>{
         const first=j===0,tail=j===ws.length-1;
         const txt=(f,v,ph,max,w2)=>`<input class="hub-inline" type="text" aria-label="${esc(ph)}" data-f="${f}" value="${esc(v||'')}" maxlength="${max}" placeholder="${esc(ph)}" style="width:${w2}px">`;
-        const tdE=(k,h)=>first?`<td class="c-${k}">${h}</td>`:`<td class="c-${k}"></td>`,tdW=(k,h)=>w?`<td class="c-${k}" data-w="${esc(w.id)}">${h}</td>`:`<td class="c-${k}"></td>`;
+        const EPIC_CELLS=['name','owners','line','priority','theme','ws'],tdE=(k,h)=>first&&EPIC_CELLS.includes(k)?`<td class="c-${k}">${h}</td>`:`<td class="c-${k}"></td>`, // an epic row only carries its name, owner, ATL/BTL, priority and theme; the rest lives on the workstream rows
+          tdW=(k,h)=>w?`<td class="c-${k}" data-w="${esc(w.id)}">${h}</td>`:`<td class="c-${k}"></td>`;
         const C={
           project:()=>tdE('project',sel('projectId',pl.projects.map(p=>`<option value="${esc(p.id)}" data-short="${esc(p.short||shortProj(p.name))}"${p.id===e.projectId?' selected':''}>${esc(p.name||'(unnamed project)')}</option>`).join(''),'Project')),
           name:()=>tdE('name',`${e.workstreams.length?`<button type="button" class="pl-caret" data-fold-row="e:${esc(e.id)}" aria-expanded="${!cE}" aria-label="${cE?'Expand':'Collapse'} workstreams" title="${cE?'Show':'Hide'} workstreams">${cE?'▸':'▾'}</button>`:''}<input class="hub-inline" type="text" aria-label="Epic name" data-f="name" value="${esc(e.name)}" maxlength="${EPIC_NAME_MAX}" placeholder="Epic name">${e.gusId?`<a class="pl-open-gus" href="${H.GUS}ADM_Epic__c/${esc(e.gusId)}/view" target="_blank" rel="noopener" title="Open this epic in GUS" aria-label="Open epic ${esc(e.name)} in GUS"><svg viewBox="0 0 20 20" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 3h6v6M17 3l-8 8M14 11v5a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></a>`:''}`),
@@ -832,7 +833,8 @@ function drawPlanner(){
           v2mom:()=>tdE('v2mom',txt('v2mom',e.v2mom,'CFS V2MOM',80,80)),
           pmethod:()=>{const m=(prj0(e)||{}).method||'';return tdE('pmethod',`<span class="pl-pm" title="${esc(m)}">${esc(m||'—')}</span>`);}
         };
-        const ep=cols.map(k=>C[k]()).join(''),wc='';
+        const ci=cols.indexOf('name'),merge=ci>0&&cols[ci-1]==='project'; // no project short form on epic rows: the epic name takes its place at the left
+        const ep=cols.map(k=>k==='project'&&merge?'':k==='name'&&merge?C[k]().replace('<td class="c-name"','<td class="c-name" colspan="2"'):C[k]()).join(''),wc='';
         const ico=d=>`<svg viewBox="0 0 20 20" aria-hidden="true">${d}</svg>`,ib=(cls,attr,lbl,d,on)=>`<button type="button" class="pl-ib ${cls}${on?'':' pl-ib-off'}" ${on?attr:'tabindex="-1" disabled'} aria-label="${lbl}" title="${lbl}">${ico(d)}</button>`;
         const act=`<td class="pl-g-act"><span class="pl-acts"${w?` data-w="${esc(w.id)}"`:''}>${w?`<button type="button" class="pl-ib pl-grip" draggable="true" data-grip aria-label="Move workstream: drag within this epic or into another epic (or press Up/Down)" title="Drag to move this workstream, within this epic or into another">${ico('<g fill="currentColor" stroke="none"><circle cx="7" cy="5" r="1.4"/><circle cx="13" cy="5" r="1.4"/><circle cx="7" cy="10" r="1.4"/><circle cx="13" cy="10" r="1.4"/><circle cx="7" cy="15" r="1.4"/><circle cx="13" cy="15" r="1.4"/></g>')}</button>`:ib('pl-grip','','',' ',false)}${ib('pl-add','data-add-ws','Add workstream below this one','<path d="M10 4v12M4 10h12"/>',true)}${ib('pl-rm','data-del-ws','Remove workstream','<circle cx="10" cy="10" r="7"/><path d="M6.8 10h6.4"/>',!!w)}${ib('pl-trash','data-del-epic','Delete epic','<path d="M4 6h12M8 6V4h4v2M6 6l.8 10h6.4L14 6M8.5 9v4M11.5 9v4"/>',first)}</span></td>`;
         rows.push(`<tr data-e="${esc(e.id)}"${w?` data-wr="${esc(w.id)}"`:''} style="--pc:${projColor(e.projectId)}" class="${wl(e,w)==='ABL'?'abl':'btl'}${first?' pl-g-first':''}">${ep}${wc}${act}</tr>`);

@@ -2572,3 +2572,12 @@ html body .pl-cr .pl-cr-btns .button.primary[data-ok].pl-ready:not(:disabled) *{
 html body .pl-cr .pl-cr-btns .button.primary[data-ok].pl-ready:not(:disabled):hover{background:#177a41!important;border-color:#177a41!important}
 html body .pl-cr .pl-cr-btns .button.primary[data-ok].pl-ready:not(:disabled)::before{content:"✓ ";font-weight:700}
 html body .pl-cr .pl-cr-btns .button.primary[data-ok].pl-notready,html body .pl-cr .pl-cr-btns .button.primary[data-ok]:disabled{background:#eef1f4!important;border-color:#d5dde5!important;color:#8a97a5!important;box-shadow:none!important}
+/* 6.26.47 epic on its own row (project short form removed, name at the left), each workstream on its own row one indent further in */
+html body[data-hub=plan] .pl-grid tr[data-e] td.c-project::before{content:none!important}
+html body[data-hub=plan] .pl-grid tr[data-e] td.c-name{padding-left:22px!important}
+html body[data-hub=plan] .pl-grid tr[data-wr] td.c-ws{padding-left:34px!important}
+html body[data-hub=plan] .pl-grid tr[data-wr] td.c-ws input{border-left:2px solid #f0d9ae}
+html body[data-hub=plan] .pl-grid tr[data-e] td.c-engs,html body[data-hub=plan] .pl-grid tr[data-e] td.c-days,html body[data-hub=plan] .pl-grid tr[data-e] td.c-sprint{background-color:transparent!important}
+html body[data-hub=plan] .pl-grid tr[data-wr] td.c-ws,html body[data-hub=plan] .pl-grid tr[data-wr] td.c-engs,html body[data-hub=plan] .pl-grid tr[data-wr] td.c-days,html body[data-hub=plan] .pl-grid tr[data-wr] td.c-sprint,html body[data-hub=plan] .pl-grid tr[data-wr] td.c-wstatus,html body[data-hub=plan] .pl-grid tr[data-wr] td.c-line{background-color:#fff8ec!important}
+html body[data-hub=plan] .pl-grid tr[data-wr]:hover td.c-ws,html body[data-hub=plan] .pl-grid tr[data-wr]:hover td.c-engs,html body[data-hub=plan] .pl-grid tr[data-wr]:hover td.c-days,html body[data-hub=plan] .pl-grid tr[data-wr]:hover td.c-sprint,html body[data-hub=plan] .pl-grid tr[data-wr]:hover td.c-wstatus,html body[data-hub=plan] .pl-grid tr[data-wr]:hover td.c-line{background-color:#fdf0d8!important}
+html body[data-hub=plan] .pl-grid tr[data-e]:not([data-wr]) td.c-ws{background-color:transparent!important}
