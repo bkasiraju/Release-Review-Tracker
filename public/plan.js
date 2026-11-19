@@ -767,6 +767,39 @@ function moveEpicDlg(id,opener){
     e.projectId=b.dataset.mv;collapsed().delete('p:'+e.projectId);try{localStorage.setItem(colKey(),JSON.stringify([...collapsed()]));}catch(_){}
     closeModal();draw();queueSave();window.toast?.(`Moved to ${(pl.projects.find(p=>p.id===e.projectId)||{}).name||'project'}${e.gusId?'; updating GUS…':'.'}`,false);});
 }
+/** SMART goal popover on the epic row: drafts an executive-ready goal (GUS Apps AI from name, workstreams and GUS description), user edits and saves; saved to the plan and the top of the GUS epic description. */
+function smartGoalPop(id,opener,edit){
+  const e=findE(id);if(!e)return;document.querySelector('.pl-sgp')?.remove();
+  const pop=document.createElement('div');pop.className='pl-sgp';pop.setAttribute('role','dialog');pop.setAttribute('aria-label','SMART goal');
+  pop.innerHTML=`<h4>SMART goal <small>${esc(e.name||'(unnamed epic)')}</small></h4><textarea rows="5" maxlength="1200" aria-label="SMART goal" placeholder="Drafting a SMART goal…"${e.smartGoal&&!edit?' readonly':''}></textarea><p class="pl-sgp-n" role="status"></p><div class="pl-sgp-a"><button type="button" class="button" data-sgp-x>Close</button><button type="button" class="button" data-sgp-gen>${e.smartGoal?'Redraft':'Draft'}</button><button type="button" class="button" data-sgp-ed${e.smartGoal&&!edit?'':' hidden'}>✎ Edit</button><button type="button" class="button primary" data-sgp-save${e.smartGoal&&!edit?' hidden':''}>Save</button></div>`;
+  document.body.appendChild(pop);
+  const r=opener.getBoundingClientRect(),w=Math.min(420,innerWidth-24);pop.style.width=w+'px';pop.style.left=Math.max(12,Math.min(r.left,innerWidth-w-12))+'px';
+  const ta=pop.querySelector('textarea'),note=pop.querySelector('.pl-sgp-n'),sv=pop.querySelector('[data-sgp-save]'),ed=pop.querySelector('[data-sgp-ed]'),gen=pop.querySelector('[data-sgp-gen]');
+  const below=r.bottom+8;pop.style.top=Math.min(below,Math.max(12,innerHeight-pop.offsetHeight-12))+'px';
+  const close=()=>{pop.remove();document.removeEventListener('mousedown',away,true);document.removeEventListener('keydown',key,true);try{opener.focus();}catch(_){}};
+  const away=ev=>{if(!pop.contains(ev.target)&&!ev.target.closest('.pl-sgw'))close();},key=ev=>{if(ev.key==='Escape'){ev.stopPropagation();close();}};
+  document.addEventListener('mousedown',away,true);document.addEventListener('keydown',key,true);
+  const editable=()=>{ta.readOnly=false;sv.hidden=false;ed.hidden=true;ta.focus();};
+  const draft=async()=>{
+    gen.disabled=sv.disabled=true;note.textContent='Drafting from the epic name, workstreams and GUS description…';
+    const pr=P.plan.projects.find(p=>p.id===e.projectId);
+    try{const r=await call('plan-smart-goal-gen',{teamId:H.team.Id,epic:{name:e.name,gusId:e.gusId||'',release:e.releaseName||'',project:pr&&pr.name||'',workstreams:e.workstreams.filter(x=>x.name&&x.name.trim()).map(x=>({name:x.name,days:x.days}))}});
+      ta.value=r.goal||'';ta.readOnly=false;sv.hidden=false;ed.hidden=true;note.textContent=(r.note||(r.ai?'Drafted by GUS Apps AI':'Template draft'))+(r.descriptionUsed?' · used the GUS epic description':'')+'. Review, edit and Save.';}
+    catch(err){note.textContent='Could not draft: '+err.message;}
+    finally{gen.disabled=sv.disabled=false;gen.textContent='Redraft';ta.focus();}};
+  pop.addEventListener('click',async ev=>{const b=ev.target.closest('button');if(!b)return;
+    if(b.matches('[data-sgp-x]'))close();
+    else if(b.matches('[data-sgp-gen]'))draft();
+    else if(b.matches('[data-sgp-ed]'))editable();
+    else if(b.matches('[data-sgp-save]')){
+      const g=ta.value.replace(/\s+/g,' ').trim();if(!g){note.textContent='Write or draft a goal first.';return;}
+      sv.disabled=true;sv.textContent='Saving…';e.smartGoal=g;queueSave();
+      if(e.gusId){try{await call('plan-smart-goal-save',{teamId:H.team.Id,gusId:e.gusId,goal:g});window.toast?.('SMART goal saved to the plan and the GUS epic description.',false);}
+        catch(err){window.toast?.('Saved in the plan, but GUS was not updated: '+err.message,true);}}
+      else window.toast?.('SMART goal saved to the plan; it is written to the GUS epic description when the epic is committed.',false);
+      close();draw();}});
+  if(e.smartGoal){ta.value=e.smartGoal;if(edit)editable();}else draft();
+}
 /** Pull each GUS-linked epic's current name, project and release from GUS, show what differs, and apply only what the user ticks. GUS is the source of truth. */
 async function refreshFromGus(btn){
   const pl=P.plan;if(!pl)return;const mine=pl.epics.filter(e=>e.gusId);
@@ -957,7 +990,7 @@ function drawPlanner(){
           tdW=(k,h)=>w?`<td class="c-${k}" data-w="${esc(w.id)}">${h}</td>`:`<td class="c-${k}"></td>`;
         const C={
           project:()=>tdE('project',sel('projectId',pl.projects.map(p=>`<option value="${esc(p.id)}" data-short="${esc(p.short||shortProj(p.name))}"${p.id===e.projectId?' selected':''}>${esc(p.name||'(unnamed project)')}</option>`).join(''),'Project')),
-          name:()=>tdE('name',`<div class="pl-nmw">${e.workstreams.length?`<button type="button" class="pl-caret" data-fold-row="e:${esc(e.id)}" aria-expanded="${!cE}" aria-label="${cE?'Expand':'Collapse'} workstreams" title="${cE?'Show':'Hide'} workstreams">${cE?'▸':'▾'}</button>`:'<span class="pl-caret" style="visibility:hidden" aria-hidden="true">▾</span>'}<i class="pl-ty pl-ty-e${e.workstreams.some(x=>x.name&&x.name.trim())?'':' pl-ty-miss'}" title="Epic${e.workstreams.some(x=>x.name&&x.name.trim())?'':': no workstreams yet'}" aria-label="Epic${e.workstreams.some(x=>x.name&&x.name.trim())?'':', no workstreams yet'}">E</i><input class="hub-inline" type="text" aria-label="Epic name" data-f="name" style="width:${Math.min(Math.max(String(e.name||'').length+3,14),90)}ch" value="${esc(e.name)}" maxlength="${EPIC_NAME_MAX}" placeholder="Epic name">${e.gusId?`<a class="pl-open-gus" href="${H.GUS}ADM_Epic__c/${esc(e.gusId)}/view" target="_blank" rel="noopener" title="Open this epic in GUS" aria-label="Open epic ${esc(e.name)} in GUS"><svg viewBox="0 0 20 20" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 3h6v6M17 3l-8 8M14 11v5a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></a>`:''}</div>`),
+          name:()=>tdE('name',`<div class="pl-nmw">${e.workstreams.length?`<button type="button" class="pl-caret" data-fold-row="e:${esc(e.id)}" aria-expanded="${!cE}" aria-label="${cE?'Expand':'Collapse'} workstreams" title="${cE?'Show':'Hide'} workstreams">${cE?'▸':'▾'}</button>`:'<span class="pl-caret" style="visibility:hidden" aria-hidden="true">▾</span>'}<i class="pl-ty pl-ty-e${e.workstreams.some(x=>x.name&&x.name.trim())?'':' pl-ty-miss'}" title="Epic${e.workstreams.some(x=>x.name&&x.name.trim())?'':': no workstreams yet'}" aria-label="Epic${e.workstreams.some(x=>x.name&&x.name.trim())?'':', no workstreams yet'}">E</i><input class="hub-inline" type="text" aria-label="Epic name" data-f="name" style="width:${Math.min(Math.max(String(e.name||'').length+3,14),90)}ch" value="${esc(e.name)}" maxlength="${EPIC_NAME_MAX}" placeholder="Epic name">${e.gusId?`<a class="pl-open-gus" href="${H.GUS}ADM_Epic__c/${esc(e.gusId)}/view" target="_blank" rel="noopener" title="Open this epic in GUS" aria-label="Open epic ${esc(e.name)} in GUS"><svg viewBox="0 0 20 20" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 3h6v6M17 3l-8 8M14 11v5a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></a>`:''}<span class="pl-sgw"><button type="button" class="pl-sg${e.smartGoal?' has':''}" data-sg="${esc(e.id)}" aria-haspopup="dialog" title="${e.smartGoal?'View the SMART goal':'Draft a SMART goal'}">SMART Goal</button><button type="button" class="pl-sg-pen" data-sg="${esc(e.id)}" data-sg-edit aria-label="Edit SMART goal for ${esc(e.name)}" title="Edit SMART goal">✎</button></span></div>`),
           ws:()=>cE?tdE('ws',`<span class="pl-wscount">${e.workstreams.length} workstream${e.workstreams.length===1?'':'s'} · ${fmt(e.workstreams.reduce((a,x)=>a+(x.days||0),0))}d</span>`):tdW('ws',`<input class="hub-inline" type="text" aria-label="Workstream" data-f="name" value="${esc(w&&w.name)}" maxlength="120" placeholder="Workstream">`),
           owners:()=>tdE('owners',msel('owners',e.owners||[],'Epic owners','Owners')),
           priority:()=>tdE('priority',sel('priority',priOpts(e.priority),'Epic priority')),
@@ -1177,6 +1210,7 @@ function onClick(ev){
   if(t.closest('[data-wsnote-x]')){try{localStorage.setItem('pl-wsnote-x','1');}catch(_){}P.el.querySelector('#pl-wsnote')?.remove();return;}
   if(t.closest('#pl-fetchws')){fetchWs(false);return;}
   if(t.closest('#pl-refresh-gus')){refreshFromGus(t.closest('#pl-refresh-gus'));return;}
+  if(t.closest('[data-sg]')){const b=t.closest('[data-sg]');smartGoalPop(b.dataset.sg,b.closest('.pl-sgw'),b.hasAttribute('data-sg-edit'));return;}
   if(t.closest('[data-move-epic]')){moveEpicDlg(c.e,t.closest('[data-move-epic]'));return;}
   if(t.closest('#pl-import')){P.el.querySelector('#pl-import-file').click();return;}
   if(t.closest('#pl-add-proj')){newProjectAt(t.closest('#pl-add-proj'));return;}

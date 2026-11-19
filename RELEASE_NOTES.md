@@ -1,5 +1,11 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.0-GA · GOLDEN BUILD (revision r2: SMART Goal folded in)
+
+- **SMART Goal** chip next to the epic's open-in-GUS icon. Click it to get an executive-ready SMART goal drafted by GUS Apps AI from the epic name, its workstreams, the planned release and (for GUS epics) the GUS description; a template draft is shown if AI is unavailable. Edit it and Save. A pencil appears on hover to edit a saved goal.
+- Save stores the goal in the shared plan and writes `SMART Goal: …` at the very top of the GUS epic description (replacing the previous one; the epic must belong to the team). Epics not yet in GUS get it at commit.
+- The first 7.0.0-GA snapshot is preserved as `releases/7.0.0-GA-original/` (tags `v7.0.0-GA-original`, `GOLDEN-BUILD-7.0.0-GA-original`, commit 66e3525). Tags `v7.0.0-GA` and `GOLDEN-BUILD-7.0.0-GA` now point at this revision.
+
 ## 7.0.0-GA · GOLDEN BUILD
 
 Designated by the user as the best working version and the rollback baseline. Contains everything through 6.26.99-GA: engineer hover card and Engineer View, universal filters and Group by, Epic review tab, compact Overview deck, board column reordering, Move to project and Refresh from GUS, last-saved label, daily private backup, Remaining (was Unplanned) capacity wording, and the Planned Releases GUS link.

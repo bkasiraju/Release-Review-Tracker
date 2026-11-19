@@ -1,0 +1,28 @@
+{
+  "version": "7.0.0-GA",
+  "label": "GOLDEN BUILD",
+  "product": "Release Intelligence",
+  "artifact": "cfs-release-review-tracker.zip",
+  "sha256": "8978ea9126c7a1cee5493feb5e0d07c311bbf1698543704935ea0c917bcd9f6a",
+  "gitTags": [
+    "v7.0.0-GA-original",
+    "GOLDEN-BUILD-7.0.0-GA-original"
+  ],
+  "productionUrl": "https://gus-apps.internal.salesforce.com/applets/cfs-release-review-tracker/",
+  "preferredRollbackTag": "GOLDEN-BUILD-7.0.0-GA-original",
+  "previousBaselineTag": "GOLDEN-BUILD-6.0.0-GA",
+  "revision": "20261119-7.0.0",
+  "sourceVersion": "6.26.99-GA",
+  "verification": {
+    "validationScope": "Full suite 292 pass / 38 fail (the 38 failures predate this work); UI not verified in a signed-in browser; Move to project and Refresh from GUS not exercised against live GUS; live footer version needs a signed-in GUS Apps check; not independently reviewed",
+    "fullSuiteRun": true,
+    "productionModelOutputVerified": false,
+    "goldenDatasetCaptured": false
+  },
+  "rollbackBuilds": {
+    "golden": "GOLDEN-BUILD-7.0.0-GA-original",
+    "previousGolden": "GOLDEN-BUILD-6.0.0-GA",
+    "platinum": "PLATINUM-BUILD-5.1.1-GA"
+  },
+  "note": "First 7.0.0-GA snapshot (commit 66e3525), preserved before SMART Goal was folded into 7.0.0-GA."
+}

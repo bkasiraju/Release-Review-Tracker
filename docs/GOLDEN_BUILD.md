@@ -1,6 +1,6 @@
 # 7.0.0-GA · GOLDEN BUILD
 
-Designated 19 November 2026 as the best working version and the rollback baseline (code identical to 6.26.99-GA). Tags `v7.0.0-GA`, `GOLDEN-BUILD-7.0.0-GA`; ZIP and SHA-256 in `releases/7.0.0-GA/`. To revert: deploy that exact ZIP (verify the checksum against `build.json`), then confirm footer `v7.0.0-GA`. Application rollback must preserve live GUS data. 6.0.0-GA (`GOLDEN-BUILD-6.0.0-GA`) is the previous golden and PLATINUM stays 5.1.1-GA; both remain immutable. The golden dataset snapshot was not re-captured for 7.0.0-GA (needs separate explicit authorization).
+Designated 19 November 2026 as the best working version and the rollback baseline (6.26.99-GA plus the epic-row SMART Goal, revision 20261119-7.0.0-r2; first snapshot kept in `releases/7.0.0-GA-original/`, tag `GOLDEN-BUILD-7.0.0-GA-original`). Tags `v7.0.0-GA`, `GOLDEN-BUILD-7.0.0-GA`; ZIP and SHA-256 in `releases/7.0.0-GA/`. To revert: deploy that exact ZIP (verify the checksum against `build.json`), then confirm footer `v7.0.0-GA`. Application rollback must preserve live GUS data. 6.0.0-GA (`GOLDEN-BUILD-6.0.0-GA`) is the previous golden and PLATINUM stays 5.1.1-GA; both remain immutable. The golden dataset snapshot was not re-captured for 7.0.0-GA (needs separate explicit authorization).
 
 # 6.0.0-GA · PREVIOUS GOLDEN BUILD (superseded by 7.0.0-GA; remains immutable)
 

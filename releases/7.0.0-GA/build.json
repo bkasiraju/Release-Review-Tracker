@@ -3,7 +3,7 @@
   "label": "GOLDEN BUILD",
   "product": "Release Intelligence",
   "artifact": "cfs-release-review-tracker.zip",
-  "sha256": "8978ea9126c7a1cee5493feb5e0d07c311bbf1698543704935ea0c917bcd9f6a",
+  "sha256": "f531a6142978d3e9e21edf4851f15c06c135f35e971d2c23dc07506be558fe3a",
   "gitTags": [
     "v7.0.0-GA",
     "GOLDEN-BUILD-7.0.0-GA"
@@ -11,10 +11,10 @@
   "productionUrl": "https://gus-apps.internal.salesforce.com/applets/cfs-release-review-tracker/",
   "preferredRollbackTag": "GOLDEN-BUILD-7.0.0-GA",
   "previousBaselineTag": "GOLDEN-BUILD-6.0.0-GA",
-  "revision": "20261119-7.0.0",
-  "sourceVersion": "6.26.99-GA",
+  "revision": "20261119-7.0.0-r2",
+  "sourceVersion": "6.26.99-GA + SMART Goal",
   "verification": {
-    "validationScope": "Full suite 292 pass / 38 fail (the 38 failures predate this work); UI not verified in a signed-in browser; Move to project and Refresh from GUS not exercised against live GUS; live footer version needs a signed-in GUS Apps check; not independently reviewed",
+    "validationScope": "Full suite 293 pass / 38 fail (the 38 failures predate this work); SMART Goal AI draft and GUS description write not exercised against live GUS; UI not verified in a signed-in browser; live footer version needs a signed-in GUS Apps check; not independently reviewed",
     "fullSuiteRun": true,
     "productionModelOutputVerified": false,
     "goldenDatasetCaptured": false
@@ -23,5 +23,6 @@
     "golden": "GOLDEN-BUILD-7.0.0-GA",
     "previousGolden": "GOLDEN-BUILD-6.0.0-GA",
     "platinum": "PLATINUM-BUILD-5.1.1-GA"
-  }
+  },
+  "supersedes": "releases/7.0.0-GA-original (commit 66e3525)"
 }

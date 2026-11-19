@@ -1,5 +1,5 @@
 {
-  "summary": "7.0.0-GA GOLDEN BUILD: same code as 6.26.99-GA, redesignated by the user as the rollback baseline. Implementing-agent review only, not independent; not verified in a signed-in browser or live GUS; live footer version needs a signed-in check; 38 baseline test failures predate this work.",
+  "summary": "7.0.0-GA GOLDEN BUILD (revision r2): 6.26.99-GA plus the epic-row SMART Goal (AI draft, edit, save to the plan and the top of the GUS epic description). Implementing-agent review only, not independent; AI draft and GUS write not verified live; not verified in a signed-in browser; 38 baseline test failures predate this work.",
   "blockingIssues": [],
   "caveats": [
     "Nothing verified in a signed-in browser",

@@ -256,3 +256,14 @@ test('theme short forms need whole words, and GUS error objects read as text',as
   const v=await plan.createWorkstream(ok('VegaCache Interface'),'a00B0000000w4ZsIAI',{epicGusId:EP,name:'API2',tagId:TAG});
   assert.deepEqual(v.themes,['R268_VC_Workstream']);   // \bface\b does not match "Interface"
 });
+
+test('SMART goal: saved at the top of the GUS description (replacing the old one); draft falls back to a template; epic must be the team\'s',async()=>{
+  const EP='a0XEE00000EPC0001A',upd=[];
+  const sf={async query(q){return {records:q.includes(EP)?[{Id:EP,Name:'E',Description__c:'SMART Goal: old goal\n\nBody text'}]:[]};},async update(o,id,f){upd.push(f);return {success:true};}};
+  await plan.saveSmartGoal(sf,T,EP,'Deliver X by R268.');
+  assert.equal(upd[0].Description__c,'SMART Goal: Deliver X by R268.\n\nBody text');
+  await assert.rejects(()=>plan.saveSmartGoal(sf,T,'a0XEE00000EPC0002A','g'),/does not belong/);
+  const g=await plan.generateSmartGoal(sf,T,{name:'Queue hardening',release:'R268',workstreams:[{name:'Retry',days:3}],gusId:EP});
+  assert.equal(g.ai,false);assert.match(g.goal,/Queue hardening/);assert.equal(g.descriptionUsed,true);
+  assert.equal(plan.withSmartGoal('x',''),'x');
+});
