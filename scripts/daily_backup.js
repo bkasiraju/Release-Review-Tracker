@@ -9,6 +9,10 @@ const git=(dir,...a)=>execFileSync('git',['-C',dir,...a],{encoding:'utf8',timeou
 async function main(){
   const dir=process.env.BACKUP_DIR||path.join(os.homedir(),'Desktop','AI - TPM','Release-Review-Tracker-backups');
   if(!fs.existsSync(path.join(dir,'.git')))throw Error('Backup repo not found at '+dir);
+  // --catchup (launchd): run at 09:00, and again at login/wake if that run was missed; skip when today's snapshot is already saved and pushed.
+  if(process.argv.includes('--catchup')){const now=new Date(),day=now.toLocaleDateString('en-CA'),f=path.join(dir,'snapshots',day.slice(0,4),day+'.json');
+    if(now.getHours()<9){console.log('Before 09:00; the scheduled run will take today\'s snapshot.');return;}
+    if(fs.existsSync(f)){let clean=false;try{clean=!git(dir,'status','--porcelain')&&!git(dir,'log','origin/main..HEAD','--oneline');}catch(_){}if(clean){console.log('Today\'s snapshot is already saved.');return;}}}
   const remote=git(dir,'remote','get-url','origin'),vis=JSON.parse(execFileSync('gh',['repo','view',remote,'--json','isPrivate'],{encoding:'utf8',timeout:60000}));
   if(!vis.isPrivate)throw Error('Refusing to back up: the backup repository is not private.');
   const org=JSON.parse(execFileSync('sf',['org','display','--target-org',process.env.GUS_ORG||'GusProduction','--json'],{encoding:'utf8',timeout:45000,env:{...process.env,SF_DISABLE_LOG_FILE:'true'}}));
