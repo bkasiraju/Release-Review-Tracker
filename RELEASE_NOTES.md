@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.16-GA (19 November 2026)
+
+Planner Group by now offers Project, Priority, ATL/BTL, Theme, Workstream owner, Epic owner and V2MOM method. Each group row has a fold caret and ABL/BTL totals, and Collapse all / Expand all cover the groups. An epic with several workstream owners is grouped under their combined names, and epics with no value fall into a "No …" group at the end. Not checked in a browser.
+
 ## 6.26.15-GA (19 November 2026)
 
 Planner toolbar: Collapse all and Expand all moved to the end, after Columns. Not checked in a browser.
