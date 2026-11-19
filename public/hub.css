@@ -2648,3 +2648,6 @@ html body[data-hub=plan] .pl-grid tr[data-e]:not([data-wr]):hover td[class]:not(
 html body[data-hub=plan] .pl-grid tr[data-wr]:hover td[class]:not(.pl-g-act){background-color:#fff8ea!important}
 html body[data-hub=plan] .pl-grid tr[data-wr] td.c-ws input{border-left-color:#f3e6c8!important}
 html body[data-hub=plan] .pl-miss{display:inline-block;margin:0 0 0 6px;color:#c23934;font-style:normal;font-weight:700;font-size:15px;line-height:1;cursor:help;flex:0 0 auto}
+
+/* 6.26.63 the missing marker sits between the P/E badge and the name */
+html body[data-hub=plan] .pl-miss{margin:0 6px 0 2px!important}
