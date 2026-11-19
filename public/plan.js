@@ -1035,8 +1035,8 @@ function onClick(ev){
   if(t.closest('[data-add-epic]')){const e=newEpic(c.p);pl.epics.push(e);draw();queueSave();P.el.querySelector(`[data-e="${e.id}"] .pl-ename`)?.focus();return;}
   if(t.closest('[data-add-ws]')){if(findE(c.e)){const ar=t.closest('[data-w]');newWorkstreamAt(c.e,ar&&ar.dataset.w);}return;}
   const line=t.closest('[data-line]');if(line){const e=findE(c.e);if(e){const v=line.dataset.line,w=c.w&&e.workstreams.find(x=>x.id===c.w);if(w){e.workstreams.forEach(x=>{x.line=x.line||e.line;});w.line=v;deriveLine(e);}else{e.line=v;e.workstreams.forEach(x=>{x.line=v;});}draw();queueSave();}return;}
-  if(t.closest('[data-del-ws]')){const e=findE(c.e);if(e){e.workstreams=e.workstreams.filter(w=>w.id!==c.w);draw();queueSave();}return;}
-  if(t.closest('[data-del-epic]')){const e=findE(c.e);if(!e)return;const go=()=>{pl.epics=pl.epics.filter(x=>x.id!==c.e);draw();queueSave();};if(!e.gusId&&!e.name&&!epicDays(e))go();else confirmAt(t.closest('[data-del-epic]'),e.gusId?'This epic is already in GUS. Delete only the draft here? The GUS epic stays.':'Delete this epic and its workstreams?',go);return;}
+  if(t.closest('[data-del-ws]')){const e=findE(c.e),w=e&&e.workstreams.find(x=>x.id===c.w);if(!e||!w)return;if(w.gusId)delItemDlg('ws',e,w,t.closest('[data-del-ws]'));else{e.workstreams=e.workstreams.filter(x=>x.id!==c.w);draw();queueSave();}return;}
+  if(t.closest('[data-del-epic]')){const e=findE(c.e);if(!e)return;const go=()=>{pl.epics=pl.epics.filter(x=>x.id!==c.e);draw();queueSave();};if(!e.gusId&&!e.name&&!epicDays(e))go();else if(e.gusId)delItemDlg('epic',e,null,t.closest('[data-del-epic]'));else confirmAt(t.closest('[data-del-epic]'),'Delete this epic and its workstreams?',go);return;}
   if(t.closest('[data-del-proj]')){P.projOpen=false;delProjectDlg(c.p,t.closest('[data-del-proj]'));return;}
   if(t.closest('[data-proj-del]')){delProjectDlg(c.p,t.closest('[data-proj-del]'));return;}
 }
@@ -1045,6 +1045,32 @@ function onClick(ev){
 let modal=null;
 function closeModal(){if(!modal)return false;document.removeEventListener('keydown',modal.key,true);modal.el.remove();modal.opener&&modal.opener.focus&&modal.opener.focus();modal=null;return true;}
 document.addEventListener('mouseover',e=>{const i=e.target.closest&&e.target.closest('.pl-pmenu input');if(i)i.title=i.value;});
+// Removing an epic or workstream that already exists in GUS: the user chooses between taking it off the dashboard only (GUS keeps it) and deleting it in GUS as well.
+function delItemDlg(kind,e,w,opener){
+  const pl=P.plan,isWs=kind==='ws',label=isWs?(w.name||'(unnamed workstream)'):(e.name||'(unnamed epic)'),canGus=isWs?!!w.gusId:!e.foreign;
+  const wsIds=isWs?[]:e.workstreams.filter(x=>x.gusId).map(x=>x.gusId);
+  const el=openModal(isWs?'Remove workstream':'Remove epic',`<p><b>${esc(label)}</b></p>
+    <p class="note">${isWs?'This workstream is also a story in GUS.':'This epic is also in GUS'+(e.workstreams.length?`, with ${e.workstreams.length} workstream${e.workstreams.length===1?'':'s'}`:'')+'.'} Where should it be removed?</p>
+    <label class="pl-del-row"><input type="radio" name="dsc" value="dash" checked><span><b>Remove from the dashboard only</b> — it stays in GUS.</span></label>
+    ${canGus?`<label class="pl-del-row"><input type="radio" name="dsc" value="gus"><span><b>Delete in GUS as well</b> — removes it from GUS and the dashboard.</span></label>
+    <div data-ack hidden><label class="pl-del-row pl-del-ack"><input type="checkbox" data-ackc><span>I understand this permanently deletes ${isWs?'the story':'the epic'} in GUS and cannot be undone. GUS only allows it when no other work items are under it${isWs?'':' (its own workstream stories are deleted with it)'}.</span></label></div>`:`<p class="note">This epic belongs to another team, so it can only be removed from the dashboard.</p>`}
+    <p class="pl-del-err" role="alert" hidden></p>
+    <div class="nd-actions"><button type="button" class="button" data-close>Cancel</button><button type="button" class="button primary" data-idel>Remove from dashboard</button></div>`,opener);
+  const radios=[...el.querySelectorAll('[name=dsc]')],ack=el.querySelector('[data-ackc]'),go=el.querySelector('[data-idel]'),err=el.querySelector('.pl-del-err');
+  const gus=()=>{const r=radios.find(x=>x.checked);return !!r&&r.value==='gus';};
+  const sync=()=>{const g=gus();const a=el.querySelector('[data-ack]');if(a)a.hidden=!g;go.textContent=g?'Delete in GUS and dashboard':'Remove from dashboard';go.disabled=g&&!(ack&&ack.checked);go.classList.toggle('pl-danger',g);};
+  radios.forEach(r=>r.addEventListener('change',()=>{if(ack)ack.checked=false;sync();}));ack&&ack.addEventListener('change',sync);sync();
+  go.onclick=async()=>{err.hidden=true;go.disabled=true;const g=gus();let msg=`Removed “${label}” from the dashboard.`;
+    try{
+      if(g){
+        if(isWs)await call('plan-delete-workstream',{teamId:H.team.Id,workstream:{gusId:w.gusId}});
+        else await call('plan-delete-epic',{teamId:H.team.Id,epic:{gusId:e.gusId,workstreamIds:wsIds}});
+        msg=`Deleted “${label}” in GUS and removed it from the dashboard.`;
+      }
+      if(isWs)e.workstreams=e.workstreams.filter(x=>x.id!==w.id);else pl.epics=pl.epics.filter(x=>x.id!==e.id);
+      closeModal();draw();queueSave();window.toast?.(msg,false);
+    }catch(x){err.textContent=String(x&&x.message||x)+' It was kept on the dashboard.';err.hidden=false;sync();}};
+}
 // Remove a project from the dashboard. By default GUS is untouched; the admin can also delete the project in GUS (explicit acknowledgement).
 function delProjectDlg(pid,opener){
   const pl=P.plan,p=findP(pid);if(!p)return;

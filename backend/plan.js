@@ -275,6 +275,40 @@ async function deleteProject(sf, teamId, input, store) {
   } catch (_) { /* the project is deleted in GUS; the catalog entry is cleared on a later edit */ }
   return { deleted: true, gusId: id, name: hit.Name };
 }
+// Deleting in GUS (the planner's "also delete in GUS" choice). Both refuse anything that still has work under it, so nothing is orphaned.
+async function gusDelete(sf, obj, id) {
+  try {
+    if (typeof sf.delete === 'function') await sf.delete(obj, id);
+    else if (typeof sf.request === 'function') await sf.request({ method: 'DELETE', url: '/services/data/v62.0/sobjects/' + obj + '/' + id });
+    else throw new Error('GUS Apps cannot delete records from this session.');
+  } catch (e) { throw new Error('GUS refused the delete: ' + String(e && e.message || e)); }
+}
+async function deleteWorkstream(sf, teamId, input) {
+  planKey(teamId);
+  const id = gid(input && input.gusId);
+  if (!id) throw new Error('This workstream is not in GUS.');
+  const hit = ((await sf.query(`SELECT Id, Subject__c FROM ADM_Work__c WHERE Id = '${id}' AND Scrum_Team__c = '${teamId}' AND Subject__c LIKE '${WS_PREFIX}%' LIMIT 1`)).records || [])[0];
+  if (!hit) throw new Error('That is not a workstream story of this team, so nothing was deleted in GUS.');
+  const n = ((await sf.query(`SELECT COUNT() FROM ADM_Work__c WHERE Parent__c = '${id}'`)).totalSize) || 0;
+  if (n) throw new Error(`“${hit.Subject__c}” has ${n} work item${n === 1 ? '' : 's'} under it in GUS. Move or delete them in GUS first; nothing was deleted.`);
+  await gusDelete(sf, 'ADM_Work__c', id);
+  return { deleted: true, gusId: id, name: hit.Subject__c };
+}
+async function deleteEpic(sf, teamId, input) {
+  planKey(teamId);
+  const id = gid(input && input.gusId);
+  if (!id) throw new Error('This epic is not in GUS.');
+  const hit = ((await sf.query(`SELECT Id, Name FROM ADM_Epic__c WHERE Id = '${id}' AND Team__c = '${teamId}' LIMIT 1`)).records || [])[0];
+  if (!hit) throw new Error('That epic belongs to another team, so it was not deleted in GUS.');
+  // The epic's own workstream stories go first (only when nothing sits under them); any other work item blocks the delete.
+  const ws = Array.isArray(input && input.workstreamIds) ? input.workstreamIds.map(gid).filter(Boolean).slice(0, 50) : [], gone = [];
+  for (const w of ws) { await deleteWorkstream(sf, teamId, { gusId: w }); gone.push(w); }
+  const n = ((await sf.query(`SELECT COUNT() FROM ADM_Work__c WHERE Epic__c = '${id}'`)).totalSize) || 0;
+  if (n) throw new Error(`“${hit.Name}” still has ${n} work item${n === 1 ? '' : 's'} in GUS${gone.length ? ` (its ${gone.length} workstream${gone.length === 1 ? '' : 's'} were deleted)` : ''}. Move or delete them in GUS first; the epic was not deleted.`);
+  await gusDelete(sf, 'ADM_Epic__c', id);
+  refsCache.delete(teamId);
+  return { deleted: true, gusId: id, name: hit.Name, workstreamsDeleted: gone.length };
+}
 // Why a planned release cannot be used for this team, spelled out (which release, which team, what is available); '' when it is fine.
 async function releaseProblem(sf, teamId, releaseId) {
   const [upcoming, all] = await Promise.all([teamReleases(sf, teamId, true).catch(() => []), teamReleases(sf, teamId, false).catch(() => [])]);
@@ -613,4 +647,4 @@ async function commitRun(sf, store, teamId, confirm, includeBtl, acknowledged) {
   return { results, failed: results.filter(x => !x.ok).length, plan: saved && saved.plan, revision: saved && saved.revision, saveError };
 }
 
-module.exports = { programProjects, importV2mom, resolveProgram, teamProgram, getPlan, savePlan, getRefs, commitPlan, createProject, deleteProject, createEpic, listEpics, findEpics, createWorkstream, syncEpics, review, cleanPlan };
+module.exports = { deleteEpic, deleteWorkstream, programProjects, importV2mom, resolveProgram, teamProgram, getPlan, savePlan, getRefs, commitPlan, createProject, deleteProject, createEpic, listEpics, findEpics, createWorkstream, syncEpics, review, cleanPlan };
