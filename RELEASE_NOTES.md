@@ -1,5 +1,10 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.76-GA
+
+- Planned Release Summary: one set of filters for every tab (search, project, theme, ATL/BTL, priority, engineer, status, release) and a Group by option for Priority board, Engineer View and GUS Summary. Shows "Showing X of Y epics" and a Clear filters button.
+- "Saved in GUS" is now "GUS Summary"; "By engineer" is now "Engineer View", laid out like the planner accordion (engineer, then epic, then workstream, with carets and a colour stripe).
+
 ## 6.26.75-GA
 
 - Removed the "Executive epics" tab from the Planned Release Summary.
