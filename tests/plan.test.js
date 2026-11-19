@@ -134,6 +134,21 @@ test('syncEpics writes grid edits to GUS epics of this team only and reports fai
   assert.match(r.results[1].err,/does not belong/);assert.match(r.results[2].err,/at most 80/);
 });
 
+test('syncEpics moves an epic to a project in the team program only; refreshEpics reads current GUS values',async()=>{
+  const PJ='a1PEE00000PRJ0001A',BAD='a1PEE00000PRJ0002A',EP='a0XEE00000EPC0001A',upd=[];
+  const sf={async query(q){
+      if(/FROM ADM_Scrum_Team__c/.test(q))return {records:[{Name:'Message Queue'}]};
+      if(/FROM PPM_Program__c/.test(q))return {records:[{Id:'a1QEE00000PRG0001A',Name:'MQ - 2026 Q4'}]};
+      if(/FROM PPM_Project__c/.test(q))return {records:q.includes(PJ)?[{Id:PJ}]:[]};
+      if(/FROM ADM_Epic__c WHERE Id IN/.test(q))return {records:[{Id:EP,Name:'E',Project__c:PJ,Project__r:{Name:'HRP M1'},Planned_Release__c:'',OwnerId:''}]};
+      if(/FROM ADM_Epic__c/.test(q))return {records:[{Id:EP}]};
+      return {records:[]};},
+    async update(o,id,f){upd.push(f);return {success:true};}};
+  const r=await plan.syncEpics(sf,T,[{gusId:EP,projectId:PJ},{gusId:EP,projectId:BAD}]);
+  assert.deepEqual(r.results.map(x=>x.ok),[true,false]);assert.equal(upd.length,1);assert.equal(upd[0].Project__c,PJ);assert.match(r.results[1].err,/not in this team/);
+  const g=await plan.refreshEpics(sf,T,[EP,'junk']);assert.equal(g.epics[0].projectId,PJ);assert.equal(g.epics[0].projectName,'HRP M1');
+});
+
 test('createWorkstream makes a parent User Story with the R<release>_<team>_Workstream theme, idempotently',async()=>{
   const EP='a0XEE00000EPC0001A',TAG='a1TEE00000TAG0001A',log=[],themes=new Map(),assigned=new Set();let nid=0,work=null;
   const sf={async query(q){log.push(['q',q]);

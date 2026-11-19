@@ -483,6 +483,7 @@ async function findEpics(sf, teamId, query) {
 async function syncEpics(sf, teamId, epics) {
   planKey(teamId);
   const out = [];
+  let program;
   for (const x of (Array.isArray(epics) ? epics : []).slice(0, 100)) {
     const id = gid(x && x.gusId), f = {};
     if (!id) { out.push({ gusId: '', ok: false, err: 'Not a GUS epic' }); continue; }
@@ -491,6 +492,15 @@ async function syncEpics(sf, teamId, epics) {
       if (x.leadId !== undefined) { const l = gid(x.leadId); if (l) { f.Development_Lead__c = l; f.OwnerId = l; } }
       if (x.releaseId !== undefined) f.Planned_Release__c = gid(x.releaseId) || null;
       if (x.effort !== undefined) f.Planned_Story_Points__c = days(x.effort);
+      if (x.projectId) {
+        const pj = gid(x.projectId);
+        if (!pj) throw new Error('Not a GUS project.');
+        if (program === undefined) program = await teamProgram(sf, teamId);
+        if (!program) throw new Error('Could not find this team\'s program in GUS.');
+        const okp = ((await sf.query(`SELECT Id FROM PPM_Project__c WHERE Id = '${pj}' AND Program__c = '${program.id}' LIMIT 1`)).records || [])[0];
+        if (!okp) throw new Error('That project is not in this team\'s program.');
+        f.Project__c = pj;
+      }
       const mine = ((await sf.query(`SELECT Id FROM ADM_Epic__c WHERE Id = '${id}' AND Team__c = '${teamId}' LIMIT 1`)).records || [])[0];
       if (!mine) throw new Error('Epic does not belong to this team.');
       let r = await sf.update('ADM_Epic__c', id, f);
@@ -501,6 +511,15 @@ async function syncEpics(sf, teamId, epics) {
   }
   refsCache.delete(teamId);
   return { results: out };
+}
+
+/** Current GUS project, name and planned release for epics already on the dashboard (this team's epics only), so the dashboard can show what changed in GUS. */
+async function refreshEpics(sf, teamId, ids) {
+  planKey(teamId);
+  const list = [...new Set((Array.isArray(ids) ? ids : []).map(gid).filter(Boolean))].slice(0, 200);
+  if (!list.length) return { epics: [] };
+  const rows = (await sf.query(`SELECT ${EPIC_SEL} FROM ADM_Epic__c WHERE Id IN (${list.map(i => `'${i}'`).join(',')})`)).records || [];
+  return { epics: rows.map(epicRow) };
 }
 
 // Validate ABL epics against the saved plan and describe exactly what a commit would do.
@@ -689,4 +708,4 @@ async function commitRun(sf, store, teamId, confirm, includeBtl, acknowledged) {
   return { results, failed: results.filter(x => !x.ok).length, plan: saved && saved.plan, revision: saved && saved.revision, saveError };
 }
 
-module.exports = { epicWorkstreams, epicLeads, deleteEpic, deleteWorkstream, programProjects, importV2mom, resolveProgram, teamProgram, getPlan, savePlan, getRefs, commitPlan, createProject, deleteProject, createEpic, listEpics, findEpics, createWorkstream, syncEpics, review, cleanPlan };
+module.exports = { refreshEpics, epicWorkstreams, epicLeads, deleteEpic, deleteWorkstream, programProjects, importV2mom, resolveProgram, teamProgram, getPlan, savePlan, getRefs, commitPlan, createProject, deleteProject, createEpic, listEpics, findEpics, createWorkstream, syncEpics, review, cleanPlan };

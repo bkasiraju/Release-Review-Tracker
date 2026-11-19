@@ -2847,3 +2847,16 @@ html body .pl-rps-m td{font-size:13px;color:#1e293b}html body .pl-rps-m tbody tr
 html body .pl-rps-m td .pl-mo-c{background:#f1f5f9;color:#334155;border-color:#e2e8f0;font-weight:600}
 html body .pl-rps-m td .pl-mo-c.p{background:#fde7ea;color:#b3261e;border-color:#fecdd3}
 html body .pl-rps-m .pl-mo-n{color:#0f172a;font-weight:700}
+/* 6.26.97 epic link sits right after the epic name */
+html body .pl-grid .pl-nmw>input.hub-inline[data-f="name"]{flex:0 1 auto;max-width:calc(100% - 90px);field-sizing:content}
+/* 6.26.97 move-to-project dialog */
+html body .pl-mv-l{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px;max-height:55vh;overflow:auto;margin:10px 0}
+html body .pl-mv-p{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;border:1px solid #e0e7ff;background:#f8faff;border-radius:10px;padding:9px 12px;cursor:pointer;color:#0f172a}
+html body .pl-mv-p:hover:not(:disabled){background:#eef2ff;border-color:#4338ca}html body .pl-mv-p:disabled{opacity:.5;cursor:not-allowed}
+html body .pl-mv-p b{font-size:13px}html body .pl-mv-p small{font-size:11px;color:#64748b}
+/* 6.26.97 last-saved label */
+html body .ri-saved{font-size:11.5px;font-weight:500;color:#64748b;white-space:nowrap;margin-right:10px;padding:3px 8px;border-radius:6px}
+html body .ri-saved::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:#2e844a;margin-right:6px;vertical-align:middle}
+html body .ri-saved.flash{animation:riSaved 1.8s ease-out 1}
+@keyframes riSaved{0%{background:#dcfce7;color:#166534}100%{background:transparent;color:#64748b}}
+@media(prefers-reduced-motion:reduce){html body .ri-saved.flash{animation:none}}

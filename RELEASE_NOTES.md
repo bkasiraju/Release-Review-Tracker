@@ -1,5 +1,13 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.97-GA
+
+- **Move to project…** on each epic row: pick a project, the dashboard updates instantly and the new project is written to GUS in the background (validated against the team program). Workstreams, priority and engineers stay with the epic. A stale dashboard never overwrites a project changed in GUS: the project is only sent when it was changed here.
+- **Refresh from GUS** (header button): pulls each GUS-linked epic's name, project and release, shows what differs, and applies only what you tick. GUS wins.
+- Header shows "Saved to GUS Apps · date, time" before the team picker, with a soft green flash on each save.
+- Planning metrics order is now Planned (total) → ABL → BTL, then Unplanned.
+- Epic GUS link sits right after the epic name.
+
 ## 6.26.96-GA
 
 - Engineer hover card: "Detailed summary" now opens the Engineer View reliably (the card no longer closes on mouse-down before the click lands).
