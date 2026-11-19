@@ -1,6 +1,6 @@
 {
   "name": "cfs-release-review-tracker",
-  "version": "6.26.45-GA",
+  "version": "6.26.46-GA",
   "private": true,
   "scripts": {
     "start": "node server.js",

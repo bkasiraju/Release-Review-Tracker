@@ -515,7 +515,15 @@ function confirmAt(btn,msg,onOk){
 const defRel=()=>{const r=P.refs.releases.reduce((b,x)=>!b||relNum(x)>relNum(b)?x:b,null);return r?{releaseId:r.id,releaseName:r.name}:{releaseId:'',releaseName:''};};
 const newEpic=pid=>({id:uid('e'),projectId:pid,name:'',line:'BTL',priority:0,...defRel(),gusId:'',owners:[],ownerNames:[],workstreams:[{id:uid('w'),name:'',priority:0,engId:'',engName:'',engIds:[],engNames:[],days:0,sprint:''}]});
 const prj0=e=>P.plan.projects.find(p=>p.id===e.projectId)||null;
-const memName=id=>(P.members.find(m=>m.id===id)||{}).name||'';
+const memName=id=>{const m=P.members.find(x=>x.id===id);if(m)return m.name;for(const e of (P.plan&&P.plan.epics)||[]){const i=(e.owners||[]).indexOf(id);if(i>=0&&e.ownerNames&&e.ownerNames[i])return e.ownerNames[i];}return '';}; // an owner who is not on the team roster keeps the name GUS gave
+/** Epics already in the plan with no owner get their development lead (or GUS owner) from GUS, saved to the shared plan without writing back to GUS. */
+async function fillLeads(){
+  const pl=P.plan;if(!pl)return;const need=pl.epics.filter(e=>e.gusId&&!(e.owners&&e.owners.length)&&!e.foreign);if(!need.length)return;
+  const my=P.seq,id=H.team.Id;
+  try{const r=await call('plan-epic-leads',{teamId:id,ids:need.map(e=>e.gusId)});if(id!==H.team.Id||P.plan!==pl)return;
+    let n=0;need.forEach(e=>{const l=r.leads&&r.leads[e.gusId];if(l){e.owners=[l.leadId];e.ownerNames=[l.leadName];n++;}});
+    if(n){snapGus();draw();queueSave();}}catch(_){}
+}
 const wsEngs=w=>w.engIds&&w.engIds.length?w.engIds:(w.engId?[w.engId]:[]);
 /** Who carries a workstream's days: its own engineers, else the epic's owners (two owners = half each). */
 const wsNames=w=>wsEngs(w).map(id=>memName(id)||(id===w.engId?w.engName:'')||'Engineer');
@@ -1185,6 +1193,7 @@ async function load(el){
     fillRel();syncCommitBtn();
     el.querySelector('#pl-last').textContent=P.plan.lastCommit&&P.plan.lastCommit.at?`Last saved to GUS ${new Date(P.plan.lastCommit.at).toLocaleString()} (${P.plan.lastCommit.created} created, ${P.plan.lastCommit.updated} updated)`:'';
     draw();setState('idle');if(linked)queueSave(); // after idle, or the save would be skipped
+    fillLeads();
   }catch(e){if(my===P.seq)el.querySelector('#pl-sum').innerHTML=`<div class="empty-state hub-empty"><h3>Could not load the plan</h3><p>${esc(e.message)}</p></div>`;}
 }
 H.register({id:'plan',label:'Release Planning (Quarterly)',icon:'plan',tone:'green',desc:'Plan projects, epics and effort against team capacity',needsTeam:true,

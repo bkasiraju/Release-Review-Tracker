@@ -309,6 +309,16 @@ async function deleteEpic(sf, teamId, input) {
   refsCache.delete(teamId);
   return { deleted: true, gusId: id, name: hit.Name, workstreamsDeleted: gone.length };
 }
+// Owners (development lead, else record owner) for epics already in the plan, so an epic added without an owner is filled in from GUS.
+async function epicLeads(sf, teamId, ids) {
+  planKey(teamId);
+  const list = [...new Set((Array.isArray(ids) ? ids : []).map(gid).filter(Boolean))].slice(0, 200);
+  if (!list.length) return { leads: {} };
+  const rows = (await sf.query(`SELECT Id, Development_Lead__c, Development_Lead__r.Name, OwnerId, Owner.Name FROM ADM_Epic__c WHERE Id IN (${list.map(i => `'${i}'`).join(',')})`)).records || [];
+  const leads = {};
+  for (const r of rows) { const l = leadOf(r); if (l.leadId) leads[r.Id] = l; }
+  return { leads };
+}
 // Why a planned release cannot be used for this team, spelled out (which release, which team, what is available); '' when it is fine.
 async function releaseProblem(sf, teamId, releaseId) {
   const [upcoming, all] = await Promise.all([teamReleases(sf, teamId, true).catch(() => []), teamReleases(sf, teamId, false).catch(() => [])]);
@@ -413,12 +423,16 @@ async function createWorkstream(sf, teamId, input) {
 // The team's epics already in GUS, so they can be added to the plan table instead of retyped.
 async function listEpics(sf, teamId) {
   planKey(teamId);
-  const rows = (await sf.query(`SELECT Id, Name, Project__c, Project__r.Name, Project__r.V2MOM_Method__c, Project__r.Program__c, Project__r.Program__r.Name, Planned_Release__c, Planned_Release__r.Name, Development_Lead__c, Development_Lead__r.Name, Planned_Story_Points__c FROM ADM_Epic__c WHERE Team__c = '${teamId}' AND (NOT Name LIKE '\_\_%') ORDER BY Name LIMIT 1000`)).records || [];
-  return { epics: rows.map(r => ({ id: r.Id, name: r.Name, projectId: r.Project__c || '', projectName: (r.Project__r && r.Project__r.Name) || '', method: (r.Project__r && r.Project__r.V2MOM_Method__c) || '', programId: (r.Project__r && r.Project__r.Program__c) || '', programName: (r.Project__r && r.Project__r.Program__r && r.Project__r.Program__r.Name) || '', releaseId: r.Planned_Release__c || '', releaseName: (r.Planned_Release__r && r.Planned_Release__r.Name) || '', leadId: r.Development_Lead__c || '', leadName: (r.Development_Lead__r && r.Development_Lead__r.Name) || '', points: Number(r.Planned_Story_Points__c) || 0 })) };
+  const rows = (await sf.query(`SELECT Id, Name, Project__c, Project__r.Name, Project__r.V2MOM_Method__c, Project__r.Program__c, Project__r.Program__r.Name, Planned_Release__c, Planned_Release__r.Name, Development_Lead__c, Development_Lead__r.Name, OwnerId, Owner.Name, Planned_Story_Points__c FROM ADM_Epic__c WHERE Team__c = '${teamId}' AND (NOT Name LIKE '\_\_%') ORDER BY Name LIMIT 1000`)).records || [];
+  return { epics: rows.map(r => ({ id: r.Id, name: r.Name, projectId: r.Project__c || '', projectName: (r.Project__r && r.Project__r.Name) || '', method: (r.Project__r && r.Project__r.V2MOM_Method__c) || '', programId: (r.Project__r && r.Project__r.Program__c) || '', programName: (r.Project__r && r.Project__r.Program__r && r.Project__r.Program__r.Name) || '', releaseId: r.Planned_Release__c || '', releaseName: (r.Planned_Release__r && r.Planned_Release__r.Name) || '', ...leadOf(r), points: Number(r.Planned_Story_Points__c) || 0 })) };
 }
 
-const EPIC_SEL = 'Id, Name, Team__c, Team__r.Name, Project__c, Project__r.Name, Project__r.V2MOM_Method__c, Project__r.Program__c, Project__r.Program__r.Name, Planned_Release__c, Planned_Release__r.Name, Development_Lead__c, Development_Lead__r.Name, Planned_Story_Points__c';
-const epicRow = r => ({ id: r.Id, name: r.Name, teamId: r.Team__c || '', teamName: (r.Team__r && r.Team__r.Name) || '', projectId: r.Project__c || '', projectName: (r.Project__r && r.Project__r.Name) || '', method: (r.Project__r && r.Project__r.V2MOM_Method__c) || '', programId: (r.Project__r && r.Project__r.Program__c) || '', programName: (r.Project__r && r.Project__r.Program__r && r.Project__r.Program__r.Name) || '', releaseId: r.Planned_Release__c || '', releaseName: (r.Planned_Release__r && r.Planned_Release__r.Name) || '', leadId: r.Development_Lead__c || '', leadName: (r.Development_Lead__r && r.Development_Lead__r.Name) || '', points: Number(r.Planned_Story_Points__c) || 0 });
+// The epic's owner as the planner shows it: the development lead, or the GUS record owner when no lead is set (queues are ignored).
+function leadOf(r) { return leadOfImpl(r); }
+const leadOfImpl = r => r.Development_Lead__c ? { leadId: r.Development_Lead__c, leadName: (r.Development_Lead__r && r.Development_Lead__r.Name) || '' }
+  : /^005/.test(String(r.OwnerId || '')) ? { leadId: r.OwnerId, leadName: (r.Owner && r.Owner.Name) || '' } : { leadId: '', leadName: '' };
+const EPIC_SEL = 'Id, Name, Team__c, Team__r.Name, Project__c, Project__r.Name, Project__r.V2MOM_Method__c, Project__r.Program__c, Project__r.Program__r.Name, Planned_Release__c, Planned_Release__r.Name, Development_Lead__c, Development_Lead__r.Name, OwnerId, Owner.Name, Planned_Story_Points__c';
+const epicRow = r => ({ id: r.Id, name: r.Name, teamId: r.Team__c || '', teamName: (r.Team__r && r.Team__r.Name) || '', projectId: r.Project__c || '', projectName: (r.Project__r && r.Project__r.Name) || '', method: (r.Project__r && r.Project__r.V2MOM_Method__c) || '', programId: (r.Project__r && r.Project__r.Program__c) || '', programName: (r.Project__r && r.Project__r.Program__r && r.Project__r.Program__r.Name) || '', releaseId: r.Planned_Release__c || '', releaseName: (r.Planned_Release__r && r.Planned_Release__r.Name) || '', ...leadOf(r), points: Number(r.Planned_Story_Points__c) || 0 });
 /** Find any GUS epic (any team or project) by a work item W-number (its epic), an epic record Id or a GUS link, or part of the epic name, so it can be tagged into a project. */
 async function findEpics(sf, teamId, query) {
   planKey(teamId);
@@ -647,4 +661,4 @@ async function commitRun(sf, store, teamId, confirm, includeBtl, acknowledged) {
   return { results, failed: results.filter(x => !x.ok).length, plan: saved && saved.plan, revision: saved && saved.revision, saveError };
 }
 
-module.exports = { deleteEpic, deleteWorkstream, programProjects, importV2mom, resolveProgram, teamProgram, getPlan, savePlan, getRefs, commitPlan, createProject, deleteProject, createEpic, listEpics, findEpics, createWorkstream, syncEpics, review, cleanPlan };
+module.exports = { epicLeads, deleteEpic, deleteWorkstream, programProjects, importV2mom, resolveProgram, teamProgram, getPlan, savePlan, getRefs, commitPlan, createProject, deleteProject, createEpic, listEpics, findEpics, createWorkstream, syncEpics, review, cleanPlan };

@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.46-GA (19 November 2026)
+
+Adding an existing GUS epic now brings in its owner: the development lead, or the GUS record owner when no lead is set (queues are ignored). Epics already in the plan with an empty Owners cell are filled in from GUS when the planner opens, and saved to the shared plan without writing anything back to GUS. An owner who is not on the team roster still shows by name. New backend action plan-epic-leads, with a test against a mocked GUS only; not checked against live GUS or in a browser.
+
 ## 6.26.45-GA (19 November 2026)
 
 The confirm button in the Add project, New workstream and Add epic dialogs is now solid green with a tick (for example "✓ Add epic") once the required values are entered, and plain grey until then. The grey button can still be pressed and then names the missing field. Not checked in a browser.
