@@ -68,7 +68,8 @@ function crDialog(title,sub,bodyHtml,okLabel,submit){
   const ok=el.querySelector('[data-ok]'),err=el.querySelector('.pl-cr-err');
   const fail=m=>{err.textContent=m;err.hidden=!m;};
   let busy=false;
-  const sync=()=>{ok.disabled=busy;};el._sync=sync;el._deny=()=>{};
+  const sync=()=>{ok.disabled=busy;let r=true;try{r=!el._ready||!!el._ready();}catch(_){}ok.classList.toggle('pl-ready',r);ok.classList.toggle('pl-notready',!r);};el._sync=sync;el._deny=()=>{};
+  el.addEventListener('input',()=>sync());el.addEventListener('change',()=>sync());
   // Once the input is validated a handler calls detach(): the dialog disappears at once and the GUS calls and the plan save carry on in the background. If one of them fails the dialog comes back with the error and what was typed.
   let hidden=false;const detach=()=>{if(hidden)return;hidden=true;el.style.display='none';window.toast?.('Saving in the background…',false);};
   const go=async()=>{if(ok.disabled)return;fail('');busy=true;ok.textContent='Creating…';sync();
@@ -175,6 +176,7 @@ function newProjectAt(){
   // A datalist only lists options that match the text already in the box, so a filled-in program hid every other one: clear it on focus (restored if nothing is chosen) to show the full list.
   pg.onfocus=()=>{pg._prev=pg.value;pg.value='';pg.placeholder='Type to search programs, or pick one';};
   pg.onblur=()=>{if(!pg.value.trim()&&pg._prev){pg.value=pg._prev;}};
+  el._ready=()=>md==='pick'?!!g.value:!!n.value.trim();el._sync();
   g.onchange=fillPick;sh.oninput=()=>{shTouched=true;};
   n.oninput=()=>{const v=n.value.trim(),hit=known.get(v.toLowerCase()),local=pl.projects.find(x=>x.name.toLowerCase()===v.toLowerCase());
     if(!shTouched)sh.value=(local&&local.short)||(v?shortProj(v):'');
@@ -224,6 +226,7 @@ function newWorkstreamAt(epicId,afterWid){
     el._gate=useGus();el._sync();el._deny();
     const pr=e&&prj.get(e.projectId),sh=pr?projShort(pr):'',n=nm.value.trim();
     chips.innerHTML=useGus()?crAuto([['Story type','User Story'],['Subject','WS: '+(n||'…')],['Theme',wsTheme(e&&e.releaseName)],['Parent','Epic']]):'';};
+  el._ready=()=>!!eSel.value&&!!nm.value.trim();
   eSel.onchange=sync;chk.onchange=sync;nm.oninput=sync;
   sync();nm.focus();
 }
@@ -303,6 +306,9 @@ function newEpicAt(pid){
   });
   el.querySelector('.nd-modal').classList.add('pl-cr-epic');
   const nm=el.querySelector('textarea[data-n]'),cnt=el.querySelector('[data-cnt]'),errEl=el.querySelector('.pl-cr-err');
+  el._ready=()=>{const v=q=>{const x=el.querySelector(q);return x?String(x.value||'').trim():'';};
+    if(md==='pick')return !!v('[data-xe]');
+    const L=v('textarea[data-n]').length;return L>0&&L<=EPIC_NAME_MAX&&!!v('[data-o]')&&v('[data-pri]')!=='';};
   fitSuggest(nm,EPIC_NAME_MAX,el.querySelector('[data-efit]'),'Epic name');
   nm.oninput=()=>{const L=nm.value.trim().length,over=L>EPIC_NAME_MAX;cnt.textContent=`${L} / ${EPIC_NAME_MAX}`;cnt.classList.toggle('over',over);nm.classList.toggle('bad',over);errEl.textContent=over?`Epic name is ${L} characters; GUS allows at most ${EPIC_NAME_MAX}. Shorten it by ${L-EPIC_NAME_MAX}.`:'';errEl.hidden=!over;};
   const xSel=el.querySelector('[data-xe]'),xInfo=el.querySelector('[data-xi]'),pc=el.querySelector('[data-pcnt]'),okb=el.querySelector('[data-ok]'),note=el.querySelector('.pl-cr-foot .note'),wsr=el.querySelector('[data-wsrows]'),tagBox=el.querySelector('[data-tagbox]'),wsSec=wsr.closest('.pl-cr-s');

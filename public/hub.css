@@ -2566,3 +2566,9 @@ html body[data-hub=plan] .pl-grid tr[data-e]:hover td.c-project,html body[data-h
 html body[data-hub=plan] .pl-grid tr[data-e]:hover td.c-engs,html body[data-hub=plan] .pl-grid tr[data-e]:hover td.c-days,html body[data-hub=plan] .pl-grid tr[data-e]:hover td.c-sprint{background-color:#fdf0d8!important}
 html body[data-hub=plan] .pl-grid tr[data-wr] td.c-engs{border-left:2px solid #f0d9ae}
 html body[data-hub=plan] .pl-g-proj td{background-color:#dde8f3!important}
+/* 6.26.45 create dialogs: the confirm button is solid green once the required values are in, plain grey until then (still clickable, so the missing field is explained) */
+html body .pl-cr .pl-cr-btns .button.primary[data-ok].pl-ready:not(:disabled){background:#1f8a4c!important;border-color:#1f8a4c!important;color:#fff!important;font-weight:600;box-shadow:0 1px 3px rgba(31,138,76,.35)!important}
+html body .pl-cr .pl-cr-btns .button.primary[data-ok].pl-ready:not(:disabled) *{color:#fff!important}
+html body .pl-cr .pl-cr-btns .button.primary[data-ok].pl-ready:not(:disabled):hover{background:#177a41!important;border-color:#177a41!important}
+html body .pl-cr .pl-cr-btns .button.primary[data-ok].pl-ready:not(:disabled)::before{content:"✓ ";font-weight:700}
+html body .pl-cr .pl-cr-btns .button.primary[data-ok].pl-notready,html body .pl-cr .pl-cr-btns .button.primary[data-ok]:disabled{background:#eef1f4!important;border-color:#d5dde5!important;color:#8a97a5!important;box-shadow:none!important}

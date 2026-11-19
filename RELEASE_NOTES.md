@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.45-GA (19 November 2026)
+
+The confirm button in the Add project, New workstream and Add epic dialogs is now solid green with a tick (for example "✓ Add epic") once the required values are entered, and plain grey until then. The grey button can still be pressed and then names the missing field. Not checked in a browser.
+
 ## 6.26.44-GA (19 November 2026)
 
 Removing an epic or a workstream that already exists in GUS now asks where to remove it: from the dashboard only (GUS keeps it, the default) or in GUS as well, which needs an explicit acknowledgement. Deleting an epic in GUS also deletes its own workstream stories; GUS delete is refused, and the item stays on the dashboard, when other work items are still under it. Epics of another team can only be removed from the dashboard. Items not yet in GUS are removed as before. New backend actions plan-delete-epic and plan-delete-workstream, with tests against a mocked GUS only; not checked against live GUS or in a browser.
