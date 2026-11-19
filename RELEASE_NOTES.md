@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.72-GA
+
+- An epic with no workstreams keeps the same indent as one with workstreams (the fold arrow space is kept), so Project > Epic > Workstream line up.
+
 ## 6.26.71-GA
 
 - The red * for a project without epics or an epic without workstreams is now drawn on the top-right corner of the P or E icon itself.
