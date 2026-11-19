@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.14-GA (19 November 2026)
+
+Fixed the planner controls being cut off above the table. The header wrapper added in 6.26.11 reused the class name `pl-bar`, which an existing rule sets to a 12px-high clipped progress bar. Renamed it to `pl-hdr`. Not checked in a browser.
+
 ## 6.26.13-GA (19 November 2026)
 
 The planner header and toolbar stay pinned at the top while the grid scrolls (also in full screen), so the controls are always reachable. CSS only; not checked in a browser.
