@@ -283,7 +283,7 @@ async function createEpic(sf, teamId, input) {
   const leadId = gid(input && input.leadId);
   if (!leadId) throw new Error('Select the development lead.');
   // The planned release is optional at creation; it is tagged in GUS as soon as one is chosen (now or when the plan is committed).
-  const rel = releaseId ? await teamReleases(sf, teamId, false).then(r => new Set(r.map(x => x.Id)), () => null) : null;
+  const rel = releaseId ? await teamReleases(sf, teamId, true).then(async r => { const ids = new Set(r.map(x => x.Id)); return ids.has(releaseId) ? ids : new Set((await teamReleases(sf, teamId, false)).map(x => x.Id)); }, () => null) : null; // the picker lists upcoming releases, so check those first: the full list is capped and can miss them
   if (releaseId && rel && !rel.has(releaseId)) throw new Error('That release is not one of this team\'s planned releases.');
   const prio = Number(input && input.priority);
   if (!(input && input.priority !== '' && input.priority != null) || !Number.isFinite(prio) || prio < 0) throw new Error('Select the epic priority.');
@@ -450,7 +450,18 @@ async function teamProgram(sf, teamId) {
   try {
     const short = await teamShort(sf, teamId);
     if (!short) return null;
-    const p = ((await sf.query(`SELECT Id, Name FROM PPM_Program__c WHERE Name = '${soql(short)} - ${PROGRAM_RELEASE}' LIMIT 1`)).records || [])[0];
+    const find = async n => ((await sf.query(`SELECT Id, Name FROM PPM_Program__c WHERE Name = '${soql(n)}' LIMIT 1`)).records || [])[0];
+    let p = await find(`${short} - ${PROGRAM_RELEASE}`);
+    // Some teams are named differently from their program (Caching Services files its work under "VegaCache - 268"): try the planned release's name, then the program the team's own epics already use.
+    if (!p) {
+      const rel = await teamReleases(sf, teamId, true).catch(() => []);
+      for (const r of rel) { const pre = String(r.Name || '').replace(/\s*-?\s*\d+\s*$/, '').trim(); if (pre && !p && new RegExp('(^|\\D)' + PROGRAM_RELEASE + '\\s*$').test(r.Name)) p = await find(`${pre} - ${PROGRAM_RELEASE}`); }
+    }
+    if (!p) {
+      const rows = (await sf.query(`SELECT Project__r.Program__c g, Project__r.Program__r.Name gn, COUNT(Id) c FROM ADM_Epic__c WHERE Team__c = '${teamId}' AND Project__r.Program__r.Name LIKE '% - ${PROGRAM_RELEASE}' GROUP BY Project__r.Program__c, Project__r.Program__r.Name`)).records || [];
+      const top = rows.sort((a, b) => (b.c || 0) - (a.c || 0))[0];
+      if (top && top.g) p = { Id: top.g, Name: top.gn };
+    }
     return p ? { id: p.Id, name: p.Name } : null;
   } catch (_) { return null; }
 }
@@ -512,7 +523,7 @@ async function commitPlan(sf, store, teamId, confirm, includeBtl, acknowledged) 
 async function commitRun(sf, store, teamId, confirm, includeBtl, acknowledged) {
   if (confirm && acknowledged === false) throw new Error('Review the summary and accept it before the epics are created in GUS.');
   const { plan } = await getPlan(store, teamId);
-  const rel = await teamReleases(sf, teamId, false).then(r => new Set(r.map(x => x.Id)), () => null);
+  const rel = await Promise.all([teamReleases(sf, teamId, true), teamReleases(sf, teamId, false)]).then(([a, b]) => new Set([...a, ...b].map(x => x.Id)), () => null); // upcoming releases too: the full list is capped at 100 rows and can miss them
   const program = await teamProgram(sf, teamId);
   // A shared project linked to another team's program (older shared links) is treated as unlinked: it is found or created by name in this team's own program.
   if (program) { const seeded = new Set(SEED_PROJECTS.map(x => x.id)); for (const p of plan.projects) if (seeded.has(p.id) && p.gusId && p.programId !== program.id) { p.gusId = ''; p.programId = ''; p.programName = ''; } }
