@@ -2735,3 +2735,10 @@ html body .pl-modal-wide #pl-mb{flex:1;min-height:0;display:flex;flex-direction:
 .pl-rps-m{font-size:14px}.pl-rps-m th{position:sticky;top:0;background:#f1f5f9;color:#44546a;font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;padding:11px 14px;border-bottom:1px solid #dfe7ee}
 .pl-rps-m td{padding:12px 14px;border-bottom:1px solid #eef2f6;vertical-align:top}.pl-rps-m tbody tr:nth-child(even){background:#fafcfe}.pl-rps-m tbody tr:hover{background:#eef6fd}
 .pl-rps-m .pl-mo-n{font-weight:600;color:#16325c}.pl-rps-m td .pl-mo-c{margin:0 4px 4px 0}
+/* 6.26.78 engineer view: header and workstream rows share one grid so columns line up */
+.pl-eng .pl-ev-wh,.pl-eng .pl-ev-w{display:grid!important;grid-template-columns:minmax(180px,1fr) 64px 72px 140px 110px 90px!important;gap:10px!important;align-items:center;padding-left:34px!important;padding-right:14px!important;box-sizing:border-box}
+.pl-eng .pl-ev-wh{padding-top:4px;padding-bottom:4px;background:#f6f9fc;border-top:1px solid #eef2f6;font-size:10.5px;color:#6b7c8d;text-transform:uppercase;letter-spacing:.04em}
+.pl-eng .pl-ev-wh span:nth-child(2),.pl-eng .pl-ev-w>em{justify-self:start}
+.pl-eng .pl-ev-wh span:nth-child(3){text-align:center}.pl-eng .pl-ev-w>i{justify-self:center;min-width:44px;padding:1px 8px}
+.pl-eng .pl-ev-wh span:nth-child(6),.pl-eng .pl-ev-w>u{text-align:right}
+.pl-eng .pl-ev-w{padding-top:4px;padding-bottom:4px;border-top:1px solid #f1f4f7}.pl-eng .pl-ev-w>em.pl-ec-p{padding:1px 8px;border-radius:4px;width:auto}

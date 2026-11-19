@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.78-GA
+
+- Engineer View: workstream column headers and rows now share one grid, so Priority, ATL/BTL, Sprint, Status and Days line up. The priority pill no longer stretches across its column.
+
 ## 6.26.77-GA
 
 - Summary drill-down popups (theme, priority, ATL/BTL, epic) are redesigned: nearly full screen with a gradient header and round close button, summary chips, a scrolling table with sticky headers, priority and ATL/BTL pills, and engineer chips.
