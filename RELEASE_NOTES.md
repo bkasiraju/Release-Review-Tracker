@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.60-GA
+
+- The workstream name field now spans the Workstream and the (empty) Epic Owner columns on workstream rows, so it is one complete text field.
+
 ## 6.26.59-GA
 
 - Name text in the table is a bit smaller again: project 13px, epic and workstream 12.5px.
