@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.95-GA
+
+- Full-screen drill-down popups restyled in the dashboard indigo system: light header with a gradient accent line, soft close button, colour-coded chips (priority rose, ABL green, BTL amber, theme sky) and indigo table headers.
+
 ## 6.26.94-GA
 
 - Overview metric cards and health tiles are now compact: smaller type, tighter padding, flat light tints, no oversized icons.
