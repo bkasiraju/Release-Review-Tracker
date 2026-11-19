@@ -2506,3 +2506,13 @@ html body[data-hub=plan] #pl-main>.pl-tabs,html body[data-hub=plan] .executive-h
 html body[data-hub=plan] .pl-hdr .pl-gb .cs-btn,html body[data-hub=plan] .pl-hdr .pl-gb select.hub-inline{border:1px solid #cfd9e3!important;border-radius:6px!important;background:#fff!important;height:28px!important;min-height:28px!important;padding:0 10px!important;box-shadow:none!important;font-size:12px}
 html body[data-hub=plan] .pl-hdr .pl-gb .cs-btn:hover{border-color:#a9bccf!important}
 html body[data-hub=plan] .pl-hdr .pl-gb .cs-btn:focus-visible{outline:2px solid #0b5cab;outline-offset:1px}
+/* 6.26.30 line 1: title, + Project, Projects, Epics, Columns, Group by, fold toggle, Full screen. line 2: Open in GUS, Import / Export */
+html body[data-hub=plan] .pl-hdr .pl-tl>.pl-tg[aria-label=Add]{order:2;margin-left:auto;padding-left:0;border-left:0}
+html body[data-hub=plan] .pl-hdr .pl-tl>.pl-tg[aria-label="Open lists"]{order:3}
+html body[data-hub=plan] .pl-hdr .pl-grid-tools>.pl-cols{order:4}
+html body[data-hub=plan] .pl-hdr .pl-grid-tools>.pl-gb{order:5;margin-left:0;padding-left:12px;border-left:1px solid #d8e2ec}
+html body[data-hub=plan] .pl-hdr .pl-grid-tools>.pl-tg[aria-label=Rows]{order:6}
+html body[data-hub=plan] .pl-hdr #pl-fs-btn{order:7;margin-left:12px}
+html body[data-hub=plan] .pl-hdr::after{order:8}
+html body[data-hub=plan] .pl-hdr .gus-links{order:9;margin-left:auto!important;border-left:0;padding-left:0}
+html body[data-hub=plan] .pl-hdr .pl-dm{order:10}

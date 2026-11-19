@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.30-GA (19 November 2026)
+
+Planner header: + Project, Projects, Epics and Columns are back on line 1, before Group by (line 1 reads title, + Project, Projects, Epics, Columns, Group by, Collapse/Expand all, Full screen). Line 2 holds Open in GUS and Import / Export on the right. CSS only; not checked in a browser.
+
 ## 6.26.29-GA (19 November 2026)
 
 Planner Group by dropdown now has the same subtle border, radius and height as the neighbouring buttons. CSS only; not checked in a browser.
