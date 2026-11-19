@@ -1,5 +1,10 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.50-GA
+
+- Epics created from the planner now get their workstreams fetched from GUS by the "WS: " title or the R<release>_<team>_Workstream theme, on load and with a new "Fetch from GUS" button. Existing workstreams are matched, not duplicated.
+- A permanent note under the planner header says this does not work for older epics added with "Add existing GUS epic": their workstreams must be added manually.
+
 ## 6.26.49-GA (19 November 2026)
 
 Adding an existing GUS epic now shows a note in the dialog, and again in the confirmation toast, that its workstreams are not imported (there is no way to trace the workstreams of an older epic) and have to be added manually. Not checked in a browser.

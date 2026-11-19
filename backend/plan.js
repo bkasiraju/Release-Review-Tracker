@@ -319,6 +319,27 @@ async function epicLeads(sf, teamId, ids) {
   for (const r of rows) { const l = leadOf(r); if (l.leadId) leads[r.Id] = l; }
   return { leads };
 }
+// Workstreams of epics, read back from GUS. Only epics created from the planner can be traced: their workstream stories are titled "WS: <name>" and carry an R<release>_<team>_Workstream theme.
+async function epicWorkstreams(sf, teamId, ids) {
+  planKey(teamId);
+  const list = [...new Set((Array.isArray(ids) ? ids : []).map(gid).filter(Boolean))].slice(0, 100);
+  if (!list.length) return { byEpic: {} };
+  const inList = list.map(i => `'${i}'`).join(','), F = 'Id, Subject__c, Epic__c, Details__c, Assignee__c, Assignee__r.Name';
+  const rows = new Map();
+  const byTitle = (await sf.query(`SELECT ${F} FROM ADM_Work__c WHERE Epic__c IN (${inList}) AND Subject__c LIKE '${WS_PREFIX}%' LIMIT 1000`)).records || [];
+  byTitle.forEach(r => rows.set(r.Id, r));
+  try {
+    const asg = (await sf.query(`SELECT Work__c FROM ADM_Theme_Assignment__c WHERE Work__r.Epic__c IN (${inList}) AND Theme__r.Name LIKE 'R%\\_Workstream' LIMIT 1000`)).records || [];
+    const more = asg.map(a => a.Work__c).filter(w => w && !rows.has(w)).slice(0, 200);
+    if (more.length) ((await sf.query(`SELECT ${F} FROM ADM_Work__c WHERE Id IN (${more.map(i => `'${i}'`).join(',')})`)).records || []).forEach(r => rows.set(r.Id, r));
+  } catch (_) { /* the title match above is enough on its own */ }
+  const byEpic = {};
+  for (const r of rows.values()) {
+    const m = /\(planned ([\d.]+) days\)/.exec(r.Details__c || '');
+    (byEpic[r.Epic__c] = byEpic[r.Epic__c] || []).push({ gusId: r.Id, name: String(r.Subject__c || '').replace(/^WS:\s*/i, '').trim(), assigneeId: r.Assignee__c || '', assigneeName: (r.Assignee__r && r.Assignee__r.Name) || '', days: m ? Number(m[1]) || 0 : 0 });
+  }
+  return { byEpic };
+}
 // Why a planned release cannot be used for this team, spelled out (which release, which team, what is available); '' when it is fine.
 async function releaseProblem(sf, teamId, releaseId) {
   const [upcoming, all] = await Promise.all([teamReleases(sf, teamId, true).catch(() => []), teamReleases(sf, teamId, false).catch(() => [])]);
@@ -661,4 +682,4 @@ async function commitRun(sf, store, teamId, confirm, includeBtl, acknowledged) {
   return { results, failed: results.filter(x => !x.ok).length, plan: saved && saved.plan, revision: saved && saved.revision, saveError };
 }
 
-module.exports = { epicLeads, deleteEpic, deleteWorkstream, programProjects, importV2mom, resolveProgram, teamProgram, getPlan, savePlan, getRefs, commitPlan, createProject, deleteProject, createEpic, listEpics, findEpics, createWorkstream, syncEpics, review, cleanPlan };
+module.exports = { epicWorkstreams, epicLeads, deleteEpic, deleteWorkstream, programProjects, importV2mom, resolveProgram, teamProgram, getPlan, savePlan, getRefs, commitPlan, createProject, deleteProject, createEpic, listEpics, findEpics, createWorkstream, syncEpics, review, cleanPlan };

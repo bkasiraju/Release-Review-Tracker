@@ -266,7 +266,7 @@ function newEpicAt(pid){
       if(md==='pick'){
         const x=xeps.find(g=>g.id===el.querySelector('[data-xe]').value);if(!x)throw new Error('Pick a GUS epic, or switch to “Create new epic”.');
         if(pl.epics.some(g=>g.gusId===x.id))throw new Error('That epic is already in the table.');
-        const line=el.querySelector('[data-xl]').value;e=newEpic(pr.id);e.name=x.name;e.gusId=x.id;e.foreign=!!(x.teamId&&String(x.teamId).slice(0,15)!==String(H.team.Id).slice(0,15));e.releaseId=x.releaseId;e.releaseName=x.releaseName;e.line=line;e.priority=x.priority!=null?x.priority:Number(el.querySelector('[data-xp]').value)||0;
+        const line=el.querySelector('[data-xl]').value;e=newEpic(pr.id);e.name=x.name;e.gusId=x.id;e.imported=true;e.foreign=!!(x.teamId&&String(x.teamId).slice(0,15)!==String(H.team.Id).slice(0,15));e.releaseId=x.releaseId;e.releaseName=x.releaseName;e.line=line;e.priority=x.priority!=null?x.priority:Number(el.querySelector('[data-xp]').value)||0;
         e.owners=x.leadId?[x.leadId]:[];e.ownerNames=x.leadId?[x.leadName]:[];
         // GUS keeps the epic's planned points; carry them as one workstream so the epic total (sum of workstreams) still matches and is never overwritten.
         e.workstreams=x.points>0?[{id:uid('w'),name:'Planned in GUS',priority:0,engId:'',engName:'',engIds:[],engNames:[],days:x.points,sprint:'',line}].map(w=>(w.priority=e.priority,w)):[];
@@ -526,6 +526,22 @@ async function fillLeads(){
   try{const r=await call('plan-epic-leads',{teamId:id,ids:need.map(e=>e.gusId)});if(id!==H.team.Id||P.plan!==pl)return;
     let n=0;need.forEach(e=>{const l=r.leads&&r.leads[e.gusId];if(l){e.owners=[l.leadId];e.ownerNames=[l.leadName];n++;}});
     if(n){snapGus();draw();queueSave();}}catch(_){}
+}
+/** Epics created from the planner are the only ones whose workstreams can be traced in GUS ("WS: " title, R<release>_<team>_Workstream theme). Imported GUS epics never are. */
+const fromPlanner=e=>e.gusId&&!e.foreign&&!e.imported&&!e.workstreams.some(w=>w.name==='Planned in GUS');
+async function fetchWs(quiet){
+  const pl=P.plan;if(!pl)return;const eps=pl.epics.filter(fromPlanner);if(!eps.length)return;const id=H.team.Id;
+  try{const r=await call('plan-epic-workstreams',{teamId:id,ids:eps.map(e=>e.gusId)});if(id!==H.team.Id||P.plan!==pl)return;
+    let n=0;eps.forEach(e=>(r.byEpic&&r.byEpic[e.gusId]||[]).forEach(g=>{
+      if(e.workstreams.some(w=>w.gusId&&String(w.gusId).slice(0,15)===String(g.gusId).slice(0,15)))return;
+      const own=e.workstreams.find(w=>!w.gusId&&w.name&&w.name.trim().toLowerCase()===g.name.toLowerCase());
+      if(own){own.gusId=g.gusId;n++;return;}
+      const m=P.members.find(x=>String(x.id).slice(0,15)===String(g.assigneeId).slice(0,15));
+      const blank=e.workstreams.findIndex(w=>!w.name&&!w.gusId&&!(w.days>0));if(blank>=0)e.workstreams.splice(blank,1);
+      e.workstreams.push({id:uid('w'),gusId:g.gusId,name:g.name,priority:e.priority,engId:m?m.id:'',engName:m?m.name:g.assigneeName,engIds:m?[m.id]:[],engNames:m?[m.name]:(g.assigneeName?[g.assigneeName]:[]),days:g.days,sprint:'',line:e.line});n++;}));
+    if(n){snapGus();draw();queueSave();}
+    if(!quiet)window.toast?.(n?`Fetched ${n} workstream${n===1?'':'s'} from GUS.`:'No new workstreams found in GUS for epics created from this planner.',false);
+  }catch(x){if(!quiet)window.toast?.('Could not fetch workstreams: '+x.message,true);}
 }
 const wsEngs=w=>w.engIds&&w.engIds.length?w.engIds:(w.engId?[w.engId]:[]);
 /** Who carries a workstream's days: its own engineers, else the epic's owners (two owners = half each). */
@@ -1032,6 +1048,7 @@ function onClick(ev){
   document.querySelectorAll('.pl-dm').forEach(m=>{const open=dmt&&m.contains(dmt)&&m.querySelector('.pl-dm-list').hidden;m.querySelector('.pl-dm-list').hidden=!open;m.querySelector('[data-dm-toggle]').setAttribute('aria-expanded',String(open));});
   if(dmt)return;
   if(t.closest('#pl-export')){exportTemplate();return;}
+  if(t.closest('#pl-fetchws')){fetchWs(false);return;}
   if(t.closest('#pl-import')){P.el.querySelector('#pl-import-file').click();return;}
   if(t.closest('#pl-add-proj')){newProjectAt(t.closest('#pl-add-proj'));return;}
   const mb=t.closest('.ms .cs-btn');if(mb){openMsPop(mb,c);return;}
@@ -1198,7 +1215,7 @@ async function load(el){
     fillRel();syncCommitBtn();
     el.querySelector('#pl-last').textContent=P.plan.lastCommit&&P.plan.lastCommit.at?`Last saved to GUS ${new Date(P.plan.lastCommit.at).toLocaleString()} (${P.plan.lastCommit.created} created, ${P.plan.lastCommit.updated} updated)`:'';
     draw();setState('idle');if(linked)queueSave(); // after idle, or the save would be skipped
-    fillLeads();
+    fillLeads();fetchWs(true);
   }catch(e){if(my===P.seq)el.querySelector('#pl-sum').innerHTML=`<div class="empty-state hub-empty"><h3>Could not load the plan</h3><p>${esc(e.message)}</p></div>`;}
 }
 H.register({id:'plan',label:'Release Planning (Quarterly)',icon:'plan',tone:'green',desc:'Plan projects, epics and effort against team capacity',needsTeam:true,
@@ -1209,7 +1226,7 @@ H.register({id:'plan',label:'Release Planning (Quarterly)',icon:'plan',tone:'gre
     <div id="pl-warn"></div>
     <div class="pl-tabs" role="tablist" aria-label="Release planning views"><button type="button" role="tab" data-tab="plan" class="on" aria-selected="true"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="4" width="14" height="12" rx="2"/><path d="M3 8.5h14M8 8.5V16"/></svg>Release Planner</button><button type="button" role="tab" data-tab="rps" aria-selected="false"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 16V9M10 16V4M16 16v-5"/></svg>Planned Release Summary</button></div>
     <div id="pl-main"><div id="pl-sum"></div>
-    <section id="pl-fs" class="pl-fs"><div class="pl-hdr"><div class="pl-planner-h"><h3>${icon('plan','green')} V2MOM Measures &amp; Epics Plan</h3><span class="pl-planner-btns"><button type="button" class="button" id="pl-fs-btn" aria-pressed="false" title="Show Projects &amp; epics full screen">Full screen</button><span class="pl-dm"><button type="button" class="button" data-dm-toggle aria-haspopup="menu" aria-expanded="false">Import / Export ▾</button><span class="pl-dm-list" role="menu" hidden><button type="button" role="menuitem" data-v2mom-open title="Import V2MOM measures from a sheet as GUS projects for this team"><b>V2MOM Import</b><small>Create projects from a V2MOM sheet, link or HTML</small></button><button type="button" role="menuitem" id="pl-import" title="Import plan rows from the exported template"><b>Import plan from file</b><small>Excel template (.xlsx)</small></button><button type="button" role="menuitem" id="pl-export" title="Download an Excel template with the current plan, column headers and dropdown lists"><b>Export template</b><small>Current plan with column headers and lists</small></button></span></span><input type="file" id="pl-import-file" accept=".xlsx" hidden></span></div><div id="pl-tools" class="pl-tools"></div></div><div id="pl-planner"></div></section></div><div id="pl-rps" hidden></div>`;
+    <section id="pl-fs" class="pl-fs"><div class="pl-hdr"><div class="pl-planner-h"><h3>${icon('plan','green')} V2MOM Measures &amp; Epics Plan</h3><span class="pl-planner-btns"><button type="button" class="button" id="pl-fs-btn" aria-pressed="false" title="Show Projects &amp; epics full screen">Full screen</button><span class="pl-dm"><button type="button" class="button" data-dm-toggle aria-haspopup="menu" aria-expanded="false">Import / Export ▾</button><span class="pl-dm-list" role="menu" hidden><button type="button" role="menuitem" data-v2mom-open title="Import V2MOM measures from a sheet as GUS projects for this team"><b>V2MOM Import</b><small>Create projects from a V2MOM sheet, link or HTML</small></button><button type="button" role="menuitem" id="pl-import" title="Import plan rows from the exported template"><b>Import plan from file</b><small>Excel template (.xlsx)</small></button><button type="button" role="menuitem" id="pl-export" title="Download an Excel template with the current plan, column headers and dropdown lists"><b>Export template</b><small>Current plan with column headers and lists</small></button></span></span><input type="file" id="pl-import-file" accept=".xlsx" hidden></span></div><div id="pl-tools" class="pl-tools"></div><p class="pl-wsnote" id="pl-wsnote"><b>Workstreams:</b> for epics created here, workstreams are fetched from GUS by their “WS:” title or R&lt;release&gt;_&lt;team&gt;_Workstream theme <button type="button" class="button" id="pl-fetchws" title="Fetch workstreams from GUS for epics created in this planner">Fetch from GUS</button>. For older epics added with “Add existing GUS epic” this is not possible, so add their workstreams manually.</p></div><div id="pl-planner"></div></section></div><div id="pl-rps" hidden></div>`;
     {const hd=el.querySelector('.executive-heading'),tb=el.querySelector('.pl-tabs'),ac=hd&&hd.querySelector('.heading-actions');if(hd&&tb&&ac){tb.title='Plan projects, epics and workstreams for '+H.team.Name+'. Effort is in days; epics above the line (ABL) are saved to GUS when you confirm.';tb.appendChild(ac);hd.remove();}}
     P.tab='plan';
     // Review & save to GUS is limited to the plan administrators (also enforced by the backend); disabled until the backend confirms.

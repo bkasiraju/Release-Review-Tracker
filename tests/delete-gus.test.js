@@ -6,3 +6,8 @@ t('deleteEpic removes its workstream stories then the epic',async()=>{const sf=m
 t('deleteEpic refuses while other work items remain',async()=>{const sf=mk(()=>3);await a.rejects(p.deleteEpic(sf,TEAM,{gusId:EP}),/3 work items/);a.deepEqual(sf.gone,[]);});
 t('epicLeads falls back to the record owner when there is no development lead',async()=>{const sf={query:async()=>({records:[{Id:EP,OwnerId:'005B0000000USER01A',Owner:{Name:'Bob'}},{Id:'a3QB0000000EPIC02A',Development_Lead__c:'005B0000000USER02A',Development_Lead__r:{Name:'Al'},OwnerId:'005B0000000USER01A'},{Id:'a3QB0000000EPIC03A',OwnerId:'00GB0000000QUEUE01'}]})};
  const r=await p.epicLeads(sf,TEAM,[EP,'a3QB0000000EPIC02A','a3QB0000000EPIC03A']);a.equal(r.leads[EP].leadName,'Bob');a.equal(r.leads['a3QB0000000EPIC02A'].leadName,'Al');a.equal(r.leads['a3QB0000000EPIC03A'],undefined);});
+t('epicWorkstreams finds WS stories by title and by theme',async()=>{const q=[];const sf={query:async s=>{q.push(s);
+ if(s.includes('ADM_Theme_Assignment__c'))return {records:[{Work__c:'a07B0000000WSTRY02'}]};
+ if(s.includes('Id IN'))return {records:[{Id:'a07B0000000WSTRY02',Subject__c:'Themed one',Epic__c:EP,Assignee__c:'005B0000000USER01A',Assignee__r:{Name:'Bob'}}]};
+ return {records:[{Id:WS,Subject__c:'WS: Alpha',Epic__c:EP,Details__c:'Workstream "Alpha" of epic "E" (planned 4.5 days).'}]};}};
+ const r=await p.epicWorkstreams(sf,TEAM,[EP]);const l=r.byEpic[EP];a.equal(l.length,2);a.equal(l.find(x=>x.gusId===WS).name,'Alpha');a.equal(l.find(x=>x.gusId===WS).days,4.5);a.equal(l.find(x=>x.assigneeName==='Bob').name,'Themed one');});
