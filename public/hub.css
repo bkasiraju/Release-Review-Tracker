@@ -2491,3 +2491,14 @@ html body[data-hub=plan] .pl-kg .pl-kpi-b{overflow:visible}
 /* 6.26.27 Group by right-aligned, then a single Collapse all / Expand all toggle */
 html body[data-hub=plan] .pl-hdr .pl-grid-tools>.pl-gb{margin-left:auto;padding-right:12px}
 html body[data-hub=plan] .pl-hdr .pl-grid-tools>.pl-tg[aria-label=Rows]{margin-left:0;padding-left:12px;border-left:1px solid #d8e2ec}
+/* 6.26.28 Release Planner / Planned Release Summary look like tabs, closer to the header */
+html body[data-hub=plan] .pl-tabs{margin:0 14px 10px!important;padding:0!important;gap:2px!important;align-items:flex-end!important;border-bottom:1px solid #d8e2ec}
+html body[data-hub=plan] .pl-tabs button[data-tab]{border:1px solid transparent!important;border-bottom:0!important;border-radius:8px 8px 0 0!important;background:transparent!important;box-shadow:none!important;transform:none!important;color:#44546a!important;padding:8px 16px!important;margin:0 0 -1px!important;font-size:13px!important;font-weight:600;line-height:1.3!important}
+html body[data-hub=plan] .pl-tabs button[data-tab]:hover{background:#f1f6fb!important;color:#16324a!important}
+html body[data-hub=plan] .pl-tabs button[data-tab].on{background:#fff!important;border-color:#d8e2ec!important;border-bottom:1px solid #fff!important;color:#16324a!important;position:relative}
+html body[data-hub=plan] .pl-tabs button[data-tab=plan].on{box-shadow:inset 0 3px 0 #0f8a55!important}
+html body[data-hub=plan] .pl-tabs button[data-tab=rps].on{box-shadow:inset 0 3px 0 #0b7f99!important}
+html body[data-hub=plan] .pl-tabs button[data-tab] svg{animation:none!important}
+html body[data-hub=plan] .pl-tabs button[data-tab=plan] svg{color:#0f8a55}html body[data-hub=plan] .pl-tabs button[data-tab=rps] svg{color:#0b7f99}
+html body[data-hub=plan] .pl-tabs>.heading-actions{margin-bottom:6px}
+html body[data-hub=plan] #pl-main>.pl-tabs,html body[data-hub=plan] .executive-heading+.pl-tabs{margin-top:0!important}
