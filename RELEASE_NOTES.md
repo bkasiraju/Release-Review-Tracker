@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.54-GA
+
+- The workstream note is shorter and generic: workstreams are fetched from GUS by "WS:" title or workstream theme; older epics may need them added manually.
+
 ## 6.26.53-GA
 
 - Default team (star) is also saved to the backend and read back when the browser has no local copy, so it survives a hard refresh.
