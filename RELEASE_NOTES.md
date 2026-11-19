@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.6-GA
+
+- Drill-down popups (epic and workstream detail) now size to their content: a 3-workstream epic gets a short popup instead of a full-screen one; long lists grow up to the screen height and then scroll.
+
 ## 7.0.5-GA
 
 - Fixed: pressing Escape on the Release Planner could clear the first epic name (the page's generic "Escape clears filters" fallback treated the epic name box as a filter). Escape now only clears real filter boxes; epic and workstream fields are skipped.

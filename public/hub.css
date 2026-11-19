@@ -2883,3 +2883,8 @@ html body .heading-actions #pl-commit{background:#ecfdf5!important;border-color:
 html body .heading-actions #pl-commit:hover:not(:disabled){background:#d1fae5!important;border-color:#6ee7b7!important}
 html body .heading-actions :is(#pl-refresh-gus,#pl-leaves,#pl-save,#pl-commit):disabled{opacity:.55;cursor:not-allowed;box-shadow:none!important}
 html body .heading-actions :is(#pl-refresh-gus,#pl-leaves,#pl-save,#pl-commit):focus-visible{outline:3px solid #c7d2fe;outline-offset:2px}
+
+/* 7.0.6: drill-down popups size to their content (epic and workstream count), capped at the screen height */
+html body .nd-modal.pl-modal-wide{height:auto!important;min-height:220px;max-height:calc(100vh - 48px)!important}
+html body .pl-modal-wide #pl-mb{flex:0 1 auto!important}
+html body .pl-modal-wide .pl-mo-scroll{flex:0 1 auto!important}
