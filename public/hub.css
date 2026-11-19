@@ -2463,3 +2463,13 @@ html body[data-hub=plan] .pl-hdr .pl-tl>:first-child{border-left:1px solid #d8e2
 html body[data-hub=plan] .pl-hdr .pl-dm{margin-left:auto}
 html body[data-hub=plan] .pl-hdr .gus-links{margin-left:auto!important}
 html body[data-hub=plan] .pl-hdr .gus-links:not([hidden])~.pl-dm,html body[data-hub=plan] .pl-hdr .gus-links+.pl-dm{margin-left:8px}
+/* 6.26.22 line 1: title, Group by, Collapse/Expand, Full screen. line 2 (right): + Project, Projects, Epics, Columns, Open in GUS, Import / Export */
+html body[data-hub=plan] .pl-hdr #pl-tools,html body[data-hub=plan] .pl-hdr .pl-grid-tools,html body[data-hub=plan] .pl-hdr .pl-tl{display:contents}
+html body[data-hub=plan] .pl-hdr .pl-grid-tools>.pl-gb{order:2;margin:0}
+html body[data-hub=plan] .pl-hdr .pl-grid-tools>.pl-tg[aria-label=Rows]{order:3;margin-left:0}
+html body[data-hub=plan] .pl-hdr #pl-fs-btn{order:4;margin-left:auto}
+html body[data-hub=plan] .pl-hdr .pl-tl>.pl-tg[aria-label=Add]{order:6;margin-left:auto;padding-left:0;border-left:0}
+html body[data-hub=plan] .pl-hdr .pl-tl>.pl-tg[aria-label="Open lists"]{order:7}
+html body[data-hub=plan] .pl-hdr .pl-grid-tools>.pl-cols{order:8;border-left:1px solid #d8e2ec;padding-right:12px}
+html body[data-hub=plan] .pl-hdr .gus-links{order:9;margin:0 0 0 0!important;padding-left:12px;border-left:1px solid #d8e2ec}
+html body[data-hub=plan] .pl-hdr .pl-dm{order:10;margin-left:8px}
