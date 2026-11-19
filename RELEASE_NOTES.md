@@ -1,5 +1,10 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.4-GA
+
+- **SMART Goal** is now drafted with the GUS Apps AI SDK (`AppletAI`, the same agent the summaries use) in the browser. The earlier server-side Einstein call failed with "requestBody object is required", which is why only a template appeared. The goal is now ONE sentence of at most 45 words (change, metric and target, deadline), with no labels, explanations or restated title. If the AI is not available no template is forced; the box stays empty with a hint.
+- The SMART Goal button is now a small target icon (green when a goal is saved); the pencil still appears on hover.
+
 ## 7.0.3-GA
 
 - SMART Goal prompt now uses the software-engineering criteria: exact technical change, engineering metrics (p95 latency, rollback or recovery time, coverage, bug count, deployment frequency) taken from the epic name and description, capacity-based achievability, roadmap/reliability relevance and a sprint, quarter or release deadline. Numbers and baselines are never invented.
