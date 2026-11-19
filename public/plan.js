@@ -179,7 +179,7 @@ function newProjectAt(){
 }
 function newWorkstreamAt(epicId,afterWid){
   const pl=P.plan;if(!pl.epics.length){window.toast?.('Add an epic first, then add workstreams under it.',true);newEpicAt();return;}
-  const prj=new Map(pl.projects.map(p=>[p.id,p])),eng=P.members.filter(isEng).slice().sort((a,b)=>String(a.name).localeCompare(String(b.name)));
+  const prj=new Map(pl.projects.map(p=>[p.id,p])),eng=allMem().slice().sort((a,b)=>String(a.name).localeCompare(String(b.name)));
   const tags=P.refs.tags||[],tagKey='ri-ws-tag-'+H.team.Id,lastTag=defTag(tags,tagKey);
   const body=
     crSection('Workstream',crField('Epic','workstream is added under this epic',`<select class="hub-inline" data-e>${pl.epics.map((e,i)=>opt(e.id,`${projShort(prj.get(e.projectId)||{name:''})} › ${e.name||'(unnamed epic)'}${e.gusId?'':'  (not in GUS yet)'}`,epicId?e.id===epicId:i===pl.epics.length-1)).join('')}</select>`,'wide')+crField('Workstream name','',`<input class="hub-inline" type="text" data-n maxlength="200" placeholder="e.g. API changes" autocomplete="off">`,'wide'))+
@@ -333,6 +333,8 @@ function newEpicAt(pid){
 }
 // ── Export template / import (xlsx) ────────────────────────────────────────
 // Engineers for planning/allocation: non-leaders plus leaders the backend flags (Ram/Jayant on MQ & MAPS, Jayant on VegaCache).
+/** Everyone on the team's GUS roster (leaders and people hidden from capacity too), sorted by name: used where a workstream owner is picked. */
+const allMem=()=>P.members.slice().sort((a,b)=>String(a.name).localeCompare(String(b.name)));
 const isEng=m=>!(P.plan&&(P.plan.hiddenEng||[]).includes(m.id))&&(H.leaderRank(m.name)<0||m.alloc||m.extra);
 /** Engineers added from other CFS teams live in the plan (extraEng); mirror them into P.members so every picker and the capacity model see them. */
 const syncExtraEng=()=>{if(!P.plan||!P.members)return;P.members=P.members.filter(m=>!m.extra);const have=new Map(P.members.map(m=>[m.id,m]));(P.plan.extraEng||[]).forEach(x=>{const m=have.get(x.id);if(m)m.alloc=true;else P.members.push({id:x.id,name:x.name,role:'Engineer',extra:true,alloc:true});});};
@@ -762,7 +764,7 @@ function drawSummary(){
 function drawPlanner(){
   const el=P.el.querySelector('#pl-planner'),pl=P.plan,rel=P.refs.releases;
   const projOpts=sel=>pl.projects.map(p=>opt(p.id,p.name||'(unnamed project)',p.id===sel)).join('');
-  const engOpts=sel=>'<option value="">Unassigned</option>'+P.members.filter(isEng).map(m=>opt(m.id,m.name,m.id===sel)).join('');
+  const engOpts=sel=>'<option value="">Unassigned</option>'+allMem().map(m=>opt(m.id,m.name,m.id===sel)).join('');
   const V=P.view,prj=new Map(pl.projects.map(p=>[p.id,p])),q=(/^\s*([a-z0-9]+)\s*:/i.exec(V.q)&&SA[/^\s*([a-z0-9]+)/i.exec(V.q)[1].toLowerCase()]?'':V.q.trim().toLowerCase()),colF=Object.entries(V.col||{}).filter(([k,v])=>v&&v.trim()&&gridCols().includes(k)).map(([k,v])=>[k,v.trim().toLowerCase()]),filtering=!!(q||colF.length||V.flag||V.tok.length||MF.some(k=>V[k].length));
   const FLAG={unassigned:e=>e.workstreams.some(w=>(w.days||0)>0&&!wsEngs(w).length),incomplete:e=>!(e.owners&&e.owners.length)||!e.workstreams.some(w=>(w.days||0)>0),pending:e=>e.line==='ABL'&&!e.gusId};
   const match=e=>{const p=prj.get(e.projectId);
@@ -934,7 +936,7 @@ function closeMsPop(){document.querySelectorAll('.pl-mspop').forEach(x=>x.remove
 function openMsPop(btn,c){
   closeMsPop();const wd=btn.closest('.ms'),f=wd.dataset.ms;let cur;
   if(c.w){const e=findE(c.e),w=e&&e.workstreams.find(x=>x.id===c.w);if(!w)return;cur=wsEngs(w);}else if(c.e){const e=findE(c.e);if(!e)return;cur=e.owners||[];}else return;
-  const mem=P.members.filter(isEng),pop=document.createElement('div');pop.className='pl-mspop';pop.setAttribute('role','dialog');pop.setAttribute('aria-label',f==='owners'?'Epic owners':'Workstream owners');
+  const mem=f==='owners'?P.members.filter(isEng):allMem(),pop=document.createElement('div');pop.className='pl-mspop';pop.setAttribute('role','dialog');pop.setAttribute('aria-label',f==='owners'?'Epic owners':'Workstream owners');
   pop.innerHTML=`<b>${f==='owners'?'Epic owners':'Workstream owners'}</b><div class="pl-ms-l">${mem.map(m=>`<label><input type="checkbox" value="${esc(m.id)}"${cur.includes(m.id)?' checked':''}> ${esc(m.name)}</label>`).join('')||'<p class="note">No team members</p>'}</div><div class="pl-ms-a"><button type="button" class="button" data-x>Cancel</button><button type="button" class="button primary" data-ok>Save</button></div>`;
   H.popHost().appendChild(pop);
   const r=btn.getBoundingClientRect(),h=pop.offsetHeight,w=pop.offsetWidth;

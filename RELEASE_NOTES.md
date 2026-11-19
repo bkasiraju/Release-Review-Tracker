@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.37-GA (19 November 2026)
+
+Workstream engineer pickers (the Engineers column, the New workstream dialog and the workstream owners popup) now list every member of the team GUS roster, sorted by name, including leaders and people hidden from the capacity table. Epic owners and capacity are unchanged. Not checked in a browser.
+
 ## 6.26.36-GA (19 November 2026)
 
 Solid blue buttons are now subtle: Back to Hub and Back to Team Hub are a soft blue tint, Review & save to GUS is a soft green tint, and other primary buttons are a soft teal tint, each with a matching border and text colour. Delete confirmations keep their red. CSS only; not checked in a browser.
