@@ -2389,3 +2389,9 @@ input[type=file].v2w-in{padding:5px}
 html body .pl-open-gus,html body .pl-g-proj .pl-open-gus,html body[data-hub=plan] .pl-g-proj .pl-open-gus{border:0!important;background:#e8f1fb!important;color:#0b5cab!important;box-shadow:none!important}
 html body .pl-open-gus:hover,html body .pl-g-proj .pl-open-gus:hover,html body[data-hub=plan] .pl-g-proj .pl-open-gus:hover{background:#d3e5f8!important;color:#08457f!important}
 html body .pl-open-gus:focus-visible{outline:2px solid #0b5cab;outline-offset:1px}
+/* 6.26.10 project bar text: black, clearly visible (sizes unchanged) */
+html body[data-hub=plan] .pl-g-proj .pl-pj-n{color:#000!important;font-weight:600;opacity:1}
+html body[data-hub=plan] .pl-g-proj .pl-pj-m,html body[data-hub=plan] .pl-g-proj .pl-pj-mt{color:#000!important;opacity:1}
+html body[data-hub=plan] .pl-g-proj .pl-caret{color:#000!important}
+html body[data-hub=plan] .pl-g-proj td{background:#fff!important}
+html body[data-hub=plan] .pl-g-proj:hover td{background:#eef4fa!important}

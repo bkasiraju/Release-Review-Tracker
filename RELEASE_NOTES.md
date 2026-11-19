@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.10-GA (19 November 2026)
+
+Planner project bars: project names, V2MOM method text and the fold caret are now black on a white row, with the font sizes unchanged. CSS only; not checked in a browser.
+
 ## 6.26.9-GA (19 November 2026)
 
 The open-in-GUS icon button in the planner grid and project rows no longer has a border; it uses a subtle blue highlight (darker on hover). CSS only; not checked in a browser.
