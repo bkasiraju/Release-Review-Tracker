@@ -202,8 +202,9 @@ function newWorkstreamAt(epicId,afterWid){
     }
     const at=afterWid&&e.id===epicId?e.workstreams.findIndex(x=>x.id===afterWid):-1;
     if(at>=0)e.workstreams.splice(at+1,0,w);else e.workstreams.push(w); // + on a row inserts right below it; the order can still be changed with the grip
-    setCollapsed('p:'+e.projectId,false);setCollapsed('e:'+e.id,false);closeModal();draw();queueSave();P.el.querySelector(`[data-w="${w.id}"]`)?.scrollIntoView({block:'nearest'});
-    window.toast?.(msg,warn);
+    setCollapsed('p:'+e.projectId,false);setCollapsed('e:'+e.id,false);closeModal();draw();P.el.querySelector(`[data-w="${w.id}"]`)?.scrollIntoView({block:'nearest'});
+    const kept=await persistNow(e,prj.get(e.projectId)||{id:e.projectId,name:''});
+    window.toast?.(kept?msg:msg+' It is in GUS, but saving the plan for other users failed: use Retry at the top of the table.',warn||!kept);
   });
   const eSel=el.querySelector('[data-e]'),chk=el.querySelector('[data-gus]'),nm=el.querySelector('[data-n]'),chips=el.querySelector('[data-chips]'),tSel=el.querySelector('[data-t]');
   const epicNow=()=>pl.epics.find(x=>x.id===eSel.value);
@@ -285,8 +286,9 @@ function newEpicAt(pid){
       e.workstreams.push(w);made.ws.set(x.r,w);if(r.warnings&&r.warnings.length)window.toast?.('Themes were not fully applied: '+r.warnings[0],true);
       try{localStorage.setItem(tagKey,tagId);}catch(_){}
     }
-    closeModal();draw();queueSave();flashRow(e);
-    window.toast?.(msg||`Added workstreams to “${e.name}”.`,false);
+    closeModal();draw();flashRow(e);
+    const kept=await persistNow(e,pr);
+    window.toast?.(kept?(msg||`Added workstreams to “${e.name}”.`):`${msg||`Added workstreams to “${e.name}”.`} It is in GUS, but saving the plan for other users failed: use Retry at the top of the table.`,!kept);
   });
   el.querySelector('.nd-modal').classList.add('pl-cr-epic');
   const nm=el.querySelector('textarea[data-n]'),cnt=el.querySelector('[data-cnt]'),errEl=el.querySelector('.pl-cr-err');
@@ -658,6 +660,23 @@ async function syncGus(){
     let bad=0;r.results.forEach((x,i)=>{if(x.ok)P.gsnap.set(sent[i].e.gusId,JSON.stringify(sent[i].s));else{bad++;window.toast?.(`GUS did not update “${sent[i].e.name}”: ${x.err}`,true);P.gsnap.set(sent[i].e.gusId,JSON.stringify(sent[i].s));}});
     if(!bad&&sent.length)window.toast?.(`Updated ${sent.length} epic${sent.length>1?'s':''} in GUS.`,false);
   }catch(e){if(/restricted/i.test(e.message))P.noGusSync=true;else window.toast?.('GUS update failed: '+e.message,true);}
+}
+/** Save the plan to the shared backend right now (not after the autosave delay), so what was just created in GUS shows for every user of the team. If someone else saved first, add this epic to their latest plan and retry once. */
+async function persistNow(epic,project){
+  clearTimeout(P.timer);setState('dirty');
+  await flush(true);
+  if(P.state==='saved')return true;
+  if(P.state!=='conflict')return false;
+  try{
+    const g=await call('plan-get',{teamId:H.team.Id}),sp=g.plan;
+    if(!sp.epics.some(x=>x.id===epic.id||(x.gusId&&x.gusId===epic.gusId))){
+      if(!sp.projects.some(x=>x.id===project.id))sp.projects.push(project);
+      sp.epics.push(epic);
+    }
+    const r=await call('plan-save',{teamId:H.team.Id,plan:sp,revision:g.revision});
+    P.plan=r.plan.window&&r.plan.window.start?r.plan:{...r.plan,window:emptyPlan().window};P.rev=r.revision;P.plan.epics.forEach(deriveLine);snapGus();draw();setState('saved');
+    return true;
+  }catch(_){setState('error');return false;}
 }
 async function flush(quiet){
   clearTimeout(P.timer);if(P.inflight)await P.inflight;if(P.state!=='dirty'&&P.state!=='error')return P.inflight;
