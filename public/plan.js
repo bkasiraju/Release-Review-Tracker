@@ -109,17 +109,20 @@ function fitSuggest(input,max,box,what){
 }
 const crUser=()=>(P.user&&P.user.name)||'You (signed-in GUS user)';
 function newProjectAt(){
-  const pl=P.plan,prog=P.refs.program,methods=ioLists().methods;
+  const pl=P.plan,methods=ioLists().methods,PGK='pl-prog-'+H.team.Id;let prog=P.refs.program,listing=P.refs.projects;
+  let saved='';try{saved=localStorage.getItem(PGK)||'';}catch(_){}
+  if(saved&&(!prog||saved.toLowerCase()!==prog.name.toLowerCase()))prog=null,listing=[];
   const inPlan=g=>pl.projects.some(x=>(g.id&&x.gusId===g.id)||x.name.toLowerCase()===g.name.toLowerCase());
-  const avail=P.refs.projects.filter(g=>!inPlan(g)&&(!prog||!g.programId||g.programId===prog.id));
+  let avail=listing.filter(g=>!inPlan(g));
   const mode=`<div class="pl-cr-seg" role="tablist" aria-label="Project source"><button type="button" role="tab" data-mode="pick">Pick from GUS</button><button type="button" role="tab" data-mode="new">Enter new project</button></div>`;
   const body=
     crSection('Project',mode+
-      crField('GUS project',`${avail.length} not yet in this plan`,`<select class="hub-inline" data-g>${avail.length?avail.map(g=>opt(g.id,g.name,false)).join(''):opt('','No other projects found in GUS',true)}</select>`,'wide pl-cr-pick')+
+      crField('GUS program','type or pick the program; its projects are listed below',`<input class="hub-inline" type="text" list="pl-cr-progs" data-pg value="${esc(saved||(prog?prog.name:''))}" placeholder="e.g. Caching Services - 268" autocomplete="off"><datalist id="pl-cr-progs">${(P.refs.programs||[]).map(x=>`<option value="${esc(x.name)}"></option>`).join('')}</datalist>`,'wide')+`<p class="pl-cr-hint" data-pgmsg role="status">${prog?'':'No program was found for this team. Enter the GUS program name to list its projects.'}</p>`+
+      crField('GUS project',`<span data-avn>${avail.length} not yet in this plan</span>`,`<select class="hub-inline" data-g>${avail.length?avail.map(g=>opt(g.id,g.name,false)).join(''):opt('','No projects found for this program',true)}</select>`,'wide pl-cr-pick')+
       crField('Measure name',`new project in GUS · <span data-ncnt>0 / ${PROJECT_NAME_MAX}</span>`,`<input class="hub-inline" type="text" data-n placeholder="e.g. M1.1.3: Baseline reliability" autocomplete="off">`,'wide pl-cr-new')+`<p class="pl-cr-fit pl-cr-new" data-fit role="status"></p>`+
       crField('Project Shortform','e.g. HRP M1.1.3',`<input class="hub-inline" type="text" data-s maxlength="60" placeholder="e.g. HRP M1.1.3">`,'wide')+`<p class="pl-cr-hint" data-hint hidden></p>`)+
     crSection('V2MOM',crField('V2MOM method','saved on the project in GUS',`<input class="hub-inline" type="text" list="pl-cr-methods" data-m maxlength="1000" placeholder="Pick an existing method or type a new one" autocomplete="off"><datalist id="pl-cr-methods">${methods.map(m=>`<option value="${esc(m)}"></option>`).join('')}</datalist>`,'wide'))+
-    crAuto([['Team',H.team.Name],['Program',prog?prog.name:'Not found for this team'],['Owner',crUser()]]);
+    crAuto([['Team',H.team.Name],['Owner',crUser()]]);
   let md=avail.length?'pick':'new';
   const el=crDialog('Add project','Pick a project that already exists in GUS, or enter a new one. Either way it is shared with every team.',body,'Add project',async(el,fail)=>{
     const sh=el.querySelector('[data-s]').value.trim(),method=el.querySelector('[data-m]').value.trim();let name,gusId='',r;
@@ -132,8 +135,8 @@ function newProjectAt(){
       name=el.querySelector('[data-n]').value.trim();
       if(!name){el.querySelector('[data-n]').focus();throw new Error('Enter the measure (project) name.');}
       if(name.length>PROJECT_NAME_MAX){el.querySelector('[data-n]').focus();throw new Error(`Project name is ${name.length} characters; GUS allows at most ${PROJECT_NAME_MAX}. Use the suggestion or shorten it by ${name.length-PROJECT_NAME_MAX}.`);}
-      if(!prog)throw new Error('This team has no GUS program for the planning release, so a project cannot be created.');
-      r=await call('plan-create-project',{teamId:H.team.Id,project:{name,method}});
+      const pn=el.querySelector('[data-pg]').value.trim();if(!prog&&!pn)throw new Error('Enter the GUS program first, so the project can be created in it.');
+      r=await call('plan-create-project',{teamId:H.team.Id,project:{name,method,programName:prog?prog.name:pn}});
     }
     let p=pl.projects.find(x=>x.gusId===r.gusId);
     if(!p){p={id:uid('p'),name,short:sh||shortProj(name),theme:'',gusId:r.gusId};pl.projects.push(p);}
@@ -153,6 +156,17 @@ function newProjectAt(){
     el.querySelector('.pl-cr-foot .note').textContent=k==='pick'?'Links the existing GUS project; nothing new is created.':'Created in GUS immediately when you confirm.';
     if(k==='pick')fillPick();(k==='pick'?g:n).focus();};
   el.querySelectorAll('[data-mode]').forEach(b=>{b.onclick=()=>setMode(b.dataset.mode);});
+  const pg=el.querySelector('[data-pg]'),pgm=el.querySelector('[data-pgmsg]'),avn=el.querySelector('[data-avn]');let pgSeq=0;
+  const paint=()=>{avail=listing.filter(x=>!inPlan(x));g.innerHTML=avail.length?avail.map(x=>opt(x.id,x.name,false)).join(''):opt('','No projects found for this program',true);if(g._cs)g._cs.sync();avn.textContent=`${avail.length} not yet in this plan`;if(md==='pick')fillPick();};
+  pg.onchange=async()=>{const v=pg.value.trim(),seq=++pgSeq;
+    if(!v){pgm.textContent='Enter the GUS program name to list its projects.';return;}
+    pgm.textContent='Loading projects…';
+    try{const r=await call('plan-program-projects',{teamId:H.team.Id,programName:v});if(seq!==pgSeq)return;
+      if(!r.program){prog=null;listing=[];paint();pgm.textContent=`No GUS program named “${v}” was found. Check the spelling.`;return;}
+      prog=r.program;listing=r.projects;pg.value=r.program.name;try{localStorage.setItem(PGK,r.program.name);}catch(_){}
+      paint();pgm.textContent=`${r.projects.length} project${r.projects.length===1?'':'s'} in ${r.program.name}.`;
+      if(md==='new'&&avail.length&&!n.value.trim())setMode('pick');
+    }catch(err){if(seq===pgSeq)pgm.textContent='Could not load that program: '+(err&&err.message||err);}};
   g.onchange=fillPick;sh.oninput=()=>{shTouched=true;};
   n.oninput=()=>{const v=n.value.trim(),hit=known.get(v.toLowerCase()),local=pl.projects.find(x=>x.name.toLowerCase()===v.toLowerCase());
     if(!shTouched)sh.value=(local&&local.short)||(v?shortProj(v):'');

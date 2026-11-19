@@ -92,6 +92,7 @@ async function handleRequest(ctx){
       case 'plan-commit':payload=await planner.commitPlan(sf,store,b.teamId,b.confirm===true,b.includeBtl===true,b.confirm===true?b.acknowledged===true:undefined);break;
       case 'plan-v2mom-parse':{const v2=require('./v2mom-import'),sheets=b.sheets&&typeof b.sheets==='object'?b.sheets:await v2.readSheetUrl(b.url,b.tabs,ctx.googleSheets||ctx.google?.sheets);const parsed=v2.parseSheets(sheets,{owners:b.owners});const prog=await planner.resolveProgram(sf,b.teamId,'').catch(()=>null);payload={...parsed,teamProgram:prog};break;}
       case 'plan-v2mom-import':payload=await planner.importV2mom(sf,store,b.teamId,b);break;
+      case 'plan-program-projects':payload=await planner.programProjects(sf,b.teamId,b.programName);break;
       case 'plan-create-project':payload=await planner.createProject(sf,b.teamId,b.project);break;
       case 'plan-sync-epics':payload=await planner.syncEpics(sf,b.teamId,b.epics);break;
       case 'plan-gus-epics':payload=await planner.listEpics(sf,b.teamId);break;

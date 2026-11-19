@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.18-GA (19 November 2026)
+
+Add project now shows an editable GUS program field (defaulting to the team's program, or the last one you entered for the team). Typing or picking a program loads the projects tagged to it, so the "Pick from GUS" list works for teams whose program is not named "<team> - 268" (e.g. Caching Services). New projects are created in the program shown. New action `plan-program-projects`; the chosen program is remembered per team in the browser. Not checked against live GUS data or in a browser.
+
 ## 6.26.17-GA (19 November 2026)
 
 Add project / pick from GUS now lists only projects tagged to the team's R268 program. Projects from other programs or releases are no longer offered (projects already in the plan are unchanged). If the team has no 268 program, any program named "… - 268" is used. Not checked against live GUS data or in a browser.

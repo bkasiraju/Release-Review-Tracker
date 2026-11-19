@@ -234,9 +234,19 @@ async function importV2mom(sf, store, teamId, input) {
   }
   return { program, results, added, created: results.filter(r => r.created).length };
 }
+/** Projects tagged to a named GUS program, for the Add project picker. With no name, the team's own program is used. */
+async function programProjects(sf, teamId, name) {
+  planKey(teamId);
+  const program = await resolveProgram(sf, teamId, name);
+  if (!program) return { program: null, projects: [] };
+  const rows = (await sf.query(`SELECT Id, Name, V2MOM_Method__c FROM PPM_Project__c WHERE Program__c = '${program.id}' ORDER BY Name LIMIT 500`)).records || [];
+  return { program, projects: rows.map(r => ({ id: r.Id, name: r.Name, method: r.V2MOM_Method__c || '', programId: program.id, programName: program.name })) };
+}
 async function createProject(sf, teamId, input) {
   planKey(teamId);
-  const r = await ensureProject(sf, teamId, { name: input && input.name, method: input && input.method, gusId: input && input.gusId });
+  const chosen = input && String(input.programName || '').trim() ? await resolveProgram(sf, teamId, input.programName) : null;
+  if (input && String(input.programName || '').trim() && !chosen) throw new Error(`No GUS program named “${String(input.programName).trim()}” was found.`);
+  const r = await ensureProject(sf, teamId, { name: input && input.name, method: input && input.method, gusId: input && input.gusId }, chosen || undefined);
   const program = r.program || await teamProgram(sf, teamId);
   return { gusId: r.id, created: r.created, programId: program ? program.id : '', programName: program ? program.name : '' };
 }
@@ -581,4 +591,4 @@ async function commitRun(sf, store, teamId, confirm, includeBtl, acknowledged) {
   return { results, failed: results.filter(x => !x.ok).length, plan: saved && saved.plan, revision: saved && saved.revision, saveError };
 }
 
-module.exports = { importV2mom, resolveProgram, teamProgram, getPlan, savePlan, getRefs, commitPlan, createProject, deleteProject, createEpic, listEpics, findEpics, createWorkstream, syncEpics, review, cleanPlan };
+module.exports = { programProjects, importV2mom, resolveProgram, teamProgram, getPlan, savePlan, getRefs, commitPlan, createProject, deleteProject, createEpic, listEpics, findEpics, createWorkstream, syncEpics, review, cleanPlan };
