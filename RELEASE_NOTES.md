@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.69-GA
+
+- Notifications move from the bottom right to the top right, with a softer background; they still flash briefly.
+
 ## 6.26.68-GA
 
 - Removing a workstream in GUS: when GUS refuses the delete (insufficient access), the story is set to status "Never" in GUS instead and removed from the dashboard, and the message says so. Workstreams with status Never are not fetched back.

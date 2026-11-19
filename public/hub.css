@@ -2658,3 +2658,9 @@ html body[data-hub=plan] .pl-miss{position:relative!important;left:-7px!importan
 html body[data-hub=plan] .pl-grid td.c-theme input{height:26px!important;min-height:26px!important;border:1px solid #c9d6e2!important;border-radius:6px!important;background:#fff!important;padding:0 8px!important;font-size:12px!important;width:100%!important;max-width:none!important}
 html body[data-hub=plan] .pl-grid td.c-theme input::placeholder{color:#8a9bab!important}
 html body[data-hub=plan] .pl-grid td.c-theme input:focus{border-color:#0b5cab!important;box-shadow:0 0 0 2px rgba(11,92,171,.18)!important;outline:0!important}
+
+/* 6.26.69 notifications at the top right with a subtle background */
+html body #toasts{position:fixed!important;top:12px!important;right:16px!important;bottom:auto!important;left:auto!important;z-index:5000!important;display:flex!important;flex-direction:column!important;align-items:flex-end!important;gap:6px!important;max-width:min(420px,calc(100vw - 32px))!important;pointer-events:none}
+html body #toasts .toast{pointer-events:auto;max-width:100%!important;margin:0!important;padding:8px 14px!important;font-size:12.5px!important;color:#1f3347!important;background:#f1f6fb!important;border:1px solid #d3e0ec!important;border-left:3px solid #7fa7c9!important;border-radius:8px!important;box-shadow:0 4px 14px rgba(20,50,80,.12)!important;--fl:#f1f6fb;animation:plFlashSoft .9s ease-in-out 3!important}
+html body #toasts .toast.error{background:#fdf3f2!important;border-color:#f0d0cd!important;border-left-color:#d9534f!important;color:#5a1f1c!important;--fl:#fdf3f2}
+@keyframes plFlashSoft{0%,100%{background-color:var(--fl)}50%{background-color:#dfeaf5}}
