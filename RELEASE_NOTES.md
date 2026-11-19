@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.63-GA
+
+- Removed the workstream note above the planner header. Workstreams of planner-created epics are still fetched from GUS on load.
+
 ## 6.26.62-GA
 
 - Softer row colours for projects, epics and workstreams.
