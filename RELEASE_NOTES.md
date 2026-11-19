@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.75-GA
+
+- Removed the "Executive epics" tab from the Planned Release Summary.
+
 ## 6.26.74-GA
 
 - Engineer hover card: ABL, BTL and Unplanned on one line, epics in the next section, and a "Detailed summary" button that opens the Planned Release Summary on the By engineer view, scrolled to that engineer.
