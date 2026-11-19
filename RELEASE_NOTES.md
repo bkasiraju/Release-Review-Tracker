@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.42-GA (19 November 2026)
+
+Add project, New workstream and Add epic dialogs now close the moment the input passes validation. The GUS calls and the plan save carry on in the background, with a "Saving in the background" toast and a result toast when done. If GUS rejects something, the dialog comes back with the error and everything that was typed, so nothing is lost. Not checked in a browser.
+
 ## 6.26.41-GA (19 November 2026)
 
 The New workstream dialog showed a made-up theme ("Workstream · WS: HRP M1.1.1 › name"). It now shows the theme that is actually applied in GUS, R<release>_<team short>_Workstream (for example R268_VC_Workstream for Caching Services). The automatic values (story type, subject, theme, parent; team, program, owner) are plain lines of text, one per line, instead of pills. Not checked in a browser.

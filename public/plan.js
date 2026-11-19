@@ -69,8 +69,10 @@ function crDialog(title,sub,bodyHtml,okLabel,submit){
   const fail=m=>{err.textContent=m;err.hidden=!m;};
   let busy=false;
   const sync=()=>{ok.disabled=busy;};el._sync=sync;el._deny=()=>{};
+  // Once the input is validated a handler calls detach(): the dialog disappears at once and the GUS calls and the plan save carry on in the background. If one of them fails the dialog comes back with the error and what was typed.
+  let hidden=false;const detach=()=>{if(hidden)return;hidden=true;el.style.display='none';window.toast?.('Saving in the background…',false);};
   const go=async()=>{if(ok.disabled)return;fail('');busy=true;ok.textContent='Creating…';sync();
-    try{await submit(el,fail);}catch(e){fail(String(e&&e.message||e));}finally{busy=false;ok.textContent=ok.dataset.label||okLabel;sync();}};
+    try{await submit(el,fail,detach);}catch(e){if(hidden){hidden=false;el.style.display='';}fail(String(e&&e.message||e));if(el.isConnected===false)window.toast?.(String(e&&e.message||e),true);}finally{busy=false;ok.textContent=ok.dataset.label||okLabel;sync();hidden=false;}};
   ok.onclick=go;
   el.addEventListener('keydown',ev=>{if(ev.key==='Enter'&&ev.target.tagName==='INPUT'){ev.preventDefault();go();}});
   return el;
@@ -126,7 +128,7 @@ function newProjectAt(){
     crSection('V2MOM',crField('V2MOM method','saved on the project in GUS',`<input class="hub-inline" type="text" list="pl-cr-methods" data-m maxlength="1000" placeholder="Pick an existing method or type a new one" autocomplete="off"><datalist id="pl-cr-methods">${methods.map(m=>`<option value="${esc(m)}"></option>`).join('')}</datalist>`,'wide'))+
     crAuto([['Team',H.team.Name],['Owner',crUser()]]);
   let md=avail.length?'pick':'new';
-  const el=crDialog('Add project','Pick a project that already exists in GUS, or enter a new one. Either way it is shared with every team.',body,'Add project',async(el,fail)=>{
+  const el=crDialog('Add project','Pick a project that already exists in GUS, or enter a new one. Either way it is shared with every team.',body,'Add project',async(el,fail,detach)=>{
     const sh=el.querySelector('[data-s]').value.trim(),method=el.querySelector('[data-m]').value.trim();let name,gusId='',r;
     if(md==='pick'){
       const g=avail.find(x=>x.id===el.querySelector('[data-g]').value);if(!g)throw new Error('Pick a project, or switch to “Enter new project”.');
@@ -138,6 +140,7 @@ function newProjectAt(){
       if(!name){el.querySelector('[data-n]').focus();throw new Error('Enter the measure (project) name.');}
       if(name.length>PROJECT_NAME_MAX){el.querySelector('[data-n]').focus();throw new Error(`Project name is ${name.length} characters; GUS allows at most ${PROJECT_NAME_MAX}. Use the suggestion or shorten it by ${name.length-PROJECT_NAME_MAX}.`);}
       const pn=el.querySelector('[data-pg]').value.trim();if(!prog&&!pn)throw new Error('Enter the GUS program first, so the project can be created in it.');
+      detach();
       r=await call('plan-create-project',{teamId:H.team.Id,project:{name,method,programName:prog?prog.name:pn}});
     }
     let p=pl.projects.find(x=>x.gusId===r.gusId);
@@ -191,7 +194,7 @@ function newWorkstreamAt(epicId,afterWid){
       (lastTag?`<div hidden>${crField('Product tag','required by GUS · pick one of the team\'s tags',`<select class="hub-inline" data-t><option value="">Select a tag…</option>${tags.map(t=>opt(t.id,t.name,t.id===lastTag)).join('')}</select>`,'wide')}</div>`:crField('Product tag','required by GUS · pick one of the team\'s tags',`<select class="hub-inline" data-t><option value="">Select a tag…</option>${tags.map(t=>opt(t.id,t.name,t.id===lastTag)).join('')}</select>`,'wide'))+
     `</div></section>`+
     `<div data-chips></div>`;
-  const el=crDialog('New workstream','Adds a workstream under an epic. For an epic that is already in GUS it is also created there, so engineers can add their work items under it.',body,'Add workstream',async(el)=>{
+  const el=crDialog('New workstream','Adds a workstream under an epic. For an epic that is already in GUS it is also created there, so engineers can add their work items under it.',body,'Add workstream',async(el,fail,detach)=>{
     const e=pl.epics.find(x=>x.id===el.querySelector('[data-e]').value),name=el.querySelector('[data-n]').value.trim(),gid=el.querySelector('[data-g]').value,days=Number(el.querySelector('[data-d]').value)||0;
     if(!e)throw new Error('Choose the epic.');
     if(!name){el.querySelector('[data-n]').focus();throw new Error('Enter the workstream name.');}
@@ -200,6 +203,7 @@ function newWorkstreamAt(epicId,afterWid){
     if(useGus()){
       const tagId=el.querySelector('[data-t]').value;
       if(!tagId){tSel.focus();throw new Error('Select a product tag. GUS requires one on every user story.');}
+      detach();
       const r=await call('plan-create-workstream',{teamId:H.team.Id,workstream:{epicGusId:e.gusId,name,assigneeId:gid,tagId,days,projectShort:projShort(prj.get(e.projectId)||{name:''})}});
       w.gusId=r.gusId;try{localStorage.setItem(tagKey,tagId);}catch(_){}
       msg=r.created?`Created workstream “${name}” in GUS.`:`Workstream “${name}” already existed in GUS and was linked.`;
@@ -251,7 +255,7 @@ function newEpicAt(pid){
     `<div class="pl-cr-new">${crAuto([['Team',H.team.Name],['Program',prog?prog.name:'—'],['Epic owner','= Development lead']])}</div>`;
   let md='new',xeps=[];const made={epic:null,ws:new Map()};
   const flashRow=e=>{const row=P.el.querySelector(`[data-e="${e.id}"]`);if(row){row.scrollIntoView({block:'center'});row.classList.add('pl-flash');setTimeout(()=>row.classList.remove('pl-flash'),2600);}};
-  const el=crDialog('Add epic','Create a new epic in GUS, or add an epic that already exists in GUS, under this project. Workstreams are optional.',body,'Create in GUS',async(el)=>{
+  const el=crDialog('Add epic','Create a new epic in GUS, or add an epic that already exists in GUS, under this project. Workstreams are optional.',body,'Create in GUS',async(el,fail,detach)=>{
     const rows=[...el.querySelectorAll('.pl-wsr')].map(r=>({r,name:r.querySelector('[data-wn]').value.trim(),engId:r.querySelector('[data-we]').value,days:Number(r.querySelector('[data-wd]').value)||0})).filter(x=>x.name),tagId=el.querySelector('[data-t]').value;
     if(rows.length&&!tagId){el.querySelector('[data-t]').focus();throw new Error('Select a product tag for the workstreams. GUS requires one on every story.');}
     let e=made.epic,msg='';
@@ -270,6 +274,7 @@ function newEpicAt(pid){
         if(name.length>EPIC_NAME_MAX){el.querySelector('[data-n]').focus();throw new Error(`Epic name is ${name.length} characters; GUS allows at most ${EPIC_NAME_MAX}. Shorten it by ${name.length-EPIC_NAME_MAX}.`);}
         if(!leadId){el.querySelector('[data-o]').focus();throw new Error('Select the development lead.');}
         if(pri===''||!Number.isFinite(Number(pri))){el.querySelector('[data-pri]').focus();throw new Error('Select the epic priority.');}
+        detach();
         const r=await call('plan-create-epic',{teamId:H.team.Id,epic:{name,releaseId,leadId,priority:Number(pri),project:{gusId:pr.gusId,name:pr.name,method:pr.method}}});
         pr.gusId=r.projectGusId||pr.gusId;
         const rr=rel.find(x=>x.id===releaseId);e=newEpic(pr.id);e.name=name;e.gusId=r.gusId;e.releaseId=rr?rr.id:'';e.releaseName=rr?rr.name:'';e.owners=[leadId];e.ownerNames=[leadName];e.line=line;e.priority=Number(pri);
@@ -282,6 +287,7 @@ function newEpicAt(pid){
       setCollapsed('p:'+pr.id,false);setCollapsed('e:'+e.id,false);draw();queueSave();flashRow(e);
     }
     // Workstreams: each becomes a parent story in GUS. A retry only creates the ones still missing.
+    if(rows.length)detach();
     for(const x of rows){
       if(made.ws.has(x.r))continue;
       let r;
