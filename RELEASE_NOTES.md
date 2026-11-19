@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.19-GA (19 November 2026)
+
+Planner header: V2MOM Import, file Import and Export template are merged into one "Import / Export" menu with a short description under each item. Full screen stays separate. The V2MOM Import chip is hidden on the planner (it is now in the menu) and stays on other pages. Not checked in a browser.
+
 ## 6.26.18-GA (19 November 2026)
 
 Add project now shows an editable GUS program field (defaulting to the team's program, or the last one you entered for the team). Typing or picking a program loads the projects tagged to it, so the "Pick from GUS" list works for teams whose program is not named "<team> - 268" (e.g. Caching Services). New projects are created in the program shown. New action `plan-program-projects`; the chosen program is remembered per team in the browser. Not checked against live GUS data or in a browser.
