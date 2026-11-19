@@ -853,7 +853,7 @@ function drawPlanner(){
       ws.forEach((w,j)=>{
         const first=j===0,tail=j===ws.length-1;
         const txt=(f,v,ph,max,w2)=>`<input class="hub-inline" type="text" aria-label="${esc(ph)}" data-f="${f}" value="${esc(v||'')}" maxlength="${max}" placeholder="${esc(ph)}" style="width:${w2}px">`;
-        const EPIC_CELLS=['name','owners','line','priority','theme','ws'],tdE=(k,h)=>first&&EPIC_CELLS.includes(k)?`<td class="c-${k}">${h}</td>`:`<td class="c-${k}"></td>`, // an epic row only carries its name, owner, ATL/BTL, priority and theme; the rest lives on the workstream rows
+        const EPIC_CELLS=['name','owners','line','priority','theme','ws','estimate'],tdE=(k,h)=>first&&EPIC_CELLS.includes(k)?`<td class="c-${k}">${h}</td>`:`<td class="c-${k}"></td>`, // an epic row only carries its name, owner, ATL/BTL, priority and theme; the rest lives on the workstream rows
           tdW=(k,h)=>w?`<td class="c-${k}" data-w="${esc(w.id)}">${h}</td>`:`<td class="c-${k}"></td>`;
         const C={
           project:()=>tdE('project',sel('projectId',pl.projects.map(p=>`<option value="${esc(p.id)}" data-short="${esc(p.short||shortProj(p.name))}"${p.id===e.projectId?' selected':''}>${esc(p.name||'(unnamed project)')}</option>`).join(''),'Project')),
