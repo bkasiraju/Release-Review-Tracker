@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.27-GA (19 November 2026)
+
+Planner header line 1: Group by moved to the right, just before the fold button. Collapse all / Expand all is now one button whose label follows the table: it reads Collapse all while any group is open and Expand all once every group is collapsed. Not checked in a browser.
+
 ## 6.26.26-GA (19 November 2026)
 
 Planning metrics: tile titles (Planned ABL, Total planned, Headroom, Unassigned effort, Over-allocated, Time off & on-call, Incomplete epics, Pending GUS save, Saved in GUS) and their sub-lines are shown in full. A 64px padding reserved for the hidden status chip was cutting them. CSS only; not checked in a browser.
