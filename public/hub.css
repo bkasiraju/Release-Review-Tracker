@@ -2581,3 +2581,7 @@ html body[data-hub=plan] .pl-grid tr[data-e] td.c-engs,html body[data-hub=plan] 
 html body[data-hub=plan] .pl-grid tr[data-wr] td.c-ws,html body[data-hub=plan] .pl-grid tr[data-wr] td.c-engs,html body[data-hub=plan] .pl-grid tr[data-wr] td.c-days,html body[data-hub=plan] .pl-grid tr[data-wr] td.c-sprint,html body[data-hub=plan] .pl-grid tr[data-wr] td.c-wstatus,html body[data-hub=plan] .pl-grid tr[data-wr] td.c-line{background-color:#fff8ec!important}
 html body[data-hub=plan] .pl-grid tr[data-wr]:hover td.c-ws,html body[data-hub=plan] .pl-grid tr[data-wr]:hover td.c-engs,html body[data-hub=plan] .pl-grid tr[data-wr]:hover td.c-days,html body[data-hub=plan] .pl-grid tr[data-wr]:hover td.c-sprint,html body[data-hub=plan] .pl-grid tr[data-wr]:hover td.c-wstatus,html body[data-hub=plan] .pl-grid tr[data-wr]:hover td.c-line{background-color:#fdf0d8!important}
 html body[data-hub=plan] .pl-grid tr[data-e]:not([data-wr]) td.c-ws{background-color:transparent!important}
+/* 6.26.48 type badges: P on project rows, E on epic rows */
+.pl-ty{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:5px;font:700 11px/1 system-ui,sans-serif;font-style:normal;flex:0 0 18px;margin-right:6px;vertical-align:middle;user-select:none}
+.pl-ty-p{background:#1d4f7c;color:#fff}
+.pl-ty-e{background:#e4f3f6;color:#0f6075;border:1px solid #a8d3dc}

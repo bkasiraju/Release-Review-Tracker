@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.48-GA (19 November 2026)
+
+Project rows now carry a dark blue "P" badge and epic rows a soft teal "E" badge before the name, so the levels are recognisable at a glance. Not checked in a browser.
+
 ## 6.26.47-GA (19 November 2026)
 
 Planner grid layout: an epic is now its own row and every workstream is listed on a row of its own below it, indented one step in, with the engineers, days, sprint and workstream status on the workstream row. The project short form is gone from epic rows and the epic name moves to the left. An epic row carries only the epic name, Owners, ATL/BTL, Priority and Theme, all editable. Planned release, epic status, the epic effort total, doc link and the other epic columns are blank on the epic row (the epic still saves them to GUS as before); the project of an epic is changed by moving it between projects instead of the old per-row project dropdown. Not checked in a browser.
