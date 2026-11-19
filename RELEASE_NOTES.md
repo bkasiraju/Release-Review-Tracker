@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.8-GA (19 November 2026)
+
+Save to GUS dialog cleaned up: the below-the-line checkbox sits inline with its label, the six summary tiles share one row (planned releases moved to a line under them), and when there is nothing to save the dialog shows one "Nothing to save yet" message with a Close button instead of zero tiles and a disabled Accept button. Mocked only; not checked in a browser.
+
 ## 6.26.7-GA (19 November 2026)
 
 Import wizard review step: each measure is now one tidy row (checkbox, full-width name field with its character counter, owners underneath), the selected count sits on the toolbar, and suggested names are cut to the 80-character GUS limit at a word boundary instead of showing 400+ characters. Mocked only; not checked in a browser.
