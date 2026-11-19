@@ -486,11 +486,11 @@ body[data-hub=home] .hub-tile .hub-tile-chips span{font-size:10px;line-height:1.
 @media(max-width:1100px){.pl-rps-2{grid-template-columns:1fr}}
 
 /* Release Planning header alignment */
-#view-plan .executive-heading,.hub-view .executive-heading:has(#pl-state){display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
-.executive-heading:has(#pl-state) h2{display:flex;align-items:center;gap:10px;margin:0 0 4px}
-.executive-heading:has(#pl-state) p{margin:0;max-width:none;flex:1 1 auto}
-.executive-heading:has(#pl-state) .heading-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
-.executive-heading:has(#pl-state) .heading-actions .button{height:36px;display:inline-flex;align-items:center;margin:0}
+#view-plan .executive-heading,.hub-view .executive-heading:has(.pl-state-anchor){display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.executive-heading:has(.pl-state-anchor) h2{display:flex;align-items:center;gap:10px;margin:0 0 4px}
+.executive-heading:has(.pl-state-anchor) p{margin:0;max-width:none;flex:1 1 auto}
+.executive-heading:has(.pl-state-anchor) .heading-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.executive-heading:has(.pl-state-anchor) .heading-actions .button{height:36px;display:inline-flex;align-items:center;margin:0}
 .pl-state{min-width:96px;text-align:right;font-size:12px}
 .pl-window{display:flex;align-items:center;gap:10px;margin:14px 0 4px;padding:0}
 .pl-window label{display:flex;align-items:center;gap:10px;font-weight:600;color:#16324a}
@@ -704,7 +704,7 @@ body[data-hub=home] .hub-tile-chips{margin-top:auto}
 .heading-actions .pl-team{display:inline-flex;align-items:center;gap:8px;font-weight:700;color:#16324a}
 .heading-actions #pl-team{min-width:150px;height:36px;font-weight:600;border:2px solid #0b6fa8!important;border-radius:8px;background:#f2f9fd!important;color:#032d60!important}
 .ri-home{color:inherit!important;text-decoration:none}.ri-home:hover,.ri-home:focus-visible{text-decoration:underline}
-.executive-heading:has(#pl-state) .heading-actions{margin-left:auto}
+.executive-heading:has(.pl-state-anchor) .heading-actions{margin-left:auto}
 /* plan56: coloured pill tabs with animated icons (same language as Standup/Pulse); borderless dropdowns in the grid */
 .pl-tabs{gap:8px;border-bottom:1px solid #d8e2ec;padding-bottom:8px;align-items:center}
 .pl-tabs button[data-tab]{display:inline-flex;align-items:center;gap:7px;border:1.5px solid transparent!important;border-radius:999px;padding:7px 16px;margin-bottom:0;font-size:13px;font-weight:600;transition:transform .18s ease,box-shadow .18s ease,background .18s ease}
@@ -2664,3 +2664,7 @@ html body #toasts{position:fixed!important;top:12px!important;right:16px!importa
 html body #toasts .toast{pointer-events:auto;max-width:100%!important;margin:0!important;padding:8px 14px!important;font-size:12.5px!important;color:#1f3347!important;background:#f1f6fb!important;border:1px solid #d3e0ec!important;border-left:3px solid #7fa7c9!important;border-radius:8px!important;box-shadow:0 4px 14px rgba(20,50,80,.12)!important;--fl:#f1f6fb;animation:plFlashSoft .9s ease-in-out 3!important}
 html body #toasts .toast.error{background:#fdf3f2!important;border-color:#f0d0cd!important;border-left-color:#d9534f!important;color:#5a1f1c!important;--fl:#fdf3f2}
 @keyframes plFlashSoft{0%,100%{background-color:var(--fl)}50%{background-color:#dfeaf5}}
+
+/* 6.26.70 save status in the top bar before the team dropdown, planner only */
+body:not([data-hub=plan]) #pl-state{display:none!important}
+html body .topbar-right #pl-state{margin:0 10px 0 0!important;min-width:0!important;white-space:nowrap}
