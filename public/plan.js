@@ -517,7 +517,7 @@ function confirmAt(btn,msg,onOk){
   document.addEventListener('mousedown',away,true);document.addEventListener('keydown',key,true);d.querySelector('[data-no]').focus();
 }
 const defRel=()=>{const r=P.refs.releases.reduce((b,x)=>!b||relNum(x)>relNum(b)?x:b,null);return r?{releaseId:r.id,releaseName:r.name}:{releaseId:'',releaseName:''};};
-const newEpic=pid=>({id:uid('e'),projectId:pid,name:'',line:'BTL',priority:0,...defRel(),gusId:'',owners:[],ownerNames:[],workstreams:[{id:uid('w'),name:'',priority:0,engId:'',engName:'',engIds:[],engNames:[],days:0,sprint:''}]});
+const newEpic=pid=>({id:uid('e'),projectId:pid,name:'',line:'ABL',priority:0,...defRel(),gusId:'',owners:[],ownerNames:[],workstreams:[{id:uid('w'),name:'',priority:0,engId:'',engName:'',engIds:[],engNames:[],days:0,sprint:'',line:'ABL'}]});
 const prj0=e=>P.plan.projects.find(p=>p.id===e.projectId)||null;
 const memName=id=>{const m=P.members.find(x=>x.id===id);if(m)return m.name;for(const e of (P.plan&&P.plan.epics)||[]){const i=(e.owners||[]).indexOf(id);if(i>=0&&e.ownerNames&&e.ownerNames[i])return e.ownerNames[i];}return '';}; // an owner who is not on the team roster keeps the name GUS gave
 /** Epics already in the plan with no owner get their development lead (or GUS owner) from GUS, saved to the shared plan without writing back to GUS. */
@@ -544,6 +544,7 @@ async function fetchWs(quiet){
     if(!quiet)window.toast?.(n?`Fetched ${n} workstream${n===1?'':'s'} from GUS.`:'No new workstreams found in GUS for epics created from this planner.',false);
   }catch(x){if(!quiet)window.toast?.('Could not fetch workstreams: '+x.message,true);}
 }
+const wsNoteGone=()=>{try{return localStorage.getItem('pl-wsnote-x')==='1';}catch(_){return false;}};
 const wsEngs=w=>w.engIds&&w.engIds.length?w.engIds:(w.engId?[w.engId]:[]);
 /** Who carries a workstream's days: its own engineers, else the epic's owners (two owners = half each). */
 const wsNames=w=>wsEngs(w).map(id=>memName(id)||(id===w.engId?w.engName:'')||'Engineer');
@@ -575,8 +576,8 @@ function workdays(start,end){
 }
 const themeOf=pr=>(pr&&(pr.theme||(/^[^:]{1,30}:/.test(pr.name||'')?pr.name.split(':')[0].trim():'')))||'Unthemed';
 // A workstream counts as ATL/ABL only when it is itself tagged ATL (and its epic is not BTL); everything else is BTL.
-const wl=(e,w)=>e.line!=='BTL'&&w&&w.line==='ABL'?'ABL':'BTL';
-const deriveLine=e=>{e.line=e.workstreams.some(w=>w.line==='ABL')?'ABL':'BTL';};
+const wl=(e,w)=>w?(e.line!=='BTL'&&w.line==='ABL'?'ABL':'BTL'):(e.line==='BTL'?'BTL':'ABL');
+const deriveLine=e=>{if(!e.workstreams.length){e.line=e.line==='BTL'?'BTL':'ABL';return;}e.line=e.workstreams.some(w=>w.line==='ABL')?'ABL':'BTL';};
 const epicDays=e=>r2(e.workstreams.filter(w=>wl(e,w)==='ABL').reduce((a,w)=>a+(w.days||0),0));
 const epicTheme=e=>e.theme||themeOf((P.plan.projects.find(p=>p.id===e.projectId))||null);
 const STAT=['Planned','In Progress','Completed','On Hold'];
@@ -725,10 +726,32 @@ async function persistNow(epic,project){
     return true;
   }catch(_){setState('error');return false;}
 }
+/** + on an epic row: a new empty workstream line (ABL unless the epic is BTL) at the end of its list, edited in place. Once it has a name it is created in GUS in the background. */
+function addWsRow(e){
+  const w={id:uid('w'),name:'',priority:e.priority||0,engId:'',engName:'',engIds:[],engNames:[],days:0,sprint:'',line:e.line==='BTL'?'BTL':'ABL'};
+  e.workstreams.push(w);setCollapsed('p:'+e.projectId,false);setCollapsed('e:'+e.id,false);draw();queueSave();
+  const i=P.el.querySelector(`tr[data-wr="${w.id}"] [data-f="name"]`);if(i){i.scrollIntoView({block:'nearest'});i.focus();}
+}
+/** Workstreams with a name that exist only in the plan are created in GUS as "WS: " stories under their epic, in the background. */
+async function syncWs(){
+  const pl=P.plan;if(!pl||P.wsBusy)return;
+  const todo=[];pl.epics.forEach(e=>{if(e.gusId&&!e.foreign)e.workstreams.forEach(w=>{if(w.name&&w.name.trim()&&!w.gusId&&w.name!=='Planned in GUS'&&!(document.activeElement&&document.activeElement.closest&&document.activeElement.closest(`tr[data-wr="${w.id}"]`)&&document.activeElement.matches('[data-f="name"]')))todo.push([e,w]);});});
+  if(!todo.length)return;const tags=(P.refs&&P.refs.tags)||[],key='ri-ws-tag-'+H.team.Id,tagId=defTag(tags,key)||(tags[0]&&tags[0].id)||'';
+  if(!tagId){window.toast?.('Workstreams could not be created in GUS: no product tag is available for this team.',true);return;}
+  P.wsBusy=true;let ok=0,bad=0;
+  for(const [e,w] of todo){
+    try{const pr=pl.projects.find(x=>x.id===e.projectId)||{name:''};
+      const r=await call('plan-create-workstream',{teamId:H.team.Id,workstream:{epicGusId:e.gusId,name:w.name.trim(),assigneeId:wsEngs(w)[0]||'',tagId,days:w.days||0,projectShort:projShort(pr)}});
+      if(P.plan!==pl)break;w.gusId=r.gusId;ok++;}
+    catch(x){bad++;window.toast?.(`GUS did not create workstream “${w.name}”: ${x.message}`,true);}
+  }
+  P.wsBusy=false;
+  if(ok){window.toast?.(`Created ${ok} workstream${ok>1?'s':''} in GUS and saved for the whole team.`,false);snapGus();queueSave();}
+}
 async function flush(quiet){
   clearTimeout(P.timer);if(P.inflight)await P.inflight;if(P.state!=='dirty'&&P.state!=='error')return P.inflight;
   const my=P.seq;setState('saving');
-  P.inflight=call('plan-save',{teamId:H.team.Id,plan:P.plan,revision:P.rev}).then(r=>{if(my!==P.seq)return;P.rev=r.revision;if(P.state==='saving')setState('saved');return syncGus();},e=>{if(my!==P.seq)return;setState(/changed/i.test(e.message)?'conflict':'error');if(!quiet)window.toast?.(e.message,true);});
+  P.inflight=call('plan-save',{teamId:H.team.Id,plan:P.plan,revision:P.rev}).then(r=>{if(my!==P.seq)return;P.rev=r.revision;if(P.state==='saving')setState('saved');return syncGus().then(syncWs);},e=>{if(my!==P.seq)return;setState(/changed/i.test(e.message)?'conflict':'error');if(!quiet)window.toast?.(e.message,true);});
   return P.inflight;
 }
 
@@ -854,9 +877,10 @@ function drawPlanner(){
           pmethod:()=>{const m=(prj0(e)||{}).method||'';return tdE('pmethod',`<span class="pl-pm" title="${esc(m)}">${esc(m||'—')}</span>`);}
         };
         const ci=cols.indexOf('name'),merge=ci>0&&cols[ci-1]==='project'; // no project short form on epic rows: the epic name takes its place at the left
-        const ep=cols.map(k=>k==='project'&&merge?'':k==='name'&&merge?C[k]().replace('<td class="c-name"','<td class="c-name" colspan="2"'):C[k]()).join(''),wc='';
+        const wmerge=merge&&!!w&&cols[ci+1]==='ws'; // a workstream row starts at the left edge too, one step in from its epic
+        const ep=cols.map(k=>wmerge?(k==='project'||k==='name'?'':k==='ws'?C[k]().replace('<td class="c-ws"','<td class="c-ws" colspan="3"'):C[k]()):k==='project'&&merge?'':k==='name'&&merge?C[k]().replace('<td class="c-name"','<td class="c-name" colspan="2"'):C[k]()).join(''),wc='';
         const ico=d=>`<svg viewBox="0 0 20 20" aria-hidden="true">${d}</svg>`,ib=(cls,attr,lbl,d,on)=>`<button type="button" class="pl-ib ${cls}${on?'':' pl-ib-off'}" ${on?attr:'tabindex="-1" disabled'} aria-label="${lbl}" title="${lbl}">${ico(d)}</button>`;
-        const act=`<td class="pl-g-act"><span class="pl-acts"${w?` data-w="${esc(w.id)}"`:''}>${w?`<button type="button" class="pl-ib pl-grip" draggable="true" data-grip aria-label="Move workstream: drag within this epic or into another epic (or press Up/Down)" title="Drag to move this workstream, within this epic or into another">${ico('<g fill="currentColor" stroke="none"><circle cx="7" cy="5" r="1.4"/><circle cx="13" cy="5" r="1.4"/><circle cx="7" cy="10" r="1.4"/><circle cx="13" cy="10" r="1.4"/><circle cx="7" cy="15" r="1.4"/><circle cx="13" cy="15" r="1.4"/></g>')}</button>`:ib('pl-grip','','',' ',false)}${ib('pl-add','data-add-ws','Add workstream below this one','<path d="M10 4v12M4 10h12"/>',true)}${ib('pl-rm','data-del-ws','Remove workstream','<circle cx="10" cy="10" r="7"/><path d="M6.8 10h6.4"/>',!!w)}${ib('pl-trash','data-del-epic','Delete epic','<path d="M4 6h12M8 6V4h4v2M6 6l.8 10h6.4L14 6M8.5 9v4M11.5 9v4"/>',first)}</span></td>`;
+        const act=`<td class="pl-g-act"><span class="pl-acts"${w?` data-w="${esc(w.id)}"`:''}>${w?`<button type="button" class="pl-ib pl-grip" draggable="true" data-grip aria-label="Move workstream: drag within this epic or into another epic (or press Up/Down)" title="Drag to move this workstream, within this epic or into another">${ico('<g fill="currentColor" stroke="none"><circle cx="7" cy="5" r="1.4"/><circle cx="13" cy="5" r="1.4"/><circle cx="7" cy="10" r="1.4"/><circle cx="13" cy="10" r="1.4"/><circle cx="7" cy="15" r="1.4"/><circle cx="13" cy="15" r="1.4"/></g>')}</button>`:ib('pl-grip','','',' ',false)}${ib('pl-add','data-add-ws','Add workstream under this epic','<path d="M10 4v12M4 10h12"/>',first)}${ib('pl-rm','data-del-ws','Remove workstream','<circle cx="10" cy="10" r="7"/><path d="M6.8 10h6.4"/>',!!w)}${ib('pl-trash','data-del-epic','Delete epic','<path d="M4 6h12M8 6V4h4v2M6 6l.8 10h6.4L14 6M8.5 9v4M11.5 9v4"/>',first)}</span></td>`;
         rows.push(`<tr data-e="${esc(e.id)}"${w?` data-wr="${esc(w.id)}"`:''} style="--pc:${projColor(e.projectId)}" class="${wl(e,w)==='ABL'?'abl':'btl'}${first?' pl-g-first':''}">${ep}${wc}${act}</tr>`);
       });
     };
@@ -1049,6 +1073,7 @@ function onClick(ev){
   document.querySelectorAll('.pl-dm').forEach(m=>{const open=dmt&&m.contains(dmt)&&m.querySelector('.pl-dm-list').hidden;m.querySelector('.pl-dm-list').hidden=!open;m.querySelector('[data-dm-toggle]').setAttribute('aria-expanded',String(open));});
   if(dmt)return;
   if(t.closest('#pl-export')){exportTemplate();return;}
+  if(t.closest('[data-wsnote-x]')){try{localStorage.setItem('pl-wsnote-x','1');}catch(_){}P.el.querySelector('#pl-wsnote')?.remove();return;}
   if(t.closest('#pl-fetchws')){fetchWs(false);return;}
   if(t.closest('#pl-import')){P.el.querySelector('#pl-import-file').click();return;}
   if(t.closest('#pl-add-proj')){newProjectAt(t.closest('#pl-add-proj'));return;}
@@ -1070,7 +1095,7 @@ function onClick(ev){
   if(t.closest('#pl-leaves'))return openLeaves();
   if(t.closest('#pl-commit'))return openCommit(false);
   if(t.closest('[data-add-epic]')){const e=newEpic(c.p);pl.epics.push(e);draw();queueSave();P.el.querySelector(`[data-e="${e.id}"] .pl-ename`)?.focus();return;}
-  if(t.closest('[data-add-ws]')){if(findE(c.e)){const ar=t.closest('[data-w]');newWorkstreamAt(c.e,ar&&ar.dataset.w);}return;}
+  if(t.closest('[data-add-ws]')){const e=findE(c.e);if(e)addWsRow(e);return;}
   const line=t.closest('[data-line]');if(line){const e=findE(c.e);if(e){const v=line.dataset.line,w=c.w&&e.workstreams.find(x=>x.id===c.w);if(w){e.workstreams.forEach(x=>{x.line=x.line||e.line;});w.line=v;deriveLine(e);}else{e.line=v;e.workstreams.forEach(x=>{x.line=v;});}draw();queueSave();}return;}
   if(t.closest('[data-del-ws]')){const e=findE(c.e),w=e&&e.workstreams.find(x=>x.id===c.w);if(!e||!w)return;if(w.gusId)delItemDlg('ws',e,w,t.closest('[data-del-ws]'));else{e.workstreams=e.workstreams.filter(x=>x.id!==c.w);draw();queueSave();}return;}
   if(t.closest('[data-del-epic]')){const e=findE(c.e);if(!e)return;const go=()=>{pl.epics=pl.epics.filter(x=>x.id!==c.e);draw();queueSave();};if(!e.gusId&&!e.name&&!epicDays(e))go();else if(e.gusId)delItemDlg('epic',e,null,t.closest('[data-del-epic]'));else confirmAt(t.closest('[data-del-epic]'),'Delete this epic and its workstreams?',go);return;}
@@ -1227,7 +1252,7 @@ H.register({id:'plan',label:'Release Planning (Quarterly)',icon:'plan',tone:'gre
     <div id="pl-warn"></div>
     <div class="pl-tabs" role="tablist" aria-label="Release planning views"><button type="button" role="tab" data-tab="plan" class="on" aria-selected="true"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="4" width="14" height="12" rx="2"/><path d="M3 8.5h14M8 8.5V16"/></svg>Release Planner</button><button type="button" role="tab" data-tab="rps" aria-selected="false"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 16V9M10 16V4M16 16v-5"/></svg>Planned Release Summary</button></div>
     <div id="pl-main"><div id="pl-sum"></div>
-    <section id="pl-fs" class="pl-fs"><div class="pl-hdr"><div class="pl-planner-h"><h3>${icon('plan','green')} V2MOM Measures &amp; Epics Plan</h3><span class="pl-planner-btns"><button type="button" class="button" id="pl-fs-btn" aria-pressed="false" title="Show Projects &amp; epics full screen">Full screen</button><span class="pl-dm"><button type="button" class="button" data-dm-toggle aria-haspopup="menu" aria-expanded="false">Import / Export ▾</button><span class="pl-dm-list" role="menu" hidden><button type="button" role="menuitem" data-v2mom-open title="Import V2MOM measures from a sheet as GUS projects for this team"><b>V2MOM Import</b><small>Create projects from a V2MOM sheet, link or HTML</small></button><button type="button" role="menuitem" id="pl-import" title="Import plan rows from the exported template"><b>Import plan from file</b><small>Excel template (.xlsx)</small></button><button type="button" role="menuitem" id="pl-export" title="Download an Excel template with the current plan, column headers and dropdown lists"><b>Export template</b><small>Current plan with column headers and lists</small></button></span></span><input type="file" id="pl-import-file" accept=".xlsx" hidden></span></div><div id="pl-tools" class="pl-tools"></div><p class="pl-wsnote" id="pl-wsnote"><b>Workstreams:</b> for epics created here, workstreams are fetched from GUS by their “WS:” title or R&lt;release&gt;_&lt;team&gt;_Workstream theme <button type="button" class="button" id="pl-fetchws" title="Fetch workstreams from GUS for epics created in this planner">Fetch from GUS</button>. For older epics added with “Add existing GUS epic” this is not possible, so add their workstreams manually.</p></div><div id="pl-planner"></div></section></div><div id="pl-rps" hidden></div>`;
+    <section id="pl-fs" class="pl-fs">${wsNoteGone()?'':`<div class="pl-wsnote" id="pl-wsnote" role="note"><span><b>Workstreams:</b> for epics created here, workstreams are fetched from GUS by their “WS:” title or R&lt;release&gt;_&lt;team&gt;_Workstream theme <button type="button" class="button" id="pl-fetchws" title="Fetch workstreams from GUS for epics created in this planner">Fetch from GUS</button>. For older epics added with “Add existing GUS epic” this is not possible, so add their workstreams manually.</span><button type="button" class="pl-wsnote-x" data-wsnote-x aria-label="Dismiss this note" title="Dismiss">×</button></div>`}<div class="pl-hdr"><div class="pl-planner-h"><h3>${icon('plan','green')} V2MOM Measures &amp; Epics Plan</h3><span class="pl-planner-btns"><button type="button" class="button" id="pl-fs-btn" aria-pressed="false" title="Show Projects &amp; epics full screen">Full screen</button><span class="pl-dm"><button type="button" class="button" data-dm-toggle aria-haspopup="menu" aria-expanded="false">Import / Export ▾</button><span class="pl-dm-list" role="menu" hidden><button type="button" role="menuitem" data-v2mom-open title="Import V2MOM measures from a sheet as GUS projects for this team"><b>V2MOM Import</b><small>Create projects from a V2MOM sheet, link or HTML</small></button><button type="button" role="menuitem" id="pl-import" title="Import plan rows from the exported template"><b>Import plan from file</b><small>Excel template (.xlsx)</small></button><button type="button" role="menuitem" id="pl-export" title="Download an Excel template with the current plan, column headers and dropdown lists"><b>Export template</b><small>Current plan with column headers and lists</small></button></span></span><input type="file" id="pl-import-file" accept=".xlsx" hidden></span></div><div id="pl-tools" class="pl-tools"></div></div><div id="pl-planner"></div></section></div><div id="pl-rps" hidden></div>`;
     {const hd=el.querySelector('.executive-heading'),tb=el.querySelector('.pl-tabs'),ac=hd&&hd.querySelector('.heading-actions');if(hd&&tb&&ac){tb.title='Plan projects, epics and workstreams for '+H.team.Name+'. Effort is in days; epics above the line (ABL) are saved to GUS when you confirm.';tb.appendChild(ac);hd.remove();}}
     P.tab='plan';
     // Review & save to GUS is limited to the plan administrators (also enforced by the backend); disabled until the backend confirms.

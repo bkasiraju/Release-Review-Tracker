@@ -1,5 +1,13 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.53-GA
+
+- Default team (star) is also saved to the backend and read back when the browser has no local copy, so it survives a hard refresh.
+- + on an epic row adds an empty workstream line in place (no popup); the + is gone from workstream rows. A named workstream is created in GUS in the background.
+- ATL/BTL: new epics default to ABL, epic rows show their real state, and switching an epic switches all its workstreams.
+- Grid: workstream rows start at the left edge, one step in from the epic; epic and workstream rows are tinted across every cell (no white gaps).
+- The workstream note sits above the header and can be closed with x. Save notices and the save indicator flash.
+
 ## 6.26.52-GA
 
 - Add existing GUS epic: the workstreams disclaimer spans the full dialog width instead of a narrow column; GUS epic, ATL/BTL and priority sit on one line.

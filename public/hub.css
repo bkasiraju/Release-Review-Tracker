@@ -2609,3 +2609,22 @@ html body .pl-cr .pl-cr-btns{padding-top:6px!important;margin-top:4px!important}
 /* 6.26.52 disclaimer spans the full dialog width; GUS epic, ATL and priority share one line */
 html body .pl-cr .pl-cr-g>.pl-cr-disc{grid-column:1/-1!important;width:auto!important;min-width:0!important;margin:2px 0 0!important;padding:5px 10px!important;white-space:normal!important}
 html body .pl-cr .pl-cr-g>.pl-cr-disc[hidden]{display:none!important}
+
+/* 6.26.53 closable workstream note above the header; flashing save notices; workstream rows */
+html body[data-hub=plan] .pl-wsnote{display:flex!important;align-items:flex-start!important;gap:8px!important;margin:0 0 6px!important;padding:5px 8px 5px 10px!important;width:auto!important;position:static!important;float:none!important}
+html body[data-hub=plan] .pl-wsnote>span{flex:1 1 auto!important}
+html body[data-hub=plan] .pl-wsnote-x{flex:0 0 auto!important;border:0!important;background:transparent!important;color:#5a4310!important;font-size:18px!important;line-height:1!important;padding:0 4px!important;cursor:pointer!important}
+html body[data-hub=plan] .pl-wsnote-x:hover{color:#000!important}
+@keyframes plFlash{0%,100%{background-color:var(--fl,#fff3cd)}50%{background-color:#ffd54a}}
+@keyframes plFlashOk{0%,100%{background-color:#e6f6ec}50%{background-color:#7fd69c}}
+.toast{animation:plFlash .7s ease-in-out 4}
+.toast.error{--fl:#fde2e1;animation:plFlash .7s ease-in-out 6}
+html body[data-hub=plan] .pl-state.saving{padding:2px 8px!important;border-radius:6px!important;color:#5a4310!important;animation:plFlash .8s ease-in-out infinite!important}
+html body[data-hub=plan] .pl-state.saved{padding:2px 8px!important;border-radius:6px!important;animation:plFlashOk .8s ease-in-out 3!important}
+html body[data-hub=plan] .pl-grid tr[data-wr] td.c-ws{padding-left:44px!important}
+html body[data-hub=plan] .pl-grid tr[data-wr] td.c-ws input{width:100%!important;max-width:none!important}
+
+html body[data-hub=plan] .pl-grid tr[data-e]:not([data-wr]) td[class]:not(.pl-g-act){background-color:#f2f8fd!important}
+html body[data-hub=plan] .pl-grid tr[data-wr] td[class]:not(.pl-g-act){background-color:#fff8ec!important}
+html body[data-hub=plan] .pl-grid tr[data-e]:not([data-wr]):hover td[class]:not(.pl-g-act){background-color:#e6f1fa!important}
+html body[data-hub=plan] .pl-grid tr[data-wr]:hover td[class]:not(.pl-g-act){background-color:#fff0d6!important}

@@ -21,14 +21,14 @@ let memDefault=null,storageOk=true;
 try{localStorage.setItem('cfs.probe','1');localStorage.removeItem('cfs.probe');}catch{storageOk=false;}
 H.loadDefaultTeam=async()=>{
   if(storageOk){try{memDefault=localStorage.getItem(LS);}catch{storageOk=false;}}
-  if(!storageOk){try{memDefault=(await call('pref-get',{})).defaultTeam||null;}catch{memDefault=null;}}
+  if(!memDefault){try{memDefault=(await call('pref-get',{})).defaultTeam||null;}catch{/* the backend copy is optional */}} // the saved copy survives a cleared or blocked browser storage
   return memDefault;
 };
 H.defaultTeam=()=>memDefault;
 H.setDefaultTeam=id=>{
   memDefault=id&&id!==memDefault?id:null;
   if(storageOk){try{memDefault?localStorage.setItem(LS,memDefault):localStorage.removeItem(LS);}catch{storageOk=false;}}
-  if(!storageOk)call('pref-set',{defaultTeam:memDefault}).catch(e=>window.toast?.('Could not save the default team: '+e.message,true));
+  call('pref-set',{defaultTeam:memDefault}).catch(e=>window.toast?.('Could not save the default team: '+e.message,true));
 };
 H.hasTeam=()=>H.team.Id!=='all';
 H.onTeam=fn=>{listeners.add(fn);return()=>listeners.delete(fn);};
