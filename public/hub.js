@@ -411,7 +411,7 @@ document.addEventListener('keydown',e=>{
   if(!(escHandlers.get(id)&&escHandlers.get(id)())){
     if(H.focus()){setFocus(false);e.preventDefault();e.stopImmediatePropagation();return;} // generic fallback: empty free-text filters on the page
     const box=document.getElementById('hub-page')||document;
-    for(const i of box.querySelectorAll('input[type=text],input[type=search],input:not([type])')){if(i.value&&!i.dataset.edit&&!i.dataset.rk&&!i.closest('[data-edit]')){i.value='';i.dispatchEvent(new Event('input',{bubbles:true}));break;}}
+    for(const i of box.querySelectorAll('input[type=text],input[type=search],input:not([type])')){if(i.value&&!i.dataset.edit&&!i.dataset.rk&&!i.dataset.f&&!i.closest('[data-edit],.hub-inline,.pl-sgp')){i.value='';i.dispatchEvent(new Event('input',{bubbles:true}));break;}}
   }
   e.preventDefault();e.stopImmediatePropagation(); // also stops the Release Review double-Escape refresh from firing on other tabs
 },true);

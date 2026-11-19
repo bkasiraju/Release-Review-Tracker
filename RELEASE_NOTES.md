@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.5-GA
+
+- Fixed: pressing Escape on the Release Planner could clear the first epic name (the page's generic "Escape clears filters" fallback treated the epic name box as a filter). Escape now only clears real filter boxes; epic and workstream fields are skipped.
+
 ## 7.0.4-GA
 
 - **SMART Goal** is now drafted with the GUS Apps AI SDK (`AppletAI`, the same agent the summaries use) in the browser. The earlier server-side Einstein call failed with "requestBody object is required", which is why only a template appeared. The goal is now ONE sentence of at most 45 words (change, metric and target, deadline), with no labels, explanations or restated title. If the AI is not available no template is forced; the box stays empty with a hint.

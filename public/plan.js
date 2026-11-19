@@ -777,7 +777,7 @@ function smartGoalPop(id,opener,edit){
   const ta=pop.querySelector('textarea'),note=pop.querySelector('.pl-sgp-n'),sv=pop.querySelector('[data-sgp-save]'),ed=pop.querySelector('[data-sgp-ed]'),gen=pop.querySelector('[data-sgp-gen]');
   const below=r.bottom+8;pop.style.top=Math.min(below,Math.max(12,innerHeight-pop.offsetHeight-12))+'px';
   const close=()=>{pop.remove();document.removeEventListener('mousedown',away,true);document.removeEventListener('keydown',key,true);try{opener.focus();}catch(_){}};
-  const away=ev=>{if(!pop.contains(ev.target)&&!ev.target.closest('.pl-sgw'))close();},key=ev=>{if(ev.key==='Escape'){ev.stopPropagation();close();}};
+  const away=ev=>{if(!pop.contains(ev.target)&&!ev.target.closest('.pl-sgw'))close();},key=ev=>{if(ev.key==='Escape'){ev.stopImmediatePropagation();ev.preventDefault();close();}};
   document.addEventListener('mousedown',away,true);document.addEventListener('keydown',key,true);
   const editable=()=>{ta.readOnly=false;sv.hidden=false;ed.hidden=true;ta.focus();};
   const clean=t=>String(t||'').replace(/```[a-z]*/gi,'').replace(/\*\*|__/g,'').split(/\n\s*\n/)[0].replace(/^\s*(?:SMART\s+goal|goal)\s*[:\-–]\s*/i,'').replace(/^["'“”]+|["'“”]+$/g,'').replace(/\s+/g,' ').trim();
