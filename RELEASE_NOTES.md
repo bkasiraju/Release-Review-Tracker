@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.73-GA
+
+- New "By engineer" view in the Planned Release Summary: for each engineer, the epics they work on ordered by priority with their workstreams, priority, ATL/BTL and days, plus ABL and BTL totals. Unassigned work is listed last.
+
 ## 6.26.72-GA
 
 - An epic with no workstreams keeps the same indent as one with workstreams (the fold arrow space is kept), so Project > Epic > Workstream line up.
