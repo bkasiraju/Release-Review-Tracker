@@ -2710,7 +2710,6 @@ html body .pl-grid tbody tr{opacity:.65;transition:opacity .15s ease}
 html body .pl-grid tbody tr:hover,html body .pl-grid tbody tr:focus-within,html body .pl-grid tbody tr.pl-row-on{opacity:1}
 /* names read as text until clicked, then become editable fields */
 html body .pl-grid input.hub-inline[data-f="name"]:not(:focus){background:transparent!important;border-color:transparent!important;box-shadow:none!important;text-overflow:ellipsis}
-html body .pl-grid tr:hover input.hub-inline[data-f="name"]:not(:focus){border-color:#cfd9e3!important;background:rgba(255,255,255,.7)!important}
 .pl-nt{position:fixed;z-index:3100;max-width:min(520px,calc(100vw - 16px));padding:7px 12px;border-radius:10px;background:linear-gradient(135deg,#1b96ff,#0b7be0);color:#fff;font:600 13px/1.35 inherit;box-shadow:0 8px 22px rgba(11,123,224,.35);pointer-events:none;word-break:break-word}
 /* 6.26.75 filters bar, engineer view in the planner's accordion style */
 .pl-rfbar{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px 10px;padding:8px 2px 10px}
@@ -2752,3 +2751,6 @@ html body .pl-grid .pl-nmw{display:flex;align-items:center;gap:6px;min-width:0;w
 html body .pl-grid .pl-nmw>input.hub-inline{flex:1 1 auto;min-width:0;width:auto!important}
 html body .pl-grid .pl-nmw>.pl-caret,html body .pl-grid .pl-nmw>.pl-ty,html body .pl-grid .pl-nmw>.pl-open-gus{flex:none;margin-left:0;margin-right:0}
 html body .pl-grid td:has(.pl-nmw){overflow:hidden}
+/* 6.26.82 names only show an edit border once clicked (focused); hovering shows the tooltip only */
+html body .pl-grid input.hub-inline[data-f="name"]:not(:focus),html body .pl-grid input.hub-inline[data-f="name"]:not(:focus):hover,html body .pl-grid tr:hover input.hub-inline[data-f="name"]:not(:focus),html body .pl-grid td:hover input.hub-inline[data-f="name"]:not(:focus){background:transparent!important;border-color:transparent!important;box-shadow:none!important;outline:0!important;cursor:text}
+html body .pl-grid input.hub-inline[data-f="name"]:focus{background:#fff!important;border:1px solid #0b5cab!important;box-shadow:0 0 0 3px rgba(11,92,171,.18)!important;outline:0}
