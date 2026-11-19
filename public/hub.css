@@ -2541,3 +2541,13 @@ html body[data-hub=plan] .pl-grid tr[data-e] td:first-child,html body[data-hub=p
 html body[data-hub=plan] .pl-grid tr[data-e].pl-drop-above td:first-child{box-shadow:inset 5px 0 var(--pc,#a8b7c7),inset 0 3px 0 #1b73b3!important}
 html body[data-hub=plan] .pl-grid tr[data-e].pl-drop-below td:first-child{box-shadow:inset 5px 0 var(--pc,#a8b7c7),inset 0 -3px 0 #1b73b3!important}
 html body[data-hub=plan] .pl-br{box-shadow:inset 5px 0 var(--pc,#a8b7c7)}
+/* 6.26.36 subtle button colours: light tint, coloured border and text instead of solid blue. Back = soft blue, save/commit = soft green, other primary = soft teal */
+html body .button.primary:not(.pl-danger){background:#e4f3f6!important;border-color:#a8d3dc!important;color:#0f6075!important;box-shadow:none!important}
+html body .button.primary:not(.pl-danger) :where(span,svg,b,i){color:#0f6075!important;stroke:currentColor}
+html body .button.primary:not(.pl-danger):hover:not(:disabled){background:#d3ebf0!important;border-color:#8cc3cf!important}
+html body .back-home,html body .pl-back{background:#e8f1fa!important;border-color:#b9d3ea!important;color:#1d4f7c!important;box-shadow:none!important}
+html body .back-home *,html body .pl-back *{color:#1d4f7c!important;stroke:#1d4f7c}
+html body .back-home:hover,html body .pl-back:hover{background:#d8e8f6!important;border-color:#9ec3e2!important}
+html body #pl-commit.button.primary,html body .pl-save-gus.button.primary{background:#e7f5ee!important;border-color:#a9d9c0!important;color:#166a43!important}
+html body #pl-commit.button.primary :where(span,svg,b,i){color:#166a43!important}
+html body #pl-commit.button.primary:hover:not(:disabled){background:#d5eee2!important;border-color:#8cc9aa!important}

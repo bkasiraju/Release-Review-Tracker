@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.36-GA (19 November 2026)
+
+Solid blue buttons are now subtle: Back to Hub and Back to Team Hub are a soft blue tint, Review & save to GUS is a soft green tint, and other primary buttons are a soft teal tint, each with a matching border and text colour. Delete confirmations keep their red. CSS only; not checked in a browser.
+
 ## 6.26.35-GA (19 November 2026)
 
 Project dialog: the GUS program box was filled in with the team program, and the browser list only shows entries that match the text already typed, so no other program could be picked. The box now clears when you click it (the old value comes back if you pick nothing) and shows every program ending in - 268; any other program name can still be typed. Not checked in a browser.
