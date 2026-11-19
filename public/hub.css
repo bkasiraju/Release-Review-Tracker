@@ -2687,3 +2687,28 @@ html body[data-hub=plan] .pl-miss{display:none!important}
 .pl-eng .pl-ev-w i{font-style:normal;font-size:11px;font-weight:600;text-align:center;border-radius:4px;padding:0 4px}
 .pl-eng .pl-ev-w i.abl{background:#e1effc;color:#0b5cab}.pl-eng .pl-ev-w i.btl{background:#ecedf0;color:#4b5563}
 .pl-eng .pl-ev-w u{text-decoration:none;text-align:right;font-variant-numeric:tabular-nums}
+
+/* 6.26.74 engineer tooltip: KPIs on one line, epics below, detailed summary button; richer engineer view */
+.pl-tt{pointer-events:auto!important}.pl-tt::before,.pl-tt::after{content:"";position:absolute;left:0;right:0;height:12px}.pl-tt::before{top:-12px}.pl-tt::after{bottom:-12px}
+.pl-tt .pl-tt-kpis{display:flex;flex-wrap:nowrap;gap:5px;margin-bottom:8px}.pl-tt .pl-tt-kpis .pl-tc{padding:2px 8px;font-size:11.5px}
+.pl-tt .pl-tt-sub{color:#5a6f82;font-size:12px}.pl-tt .pl-tt-sec{border-top:1px solid #e3eaf0;padding-top:6px;font-weight:700;font-size:11.5px;color:#5a6f82;text-transform:uppercase;letter-spacing:.04em}
+.pl-tt .pl-tt-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;border-top:1px solid #e3eaf0;margin-top:8px;padding-top:8px}
+.pl-tt .pl-tt-go{border:1px solid #0b5cab;background:#0b5cab;color:#fff;border-radius:6px;padding:4px 10px;font-size:12px;font-weight:600;cursor:pointer}.pl-tt .pl-tt-go:hover{background:#094a8a}
+.pl-eng .pl-ev-ctl{float:right;display:flex;gap:10px}.pl-eng .pl-ev-foc{box-shadow:0 0 0 2px #0b5cab}
+.pl-eng .pl-ev-h{cursor:pointer;list-style:none}.pl-eng .pl-ev-h::-webkit-details-marker,.pl-eng .pl-ev-en::-webkit-details-marker{display:none}
+.pl-eng .pl-ev-bw{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;padding:7px 10px;border-bottom:1px solid #eef2f6;background:#fafcfe}
+.pl-eng .pl-ev-s{display:flex;flex-direction:column;font-size:12px;line-height:1.25}.pl-eng .pl-ev-s small{color:#6b7c8d;font-size:10.5px}.pl-eng .pl-ev-s b{font-variant-numeric:tabular-nums}
+.pl-eng .pl-ev-s.a b{color:#0b5cab}.pl-eng .pl-ev-s.t b{color:#8a5206}.pl-eng .pl-ev-s.f b{color:#4b5563}.pl-eng .pl-ev-s.o b{color:#b3261e}
+.pl-eng .pl-ev-bar{flex:1;min-width:120px;max-width:240px;height:8px}
+.pl-eng .pl-ev-en{cursor:pointer;list-style:none}.pl-eng .pl-ev-en::before{content:"▸";color:#6b7c8d;font-size:11px}.pl-eng details[open]>.pl-ev-en::before{content:"▾"}
+.pl-eng .pl-ev-en b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pl-eng .pl-ev-en u{text-decoration:none;color:#3b4a5a;font-size:12px;white-space:nowrap}
+.pl-eng .pl-ev-en i{font-style:normal;font-size:11px;font-weight:600;border-radius:4px;padding:0 5px}.pl-eng .pl-ev-en i.abl{background:#e1effc;color:#0b5cab}.pl-eng .pl-ev-en i.btl{background:#ecedf0;color:#4b5563}
+.pl-eng .pl-ev-wh,.pl-eng .pl-ev-w{grid-template-columns:minmax(0,1fr) 54px 56px 110px 90px 80px!important;display:grid}
+.pl-eng .pl-ev-wh{padding:2px 0 2px 26px;font-size:10.5px;color:#6b7c8d;text-transform:uppercase;gap:8px}
+/* 6.26.74 rows rest at 65% opacity; hover, focus or a click brings a project/epic/workstream row to full strength */
+html body .pl-grid tbody tr{opacity:.65;transition:opacity .15s ease}
+html body .pl-grid tbody tr:hover,html body .pl-grid tbody tr:focus-within,html body .pl-grid tbody tr.pl-row-on{opacity:1}
+/* names read as text until clicked, then become editable fields */
+html body .pl-grid input.hub-inline[data-f="name"]:not(:focus){background:transparent!important;border-color:transparent!important;box-shadow:none!important;text-overflow:ellipsis}
+html body .pl-grid tr:hover input.hub-inline[data-f="name"]:not(:focus){border-color:#cfd9e3!important;background:rgba(255,255,255,.7)!important}
+.pl-nt{position:fixed;z-index:3100;max-width:min(520px,calc(100vw - 16px));padding:7px 12px;border-radius:10px;background:linear-gradient(135deg,#1b96ff,#0b7be0);color:#fff;font:600 13px/1.35 inherit;box-shadow:0 8px 22px rgba(11,123,224,.35);pointer-events:none;word-break:break-word}

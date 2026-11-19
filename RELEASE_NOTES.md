@@ -1,5 +1,11 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.74-GA
+
+- Engineer hover card: ABL, BTL and Unplanned on one line, epics in the next section, and a "Detailed summary" button that opens the Planned Release Summary on the By engineer view, scrolled to that engineer.
+- By engineer view: each engineer shows bandwidth (total, leave, holidays, on-call, available, ABL, BTL, unplanned or over-by) and a utilisation bar; epics are collapsible and open to workstreams with priority, ATL/BTL, sprint, status and days. Expand all / Collapse all.
+- Project, epic and workstream rows rest at 65% opacity and go to 100% on hover, focus or click. Names look like plain text until clicked, and hovering shows the full name in a bright tooltip.
+
 ## 6.26.73-GA
 
 - New "By engineer" view in the Planned Release Summary: for each engineer, the epics they work on ordered by priority with their workstreams, priority, ATL/BTL and days, plus ABL and BTL totals. Unassigned work is listed last.
