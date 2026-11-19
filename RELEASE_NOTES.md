@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.3-GA
+
+- SMART Goal prompt now uses the software-engineering criteria: exact technical change, engineering metrics (p95 latency, rollback or recovery time, coverage, bug count, deployment frequency) taken from the epic name and description, capacity-based achievability, roadmap/reliability relevance and a sprint, quarter or release deadline. Numbers and baselines are never invented.
+
 ## 7.0.2-GA
 
 - **SMART Goal** now follows the full definition. GUS Apps AI drafts five labelled lines (Specific, Measurable, Achievable, Relevant, Time-bound) under a one-line headline, using only facts from the epic name, workstreams, effort, release and GUS description. The reply is parsed by label (one retry), and when AI fails the popover says why and shows a template in the same five-part shape. The goal keeps its line breaks in the plan and at the top of the GUS epic description. The popover text is smaller and taller. 7.0.0-GA (golden) is unchanged.
