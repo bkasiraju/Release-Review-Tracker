@@ -2628,3 +2628,9 @@ html body[data-hub=plan] .pl-grid tr[data-e]:not([data-wr]) td[class]:not(.pl-g-
 html body[data-hub=plan] .pl-grid tr[data-wr] td[class]:not(.pl-g-act){background-color:#fff8ec!important}
 html body[data-hub=plan] .pl-grid tr[data-e]:not([data-wr]):hover td[class]:not(.pl-g-act){background-color:#e6f1fa!important}
 html body[data-hub=plan] .pl-grid tr[data-wr]:hover td[class]:not(.pl-g-act){background-color:#fff0d6!important}
+
+/* 6.26.55 larger project, epic and workstream names */
+html body[data-hub=plan] .pl-g-proj .pl-pj-n{font-size:14.5px!important;font-weight:650!important}
+html body[data-hub=plan] .pl-grid tr[data-e]:not([data-wr]) td.c-name,html body[data-hub=plan] .pl-grid tr[data-e]:not([data-wr]) td.c-name input,html body[data-hub=plan] .pl-grid tr[data-e]:not([data-wr]) td.c-name a{font-size:14px!important;font-weight:600!important}
+html body[data-hub=plan] .pl-grid tr[data-wr] td.c-ws input{font-size:13.5px!important}
+html body[data-hub=plan] .pl-grid tr[data-wr] td.c-ws input,html body[data-hub=plan] .pl-grid tr[data-e]:not([data-wr]) td.c-name input{height:30px!important;min-height:30px!important}
