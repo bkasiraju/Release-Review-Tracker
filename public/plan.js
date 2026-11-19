@@ -80,7 +80,9 @@ function crDialog(title,sub,bodyHtml,okLabel,submit){
 }
 // Tree state: which project / epic rows are collapsed (per team, remembered in this browser).
 const colKey=()=>'ri-collapse-'+(H.team&&H.team.Id);
-const collapsed=()=>{const t=H.team&&H.team.Id;if(P.col&&P.colTeam===t)return P.col;let a=[];try{a=JSON.parse(localStorage.getItem(colKey()))||[];}catch(_){}P.colTeam=t;return P.col=new Set(a);};
+/** Every load starts fully collapsed (projects and epics); rows added afterwards stay open so they can be edited. */
+const collapsed=()=>{const t=H.team&&H.team.Id;if(!P.col||P.colTeam!==t){P.colTeam=t;P.col=new Set();P.colSeed=null;}
+  if(P.plan&&P.colSeed!==P.plan){P.colSeed=P.plan;P.plan.projects.forEach(p=>P.col.add('p:'+p.id));P.plan.epics.forEach(e=>P.col.add('e:'+e.id));}return P.col;};
 const setCollapsed=(k,on)=>{const c=collapsed();if(on)c.add(k);else c.delete(k);try{localStorage.setItem(colKey(),JSON.stringify([...c]));}catch(_){}};
 // Smart shortening for GUS name limits (Project and Epic names: 80). Applies the least lossy step first and stops as soon as the name fits.
 const NAME_ABBR=[[/\binfrastructure\b/gi,'Infra'],[/\bconfiguration\b/gi,'Config'],[/\bapplications\b/gi,'Apps'],[/\bapplication\b/gi,'App'],[/\benvironments\b/gi,'Envs'],[/\benvironment\b/gi,'Env'],[/\bperformance\b/gi,'Perf'],[/\bdocumentation\b/gi,'Docs'],[/\bmanagement\b/gi,'Mgmt'],[/\bauthentication\b/gi,'Auth'],[/\bimplementation\b/gi,'Impl'],[/\bdevelopment\b/gi,'Dev'],[/\band\b/gi,'&'],[/\bwith\b/gi,'w/']];
@@ -702,14 +704,15 @@ function drawRps(){
 function openRps(k,opener){
   const pl=P.plan,prj=new Map(pl.projects.map(p=>[p.id,p]));let title,list;
   if(k.startsWith('e:')){const e=findE(k.slice(2));if(!e)return;
-    openModal(e.name||'(unnamed epic)',`<p class="note">${esc(epicTheme(e))} · P${esc(e.priority==null?0:e.priority)} · ${esc(e.line)} · ${esc((prj.get(e.projectId)||{}).name||'—')} · ${fmt(epicDays(e))} pts</p><table class="pl-rps-t"><thead><tr><th>Workstream</th><th>Priority</th><th>Engineers</th><th>Sprint</th><th>Status</th><th>Days</th></tr></thead><tbody>${e.workstreams.map(w=>`<tr class="${w.flag==='new'?'pl-ws-new':w.flag==='changed'?'pl-ws-chg':''}"><td>${esc(w.name||'(unnamed)')}${w.flag==='new'?' <em class="pl-rv-tag new">New</em>':w.flag==='changed'?' <em class="pl-rv-tag upd">Changed</em>':''}</td><td>P${esc(w.priority==null?0:w.priority)}</td><td>${esc(wsNames(w).join(', ')||'—')}</td><td>${esc(w.sprint||'—')}</td><td>${esc(w.status||'—')}</td><td>${fmt(w.days||0)}</td></tr>`).join('')||'<tr><td colspan="6" class="note">No workstreams yet.</td></tr>'}</tbody></table>`,opener);return;}
+    openModal(e.name||'(unnamed epic)',`<div class="pl-mo-chips"><span class="pl-mo-c t">${esc(epicTheme(e))}</span><span class="pl-mo-c p">P${esc(e.priority==null?0:e.priority)}</span><span class="pl-mo-c ${e.line==='ABL'?'a':'b'}">${esc(e.line)}</span><span class="pl-mo-c">${esc((prj.get(e.projectId)||{}).name||'—')}</span><span class="pl-mo-c">${fmt(epicDays(e))} pts</span><span class="pl-mo-c">${e.workstreams.length} workstream${e.workstreams.length===1?'':'s'}</span></div><div class="pl-mo-scroll"><table class="pl-rps-t pl-rps-m"><thead><tr><th>Workstream</th><th>Priority</th><th>Engineers</th><th>Sprint</th><th>Status</th><th>Days</th></tr></thead><tbody>${e.workstreams.map(w=>`<tr class="${w.flag==='new'?'pl-ws-new':w.flag==='changed'?'pl-ws-chg':''}"><td>${esc(w.name||'(unnamed)')}${w.flag==='new'?' <em class="pl-rv-tag new">New</em>':w.flag==='changed'?' <em class="pl-rv-tag upd">Changed</em>':''}</td><td><span class="pl-mo-c p">P${esc(w.priority==null?0:w.priority)}</span></td><td>${wsNames(w).map(n=>`<span class="pl-mo-c">${esc(n)}</span>`).join(' ')||'—'}</td><td>${esc(w.sprint||'—')}</td><td>${esc(w.status||'—')}</td><td>${fmt(w.days||0)}</td></tr>`).join('')||'<tr><td colspan="6" class="note">No workstreams yet.</td></tr>'}</tbody></table></div>`,opener,true);return;}
   if(k==='abl'){title='Total payload (ABL)';list=pl.epics.filter(e=>e.line==='ABL');}
   else if(k==='btl'){title='BTL effort';list=pl.epics.filter(e=>e.line!=='ABL');}
   else if(k[0]==='p'){title=(k[1]==='3'?'P3+':'P'+k[1])+' epics';list=pl.epics.filter(e=>bucketOf(e)===Number(k[1]));}
   else{const t=k.slice(2);title='Theme: '+t;list=pl.epics.filter(e=>e.line==='ABL'&&epicTheme(e)===t);}
   list=[...list].sort((a,b)=>(a.priority==null?0:a.priority)-(b.priority==null?0:b.priority));
   const eng=e=>[...new Set(e.workstreams.flatMap(wsNames))].join(', ')||'—';
-  openModal(title,list.length?`<table class="pl-rps-t"><thead><tr><th>P</th><th>Epic</th><th>Project</th><th>Release</th><th>ATL/BTL</th><th>Engineers</th><th>Days</th></tr></thead><tbody>${list.map(e=>`<tr><td>P${esc(e.priority==null?0:e.priority)}</td><td>${esc(e.name||'(unnamed)')}</td><td>${esc((prj.get(e.projectId)||{}).name||'—')}</td><td>${esc(e.releaseName||'—')}</td><td>${esc(e.line)}</td><td>${esc(eng(e))}</td><td>${fmt(epicDays(e))}</td></tr>`).join('')}</tbody></table>`:'<p class="note">No epics.</p>',opener);
+  const tp=r2(list.reduce((t,e)=>t+epicDays(e),0));
+  openModal(title,list.length?`<div class="pl-mo-chips"><span class="pl-mo-c">${list.length} epic${list.length===1?'':'s'}</span><span class="pl-mo-c">${fmt(tp)} pts</span><span class="pl-mo-c a">${list.filter(e=>e.line==='ABL').length} ABL</span><span class="pl-mo-c b">${list.filter(e=>e.line!=='ABL').length} BTL</span></div><div class="pl-mo-scroll"><table class="pl-rps-t pl-rps-m"><thead><tr><th>P</th><th>Epic</th><th>Project</th><th>Release</th><th>ATL/BTL</th><th>Engineers</th><th>Days</th></tr></thead><tbody>${list.map(e=>`<tr><td><span class="pl-mo-c p">P${esc(e.priority==null?0:e.priority)}</span></td><td class="pl-mo-n">${esc(e.name||'(unnamed)')}</td><td>${esc((prj.get(e.projectId)||{}).name||'—')}</td><td>${esc(e.releaseName||'—')}</td><td><span class="pl-mo-c ${e.line==='ABL'?'a':'b'}">${esc(e.line)}</span></td><td>${eng(e)==='—'?'—':eng(e).split(', ').map(n=>`<span class="pl-mo-c">${esc(n)}</span>`).join(' ')}</td><td>${fmt(epicDays(e))}</td></tr>`).join('')}</tbody></table></div>`:'<p class="note">No epics.</p>',opener,true);
 }
 function setTab(t){P.tab=t;const q=s=>P.el.querySelector(s);q('#pl-main').hidden=t!=='plan';q('#pl-rps').hidden=t!=='rps';P.el.querySelectorAll('[data-tab]').forEach(b=>{const on=b.dataset.tab===t;b.classList.toggle('on',on);b.setAttribute('aria-selected',on);});if(t==='rps')drawRps();}
 const tone=pct=>pct>100?'over':pct>85?'warn':'ok';
@@ -1187,9 +1190,9 @@ function delProjectDlg(pid,opener){
       closeModal();draw();queueSave();window.toast?.(msg,warn);
     }catch(e){err.textContent=String(e&&e.message||e)+(gus&&gus.checked?' The project was kept on the dashboard.':'');err.hidden=false;sync();}};
 }
-function openModal(title,body,opener){
+function openModal(title,body,opener,wide){
   closeModal();const el=document.createElement('div');el.className='nd-overlay';
-  el.innerHTML=`<div class="nd-modal pl-modal" role="dialog" aria-modal="true" aria-labelledby="pl-mt"><div class="nd-head"><h2 id="pl-mt">${esc(title)}</h2><button type="button" class="nd-x" data-close aria-label="Close">×</button></div><div id="pl-mb">${body}</div></div>`;
+  el.innerHTML=`<div class="nd-modal pl-modal${wide?' pl-modal-wide':''}" role="dialog" aria-modal="true" aria-labelledby="pl-mt"><div class="nd-head"><h2 id="pl-mt">${esc(title)}</h2><button type="button" class="nd-x" data-close aria-label="Close">×</button></div><div id="pl-mb">${body}</div></div>`;
   H.popHost().appendChild(el);
   modal={el,opener,key:e=>{if(e.key==='Escape'){e.stopImmediatePropagation();e.preventDefault();closeModal();}}};document.addEventListener('keydown',modal.key,true);
   el.addEventListener('click',e=>{if(e.target===el||e.target.closest('[data-close]'))closeModal();});
@@ -1296,7 +1299,11 @@ H.register({id:'plan',label:'Release Planning (Quarterly)',icon:'plan',tone:'gre
     const bar=document.querySelector('.dashboard-bar');if(bar){const bk=document.createElement('a');bk.href='#/home';bk.id='pl-back';bk.className='pl-back';bk.title='Back to Team Hub — Team Hub for this team';bk.innerHTML='<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M12 4 6 10l6 6M6 10h10"/></svg><span>Back to Team Hub</span>';
       bk.onclick=async ev=>{ev.preventDefault();if(P.state==='dirty'&&!await H.confirm({title:'Unsaved changes',message:'You have unsaved changes. Leave without saving?',ok:'Leave',cancel:'Stay',danger:true}))return;if(P.state==='dirty')P.state='saved';const m=location.pathname.match(/^.*\/applets\/cfs-release-review-tracker\//);if(m){try{(window.top||window).location.assign(m[0]);}catch(_){location.assign(m[0]);}}else H.go('home');};bar.appendChild(bk);}el.onclick=onClick;wireDrag(el);wireColDrag(el);el.querySelector('#pl-import-file').onchange=ev=>{const f=ev.target.files[0];ev.target.value='';if(f)f.arrayBuffer().then(b=>openImport(b,el.querySelector('#pl-import')));};load(el);
   }});
-H.onEsc('plan',()=>{closeModal();return true;});
+H.onEsc('plan',()=>{
+  if(modal){closeModal();return true;}
+  if(P.tab==='rps'&&P.rf&&['q','project','theme','line','pri','eng','status','rel'].some(k=>P.rf[k])){Object.assign(P.rf,{q:'',project:'',theme:'',line:'',pri:'',eng:'',status:'',rel:''});drawRps();return true;}
+  const V=P.view;if(V&&(V.q||V.kpi||['tok','release','line','eng','theme'].some(k=>(V[k]||[]).length)||Object.values(V.col||{}).some(Boolean))){Object.assign(V,{q:'',tok:[],release:[],line:[],eng:[],theme:[],col:{}});saveFilters();draw();return true;}
+  return false;});
 window.addEventListener('beforeunload',e=>{if(P.state==='dirty'||P.state==='saving'){e.preventDefault();e.returnValue='';}});
 window.addEventListener('hub:team',()=>{closeModal();clearTimeout(P.timer);});
 })();

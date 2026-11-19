@@ -1,5 +1,11 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.77-GA
+
+- Summary drill-down popups (theme, priority, ATL/BTL, epic) are redesigned: nearly full screen with a gradient header and round close button, summary chips, a scrolling table with sticky headers, priority and ATL/BTL pills, and engineer chips.
+- Esc now works in order: it closes a popup, then clears the Planned Release Summary filters, then clears the planner grid filters, then falls back to the page-wide behaviour.
+- The planner opens fully collapsed (projects and epics) on every load instead of remembering the last expanded state. Rows you add afterwards stay open.
+
 ## 6.26.76-GA
 
 - Planned Release Summary: one set of filters for every tab (search, project, theme, ATL/BTL, priority, engineer, status, release) and a Group by option for Priority board, Engineer View and GUS Summary. Shows "Showing X of Y epics" and a Clear filters button.
