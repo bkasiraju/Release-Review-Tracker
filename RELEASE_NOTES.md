@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.13-GA (19 November 2026)
+
+The planner header and toolbar stay pinned at the top while the grid scrolls (also in full screen), so the controls are always reachable. CSS only; not checked in a browser.
+
 ## 6.26.12-GA (19 November 2026)
 
 The ten planning tiles are now one collapsible "Planning metrics" section, collapsed by default with a one-line brief (ABL, BTL, unplanned, % used) and expandable on click. Inside, compact tiles are grouped as Planned (ABL, BTL, total, ABL epics, BTL epics), Unplanned (unplanned capacity, headroom, unassigned effort, over-allocated) and Capacity & delivery (available, time off, incomplete epics, pending GUS save, saved in GUS). New tiles: unplanned capacity, ABL epics, BTL epics, saved in GUS. Not checked in a browser.

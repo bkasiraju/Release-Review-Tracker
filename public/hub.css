@@ -2432,3 +2432,7 @@ html body[data-hub=plan] .pl-kg .pl-kpi b{font-size:16px!important}
 html body[data-hub=plan] .pl-kg .pl-kpi .pl-chip{display:none}
 html body[data-hub=plan] .pl-kg.pk{--g:#2e844a}html body[data-hub=plan] .pl-kg.uk h4{color:#a85d0a}html body[data-hub=plan] .pl-kg.pk h4{color:#2e844a}
 @media(max-width:900px){html body[data-hub=plan] .pl-kg{grid-template-columns:1fr}}
+/* 6.26.13 keep the planner controls in view while the grid scrolls */
+html body[data-hub=plan] .pl-bar{position:sticky;top:0;z-index:40;box-shadow:0 2px 8px rgba(22,50,74,.08)}
+html body[data-hub=plan] .pl-fs.pl-fs-on .pl-bar{top:-18px;padding-top:0}
+html body[data-hub=plan] .pl-fs.pl-fs-on{padding-top:18px}
