@@ -2888,3 +2888,12 @@ html body .heading-actions :is(#pl-refresh-gus,#pl-leaves,#pl-save,#pl-commit):f
 html body .nd-modal.pl-modal-wide{height:auto!important;min-height:220px;max-height:calc(100vh - 48px)!important}
 html body .pl-modal-wide #pl-mb{flex:0 1 auto!important}
 html body .pl-modal-wide .pl-mo-scroll{flex:0 1 auto!important}
+/* HRP measure hover card (project P icon) */
+.pl-ty-p[data-tip-meas]{cursor:help}.pl-ty-p[data-tip-meas]:focus-visible{outline:2px solid #0b5cab;outline-offset:2px}
+html body .pl-tt.pl-tt-meas{width:440px;font-size:12.5px}
+.pl-tt-meas .pl-tt-h{align-items:flex-start}.pl-tt-meas .pl-tt-h b{font-size:13.5px;line-height:1.35}.pl-tt-meas .pl-tt-h .pl-tc{flex:none}
+.pl-tt-meas .pl-mt-refs,.pl-tt-meas .pl-mt-scope{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin:0 0 8px}.pl-tt-meas .pl-mt-refs small{color:#5a6f82;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+.pl-tt-meas .pl-mt-scope{margin:6px 0 8px}.pl-tt-meas .pl-tt-sec{margin-top:6px}
+.pl-tt-meas ul.pl-mt-ul{margin:6px 0 4px 16px;list-style:disc}.pl-tt-meas ul.pl-mt-ul li{display:list-item;padding:2px 0;line-height:1.4}.pl-tt-meas ul.pl-mt-ul li>span{white-space:normal;overflow:visible}
+.pl-tt-meas dl.pl-mt-kv{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;margin:6px 0 4px}.pl-tt-meas dt{font-weight:700}.pl-tt-meas dd{margin:0;color:#5a6f82}
+html body .pl-tt.pl-tt-meas a.pl-tt-go{text-decoration:none;display:inline-block}

@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.7-GA
+
+- Hover (or focus / click) the **P** icon on a project row to see its HRP measure: number and title, V2MOM refs, scope, goals and dates, with an "Open tracker" link to the HRP V2MOM Tracker. Details are bundled for HRP M1.1.1 and M1.1.3 (`public/hrp-measures.js`); other projects show their name and V2MOM refs until an entry is added.
+
 ## 7.0.6-GA
 
 - Drill-down popups (epic and workstream detail) now size to their content: a 3-workstream epic gets a short popup instead of a full-screen one; long lists grow up to the screen height and then scroll.
