@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.84-GA
+
+- Engineer hover card: the "Detailed summary" button, Total chip and ABL chip use the dashboard blue with readable text. Clicking an allocation bar pins the card open so the button can be clicked; click elsewhere or press Esc to close it.
+
 ## 6.26.83-GA
 
 - Engineer View: the bandwidth figures (total, leave, holidays, on-call, available, ABL, BTL, unplanned and the bar) now sit at the right of each engineer header line instead of in a row below it.
