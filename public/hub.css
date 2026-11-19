@@ -2767,3 +2767,9 @@ html body .pl-tt .pl-tt-go:hover{background:#08457f!important;border-color:#0845
 html body .pl-tt .pl-tc.t{background:#fff!important;color:#0b5cab!important;border:1px solid #0b5cab!important}
 html body .pl-tt .pl-tc.a{background:#e1effc!important;color:#0b5cab!important;border:1px solid #9cc4ea!important}
 html body .pl-tt .pl-tt-sec{color:#0b5cab}
+/* 6.26.85 project-row chips: subtle tints, same 65% resting opacity as every other row */
+html body .pl-grid tr.pl-g-proj:not(:hover):not(.pl-row-on){opacity:.65}
+html body .pl-grid .pl-gsum i{font-weight:600!important;background:#f4f7fa!important;border:1px solid #d5dee8!important;color:#4a5b6b!important}
+html body .pl-grid .pl-gsum i:first-child{background:#e6f5ec!important;border-color:#b7dcc5!important;color:#1d6b47!important}
+html body .pl-grid .pl-gsum i.abl{background:#eaf3fb!important;border-color:#bcd7ee!important;color:#2a6aa6!important}
+html body .pl-grid .pl-gsum i.btl{background:#fdf5e4!important;border-color:#ecd5a2!important;color:#8a6a2a!important}

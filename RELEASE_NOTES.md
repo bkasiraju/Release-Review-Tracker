@@ -1,5 +1,10 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.85-GA
+
+- Project row chips are subtle tints again (green epic count, soft blue ABL, soft amber BTL) and project rows follow the same 65% resting opacity as epic and workstream rows.
+- New daily backup: `scripts/daily_backup.js` writes one JSON snapshot of the GUS Apps shared backend per day to a private repo (bkasiraju/Release-Review-Tracker-backups), scheduled at 08:00 by launchd. It refuses to run if the backup repo is not private.
+
 ## 6.26.84-GA
 
 - Engineer hover card: the "Detailed summary" button, Total chip and ABL chip use the dashboard blue with readable text. Clicking an allocation bar pins the card open so the button can be clicked; click elsewhere or press Esc to close it.
