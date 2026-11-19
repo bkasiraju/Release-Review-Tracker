@@ -2605,3 +2605,7 @@ html body .pl-cr .pl-cr-g{gap:6px 8px!important;padding:8px 10px!important}
 html body .pl-cr .pl-cr-s{margin-bottom:6px!important}
 html body .pl-cr .pl-cr-s>h3{padding:5px 10px!important}
 html body .pl-cr .pl-cr-btns{padding-top:6px!important;margin-top:4px!important}
+
+/* 6.26.52 disclaimer spans the full dialog width; GUS epic, ATL and priority share one line */
+html body .pl-cr .pl-cr-g>.pl-cr-disc{grid-column:1/-1!important;width:auto!important;min-width:0!important;margin:2px 0 0!important;padding:5px 10px!important;white-space:normal!important}
+html body .pl-cr .pl-cr-g>.pl-cr-disc[hidden]{display:none!important}

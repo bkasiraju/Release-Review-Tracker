@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.52-GA
+
+- Add existing GUS epic: the workstreams disclaimer spans the full dialog width instead of a narrow column; GUS epic, ATL/BTL and priority sit on one line.
+
 ## 6.26.51-GA
 
 - Add epic dialog: epic name on its own row, ATL/BTL, priority, development lead and planned release on one line below it; planned release defaults to the release selected at the top of the planner; the automatic Team/Program/Owner info is collapsed; tighter padding.
