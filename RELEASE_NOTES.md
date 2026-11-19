@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.65-GA
+
+- The red * now sits on the top corner of the P or E badge and takes no extra space.
+
 ## 6.26.64-GA
 
 - The red * for a project without epics or an epic without workstreams now sits right after the P or E badge, before the name.
