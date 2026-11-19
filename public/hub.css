@@ -2475,3 +2475,6 @@ html body[data-hub=plan] .pl-hdr .gus-links{order:9;margin:0 0 0 0!important;pad
 html body[data-hub=plan] .pl-hdr .pl-dm{order:10;margin-left:8px}
 /* 6.26.23 the old .pl-tools .pl-grid-tools .pl-tl rule out-ranked display:contents, leaving the groups in the wrong order */
 html body[data-hub=plan] .pl-hdr #pl-tools.pl-tools .pl-grid-tools .pl-tl,html body[data-hub=plan] .pl-hdr #pl-tools.pl-tools .pl-grid-tools,html body[data-hub=plan] .pl-hdr #pl-tools.pl-tools{display:contents!important}
+/* 6.26.24 Collapse all / Expand all flush right on line 1, beside Full screen */
+html body[data-hub=plan] .pl-hdr .pl-grid-tools>.pl-tg[aria-label=Rows]{margin-left:auto;padding-right:0;border-left:0}
+html body[data-hub=plan] .pl-hdr #pl-fs-btn{margin-left:12px}
