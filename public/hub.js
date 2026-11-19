@@ -490,7 +490,7 @@ async function boot(){
   try{
     const r=await call('hub-teams',{});H.teams=r.teams;
     $('hub-team').innerHTML=[ALL,...H.teams].map(t=>`<option value="${esc(t.Id)}">${esc(t.short||t.Name)}</option>`).join('');
-    let saved=null;try{const dflt=await H.loadDefaultTeam();saved=(location.hash.match(/^#\/plan\?full&team=([A-Za-z0-9]+)/)||[])[1]||dflt;}catch{/* ignore */}
+    let saved=null;try{const dflt=await H.loadDefaultTeam();const nav=(performance.getEntriesByType('navigation')[0]||{}).type;saved=(nav==='reload'?null:(location.hash.match(/^#\/plan\?full&team=([A-Za-z0-9]+)/)||[])[1])||dflt;}catch{/* ignore */}
     H.team=saved==='all'?ALL:H.teams.find(t=>t.Id===saved)||H.teams.find(t=>t.Id===r.primaryTeamId)||H.teams[0]||ALL;
     $('hub-team').value=H.team.Id;$('hub-team').dataset.pref='1';H.customSelect($('hub-team'));
   }catch(e){window.toast?.('Team list unavailable: '+e.message,true);}

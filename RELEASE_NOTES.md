@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.57-GA
+
+- Refreshing the page loads the default (starred) team. The team in a full-screen planner link is only used when the tab is first opened from the hub, not on a refresh.
+
 ## 6.26.56-GA
 
 - Name text in the table is a little smaller than 6.26.55: project 13.5px, epic and workstream 13px.
