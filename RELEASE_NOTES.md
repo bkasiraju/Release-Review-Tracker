@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.51-GA
+
+- Add epic dialog: epic name on its own row, ATL/BTL, priority, development lead and planned release on one line below it; planned release defaults to the release selected at the top of the planner; the automatic Team/Program/Owner info is collapsed; tighter padding.
+
 ## 6.26.50-GA
 
 - Epics created from the planner now get their workstreams fetched from GUS by the "WS: " title or the R<release>_<team>_Workstream theme, on load and with a new "Fetch from GUS" button. Existing workstreams are matched, not duplicated.

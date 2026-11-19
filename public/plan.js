@@ -236,6 +236,7 @@ function newEpicAt(pid){
   const pr=pl.projects.find(x=>x.id===pid)||pl.projects[pl.projects.length-1];
   const rel=P.refs.releases,prog=P.refs.program,tags=P.refs.tags||[],tagKey='ri-ws-tag-'+H.team.Id,lastTag=defTag(tags,tagKey);
   const lead=P.members.slice().sort((x,y)=>String(x.name).localeCompare(String(y.name))),eng=P.members.filter(isEng).slice().sort((a,b)=>String(a.name).localeCompare(String(b.name)));
+  const defR=(pl.window&&rel.some(r=>r.id===pl.window.releaseId)?pl.window.releaseId:'')||(defRel().releaseId&&rel.some(r=>r.id===defRel().releaseId)?defRel().releaseId:'');
   const atl=cls=>crField('ATL/BTL','',`<select class="hub-inline" data-l><option value="ABL" selected>ABL / ATL (above the line)</option><option value="BTL">BTL (below the line)</option></select>`,cls);
   const wsRow=()=>`<div class="pl-wsr"><input class="hub-inline" type="text" data-wn maxlength="200" placeholder="Workstream name" aria-label="Workstream name" autocomplete="off"><select class="hub-inline" data-we aria-label="Engineer"><option value="">Unassigned</option>${eng.map(m=>opt(m.id,m.name,false)).join('')}</select><input class="hub-inline" type="number" min="0" max="1000" step="0.5" data-wd placeholder="Days" aria-label="Planned days"><button type="button" class="pl-ib" data-wx aria-label="Remove workstream" title="Remove">×</button></div>`;
   const body=
@@ -246,16 +247,16 @@ function newEpicAt(pid){
       atl('s3 pl-cr-pick').replace('data-l','data-xl')+
       crField('Priority','required',`<select class="hub-inline" data-xp required>${priOpts(0)}</select>`,'s3 pl-cr-pick')+
       `<span class="pl-cr-pinfo s12 pl-cr-pick" data-xi></span>`+
-      crField('Epic name',`<span data-cnt>0 / ${EPIC_NAME_MAX}</span>`,`<textarea class="hub-inline" rows="2" data-n placeholder="Epic name" autocomplete="off"></textarea>`,'s9 pl-cr-new')+
+      crField('Epic name',`<span data-cnt>0 / ${EPIC_NAME_MAX}</span>`,`<textarea class="hub-inline" rows="2" data-n placeholder="Epic name" autocomplete="off"></textarea>`,'s12 pl-cr-new')+
       `<p class="pl-cr-fit s12 pl-cr-new" data-efit role="status"></p>`+
       atl('s3 pl-cr-new')+
-      crField('Priority','required · P0 is highest',`<select class="hub-inline" data-pri required>${priOpts(0)}</select>`,'s3 pl-cr-new')+
-      crField('Development lead','required · epic owner',`<select class="hub-inline" data-o><option value="" selected>Select a team member…</option>${lead.map(m=>opt(m.id,m.name,false)).join('')}</select>`,'s6 pl-cr-new')+
-      crField('Planned release','',`<select class="hub-inline" data-r>${opt('','— None (set after planning) —',true)}${rel.map(r=>opt(r.id,r.name,false)).join('')}</select>`,'s6 pl-cr-new'))+
+      crField('Priority','required · P0 highest',`<select class="hub-inline" data-pri required>${priOpts(0)}</select>`,'s3 pl-cr-new')+
+      crField('Development lead','required · epic owner',`<select class="hub-inline" data-o><option value="" selected>Select a team member…</option>${lead.map(m=>opt(m.id,m.name,false)).join('')}</select>`,'s3 pl-cr-new')+
+      crField('Planned release','',`<select class="hub-inline" data-r>${opt('','— None (set after planning) —',!defR)}${rel.map(r=>opt(r.id,r.name,r.id===defR)).join('')}</select>`,'s3 pl-cr-new'))+
     crSection('Workstreams <small>optional · each is created in GUS as a story under the epic</small>',
       `<div class="pl-wsbox s12"><div data-wsrows>${wsRow()}</div><div class="pl-wsbar"><button type="button" class="button small" data-wadd>+ Add workstream</button>`+
       `<label class="pl-wstag" data-tagbox hidden>Product tag <small>required by GUS</small><select class="hub-inline" data-t><option value="">Select a tag…</option>${tags.map(t=>opt(t.id,t.name,t.id===lastTag)).join('')}</select></label></div></div>`)+
-    `<div class="pl-cr-new">${crAuto([['Team',H.team.Name],['Program',prog?prog.name:'—'],['Epic owner','= Development lead']])}</div>`;
+    `<details class="pl-cr-new pl-cr-more"><summary>Set automatically</summary>${crAuto([['Team',H.team.Name],['Program',prog?prog.name:'—'],['Epic owner','= Development lead']])}</details>`;
   let md='new',xeps=[];const made={epic:null,ws:new Map()};
   const flashRow=e=>{const row=P.el.querySelector(`[data-e="${e.id}"]`);if(row){row.scrollIntoView({block:'center'});row.classList.add('pl-flash');setTimeout(()=>row.classList.remove('pl-flash'),2600);}};
   const el=crDialog('Add epic','Create a new epic in GUS, or add an epic that already exists in GUS, under this project. Workstreams are optional.',body,'Create in GUS',async(el,fail,detach)=>{
