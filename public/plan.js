@@ -1309,7 +1309,6 @@ H.onEsc('plan',()=>{
   return false;});
 window.addEventListener('beforeunload',e=>{if(P.state==='dirty'||P.state==='saving'){e.preventDefault();e.returnValue='';}});
 window.addEventListener('hub:team',()=>{closeModal();clearTimeout(P.timer);});
-})();
 
 /** Hovering a project, epic or workstream name shows its full text in a bright tooltip; clicking a row keeps it at full opacity. */
 (()=>{let nt=null;const off=()=>{if(nt){nt.remove();nt=null;}};
@@ -1319,4 +1318,5 @@ window.addEventListener('hub:team',()=>{closeModal();clearTimeout(P.timer);});
     const r=h.getBoundingClientRect(),w=nt.offsetWidth,ht=nt.offsetHeight;nt.style.left=Math.min(Math.max(8,r.left+12),innerWidth-w-8)+'px';nt.style.top=(r.top-ht-8<8?r.bottom+8:r.top-ht-8)+'px';});
   document.addEventListener('focusin',e=>{if(host(e))off();});window.addEventListener('scroll',off,true);document.addEventListener('mousedown',off);
   document.addEventListener('click',e=>{const tr=e.target.closest&&e.target.closest('.pl-grid tbody tr');if(!tr)return;document.querySelectorAll('.pl-grid tr.pl-row-on').forEach(x=>x!==tr&&x.classList.remove('pl-row-on'));tr.classList.add('pl-row-on');});
+})();
 })();

@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.88-GA
+
+- Fixed the name tooltip and click-to-highlight on planner rows: that code sat outside the planner module, so it failed silently. Hovering a project, epic or workstream name now shows the full name, and clicking a row keeps it at full opacity.
+
 ## 6.26.87-GA
 
 - Daily backup now runs at 09:00 and also at login or wake if that run was missed (Mac asleep or logged out). It skips when today's snapshot is already saved and pushed, and before 09:00.
