@@ -111,7 +111,7 @@ const crUser=()=>(P.user&&P.user.name)||'You (signed-in GUS user)';
 function newProjectAt(){
   const pl=P.plan,prog=P.refs.program,methods=ioLists().methods;
   const inPlan=g=>pl.projects.some(x=>(g.id&&x.gusId===g.id)||x.name.toLowerCase()===g.name.toLowerCase());
-  const avail=P.refs.projects.filter(g=>!inPlan(g));
+  const avail=P.refs.projects.filter(g=>!inPlan(g)&&(!prog||!g.programId||g.programId===prog.id));
   const mode=`<div class="pl-cr-seg" role="tablist" aria-label="Project source"><button type="button" role="tab" data-mode="pick">Pick from GUS</button><button type="button" role="tab" data-mode="new">Enter new project</button></div>`;
   const body=
     crSection('Project',mode+

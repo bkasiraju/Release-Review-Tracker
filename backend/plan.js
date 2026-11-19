@@ -148,7 +148,9 @@ async function loadRefs(sf, teamId) {
   ]);
   // Projects already in the team's program (not only those with this team's epics), so they can be picked rather than retyped.
   const inProg = teamProg ? await safe('Program projects', sf.query(`SELECT Id, Name, V2MOM_Method__c FROM PPM_Project__c WHERE Program__c = '${teamProg.id}' ORDER BY Name LIMIT 500`)) : [];
-  const seen = new Map(used.map(r => [r.p, { id: r.p, name: r.n, programId: r.g || '', programName: r.gn || '' }]));
+  // Only projects tagged to the team's R268 program are offered (projects from other programs or releases are left out).
+  const in268 = r => teamProg ? r.g === teamProg.id : new RegExp(' - ' + PROGRAM_RELEASE + '$').test(r.gn || '');
+  const seen = new Map(used.filter(in268).map(r => [r.p, { id: r.p, name: r.n, programId: r.g || '', programName: r.gn || '' }]));
   for (const r of inProg) seen.set(r.Id, { ...(seen.get(r.Id) || { id: r.Id, name: r.Name, programId: teamProg.id, programName: teamProg.name }), method: r.V2MOM_Method__c || '' });
   return {
     releases: releases.map(r => ({ id: r.Id, name: r.Name, start: r.Start_Date__c || '', end: r.End_Date__c || '' })),

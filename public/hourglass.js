@@ -10,7 +10,7 @@ const f1=v=>v==null?'–':(Math.round(v*10)/10).toString();
 const hh=v=>v==null?'–':f1(v)+'h';
 const tone=(v,t,hi)=>v==null?'':(hi?v>=t:v<=t)?'ok':(hi?v>=t*.8:v<=t*2)?'warn':'bad';
 const sum=(t,sp)=>(t.sprints[sp]||{}).summary;
-const load=()=>S.data?Promise.resolve(S.data):fetch('./hourglass-data.json?v=6.26.16-GA').then(r=>{if(!r.ok)throw new Error('Hourglass data not found ('+r.status+')');return r.json();}).then(d=>(S.data=d));
+const load=()=>S.data?Promise.resolve(S.data):fetch('./hourglass-data.json?v=6.26.17-GA').then(r=>{if(!r.ok)throw new Error('Hourglass data not found ('+r.status+')');return r.json();}).then(d=>(S.data=d));
 const sprintsOf=d=>{const all=new Set();Object.values(d.teams).forEach(t=>{Object.keys(t.sprints).forEach(s=>all.add(s));Object.keys(t.published).forEach(s=>all.add(s));});return [...all].sort().reverse();};
 const generated=(d,sp)=>Object.values(d.teams).some(t=>t.sprints[sp]);
 const clk=f=>f?` data-flt="${f}" role="button" tabindex="0" aria-pressed="${S.flt===f}"`:'',on=f=>f&&S.flt===f?' sel':'';

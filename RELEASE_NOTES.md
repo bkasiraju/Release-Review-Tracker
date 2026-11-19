@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.17-GA (19 November 2026)
+
+Add project / pick from GUS now lists only projects tagged to the team's R268 program. Projects from other programs or releases are no longer offered (projects already in the plan are unchanged). If the team has no 268 program, any program named "… - 268" is used. Not checked against live GUS data or in a browser.
+
 ## 6.26.16-GA (19 November 2026)
 
 Planner Group by now offers Project, Priority, ATL/BTL, Theme, Workstream owner, Epic owner and V2MOM method. Each group row has a fold caret and ABL/BTL totals, and Collapse all / Expand all cover the groups. An epic with several workstream owners is grouped under their combined names, and epics with no value fall into a "No …" group at the end. Not checked in a browser.
