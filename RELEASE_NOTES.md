@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.25-GA (19 November 2026)
+
+Planning metrics: the Expand / Collapse label and the summary line now toggle the section (only the arrow and title did before). Tile labels in the expanded view are no longer cut off ("PLANNED ..."). Not checked in a browser.
+
 ## 6.26.24-GA (19 November 2026)
 
 Planner header line 1: Collapse all and Expand all now sit at the far right, next to Full screen; Group by stays on the left after the title. CSS only; not checked in a browser.
