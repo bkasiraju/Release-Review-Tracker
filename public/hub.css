@@ -2395,3 +2395,23 @@ html body[data-hub=plan] .pl-g-proj .pl-pj-m,html body[data-hub=plan] .pl-g-proj
 html body[data-hub=plan] .pl-g-proj .pl-caret{color:#000!important}
 html body[data-hub=plan] .pl-g-proj td{background:#fff!important}
 html body[data-hub=plan] .pl-g-proj:hover td{background:#eef4fa!important}
+/* 6.26.11 planner header + toolbar: one section, grouped controls */
+html body[data-hub=plan] .pl-bar{border:1px solid #d8e2ec;border-radius:10px;background:#fff;margin:8px 0 10px}
+html body[data-hub=plan] .pl-bar .pl-planner-h{margin:0;padding:8px 12px;gap:12px;flex-wrap:wrap}
+html body[data-hub=plan] .pl-bar .pl-tools{margin:0;border:0;border-top:1px solid #e6edf4;border-radius:0 0 10px 10px;background:#f8fafc;padding:6px 12px!important;display:flex;justify-content:flex-end}
+html body[data-hub=plan] .pl-bar .pl-tools .pl-grid-tools{margin:0!important;padding:0;border:0;align-self:center!important;gap:0;flex-wrap:wrap!important;justify-content:flex-end}
+html body[data-hub=plan] .pl-bar .pl-tl{gap:0;align-items:center}
+html body[data-hub=plan] .pl-bar .pl-tl>*,html body[data-hub=plan] .pl-bar .pl-gb,html body[data-hub=plan] .pl-bar .pl-cols{padding:0 12px;border-left:1px solid #d8e2ec}
+html body[data-hub=plan] .pl-bar .pl-tl>:first-child{border-left:0}
+html body[data-hub=plan] .pl-bar .pl-gb{margin:0;height:28px;display:inline-flex;align-items:center;gap:6px;color:#16324a;font-weight:600}
+html body[data-hub=plan] .pl-bar .pl-cols{padding-right:0}
+html body[data-hub=plan] .pl-bar .pl-tg{display:inline-flex;align-items:center;gap:6px}
+html body[data-hub=plan] .pl-bar .pl-tg .button,html body[data-hub=plan] .pl-bar .pl-pwrap .button,html body[data-hub=plan] .pl-bar .pl-cols .button{height:28px!important;font-size:12px!important;padding:0 10px!important}
+html body[data-hub=plan] .pl-bar .pl-tg{padding:0 12px}
+html body[data-hub=plan] .pl-bar .pl-planner-btns{gap:0;flex-wrap:nowrap}
+html body[data-hub=plan] .pl-bar .pl-planner-btns>*{margin:0}
+html body[data-hub=plan] .pl-bar .pl-planner-btns .gus-links{padding-right:12px!important;margin:0!important;border-right:1px solid #d8e2ec}
+html body[data-hub=plan] .pl-bar .pl-planner-btns>.button{margin-left:8px}
+html body[data-hub=plan] .pl-bar .pl-planner-btns #pl-fs-btn{margin-left:12px;padding-left:12px}
+html body[data-hub=plan] .pl-bar .pl-planner-btns .button{height:28px!important;font-size:12px!important;padding:0 10px!important}
+html body[data-hub=plan] .pl-bar .gus-link{height:28px;box-sizing:border-box}
