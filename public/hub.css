@@ -2776,3 +2776,8 @@ html body .pl-grid .pl-gsum i.btl{background:#fdf5e4!important;border-color:#ecd
 /* 6.26.86 engineer card: clicks and hover reach the card (it sits on top of everything and is never clipped by the bridge) */
 html body .pl-tt{z-index:5000;pointer-events:auto!important}
 html body .pl-tt .pl-tt-go{cursor:pointer;position:relative}
+/* 6.26.89 board column reorder */
+@media(min-width:1101px){html body .pl-bh,html body .pl-br{grid-template-columns:var(--bc)!important}}
+html body .pl-bh-c{cursor:grab;border-radius:5px;padding:2px 0;user-select:none}
+html body .pl-bh-c:hover{color:#1b73b3}
+html body .pl-bh-c.pl-bh-over{box-shadow:inset 3px 0 #1b73b3;background:#e3eefa}

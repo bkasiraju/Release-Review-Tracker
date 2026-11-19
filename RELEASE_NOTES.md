@@ -1,5 +1,10 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.89-GA
+
+- Priority board: drag a column heading onto another to reorder the columns; the order is remembered in this browser.
+- Engineer View: engineer cards are collapsed by default (the one opened from "Detailed summary" still opens).
+
 ## 6.26.88-GA
 
 - Fixed the name tooltip and click-to-highlight on planner rows: that code sat outside the planner module, so it failed silently. Hovering a project, epic or workstream name now shows the full name, and clicking a row keeps it at full opacity.
