@@ -2638,3 +2638,13 @@ html body[data-hub=plan] .pl-grid tr[data-wr] td.c-ws input,html body[data-hub=p
 /* 6.26.58 release planner: no side navigation rail or its edge tab */
 html body[data-hub=plan] .rail,html body[data-hub=plan] .rail-edge,html body[data-hub=plan] .rail-tab{display:none!important}
 html body[data-hub=plan] .workspace{margin-left:0!important}
+
+/* 6.26.62 subtler row colours; "missing" asterisk */
+html body[data-hub=plan] .pl-g-proj td{background-color:#f3f6fa!important}
+html body[data-hub=plan] .pl-g-proj:hover td{background-color:#ebf1f7!important}
+html body[data-hub=plan] .pl-grid tr[data-e]:not([data-wr]) td[class]:not(.pl-g-act){background-color:#fafcfe!important}
+html body[data-hub=plan] .pl-grid tr[data-wr] td[class]:not(.pl-g-act){background-color:#fffdf8!important}
+html body[data-hub=plan] .pl-grid tr[data-e]:not([data-wr]):hover td[class]:not(.pl-g-act){background-color:#f1f7fc!important}
+html body[data-hub=plan] .pl-grid tr[data-wr]:hover td[class]:not(.pl-g-act){background-color:#fff8ea!important}
+html body[data-hub=plan] .pl-grid tr[data-wr] td.c-ws input{border-left-color:#f3e6c8!important}
+html body[data-hub=plan] .pl-miss{display:inline-block;margin:0 0 0 6px;color:#c23934;font-style:normal;font-weight:700;font-size:15px;line-height:1;cursor:help;flex:0 0 auto}
