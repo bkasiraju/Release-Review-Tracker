@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.1-GA
+
+- Release Planning header buttons (Refresh from GUS, Leaves & on-call, Save, Review & save to GUS) now share one consistent, subtle style: same height, radius and indigo outline, with the save-to-GUS action in soft green. 7.0.0-GA (golden) is unchanged.
+
 ## 7.0.0-GA · GOLDEN BUILD (revision r2: SMART Goal folded in)
 
 - **SMART Goal** chip next to the epic's open-in-GUS icon. Click it to get an executive-ready SMART goal drafted by GUS Apps AI from the epic name, its workstreams, the planned release and (for GUS epics) the GUS description; a template draft is shown if AI is unavailable. Edit it and Save. A pencil appears on hover to edit a saved goal.
