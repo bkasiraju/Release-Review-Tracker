@@ -2773,3 +2773,6 @@ html body .pl-grid .pl-gsum i{font-weight:600!important;background:#f4f7fa!impor
 html body .pl-grid .pl-gsum i:first-child{background:#e6f5ec!important;border-color:#b7dcc5!important;color:#1d6b47!important}
 html body .pl-grid .pl-gsum i.abl{background:#eaf3fb!important;border-color:#bcd7ee!important;color:#2a6aa6!important}
 html body .pl-grid .pl-gsum i.btl{background:#fdf5e4!important;border-color:#ecd5a2!important;color:#8a6a2a!important}
+/* 6.26.86 engineer card: clicks and hover reach the card (it sits on top of everything and is never clipped by the bridge) */
+html body .pl-tt{z-index:5000;pointer-events:auto!important}
+html body .pl-tt .pl-tt-go{cursor:pointer;position:relative}

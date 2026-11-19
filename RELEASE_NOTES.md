@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.86-GA
+
+- Engineer hover card: it no longer disappears when you move the mouse from the allocation bar to the card. It waits a moment before closing, stays open while the pointer is on the bar or the card, and is not rebuilt on every mouse move, so "Detailed summary" can be clicked.
+
 ## 6.26.85-GA
 
 - Project row chips are subtle tints again (green epic count, soft blue ABL, soft amber BTL) and project rows follow the same 65% resting opacity as epic and workstream rows.

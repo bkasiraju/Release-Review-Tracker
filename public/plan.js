@@ -802,14 +802,17 @@ function engTipHtml(x){
   return `<div class="pl-tt-h"><b>${esc(x.name)}</b>${sum}</div><div class="pl-tt-kpis">${chip('a',`<span title="Prioritised (ABL)">ABL</span> ${fmt(r2(x.abl))}d · ${pa}%`)}${chip('b',`<span title="Planned, Not Priority (BTL)">BTL</span> ${fmt(r2(x.btl))}d · ${pb}%`)}${chip('f',`Unplanned ${pf}%`)}</div><div class="pl-tt-sec">Epics</div>${body}<div class="pl-tt-foot">${chip('t',`Total ${pa+pb+pf}%`)}<button type="button" class="pl-tt-go" data-eng-detail="${esc(x.id)}">Detailed summary →</button></div>`;
 }
 let ttEl=null;
-document.addEventListener('mouseover',e=>{const h=e.target.closest&&e.target.closest('[data-tip-eng]');if(h)showTip(h);else if(ttEl&&!P.ttPin&&!e.target.closest('.pl-tt'))hideTip();});
+document.addEventListener('mouseover',e=>{const h=e.target.closest&&e.target.closest('[data-tip-eng]'),inTip=e.target.closest&&e.target.closest('.pl-tt');
+  if(h||inTip){clearTimeout(P.ttT);P.ttT=0;}
+  if(h){if(!(ttEl&&ttEl.dataset.for===h.dataset.tipEng))showTip(h);}
+  else if(ttEl&&!P.ttPin&&!inTip&&!P.ttT)P.ttT=setTimeout(()=>{P.ttT=0;if(!P.ttPin)hideTip();},350);});
 document.addEventListener('focusin',e=>{const h=e.target.closest&&e.target.closest('[data-tip-eng]');if(h)showTip(h);});
-document.addEventListener('focusout',()=>{if(!P.ttPin)hideTip();});document.addEventListener('click',e=>{const h=e.target.closest&&e.target.closest('[data-tip-eng]');if(h){showTip(h);P.ttPin=!!ttEl;return;}if(P.ttPin&&!(e.target.closest&&e.target.closest('.pl-tt')))hideTip();});document.addEventListener('keydown',e=>{if(e.key==='Escape')hideTip();});window.addEventListener('scroll',hideTip,true);
+document.addEventListener('focusout',()=>{if(!P.ttPin)hideTip();});document.addEventListener('click',e=>{const h=e.target.closest&&e.target.closest('[data-tip-eng]');if(h){if(!(ttEl&&ttEl.dataset.for===h.dataset.tipEng))showTip(h);P.ttPin=!!ttEl;return;}if(P.ttPin&&!(e.target.closest&&e.target.closest('.pl-tt')))hideTip();});document.addEventListener('keydown',e=>{if(e.key==='Escape')hideTip();});window.addEventListener('scroll',hideTip,true);
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-eng-detail]');if(!b||!P.el)return;hideTip();P.rv='eng';P.evFocus=b.dataset.engDetail;setTab('rps');});
-function hideTip(){P.ttPin=false;if(ttEl){ttEl.remove();ttEl=null;}}
+function hideTip(){clearTimeout(P.ttT);P.ttT=0;P.ttPin=false;if(ttEl){ttEl.remove();ttEl=null;}}
 function showTip(host){
   const x=P.engRows&&P.engRows.find(r=>String(r.id)===host.dataset.tipEng);if(!x||!x.cap){return;}
-  hideTip();ttEl=document.createElement('div');ttEl.className='pl-tt';ttEl.setAttribute('role','tooltip');ttEl.innerHTML=engTipHtml(x);H.popHost().appendChild(ttEl);
+  hideTip();ttEl=document.createElement('div');ttEl.className='pl-tt';ttEl.dataset.for=host.dataset.tipEng;ttEl.setAttribute('role','tooltip');ttEl.innerHTML=engTipHtml(x);H.popHost().appendChild(ttEl);
   const r=host.getBoundingClientRect(),w=ttEl.offsetWidth,h=ttEl.offsetHeight;
   let left=Math.min(Math.max(8,r.right-w),innerWidth-w-8),top=r.top-h-8;if(top<8)top=Math.min(r.bottom+8,innerHeight-h-8);
   ttEl.style.left=left+'px';ttEl.style.top=top+'px';
