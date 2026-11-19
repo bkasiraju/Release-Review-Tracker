@@ -1,0 +1,11 @@
+{
+  "summary": "7.0.0-GA GOLDEN BUILD: same code as 6.26.99-GA, redesignated by the user as the rollback baseline. Implementing-agent review only, not independent; not verified in a signed-in browser or live GUS; live footer version needs a signed-in check; 38 baseline test failures predate this work.",
+  "blockingIssues": [],
+  "caveats": [
+    "Nothing verified in a signed-in browser",
+    "Google Sheet read needs link sharing; .xlsx upload is the fallback",
+    "Imported projects join the shared catalog",
+    "Removing the admin gate lets every user write to GUS"
+  ],
+  "recommendation": "ApproveWithCaveats"
+}

@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.0-GA · GOLDEN BUILD
+
+Designated by the user as the best working version and the rollback baseline. Contains everything through 6.26.99-GA: engineer hover card and Engineer View, universal filters and Group by, Epic review tab, compact Overview deck, board column reordering, Move to project and Refresh from GUS, last-saved label, daily private backup, Remaining (was Unplanned) capacity wording, and the Planned Releases GUS link.
+
 ## 6.26.99-GA
 
 - Release Planning: the open-in-GUS icon in the tab header now opens the team's Planned Releases related list (ADM_Scrum_Team__c → Planned_Releases__r) instead of its Epics.
