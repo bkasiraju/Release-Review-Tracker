@@ -2653,3 +2653,8 @@ html body[data-hub=plan] .pl-miss{display:inline-block;margin:0 0 0 6px;color:#c
 html body[data-hub=plan] .pl-miss{margin:0 6px 0 2px!important}
 /* 6.26.65 the missing marker is a superscript on the badge's top-right corner and takes no room */
 html body[data-hub=plan] .pl-miss{position:relative!important;left:-7px!important;top:-9px!important;margin:0 -9px 0 0!important;padding:0!important;font-size:14px!important;z-index:2}
+
+/* 6.26.66 theme box: empty by default, same look as the other epic fields */
+html body[data-hub=plan] .pl-grid td.c-theme input{height:26px!important;min-height:26px!important;border:1px solid #c9d6e2!important;border-radius:6px!important;background:#fff!important;padding:0 8px!important;font-size:12px!important;width:100%!important;max-width:none!important}
+html body[data-hub=plan] .pl-grid td.c-theme input::placeholder{color:#8a9bab!important}
+html body[data-hub=plan] .pl-grid td.c-theme input:focus{border-color:#0b5cab!important;box-shadow:0 0 0 2px rgba(11,92,171,.18)!important;outline:0!important}
