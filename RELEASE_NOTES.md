@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.79-GA
+
+- Project row chips (epic count, ABL days, BTL days) are now solid, darker and bold so they are clearly readable. Project rows rest at 85% opacity so these chips stay legible; epic and workstream rows stay at 65%.
+
 ## 6.26.78-GA
 
 - Engineer View: workstream column headers and rows now share one grid, so Priority, ATL/BTL, Sprint, Status and Days line up. The priority pill no longer stretches across its column.
