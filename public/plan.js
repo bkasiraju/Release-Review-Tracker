@@ -771,7 +771,7 @@ function moveEpicDlg(id,opener){
 function smartGoalPop(id,opener,edit){
   const e=findE(id);if(!e)return;document.querySelector('.pl-sgp')?.remove();
   const pop=document.createElement('div');pop.className='pl-sgp';pop.setAttribute('role','dialog');pop.setAttribute('aria-label','SMART goal');
-  pop.innerHTML=`<h4>SMART goal <small>${esc(e.name||'(unnamed epic)')}</small></h4><textarea rows="5" maxlength="1200" aria-label="SMART goal" placeholder="Drafting a SMART goal…"${e.smartGoal&&!edit?' readonly':''}></textarea><p class="pl-sgp-n" role="status"></p><div class="pl-sgp-a"><button type="button" class="button" data-sgp-x>Close</button><button type="button" class="button" data-sgp-gen>${e.smartGoal?'Redraft':'Draft'}</button><button type="button" class="button" data-sgp-ed${e.smartGoal&&!edit?'':' hidden'}>✎ Edit</button><button type="button" class="button primary" data-sgp-save${e.smartGoal&&!edit?' hidden':''}>Save</button></div>`;
+  pop.innerHTML=`<h4>SMART goal <small>${esc(e.name||'(unnamed epic)')}</small></h4><textarea rows="10" maxlength="2000" aria-label="SMART goal" placeholder="Drafting a SMART goal…"${e.smartGoal&&!edit?' readonly':''}></textarea><p class="pl-sgp-n" role="status"></p><div class="pl-sgp-a"><button type="button" class="button" data-sgp-x>Close</button><button type="button" class="button" data-sgp-gen>${e.smartGoal?'Redraft':'Draft'}</button><button type="button" class="button" data-sgp-ed${e.smartGoal&&!edit?'':' hidden'}>✎ Edit</button><button type="button" class="button primary" data-sgp-save${e.smartGoal&&!edit?' hidden':''}>Save</button></div>`;
   document.body.appendChild(pop);
   const r=opener.getBoundingClientRect(),w=Math.min(420,innerWidth-24);pop.style.width=w+'px';pop.style.left=Math.max(12,Math.min(r.left,innerWidth-w-12))+'px';
   const ta=pop.querySelector('textarea'),note=pop.querySelector('.pl-sgp-n'),sv=pop.querySelector('[data-sgp-save]'),ed=pop.querySelector('[data-sgp-ed]'),gen=pop.querySelector('[data-sgp-gen]');
@@ -784,7 +784,7 @@ function smartGoalPop(id,opener,edit){
     gen.disabled=sv.disabled=true;note.textContent='Drafting from the epic name, workstreams and GUS description…';
     const pr=P.plan.projects.find(p=>p.id===e.projectId);
     try{const r=await call('plan-smart-goal-gen',{teamId:H.team.Id,epic:{name:e.name,gusId:e.gusId||'',release:e.releaseName||'',project:pr&&pr.name||'',workstreams:e.workstreams.filter(x=>x.name&&x.name.trim()).map(x=>({name:x.name,days:x.days}))}});
-      ta.value=r.goal||'';ta.readOnly=false;sv.hidden=false;ed.hidden=true;note.textContent=(r.note||(r.ai?'Drafted by GUS Apps AI':'Template draft'))+(r.descriptionUsed?' · used the GUS epic description':'')+'. Review, edit and Save.';}
+      ta.value=r.goal||'';ta.readOnly=false;sv.hidden=false;ed.hidden=true;note.textContent=(r.note||'Drafted by GUS Apps AI')+(r.descriptionUsed?' · used the GUS epic description':'')+' · Review, edit and Save.';}
     catch(err){note.textContent='Could not draft: '+err.message;}
     finally{gen.disabled=sv.disabled=false;gen.textContent='Redraft';ta.focus();}};
   pop.addEventListener('click',async ev=>{const b=ev.target.closest('button');if(!b)return;
@@ -792,7 +792,7 @@ function smartGoalPop(id,opener,edit){
     else if(b.matches('[data-sgp-gen]'))draft();
     else if(b.matches('[data-sgp-ed]'))editable();
     else if(b.matches('[data-sgp-save]')){
-      const g=ta.value.replace(/\s+/g,' ').trim();if(!g){note.textContent='Write or draft a goal first.';return;}
+      const g=ta.value.replace(/\r/g,'').split('\n').map(l=>l.replace(/[ \t]+/g,' ').trim()).filter(Boolean).join('\n');if(!g){note.textContent='Write or draft a goal first.';return;}
       sv.disabled=true;sv.textContent='Saving…';e.smartGoal=g;queueSave();
       if(e.gusId){try{await call('plan-smart-goal-save',{teamId:H.team.Id,gusId:e.gusId,goal:g});window.toast?.('SMART goal saved to the plan and the GUS epic description.',false);}
         catch(err){window.toast?.('Saved in the plan, but GUS was not updated: '+err.message,true);}}

@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.2-GA
+
+- **SMART Goal** now follows the full definition. GUS Apps AI drafts five labelled lines (Specific, Measurable, Achievable, Relevant, Time-bound) under a one-line headline, using only facts from the epic name, workstreams, effort, release and GUS description. The reply is parsed by label (one retry), and when AI fails the popover says why and shows a template in the same five-part shape. The goal keeps its line breaks in the plan and at the top of the GUS epic description. The popover text is smaller and taller. 7.0.0-GA (golden) is unchanged.
+
 ## 7.0.1-GA
 
 - Release Planning header buttons (Refresh from GUS, Leaves & on-call, Save, Review & save to GUS) now share one consistent, subtle style: same height, radius and indigo outline, with the save-to-GUS action in soft green. 7.0.0-GA (golden) is unchanged.

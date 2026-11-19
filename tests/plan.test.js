@@ -264,6 +264,11 @@ test('SMART goal: saved at the top of the GUS description (replacing the old one
   assert.equal(upd[0].Description__c,'SMART Goal: Deliver X by R268.\n\nBody text');
   await assert.rejects(()=>plan.saveSmartGoal(sf,T,'a0XEE00000EPC0002A','g'),/does not belong/);
   const g=await plan.generateSmartGoal(sf,T,{name:'Queue hardening',release:'R268',workstreams:[{name:'Retry',days:3}],gusId:EP});
-  assert.equal(g.ai,false);assert.match(g.goal,/Queue hardening/);assert.equal(g.descriptionUsed,true);
+  assert.equal(g.ai,false);assert.match(g.goal,/^SMART Goal: Queue hardening\nSpecific:[\s\S]*\nMeasurable:[\s\S]*\nAchievable:[\s\S]*\nRelevant:[\s\S]*\nTime-bound: Complete by R268/);assert.equal(g.descriptionUsed,true);
   assert.equal(plan.withSmartGoal('x',''),'x');
+  const reply='Goal: Harden queue retries\n**Specific:** Retry handling for the MQ team.\nMeasurable: 3 workstreams complete by release.\n- Achievable: 15 planned days across owners.\nRelevant: Supports the reliability project.\nTime-bound: Done by R268.';
+  const ai=await plan.generateSmartGoal({...sf,async einsteinPromptGeneration(){return {generations:[{text:reply}]};}},T,{name:'Queue hardening',workstreams:[]});
+  assert.equal(ai.ai,true);assert.match(ai.goal,/^SMART Goal: Harden queue retries\nSpecific: Retry handling/);
+  const bad=await plan.generateSmartGoal({...sf,async einsteinPromptGeneration(){return {text:'nope'};}},T,{name:'Queue hardening',workstreams:[]});
+  assert.equal(bad.ai,false);assert.match(bad.note,/expected format/);
 });

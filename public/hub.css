@@ -2868,9 +2868,9 @@ html body .pl-sg.has{background:#ecfdf5!important;border-color:#a7f3d0!important
 html body .pl-sg:hover{filter:brightness(.97)}
 html body .pl-sg-pen{border:0!important;background:transparent!important;color:#4338ca!important;font-size:12px;padding:0 2px!important;cursor:pointer;opacity:0;width:0;overflow:hidden;transition:opacity .15s,width .15s}
 html body .pl-sgw:hover .pl-sg-pen,html body .pl-sg-pen:focus-visible{opacity:1;width:16px}
-html body .pl-sgp{position:fixed;z-index:10050;background:#fff;border:1px solid #e0e7ff;border-radius:12px;box-shadow:0 12px 32px rgba(30,41,99,.18);padding:12px 14px}
+html body .pl-sgp{position:fixed;font-size:12px;z-index:10050;background:#fff;border:1px solid #e0e7ff;border-radius:12px;box-shadow:0 12px 32px rgba(30,41,99,.18);padding:12px 14px}
 html body .pl-sgp h4{margin:0 0 8px;font-size:13px;color:#1e1b4b}html body .pl-sgp h4 small{display:block;font-weight:400;font-size:11px;color:#64748b;margin-top:2px}
-html body .pl-sgp textarea{width:100%;box-sizing:border-box;font:12.5px/1.45 inherit;border:1px solid #c7d2fe;border-radius:8px;padding:8px;resize:vertical;color:#0f172a}
+html body .pl-sgp textarea{width:100%;box-sizing:border-box;font-family:inherit;font-size:12px;line-height:1.5;border:1px solid #c7d2fe;border-radius:8px;padding:8px;resize:vertical;color:#0f172a}
 html body .pl-sgp textarea[readonly]{background:#f8faff}
 html body .pl-sgp-n{margin:6px 0;font-size:11px;color:#64748b;min-height:14px}
 html body .pl-sgp-a{display:flex;justify-content:flex-end;gap:6px}
