@@ -54,8 +54,8 @@ const NAV=['home','sprints','tds','tests','rotations','bugs','hourglass','epics'
 /** Breadcrumb follows the team dropdown and the active page: <Team> / <Page>. */
 function setCrumb(){const c=document.querySelector('.page-heading .breadcrumb'),p=H.pages.get(H.current);if(!c||!p||!H.team)return;c.innerHTML=`${esc(H.team.short||H.team.Name)} <span aria-hidden="true">/</span> <strong>${esc(p.label)}</strong>`;const t=document.querySelector('#hub-nav .hub-tab-label');if(t)t.textContent=`${H.team.short||H.team.Name} - ${p.label}`;}
 /** Team-scoped GUS destination for the active tab: the team's related list in GUS (Sprints, Epics, Team Dependencies, Work...). */
-const TEAM_REL={home:'',sprints:'Sprints__r',tds:'Our_Dependencies__r',tests:'Work__r',rotations:'Scrum_Team_Members__r',bugs:'Work__r',hourglass:'Work__r',epics:'Epics__r',plan:'Epics__r',status:'Epics__r'};
-const TEAM_LBL={home:'team',sprints:'Sprints',tds:'Team Dependencies',tests:'work items',rotations:'team members',bugs:'work items',hourglass:'work items',epics:'Epics',plan:'Epics',status:'Epics'};
+const TEAM_REL={home:'',sprints:'Sprints__r',tds:'Our_Dependencies__r',tests:'Work__r',rotations:'Scrum_Team_Members__r',bugs:'Work__r',hourglass:'Work__r',epics:'Epics__r',plan:'Planned_Releases__r',status:'Epics__r'};
+const TEAM_LBL={home:'team',sprints:'Sprints',tds:'Team Dependencies',tests:'work items',rotations:'team members',bugs:'work items',hourglass:'work items',epics:'Epics',plan:'Planned Releases',status:'Epics'};
 const HOURGLASS_URL='https://git.soma.salesforce.com/pages/core-foundational-services/hourglass/';
 H.gusTabUrl=id=>{if(id==='hourglass')return HOURGLASS_URL;const t=H.team;if(t&&t.Id&&t.Id!=='all'&&/^[a-zA-Z0-9]{15,18}$/.test(t.Id)){const rel=TEAM_REL[id];return `${H.GUS}ADM_Scrum_Team__c/${t.Id}/${rel?'related/'+rel+'/view':'view'}`;}
   const l=(GUS_LINKS[id]||GUS_LINKS.home).find(x=>!/^New/.test(x[0]))||(GUS_LINKS.home)[2];return l?l[1]:GL+'ADM_Epic__c/list?filterName=Recent';};

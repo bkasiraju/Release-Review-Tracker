@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.99-GA
+
+- Release Planning: the open-in-GUS icon in the tab header now opens the team's Planned Releases related list (ADM_Scrum_Team__c → Planned_Releases__r) instead of its Epics.
+
 ## 6.26.98-GA
 
 - "Unplanned" is now **Remaining** (Remaining capacity in the metrics): the available days not yet planned as ABL or BTL. Updated in the engineer headers, hover card, legend and planning metrics.
