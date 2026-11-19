@@ -2535,3 +2535,9 @@ html body[data-hub=plan] .pl-hdr .pl-dm>button.button[data-dm-toggle]{height:24p
 html body[data-hub=plan] .pl-hdr .pl-tl>.pl-tg[aria-label="Open lists"],html body[data-hub=plan] .pl-hdr .pl-grid-tools>.pl-cols,html body[data-hub=plan] .pl-hdr .gus-links,html body[data-hub=plan] .pl-hdr .pl-dm,html body[data-hub=plan] .pl-hdr .pl-grid-tools>.pl-gb,html body[data-hub=plan] .pl-hdr .pl-grid-tools>.pl-tg[aria-label=Rows]{margin:0 0 0 12px!important;padding:0 0 0 12px!important;border:0!important;border-left:1px solid #d8e2ec!important}
 html body[data-hub=plan] .pl-hdr .pl-tl>.pl-tg[aria-label=Add]{padding:0!important;border:0!important;margin-right:0!important}
 html body[data-hub=plan] .pl-hdr #pl-fs-btn{margin:0 0 0 8px!important;padding:0 8px!important;border:1px solid #cfd9e3!important}
+/* 6.26.32 project colour strips at full strength (were mixed 45-60% with white) */
+html body[data-hub=plan] .pl-g-proj td,html body[data-hub=plan] .pl-g-proj td:first-child{box-shadow:inset 5px 0 var(--pc,#a8b7c7)!important}
+html body[data-hub=plan] .pl-grid tr[data-e] td:first-child,html body[data-hub=plan] .pl-grid tr.abl.pl-g-first td:first-child{box-shadow:inset 5px 0 var(--pc,#a8b7c7)!important}
+html body[data-hub=plan] .pl-grid tr[data-e].pl-drop-above td:first-child{box-shadow:inset 5px 0 var(--pc,#a8b7c7),inset 0 3px 0 #1b73b3!important}
+html body[data-hub=plan] .pl-grid tr[data-e].pl-drop-below td:first-child{box-shadow:inset 5px 0 var(--pc,#a8b7c7),inset 0 -3px 0 #1b73b3!important}
+html body[data-hub=plan] .pl-br{box-shadow:inset 5px 0 var(--pc,#a8b7c7)}
