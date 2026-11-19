@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.41-GA (19 November 2026)
+
+The New workstream dialog showed a made-up theme ("Workstream · WS: HRP M1.1.1 › name"). It now shows the theme that is actually applied in GUS, R<release>_<team short>_Workstream (for example R268_VC_Workstream for Caching Services). The automatic values (story type, subject, theme, parent; team, program, owner) are plain lines of text, one per line, instead of pills. Not checked in a browser.
+
 ## 6.26.40-GA (19 November 2026)
 
 Planner grid: epic rows are indented under their project (measure) row. The project cell moves in with a small tree connector, and the epic name is indented a further step, with the workstream and the other columns following. CSS only; not checked in a browser.

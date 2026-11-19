@@ -2555,3 +2555,7 @@ html body #pl-commit.button.primary:hover:not(:disabled){background:#d5eee2!impo
 html body[data-hub=plan] .pl-grid tr[data-e] td.c-project{padding-left:28px!important}
 html body[data-hub=plan] .pl-grid tr[data-e] td.c-project::before{content:"";display:inline-block;width:10px;height:10px;margin:0 6px 2px -16px;border-left:1px solid #a9bccf;border-bottom:1px solid #a9bccf;vertical-align:middle}
 html body[data-hub=plan] .pl-grid tr[data-e] td.c-name{padding-left:20px!important}
+/* 6.26.41 automatic values in the create dialogs are plain lines of text, not pills */
+.pl-cr-auto{margin:8px 0 0;padding:0;font:12px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;color:#3b4a5a}
+.pl-cr-auto>div{white-space:normal;overflow-wrap:anywhere}
+.pl-cr-auto i{font-style:normal;color:#6a7b8c}

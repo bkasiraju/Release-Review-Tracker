@@ -51,7 +51,9 @@ function wireDrag(el){
 // "+ Project" / "+ Epic": a sectioned dialog that creates the record in GUS right away (any signed-in user).
 const crField=(label,hint,ctl,cls)=>`<label class="pl-cr-f${cls?' '+cls:''}"><span>${label}${hint?` <small>${hint}</small>`:''}</span>${ctl}</label>`;
 const crSection=(title,body)=>`<section class="pl-cr-s"><h3>${title}</h3><div class="pl-cr-g">${body}</div></section>`;
-const crAuto=rows=>`<div class="pl-cr-chips" aria-label="Set automatically">${rows.map(([k,v])=>`<span class="pl-cr-chip" title="${esc(k)}: ${esc(v)}"><i>${esc(k)}</i>${esc(v)}</span>`).join('')}</div>`;
+const crAuto=rows=>`<div class="pl-cr-auto" aria-label="Set automatically">${rows.map(([k,v])=>`<div title="${esc(k)}: ${esc(v)}"><i>${esc(k)}:</i> ${esc(v)}</div>`).join('')}</div>`;
+/** The theme GUS gets on a workstream story, same rule as the backend: R<release>_<team short>_Workstream (e.g. R268_VC_Workstream). */
+const wsTheme=relName=>{const n=String(H.team&&H.team.Name||''),sh=/message queue/i.test(n)?'MQ':/\bmaps\b|managed async/i.test(n)?'MAPS':/vegacache.*\bface\b/i.test(n)?'VC-FACE':/vegastore/i.test(n)?'VS':/vegacache|caching services/i.test(n)?'VC':'';if(!sh)return '(none: this team has no theme short form)';const r=(String(relName||'').match(/\d{3,}/)||['268'])[0];return `R${r}_${sh}_Workstream`;};
 // Default Product Tag per team: the tag remembered in this browser, else the team's main tag (most used on its work in GUS).
 const TEAM_TAG={'message queue':'Architecture Message Queue','caching services':'CaaS: Cache As A Service','managed async processing service (maps)':'MAPS'};
 function defTag(tags,key){let v='';try{v=localStorage.getItem(key)||'';}catch(_){}
@@ -217,7 +219,7 @@ function newWorkstreamAt(epicId,afterWid){
     note.textContent=useGus()?'Created in GUS immediately when you confirm.':inGus?'Saved to the plan only.':'This epic is not in GUS yet, so the workstream is saved to the plan only.';
     el._gate=useGus();el._sync();el._deny();
     const pr=e&&prj.get(e.projectId),sh=pr?projShort(pr):'',n=nm.value.trim();
-    chips.innerHTML=useGus()?crAuto([['Story type','User Story'],['Subject','WS: '+(n||'…')],['Themes','Workstream · WS: '+(sh?sh+' › ':'')+(n||'…')],['Parent','Epic']]):'';};
+    chips.innerHTML=useGus()?crAuto([['Story type','User Story'],['Subject','WS: '+(n||'…')],['Theme',wsTheme(e&&e.releaseName)],['Parent','Epic']]):'';};
   eSel.onchange=sync;chk.onchange=sync;nm.oninput=sync;
   sync();nm.focus();
 }
