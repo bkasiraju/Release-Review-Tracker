@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.71-GA
+
+- The red * for a project without epics or an epic without workstreams is now drawn on the top-right corner of the P or E icon itself.
+
 ## 6.26.70-GA
 
 - The save status (Saved hh:mm, Saving, Unsaved) moves to the top bar, just before the team dropdown.

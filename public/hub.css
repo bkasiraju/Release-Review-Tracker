@@ -2668,3 +2668,8 @@ html body #toasts .toast.error{background:#fdf3f2!important;border-color:#f0d0cd
 /* 6.26.70 save status in the top bar before the team dropdown, planner only */
 body:not([data-hub=plan]) #pl-state{display:none!important}
 html body .topbar-right #pl-state{margin:0 10px 0 0!important;min-width:0!important;white-space:nowrap}
+
+/* 6.26.71 the missing marker is part of the P/E badge: a red * on its top-right corner */
+html body[data-hub=plan] .pl-ty.pl-ty-miss{position:relative!important;overflow:visible!important}
+html body[data-hub=plan] .pl-ty.pl-ty-miss::after{content:"*";position:absolute;top:-6px;right:-3px;color:#d32f2f;font-size:16px;font-weight:800;line-height:1;font-style:normal;pointer-events:none}
+html body[data-hub=plan] .pl-miss{display:none!important}
