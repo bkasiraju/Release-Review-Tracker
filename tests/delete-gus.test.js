@@ -11,3 +11,5 @@ t('epicWorkstreams finds WS stories by title and by theme',async()=>{const q=[];
  if(s.includes('Id IN'))return {records:[{Id:'a07B0000000WSTRY02',Subject__c:'Themed one',Epic__c:EP,Assignee__c:'005B0000000USER01A',Assignee__r:{Name:'Bob'}}]};
  return {records:[{Id:WS,Subject__c:'WS: Alpha',Epic__c:EP,Details__c:'Workstream "Alpha" of epic "E" (planned 4.5 days).'}]};}};
  const r=await p.epicWorkstreams(sf,TEAM,[EP]);const l=r.byEpic[EP];a.equal(l.length,2);a.equal(l.find(x=>x.gusId===WS).name,'Alpha');a.equal(l.find(x=>x.gusId===WS).days,4.5);a.equal(l.find(x=>x.assigneeName==='Bob').name,'Themed one');});
+t('deleteWorkstream sets the story to Never when GUS refuses the delete',async()=>{const sf=mk(()=>0);const upd=[];sf.delete=async()=>{throw new Error('insufficient access rights on object id');};sf.update=async(o,i,f)=>{upd.push([o,i,f]);};
+ const r=await p.deleteWorkstream(sf,TEAM,{gusId:WS});a.equal(r.closed,true);a.equal(r.deleted,false);a.deepEqual(upd,[['ADM_Work__c',WS,{Status__c:'Never'}]]);});

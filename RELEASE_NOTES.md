@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.68-GA
+
+- Removing a workstream in GUS: when GUS refuses the delete (insufficient access), the story is set to status "Never" in GUS instead and removed from the dashboard, and the message says so. Workstreams with status Never are not fetched back.
+
 ## 6.26.67-GA
 
 - The Epic Est column now shows the epic total (sum of its ABL workstream days) on the epic row.

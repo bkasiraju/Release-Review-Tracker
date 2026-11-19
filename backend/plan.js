@@ -291,7 +291,14 @@ async function deleteWorkstream(sf, teamId, input) {
   if (!hit) throw new Error('That is not a workstream story of this team, so nothing was deleted in GUS.');
   const n = ((await sf.query(`SELECT COUNT() FROM ADM_Work__c WHERE Parent__c = '${id}'`)).totalSize) || 0;
   if (n) throw new Error(`“${hit.Subject__c}” has ${n} work item${n === 1 ? '' : 's'} under it in GUS. Move or delete them in GUS first; nothing was deleted.`);
-  await gusDelete(sf, 'ADM_Work__c', id);
+  try { await gusDelete(sf, 'ADM_Work__c', id); }
+  catch (e) {
+    // Most GUS users cannot delete work records. The usual way to retire one is status "Never", so do that and say so.
+    if (!/insufficient access|access rights|not allowed|cannot delete|permission/i.test(e.message)) throw e;
+    try { await sf.update('ADM_Work__c', id, { Status__c: 'Never' }); }
+    catch (e2) { throw new Error(e.message + ' It could not be set to "Never" either: ' + String(e2 && e2.message || e2)); }
+    return { deleted: false, closed: true, gusId: id, name: hit.Subject__c };
+  }
   return { deleted: true, gusId: id, name: hit.Subject__c };
 }
 async function deleteEpic(sf, teamId, input) {
@@ -326,12 +333,12 @@ async function epicWorkstreams(sf, teamId, ids) {
   if (!list.length) return { byEpic: {} };
   const inList = list.map(i => `'${i}'`).join(','), F = 'Id, Subject__c, Epic__c, Details__c, Assignee__c, Assignee__r.Name';
   const rows = new Map();
-  const byTitle = (await sf.query(`SELECT ${F} FROM ADM_Work__c WHERE Epic__c IN (${inList}) AND Subject__c LIKE '${WS_PREFIX}%' LIMIT 1000`)).records || [];
+  const byTitle = (await sf.query(`SELECT ${F} FROM ADM_Work__c WHERE Epic__c IN (${inList}) AND Subject__c LIKE '${WS_PREFIX}%' AND Status__c != 'Never' LIMIT 1000`)).records || [];
   byTitle.forEach(r => rows.set(r.Id, r));
   try {
     const asg = (await sf.query(`SELECT Work__c FROM ADM_Theme_Assignment__c WHERE Work__r.Epic__c IN (${inList}) AND Theme__r.Name LIKE 'R%\\_Workstream' LIMIT 1000`)).records || [];
     const more = asg.map(a => a.Work__c).filter(w => w && !rows.has(w)).slice(0, 200);
-    if (more.length) ((await sf.query(`SELECT ${F} FROM ADM_Work__c WHERE Id IN (${more.map(i => `'${i}'`).join(',')})`)).records || []).forEach(r => rows.set(r.Id, r));
+    if (more.length) ((await sf.query(`SELECT ${F} FROM ADM_Work__c WHERE Id IN (${more.map(i => `'${i}'`).join(',')}) AND Status__c != 'Never'`)).records || []).forEach(r => rows.set(r.Id, r));
   } catch (_) { /* the title match above is enough on its own */ }
   const byEpic = {};
   for (const r of rows.values()) {
