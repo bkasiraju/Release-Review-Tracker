@@ -2634,3 +2634,7 @@ html body[data-hub=plan] .pl-g-proj .pl-pj-n{font-size:13.5px!important;font-wei
 html body[data-hub=plan] .pl-grid tr[data-e]:not([data-wr]) td.c-name,html body[data-hub=plan] .pl-grid tr[data-e]:not([data-wr]) td.c-name input,html body[data-hub=plan] .pl-grid tr[data-e]:not([data-wr]) td.c-name a{font-size:13px!important;font-weight:600!important}
 html body[data-hub=plan] .pl-grid tr[data-wr] td.c-ws input{font-size:13px!important}
 html body[data-hub=plan] .pl-grid tr[data-wr] td.c-ws input,html body[data-hub=plan] .pl-grid tr[data-e]:not([data-wr]) td.c-name input{height:28px!important;min-height:28px!important}
+
+/* 6.26.58 release planner: no side navigation rail or its edge tab */
+html body[data-hub=plan] .rail,html body[data-hub=plan] .rail-edge,html body[data-hub=plan] .rail-tab{display:none!important}
+html body[data-hub=plan] .workspace{margin-left:0!important}
