@@ -2484,3 +2484,7 @@ html body[data-hub=plan] .pl-kbox>h3>small{font-weight:600;padding:2px 8px;borde
 html body[data-hub=plan] .pl-kbox>h3>small:hover{background:#e8f1fb}
 html body[data-hub=plan] .pl-kg .pl-kpis{grid-template-columns:repeat(auto-fill,minmax(210px,1fr))!important}
 html body[data-hub=plan] .pl-kg .pl-kpi-b span{white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
+/* 6.26.26 tile titles: the 64px right padding reserved for the (hidden) status chip was what cut the labels */
+html body[data-hub=plan] .pl-kg .pl-kpi-b span{padding-right:0!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important;line-height:1.2}
+html body[data-hub=plan] .pl-kg .pl-kpi-b small{white-space:normal!important;-webkit-line-clamp:2!important;line-height:1.25!important}
+html body[data-hub=plan] .pl-kg .pl-kpi-b{overflow:visible}

@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 6.26.26-GA (19 November 2026)
+
+Planning metrics: tile titles (Planned ABL, Total planned, Headroom, Unassigned effort, Over-allocated, Time off & on-call, Incomplete epics, Pending GUS save, Saved in GUS) and their sub-lines are shown in full. A 64px padding reserved for the hidden status chip was cutting them. CSS only; not checked in a browser.
+
 ## 6.26.25-GA (19 November 2026)
 
 Planning metrics: the Expand / Collapse label and the summary line now toggle the section (only the arrow and title did before). Tile labels in the expanded view are no longer cut off ("PLANNED ..."). Not checked in a browser.
