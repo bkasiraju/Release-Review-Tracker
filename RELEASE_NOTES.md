@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.41-GA
+
+- Group by Project now lists the projects that have epics first, then a thin "Projects without epics" separator, then the projects with no epics yet. Order within each part is unchanged.
+
 ## 7.0.40-GA
 
 - Epic Action Log popover: a **×** close button at the top right, and a **+ Add** button that opens the add form (action item, owner, ETA) once the epic already has items. While the form is open the green ✓ saves; after saving, the list is shown again.

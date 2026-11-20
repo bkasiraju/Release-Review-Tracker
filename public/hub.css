@@ -3124,3 +3124,7 @@ html body .pl-modal-al .pl-alg-r .pl-ib{padding:0;min-width:0;width:20px;height:
 html body .pl-acp-hb{display:flex;align-items:center;gap:8px;flex:none}
 html body .pl-acp-x{width:26px;height:26px;border:0;border-radius:50%;background:transparent;color:#64748b;font-size:18px;line-height:1;cursor:pointer}
 html body .pl-acp-x:hover{background:#eef2f6;color:#0f172a}
+
+/* 7.0.41-GA: thin separator between projects with epics and projects without */
+html body[data-hub=plan] .pl-grid tr.pl-g-sep td{padding:0!important;height:22px;background:#fff!important;border-top:1px solid #d5dde6!important;border-bottom:0!important;box-shadow:none!important}
+html body[data-hub=plan] .pl-grid tr.pl-g-sep td span{display:inline-block;padding:3px 10px 0;font-size:10.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#7b8794}
