@@ -791,38 +791,42 @@ const isoLocal=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-
 /** Today plus n working days (Mon–Fri) as YYYY-MM-DD: the default ETA of a new action item. */
 const etaDefault=(n=3)=>{const d=new Date();while(n>0){d.setDate(d.getDate()+1);if(d.getDay()%6)n--;}return isoLocal(d);};
 /** Small popover next to the epic's Action Log icon: a long action box, owner + ETA below it, and a ✓ to save. */
-function actionPop(epicId,opener){
+function actionPop(epicId,opener,editId){
   const e=findE(epicId);if(!e)return;document.querySelector('.pl-sgp')?.remove();
-  const mem=allMem(),own=e.owners&&e.owners[0]||'',today=isoLocal(new Date());
+  const mem=allMem(),today=isoLocal(new Date());let ed=editId&&(e.actions||[]).find(x=>x.id===editId)||null;
   const pop=document.createElement('div');pop.className='pl-sgp pl-acp';pop.setAttribute('role','dialog');pop.setAttribute('aria-label','Action Log');
   const list=()=>{const it=(e.actions||[]).slice().sort((x,y)=>(x.done-y.done)||String(x.eta||'9999').localeCompare(String(y.eta||'9999')));
-    return it.length?`<ul class="pl-acp-l">${it.map(a=>`<li class="${a.done?'done':''}${!a.done&&a.eta&&a.eta<today?' late':''}" data-aid="${esc(a.id)}"><input type="checkbox" data-al-x${a.done?' checked':''} aria-label="Done"><span class="pl-acp-t">${esc(a.text)}</span><small>${esc(a.ownerName||'—')} · ${esc((a.eta||'—').slice(5))}</small><button type="button" class="pl-ib" data-al-del aria-label="Delete action item" title="Delete">×</button></li>`).join('')}</ul>`:'';};
-  const paint=()=>{pop.innerHTML=`<div class="pl-acp-h"><div><b>Action Log</b><small>${esc(e.name||'(unnamed epic)')}</small></div><button type="button" class="pl-acp-ok" data-al-add aria-label="Save action item" title="Save">✓</button></div>${list()||'<p class="pl-sgp-n">No action items yet.</p>'}<div class="pl-acp-box"><input class="hub-inline pl-acp-t0" type="text" maxlength="300" data-al-t placeholder="Action item…" aria-label="Action item"><div class="pl-acp-r"><select class="hub-inline" data-al-o aria-label="Owner"><option value="">Owner</option>${mem.map(m=>`<option value="${esc(m.id)}"${m.id===own?' selected':''}>${esc(m.name)}</option>`).join('')}</select><input class="hub-inline" type="date" data-al-d value="${etaDefault()}" aria-label="ETA"></div></div>`;pop.querySelector('[data-al-t]').focus();const l=pop.querySelector('.pl-acp-l');if(l)l.scrollTop=0;};
+    return it.length?`<ul class="pl-acp-l">${it.map(a=>`<li class="${a.done?'done':''}${ed&&ed.id===a.id?' editing':''}${!a.done&&a.eta&&a.eta<today?' late':''}" data-aid="${esc(a.id)}"><input type="checkbox" data-al-x${a.done?' checked':''} aria-label="Done"><span class="pl-acp-t" data-al-edit title="Click to edit" tabindex="0">${esc(a.text)}</span><small>${esc(a.ownerName||'—')} · ${esc((a.eta||'—').slice(5))}</small><button type="button" class="pl-ib" data-al-del aria-label="Delete action item" title="Delete">×</button></li>`).join('')}</ul>`:'';};
+  const paint=()=>{const own=ed?ed.ownerId:e.owners&&e.owners[0]||'';pop.innerHTML=`<div class="pl-acp-h"><div><b>Action Log</b><small>${esc(e.name||'(unnamed epic)')}</small></div><button type="button" class="pl-acp-ok" data-al-add aria-label="${ed?'Save changes':'Save action item'}" title="${ed?'Save changes':'Save'}">✓</button></div>${list()||'<p class="pl-sgp-n">No action items yet.</p>'}<div class="pl-acp-box"><input class="hub-inline pl-acp-t0" type="text" maxlength="300" data-al-t placeholder="Action item…" aria-label="Action item" value="${esc(ed?ed.text:'')}"><div class="pl-acp-r"><select class="hub-inline" data-al-o aria-label="Owner"><option value="">Owner</option>${mem.map(m=>`<option value="${esc(m.id)}"${m.id===own?' selected':''}>${esc(m.name)}</option>`).join('')}</select><input class="hub-inline" type="date" data-al-d value="${esc(ed?ed.eta:etaDefault())}" aria-label="ETA"></div>${ed?'<button type="button" class="text-button pl-acp-cx" data-al-cancel>Editing — cancel</button>':''}</div>`;pop.querySelector('[data-al-t]').focus();const l=pop.querySelector('.pl-acp-l');if(l)l.scrollTop=0;};
   H.popHost().appendChild(pop);paint();
   const r=opener.getBoundingClientRect(),w=Math.min(480,innerWidth-24);pop.style.width=w+'px';pop.style.left=Math.max(12,Math.min(r.left,innerWidth-w-12))+'px';pop.style.top=Math.min(r.bottom+8,Math.max(12,innerHeight-pop.offsetHeight-12))+'px';
   const close=()=>{pop.remove();document.removeEventListener('mousedown',away,true);document.removeEventListener('keydown',key,true);try{opener.focus();}catch(_){}draw();};
   const away=ev=>{if(!pop.contains(ev.target)&&!ev.target.closest('.pl-acw'))close();},key=ev=>{if(ev.key==='Escape'){ev.stopImmediatePropagation();ev.preventDefault();close();}};
   document.addEventListener('mousedown',away,true);document.addEventListener('keydown',key,true);
   const add=()=>{const ti=pop.querySelector('[data-al-t]'),tx=ti.value.replace(/\s+/g,' ').trim();if(!tx){ti.focus();return;}
-    const oid=pop.querySelector('[data-al-o]').value;(e.actions||(e.actions=[])).push({id:uid('a'),text:tx,ownerId:oid,ownerName:oid?memName(oid):'',eta:pop.querySelector('[data-al-d]').value,done:false});queueSave();paint();};
+    const oid=pop.querySelector('[data-al-o]').value,eta=pop.querySelector('[data-al-d]').value,ownerName=oid?memName(oid):'';
+    if(ed)Object.assign(ed,{text:tx,ownerId:oid,ownerName,eta});else(e.actions||(e.actions=[])).push({id:uid('a'),text:tx,ownerId:oid,ownerName,eta,done:false});ed=null;queueSave();paint();};
   pop.addEventListener('click',ev=>{const t=ev.target;
     if(t.closest('[data-al-add]'))return add();
+    if(t.closest('[data-al-cancel]')){ed=null;paint();return;}
     const li=t.closest('li[data-aid]');if(!li)return;const a=(e.actions||[]).find(x=>x.id===li.dataset.aid);if(!a)return;
-    if(t.closest('[data-al-del]')){e.actions=e.actions.filter(x=>x!==a);queueSave();paint();}
-    else if(t.closest('[data-al-x]')){a.done=t.checked;queueSave();paint();}});
-  pop.addEventListener('keydown',ev=>{if(ev.key==='Enter'&&ev.target.matches('[data-al-t],[data-al-d]')){ev.preventDefault();add();}});
+    if(t.closest('[data-al-del]')){e.actions=e.actions.filter(x=>x!==a);if(ed===a)ed=null;queueSave();paint();}
+    else if(t.closest('[data-al-x]')){a.done=t.checked;queueSave();paint();}
+    else if(t.closest('[data-al-edit]')){ed=a;paint();}});
+  pop.addEventListener('keydown',ev=>{if(ev.key==='Enter'&&ev.target.matches('[data-al-t],[data-al-d]')){ev.preventDefault();add();}else if(ev.key==='Enter'&&ev.target.matches('[data-al-edit]')){const a=(e.actions||[]).find(x=>x.id===ev.target.closest('li').dataset.aid);if(a){ed=a;paint();}}});
 }
 function openActionLog(epicId,opener){
   const pl=P.plan,today=isoLocal(new Date());
   const fmtD=d=>{if(!d)return '—';const x=new Date(d+'T00:00:00');return isNaN(x)?d:x.toLocaleDateString(undefined,{day:'numeric',month:'short'});};
   const body=()=>{const items=pl.epics.flatMap(e=>(e.actions||[]).map(a=>({e,a}))).sort((x,y)=>(x.a.done-y.a.done)||String(x.a.eta||'9999').localeCompare(String(y.a.eta||'9999')));
     const open=items.filter(x=>!x.a.done).length;
-    return items.length?`<p class="note">${open} open · ${items.length-open} closed. Add an item with the <b>Action Log</b> icon on an epic row.</p><div class="pl-alg" role="list"><div class="pl-alg-h" aria-hidden="true"><span></span><span>Action item</span><span>Epic</span><span>Owner</span><span>ETA</span><span></span></div>${items.map(({e,a})=>`<div class="pl-alg-r${a.done?' done':''}${!a.done&&a.eta&&a.eta<today?' late':''}" role="listitem" data-ae="${esc(e.id)}" data-aid="${esc(a.id)}"><input type="checkbox" data-al-x${a.done?' checked':''} aria-label="Done"><span class="pl-alg-t">${esc(a.text)}</span><span class="pl-alg-e" title="${esc(e.name)}">${esc(e.name||'(unnamed epic)')}</span><span>${esc(a.ownerName||'—')}</span><span class="pl-alg-d">${esc(fmtD(a.eta))}</span><button type="button" class="pl-ib" data-al-del aria-label="Delete action item" title="Delete">×</button></div>`).join('')}</div>`:'<p class="note">No action items yet. Use the Action Log icon on an epic row to add one.</p>';};
+    return items.length?`<p class="note">${open} open · ${items.length-open} closed. Add an item with the <b>Action Log</b> icon on an epic row.</p><div class="pl-alg" role="list"><div class="pl-alg-h" aria-hidden="true"><span></span><span>Action item</span><span>Epic</span><span>Owner</span><span>ETA</span><span></span></div>${items.map(({e,a})=>`<div class="pl-alg-r${a.done?' done':''}${!a.done&&a.eta&&a.eta<today?' late':''}" role="listitem" data-ae="${esc(e.id)}" data-aid="${esc(a.id)}"><input type="checkbox" data-al-x${a.done?' checked':''} aria-label="Done"><span class="pl-alg-t" data-al-edit title="Click to edit" tabindex="0">${esc(a.text)}</span><span class="pl-alg-e" title="${esc(e.name)}">${esc(e.name||'(unnamed epic)')}</span><span>${esc(a.ownerName||'—')}</span><span class="pl-alg-d">${esc(fmtD(a.eta))}</span><button type="button" class="pl-ib" data-al-del aria-label="Delete action item" title="Delete">×</button></div>`).join('')}</div>`:'<p class="note">No action items yet. Use the Action Log icon on an epic row to add one.</p>';};
   const el=openModal('Action Log — all epics',body(),opener,true);
   const paint=()=>{el.querySelector('#pl-mb').innerHTML=body();draw();};
   el.addEventListener('click',ev=>{const t=ev.target,row=t.closest('[data-aid]');if(!row)return;const e=findE(row.dataset.ae),a=e&&(e.actions||[]).find(x=>x.id===row.dataset.aid);if(!a)return;
     if(t.closest('[data-al-del]')){e.actions=e.actions.filter(x=>x!==a);queueSave();paint();}
-    else if(t.closest('[data-al-x]')){a.done=t.checked;queueSave();paint();}});
+    else if(t.closest('[data-al-x]')){a.done=t.checked;queueSave();paint();}
+    else if(t.closest('[data-al-edit]')){closeModal();draw();const ic=P.el.querySelector(`.pl-ac[data-ac="${e.id}"]`),host=ic&&ic.closest('.pl-acw');if(host){host.scrollIntoView({block:'center'});actionPop(e.id,host,a.id);}}});
 }
 function outcomePop(id,opener){
   const e=findE(id);if(!e)return;document.querySelector('.pl-sgp')?.remove();

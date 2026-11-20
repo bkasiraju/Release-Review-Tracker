@@ -3104,3 +3104,9 @@ html body .pl-alg-r>span{overflow:hidden;text-overflow:ellipsis;white-space:nowr
 html body .pl-alg-e{color:#64748b}
 html body .pl-alg-r.done>span{color:#94a3b8;text-decoration:line-through}
 html body .pl-alg-r.late .pl-alg-d{color:#b91c1c;font-weight:600}
+
+/* 7.0.38-GA: edit action items */
+html body .pl-acp-l .pl-acp-t[data-al-edit],html body .pl-alg-t[data-al-edit]{cursor:pointer}
+html body .pl-acp-l .pl-acp-t[data-al-edit]:hover,html body .pl-alg-t[data-al-edit]:hover{text-decoration:underline;color:#0b5cab}
+html body .pl-acp-l li.editing{background:#f2f8fd;border-radius:6px}
+html body .pl-acp-cx{margin-top:6px;font-size:11px}
