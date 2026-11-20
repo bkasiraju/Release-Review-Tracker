@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.14-GA
+
+- **Save to GUS review explains "Update".** Each epic marked Update now says why: it is already in GUS, and the box lists what this save will change (new or changed workstreams, or that the epic has not been synced from the planner before). New epics say they will be created.
+
 ## 7.0.13-GA
 
 - **Measure names in the V2MOM tooltip.** Hover the **V2MOM** chip on a project row to see each method reference (for example HPS M6.2.2) with its measure name, owner and, for HPS, the mapped T&I / T&P number. Names are read live from the HPS FY27 and T&P FY27 V2MOM sheets (`backend/v2mom-measures.js`); nothing is stored in the repo. T&I needs its sheet added to `SOURCES` (one line) because no T&I V2MOM sheet was found.

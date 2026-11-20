@@ -45,7 +45,7 @@ function deltaOf(e, project, includeBtl) {
   }
   if (sy && sy.ws) for (const id of Object.keys(sy.ws)) if (!inc.some(w => w.id === id)) changes.push('Removed a workstream');
   const unchanged = !!(sy && sy.hash === epicHash(e, project, includeBtl));
-  if (!unchanged && !changes.length) changes.push(sy ? 'Epic details changed' : 'First sync of this epic');
+  if (!unchanged && !changes.length) changes.push(sy ? 'Epic details changed since the last save to GUS (name, release, priority, effort, owner or description)' : 'Epic already exists in GUS and has not been synced from this planner yet: its release, priority, effort, owner and description are brought in line with the plan');
   return { action: unchanged ? 'unchanged' : 'update', changes: unchanged ? [] : changes, wsFlags };
 }
 

@@ -2997,3 +2997,6 @@ html body .pl-tt.pl-tt-meth{width:430px;padding:14px 16px;border-radius:14px;bor
 .pl-mv-i small{font-size:11.5px;color:#64748b}
 .pl-mv-i em{grid-column:2;font-size:12px;color:#8a9aab;font-style:italic}
 @media (prefers-reduced-motion:reduce){html body .pl-tt.pl-tt-meth{animation:none}}
+
+.pl-modal .pl-rv-why{margin:10px 0 4px;padding:9px 12px;border-radius:10px;background:#f0f7ff;border:1px solid #d6e7f8;border-left:3px solid #0b5cab;font-size:12.5px;color:#16324a}
+.pl-modal .pl-rv-why ul{margin:5px 0 0 18px;padding:0}.pl-modal .pl-rv-why li{margin:2px 0}
