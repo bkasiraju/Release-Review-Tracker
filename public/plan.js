@@ -829,7 +829,7 @@ function commentsPop(epicId,opener){
   const one=(x,top)=>`<li class="${top?'pl-cm-p':'pl-cm-r'}" data-pid="${esc(x.id)}">${av(x.by)}<div><div class="pl-cm-h"><b>${esc(x.by.name)}</b><small>${esc(ago(x.at))}</small></div><div class="pl-cm-t">${txt(x.parts)}</div>${top?`<button type="button" class="text-button pl-cm-rb" data-cm-reply="${esc(x.id)}">Reply</button>`:''}</div></li>`;
   const thread=()=>err?`<p class="pl-sgp-n pl-cm-err">${esc(err)}</p>`:posts===null?'<p class="pl-sgp-n">Loading the GUS thread…</p>':posts.length?`<ul class="pl-cm-l">${posts.map(x=>one(x,true)+(x.replies||[]).map(y=>one(y,false)).join('')+(x.moreReplies?'<li class="pl-cm-more">More replies in GUS</li>':'')).join('')}</ul>`:'<p class="pl-sgp-n">No comments yet. Start the thread below.</p>';
   const paint=()=>{const keep=pop.querySelector('[data-cm-t]'),v=keep?keep.value:'',pos=keep?keep.selectionStart:0,had=document.activeElement===keep;
-    pop.innerHTML=`<div class="pl-acp-h"><div><b>Comments</b><small>${esc(e.name||'(unnamed epic)')}</small></div><div class="pl-acp-hb"><button type="button" class="pl-acp-x" data-cm-ref aria-label="Refresh from GUS" title="Refresh from GUS">↻</button><button type="button" class="pl-acp-x" data-cm-close aria-label="Close" title="Close">×</button></div></div>${thread()}<div class="pl-acp-box pl-cm-box">${replyTo?`<div class="pl-cm-rt">Replying to <b>${esc(replyTo.by.name)}</b> <button type="button" class="text-button" data-cm-rx>cancel</button></div>`:''}<div class="pl-cm-in"><textarea class="hub-inline" rows="2" maxlength="4000" data-cm-t placeholder="Write a comment… type @ to mention a GUS user" aria-label="Comment"></textarea><button type="button" class="pl-acp-ok" data-cm-post aria-label="Post to GUS Chatter" title="Post to GUS Chatter (Ctrl/⌘+Enter)"${busy?' disabled':''}>${busy?'…':'✓'}</button></div><div class="pl-cm-sug" data-cm-sug hidden></div></div>`;
+    pop.innerHTML=`<div class="pl-acp-h"><div><b>Comments</b><small>${esc(e.name||'(unnamed epic)')}</small></div><div class="pl-acp-hb"><button type="button" class="pl-acp-ok" data-cm-post aria-label="Post to GUS Chatter" title="Post to GUS Chatter (Ctrl/⌘+Enter)"${busy?' disabled':''}>${busy?'…':'✓'}</button><button type="button" class="pl-acp-x" data-cm-close aria-label="Close" title="Close">×</button></div></div>${thread()}<div class="pl-acp-box pl-cm-box">${replyTo?`<div class="pl-cm-rt">Replying to <b>${esc(replyTo.by.name)}</b> <button type="button" class="text-button" data-cm-rx>cancel</button></div>`:''}<textarea class="hub-inline" rows="2" maxlength="4000" data-cm-t placeholder="Comment to GUS… @ to mention" aria-label="Comment"></textarea><div class="pl-cm-sug" data-cm-sug hidden></div></div>`;
     const t=pop.querySelector('[data-cm-t]');t.value=v;if(had||!keep){t.focus();try{t.setSelectionRange(pos,pos);}catch(_){}}
     const l=pop.querySelector('.pl-cm-l');if(l)l.scrollTop=l.scrollHeight;place();};
   const place=()=>{const r=opener.getBoundingClientRect(),w=Math.min(500,innerWidth-24);pop.style.width=w+'px';pop.style.left=Math.max(12,Math.min(r.left,innerWidth-w-12))+'px';pop.style.top=Math.max(12,Math.min(r.bottom+8,innerHeight-pop.offsetHeight-12))+'px';};
@@ -841,12 +841,12 @@ function commentsPop(epicId,opener){
   document.addEventListener('mousedown',away,true);document.addEventListener('keydown',key,true);
   const segments=text=>{const names=[...mentions.keys()].filter(n=>text.includes('@'+n)).sort((a,b)=>b.length-a.length);if(!names.length)return [{t:'text',v:text}];
     const re=new RegExp('@('+names.map(n=>n.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')','g'),out=[];let i=0,m;
-    while((m=re.exec(text))){if(m.index>i)out.push({t:'text',v:text.slice(i,m.index)});out.push({t:'mention',id:mentions.get(m[1])});i=m.index+m[0].length;}
+    while((m=re.exec(text))){if(m.index>i)out.push({t:'text',v:text.slice(i,m.index)});out.push({t:'mention',id:mentions.get(m[1]),name:m[1]});i=m.index+m[0].length;}
     if(i<text.length)out.push({t:'text',v:text.slice(i)});return out;};
   const send=async()=>{const t=pop.querySelector('[data-cm-t]'),v=t.value.replace(/\s+$/,'');if(!v.trim()||busy){t.focus();return;}
     busy=true;paint();
-    try{await call('epic-chat-post',{epicId:e.gusId,segments:segments(v),replyTo:replyTo?replyTo.id:''});
-      pop.querySelector('[data-cm-t]').value='';mentions.clear();replyTo=null;busy=false;window.toast?.('Posted to the GUS Chatter feed of this epic.',false);await load();}
+    try{const r=await call('epic-chat-post',{epicId:e.gusId,segments:segments(v),replyTo:replyTo?replyTo.id:''});
+      const had=mentions.size;pop.querySelector('[data-cm-t]').value='';mentions.clear();replyTo=null;busy=false;window.toast?.(r&&r.plain&&had?'Posted to GUS. In this session @mentions show as text and do not notify.':'Posted to the GUS Chatter feed of this epic.',false);await load();}
     catch(x){busy=false;paint();const t2=pop.querySelector('[data-cm-t]');t2.value=v;window.toast?.('GUS did not take the comment: '+x.message,true);}};
   let tm;const suggest=()=>{const t=pop.querySelector('[data-cm-t]'),box=pop.querySelector('[data-cm-sug]'),pre=t.value.slice(0,t.selectionStart),m=/(?:^|\s)@([^\s@][^@\n]{0,40})$/.exec(pre);clearTimeout(tm);
     if(!m||m[1].trim().length<2){box.hidden=true;sug=[];return;}const term=m[1].trim(),my=++seq;
@@ -858,7 +858,6 @@ function commentsPop(epicId,opener){
   pop.addEventListener('click',ev=>{const t=ev.target;
     if(t.closest('[data-cm-post]'))return send();
     if(t.closest('[data-cm-close]'))return close();
-    if(t.closest('[data-cm-ref]')){posts=null;paint();load();return;}
     if(t.closest('[data-cm-rx]')){replyTo=null;paint();return;}
     const rb=t.closest('[data-cm-reply]');if(rb){replyTo=(posts||[]).find(x=>x.id===rb.dataset.cmReply)||null;paint();return;}
     const u=t.closest('[data-cm-u]');if(u)pick(+u.dataset.cmU);});
@@ -867,6 +866,20 @@ function commentsPop(epicId,opener){
       if(ev.key==='Enter'||ev.key==='Tab'){ev.preventDefault();pick(Math.max(sugAt,0));return;}if(ev.key==='Escape'){ev.stopPropagation();box.hidden=true;return;}}
     if(ev.key==='Enter'&&(ev.metaKey||ev.ctrlKey)){ev.preventDefault();send();}});
 }
+/** Hovering the Comments button previews the latest GUS Chatter messages; clicking opens the thread to post. */
+let cmHov,cmTm,cmCard;
+const cmHide=()=>{clearTimeout(cmTm);cmHov=null;if(cmCard){cmCard.remove();cmCard=null;}};
+document.addEventListener('mouseover',ev=>{const b=ev.target.closest&&ev.target.closest('.pl-cm:not(:disabled)');
+  if(!b){if(cmHov&&!(ev.target.closest&&ev.target.closest('.pl-cmh')))cmHide();return;}
+  if(cmHov===b||document.querySelector('.pl-cmp'))return;cmHide();cmHov=b;
+  cmTm=setTimeout(async()=>{const e=findE(b.dataset.cm);if(!e||!b.isConnected||cmHov!==b)return;
+    const card=cmCard=document.createElement('div');card.className='pl-cmh';card.innerHTML='<small>Loading GUS comments…</small>';H.popHost().appendChild(card);
+    const r=b.getBoundingClientRect();card.style.left=Math.max(12,Math.min(r.left,innerWidth-352))+'px';card.style.top=(r.bottom+6)+'px';
+    try{const x=await call('epic-chat-read',{epicId:e.gusId});if(cmCard!==card)return;const all=(x.posts||[]).flatMap(p=>[p,...(p.replies||[])]).sort((a,c)=>String(a.at).localeCompare(String(c.at))).slice(-3);
+      P.chat=P.chat||new Map();const n=(x.posts||[]).length;if(P.chat.get(e.id)!==n){P.chat.set(e.id,n);if(n&&!b.querySelector('.pl-ac-n')){b.classList.add('has');b.insertAdjacentHTML('beforeend',`<b class="pl-ac-n">${n}</b>`);}}
+      card.innerHTML=all.length?all.map(m=>`<div class="pl-cmh-m"><b>${esc(m.by.name)}</b><small>${esc(ago(m.at))}</small><div>${esc(m.parts.map(q=>q.v).join('').slice(0,220))}</div></div>`).join('')+'<small class="pl-cmh-f">Click to open and reply</small>':'<small>No comments yet. Click to start the thread.</small>';}
+    catch(x){if(cmCard===card)card.innerHTML=`<small>Could not read GUS: ${esc(x.message)}</small>`;}},400);});
+document.addEventListener('click',ev=>{if(ev.target.closest&&ev.target.closest('.pl-cm'))cmHide();},true);
 function openActionLog(epicId,opener){
   const pl=P.plan,today=isoLocal(new Date());
   const fmtD=d=>{if(!d)return '—';const x=new Date(d+'T00:00:00');return isNaN(x)?d:x.toLocaleDateString(undefined,{day:'numeric',month:'short'});};

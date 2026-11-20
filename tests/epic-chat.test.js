@@ -16,3 +16,13 @@ test('post builds mention segments and rejects bad ids / empty text', async () =
   await assert.rejects(chat.post(s, { epicId: "x'; DROP", segments: [{ t: 'text', v: 'a' }] }), /Invalid/);
   await assert.rejects(chat.post(s, { epicId: 'a0Xaaaaaaaaaaaa', segments: [{ t: 'mention', id: 'bad id' }] }), /Invalid/);
 });
+test('without REST access the thread is read and posted through the Feed sObjects', async () => {
+  const made = [];
+  const s = { userId: '005000000000001', query: async q => { assert.match(q, /FROM FeedItem WHERE ParentId = 'a0Xaaaaaaaaaaaa'/); return { records: [{ Id: '0D5a', Body: 'hello', CreatedDate: '2026-11-20T10:00:00Z', CreatedById: '005000000000001', CreatedBy: { Name: 'Me' }, FeedComments: { records: [{ Id: '0D7a', CommentBody: 'reply', CreatedBy: { Name: 'Bo' }, CreatedById: '005000000000002' }] } }] }; }, create: async (o, f) => { made.push([o, f]); return { id: '0D5new', success: true }; } };
+  const r = await chat.read(s, { epicId: 'a0Xaaaaaaaaaaaa' });
+  assert.equal(r.posts[0].parts[0].v, 'hello'); assert.equal(r.posts[0].replies[0].by.name, 'Bo'); assert.equal(r.posts[0].mine, true);
+  const p = await chat.post(s, { epicId: 'a0Xaaaaaaaaaaaa', segments: [{ t: 'mention', id: '005000000000002', name: 'Bo' }, { t: 'text', v: ' hi' }] });
+  assert.equal(p.plain, true); assert.deepEqual(made[0], ['FeedItem', { ParentId: 'a0Xaaaaaaaaaaaa', Body: '@Bo hi', Type: 'TextPost' }]);
+  await chat.post(s, { epicId: 'a0Xaaaaaaaaaaaa', replyTo: '0D5aaaaaaaaaaaaaaa', segments: [{ t: 'text', v: 'ok' }] });
+  assert.deepEqual(made[1], ['FeedComment', { FeedItemId: '0D5aaaaaaaaaaaaaaa', CommentBody: 'ok' }]);
+});

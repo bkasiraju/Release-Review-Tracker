@@ -1,5 +1,10 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.56-GA
+
+- Comments fix: the GUS Apps runtime has no Connect API, so the thread failed with "cannot reach Chatter". It now reads the epic's FeedItem / FeedComment records and posts through the same sObjects (plain text: an @name is shown but does not notify; with Connect API access real mentions are still used).
+- Comments UX: hovering the button previews the latest GUS messages; clicking opens the thread with the ✓ and × in the header and a full-width box; the refresh button is gone (the thread reloads each time it opens).
+
 ## 7.0.55-GA
 
 - Epic Comments: a Comments button next to Action Log opens an inline popover with the epic's GUS Chatter thread (posts and replies, oldest first). Post with ✓ or Ctrl/⌘+Enter; type @ to mention a GUS user (sent as a real Chatter mention); Reply on any post; ↻ re-reads GUS, so replies made in GUS show on open. Nothing is stored in the plan. Only for epics that exist in GUS. New backend actions epic-chat-read / epic-chat-post / epic-chat-users. Not yet exercised against live GUS Chatter; unit tests use a stubbed GUS client.

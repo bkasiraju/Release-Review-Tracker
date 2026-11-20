@@ -3250,3 +3250,13 @@ html body .pl-cmp .pl-cm-sug[hidden]{display:none}
 html body .pl-cmp .pl-cm-u{display:flex;align-items:center;gap:8px;width:100%;border:0;background:transparent;padding:7px 10px;text-align:left;font-size:12.5px;cursor:pointer}
 html body .pl-cmp .pl-cm-u small{color:#64748b;margin-left:auto;font-size:11px}
 html body .pl-cmp .pl-cm-u:hover,html body .pl-cmp .pl-cm-u.on{background:#eef4fb}
+
+/* 7.0.56-GA: Comments — simpler popover (✓ and × in the header, full-width box) and hover preview */
+html body .pl-cmp .pl-cm-box{padding:8px 10px 10px}
+html body .pl-cmp .pl-cm-box textarea{display:block;width:100%!important;box-sizing:border-box;min-height:56px}
+html body .pl-cmp .pl-cm-sug{right:10px}
+html body .pl-cmh{position:fixed;z-index:2147483000;width:340px;max-width:calc(100vw - 24px);background:#fff;border:1px solid #d9e0e8;border-radius:10px;box-shadow:0 10px 28px rgba(15,23,42,.16);padding:10px 12px;font-size:12.5px;color:#1e293b;pointer-events:none;display:flex;flex-direction:column;gap:8px}
+html body .pl-cmh small{color:#64748b;font-size:11px}
+html body .pl-cmh-m b{margin-right:8px;font-size:12px}
+html body .pl-cmh-m div{margin-top:2px;line-height:1.4;word-break:break-word}
+html body .pl-cmh-f{border-top:1px solid #eef2f6;padding-top:6px}

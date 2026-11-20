@@ -21,8 +21,19 @@ const parts = segs => (Array.isArray(segs) ? segs : []).map(s => {
 const who = a => ({ id: (a && a.id) || '', name: (a && a.displayName || a && a.name) || 'Someone', photo: (a && a.photo && (a.photo.smallPhotoUrl || a.photo.standardEmailPhotoUrl)) || '' });
 const item = (x, me) => ({ id: x.id, at: x.createdDate || '', by: who(x.actor || x.user), mine: !!me && ((x.actor || x.user || {}).id || '').slice(0, 15) === me, parts: parts(x.body && x.body.messageSegments) });
 
+const canRest = sf => typeof sf.request === 'function';
+const plain = (id, name, at, text, me) => ({ id, at: at || '', by: { id: '', name: name || 'Someone', photo: '' }, mine: false, parts: String(text || '').trim() ? [{ t: 'text', v: String(text).trim() }] : [] });
+/** Without REST access (the GUS Apps runtime) the thread is read from the Feed sObjects: plain text, newest 25 posts with their replies. */
+async function readSobjects(sf, id) {
+  const rows = (await sf.query(`SELECT Id, Body, CreatedDate, CreatedById, CreatedBy.Name, (SELECT Id, CommentBody, CreatedDate, CreatedById, CreatedBy.Name FROM FeedComments ORDER BY CreatedDate ASC LIMIT 20) FROM FeedItem WHERE ParentId = '${id}' AND Type IN ('TextPost','LinkPost','ContentPost','QuestionPost') ORDER BY CreatedDate DESC LIMIT 25`)).records || [];
+  const me = SF_ID.test(String(sf.userId || '')) ? String(sf.userId).slice(0, 15) : '';
+  const mk = (x, text) => ({ ...plain(x.Id, x.CreatedBy && x.CreatedBy.Name, x.CreatedDate, text), mine: !!me && String(x.CreatedById || '').slice(0, 15) === me });
+  return { posts: rows.map(r => ({ ...mk(r, r.Body), replies: ((r.FeedComments && r.FeedComments.records) || []).map(c => mk(c, c.CommentBody)).filter(c => c.parts.length), moreReplies: false })).filter(p => p.parts.length).reverse() };
+}
 async function read(sf, { epicId }) {
-  const id = validId(epicId), me = SF_ID.test(String(sf.userId || '')) ? String(sf.userId).slice(0, 15) : '';
+  const id = validId(epicId);
+  if (!canRest(sf)) return readSobjects(sf, id);
+  const me = SF_ID.test(String(sf.userId || '')) ? String(sf.userId).slice(0, 15) : '';
   const r = await req(sf, `/services/data/v62.0/chatter/feeds/record/${id}/feed-elements?pageSize=25&sort=CreatedDateDesc`);
   const posts = (r.elements || []).filter(e => e.type === 'TextPost' || e.body).map(e => {
     const cm = e.capabilities && e.capabilities.comments && e.capabilities.comments.page && e.capabilities.comments.page.items || [];
@@ -33,11 +44,19 @@ async function read(sf, { epicId }) {
 
 /** segments: [{t:'text',v}|{t:'mention',id}] built by the client from the typed text. Posts a new FeedItem on the epic, or a reply when replyTo is given. */
 async function post(sf, { epicId, segments, replyTo }) {
-  const id = validId(epicId), segs = (Array.isArray(segments) ? segments : []).slice(0, 80).map(s => s && s.t === 'mention' ? { type: 'Mention', id: validId(s.id) } : { type: 'Text', text: String((s && s.v) || '') }).filter(s => s.type === 'Mention' || s.text);
-  const len = segs.reduce((n, s) => n + (s.text ? s.text.length : 0), 0);
-  if (!segs.some(s => s.type === 'Mention' || s.text.trim())) throw new Error('Write a comment first.');
-  if (len > MAX_TEXT) throw new Error(`Comment is too long (max ${MAX_TEXT} characters).`);
+  const id = validId(epicId), raw = (Array.isArray(segments) ? segments : []).slice(0, 80).map(s => s && s.t === 'mention' ? { t: 'mention', id: validId(s.id), name: String(s.name || '').slice(0, 80) } : { t: 'text', v: String((s && s.v) || '') });
+  const flat = raw.map(s => s.t === 'mention' ? '@' + (s.name || 'user') : s.v).join('');
+  if (!flat.trim()) throw new Error('Write a comment first.');
+  if (flat.length > MAX_TEXT) throw new Error(`Comment is too long (max ${MAX_TEXT} characters).`);
   const reply = replyTo ? validId(replyTo) : '';
+  if (!canRest(sf)) {
+    // The GUS Apps runtime has no Connect API: the comment is posted through the Feed sObjects as plain text, so an @name is shown but does not notify.
+    if (typeof sf.create !== 'function') throw new Error('GUS Apps cannot post to Chatter from this session.');
+    const r = reply ? await sf.create('FeedComment', { FeedItemId: reply, CommentBody: flat }) : await sf.create('FeedItem', { ParentId: id, Body: flat, Type: 'TextPost' });
+    if (!r || r.success === false || (r.errors && r.errors.length)) throw new Error('GUS rejected the comment: ' + JSON.stringify((r && r.errors) || []).slice(0, 200));
+    return { posted: true, id: r.id, plain: true };
+  }
+  const segs = raw.map(s => s.t === 'mention' ? { type: 'Mention', id: s.id } : { type: 'Text', text: s.v }).filter(s => s.type === 'Mention' || s.text);
   const res = await req(sf, reply
     ? { method: 'POST', url: `/services/data/v62.0/chatter/feed-elements/${reply}/capabilities/comments/items`, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ body: { messageSegments: segs } }) }
     : { method: 'POST', url: '/services/data/v62.0/chatter/feed-elements', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ feedElementType: 'FeedItem', subjectId: id, body: { messageSegments: segs } }) });
