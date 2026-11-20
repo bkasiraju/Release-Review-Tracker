@@ -3202,3 +3202,8 @@ html body[data-hub=plan] tr.pl-g-proj.pl-g-proj:has(.pl-caret[aria-expanded="tru
 html body[data-hub=plan] tr.pl-g-proj.pl-g-proj:has(.pl-caret[aria-expanded]):hover td{background-color:#d3e5f8!important;box-shadow:inset 0 1px 0 #b4d0ee,inset 0 -1px 0 #b4d0ee!important}
 html body[data-hub=plan] tr.pl-g-proj.pl-g-proj:has(.pl-caret[aria-expanded]):hover td:first-child{box-shadow:inset 4px 0 var(--pc,#6aa0d6),inset 0 1px 0 #b4d0ee,inset 0 -1px 0 #b4d0ee!important}
 html body[data-hub=plan] tr.pl-g-proj.pl-g-out.pl-g-proj:has(.pl-caret[aria-expanded]):hover td{background-color:#d2dbf3!important;box-shadow:inset 0 1px 0 #bcc7ea,inset 0 -1px 0 #bcc7ea!important}
+
+/* 7.0.50-GA: Action Log ✓ and × share one circular button format */
+html body .pl-acp-ok,html body .pl-acp-x{flex:none;display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;padding:0;border-radius:50%;border:1px solid transparent;font-size:16px;line-height:1;cursor:pointer;transition:background-color .15s ease,color .15s ease}
+html body .pl-acp-x{background:#eef2f6;color:#475569}
+html body .pl-acp-x:hover{background:#dde4ec;color:#0f172a}
