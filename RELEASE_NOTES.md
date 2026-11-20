@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.28-GA
+
+- **Action Log**: a checklist button on every epic row (next to Outcome, with an open-item count) opens a small popup to add an action item with owner (defaults to the epic owner) and ETA, tick it done or delete it. A new **Action Log** button before Full screen lists the action items of all epics (epic, action item, owner, ETA; open and overdue first) and adds new ones. Items are stored with the epic in the plan (up to 50 per epic) and are not sent to GUS.
+
 ## 7.0.27-GA
 
 - Outcome view hierarchy: each level is now indented one step (outcome → project → epic; epics sit under the outcome when Projects are not shown), and the levels have subtly different tints — indigo for outcome rows, neutral grey-blue for project rows, white for epics.

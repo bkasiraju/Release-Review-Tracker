@@ -281,3 +281,11 @@ test('Outcome: first line of Epic Health Comments is set, replaced, kept apart f
   const p = cleanPlan({ projects: [], epics: [{ id: 'e1', name: 'E', outcome: '  Safer \n upgrades ' }] });
   assert.equal(p.epics[0].outcome, 'Safer upgrades');
 });
+
+test('Epic action items are sanitised and kept with the epic', () => {
+  const { cleanPlan } = require('../backend/plan.js');
+  const p = cleanPlan({ projects: [], epics: [{ id: 'e1', name: 'E', actions: [{ id: 'a1', text: ' Fix it ', ownerName: 'Sam', eta: '2026-12-01', done: 1 }, { text: '' }, { text: 'No date', eta: 'soon' }] }] });
+  assert.equal(p.epics[0].actions.length, 2);
+  assert.deepEqual([p.epics[0].actions[0].text, p.epics[0].actions[0].eta, p.epics[0].actions[0].done], ['Fix it', '2026-12-01', true]);
+  assert.equal(p.epics[0].actions[1].eta, '');
+});

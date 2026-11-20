@@ -3044,3 +3044,17 @@ html body[data-hub=plan] tr.pl-g-proj.pl-g-sub td{background-color:#f2f5f8!impor
 html body[data-hub=plan] tr.pl-g-proj.pl-g-sub .pl-pj-n{font-weight:600!important}
 html body[data-hub=plan] .pl-grid tr.pl-d-o td.c-name{padding-left:34px!important}
 html body[data-hub=plan] .pl-grid tr.pl-d-op td.c-name{padding-left:56px!important}
+
+/* 7.0.28-GA: Action Log */
+html body .pl-ac{position:relative;color:#0b5cab!important;border-color:#c5d9ee!important;background:#f2f8fd!important}
+html body .pl-ac.has{background:#fff7ed!important;border-color:#fed7aa!important;color:#c2410c!important}
+html body .pl-ac-n{position:absolute;top:-6px;right:-6px;min-width:15px;height:15px;border-radius:999px;background:#c2410c;color:#fff;font-size:10px;line-height:15px;text-align:center;padding:0 3px}
+html body .pl-al-f{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px}
+html body .pl-al-f [data-al-t]{flex:1 1 220px;min-width:180px}
+html body .pl-al-f [data-al-e]{flex:1 1 100%}
+html body .pl-al-t{width:100%;border-collapse:collapse;font-size:13px}
+html body .pl-al-t th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:#64748b;font-weight:600;padding:6px 8px;border-bottom:1px solid #e2e8f0}
+html body .pl-al-t td{padding:8px;border-bottom:1px solid #eef2f6;vertical-align:top}
+html body .pl-al-t .pl-al-ep{max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#475569}
+html body .pl-al-t tr.done td{color:#94a3b8;text-decoration:line-through}
+html body .pl-al-t tr.late td:nth-last-child(2){color:#b91c1c;font-weight:600}
