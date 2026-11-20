@@ -4,7 +4,7 @@ test('parseRef', () => {
   assert.deepStrictEqual(parseRef('HPS M6.2.2'), { key: 'HPS', code: '6.2.2' });
   assert.deepStrictEqual(parseRef('T&P 1.21'), { key: 'T&P', code: '1.21' });
   assert.deepStrictEqual(parseRef('T&P M5.1.1'), { key: 'T&P', code: '5.1.1' });
-  assert.strictEqual(parseRef('Meir M5.3.5'), null);
+  assert.deepStrictEqual(parseRef('Meir M5.3.5'), { key: 'T&I', code: '5.3.5' });
 });
 test('parseTab reads HPS layout with T&I cross reference and skips headers', () => {
   const rows = [['M6. X'], ['HPS #', 'T&P / T&I V2MOM #', 'Measure', 'Primary Owner(s)', 'Clouds', 'Q1'],

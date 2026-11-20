@@ -968,6 +968,7 @@ function methTipHtml(p){
     return `<li class="pl-mv-i"><span class="pl-mv-code">${esc(code)}</span><div class="pl-mv-t">${hit?`<b>${esc(hit.title)}</b><small>${hit.owner?'Owner: '+esc(hit.owner):''}${hit.owner&&hit.xref?' · ':''}${hit.xref?'Maps to '+esc(hit.xref):''}</small>`:`<em>${pend&&m?'Loading measure name…':m&&!src?'No source sheet is connected for '+esc(k)+' yet.':m&&(P.v2m.failed||[]).some(f=>f===k||f==='all')?'Sheet not readable from here.':m?'Measure name not found in the sheet.':'No measure sheet is connected for this reference.'}</em>`}</div></li>`;}).join('');
   return `<div class="pl-tt-h"><b>V2MOM methods</b><span class="pl-tc t">${refs.length}</span></div><div class="pl-mt-refs"><small>${esc(p.name||'')}</small></div><ul class="pl-mv-l2">${rows||'<li><em>No method set.</em></li>'}</ul>${P.v2m&&P.v2m.failed&&P.v2m.failed.length?`<div class="pl-tt-foot"><small class="pl-sgt-hint">The ${esc(P.v2m.failed.join(', '))} V2MOM sheet${P.v2m.failed.length>1?'s are':' is'} not readable from here (no Google Sheets access), so measure names cannot be shown.</small></div>`:''}`;
 }
+document.addEventListener('mousemove',e=>{P.mx=e.clientX;P.my=e.clientY;},{passive:true});
 function showTip(host){
   if(host.dataset.tipMeth){const p=P.plan.projects.find(x=>x.id===host.dataset.tipMeth);if(!p||!p.method)return;
     hideTip();loadV2m();ttEl=document.createElement('div');ttEl.className='pl-tt pl-tt-meth';ttEl.dataset.for=tipKey(host);ttEl.setAttribute('role','tooltip');ttEl.innerHTML=methTipHtml(p);H.popHost().appendChild(ttEl);
@@ -981,6 +982,9 @@ function showTip(host){
   hideTip();ttEl=document.createElement('div');ttEl.className='pl-tt';ttEl.dataset.for=tipKey(host);ttEl.setAttribute('role','tooltip');if(mp)loadHrp();ttEl.innerHTML=mp?measTipHtml(mp):engTipHtml(x);if(mp)ttEl.classList.add('pl-tt-meas');H.popHost().appendChild(ttEl);
   const r=host.getBoundingClientRect(),w=ttEl.offsetWidth,h=ttEl.offsetHeight;
   let left=Math.min(Math.max(8,mp?r.left-4:r.right-w),innerWidth-w-8),top=r.top-h-8;if(top<8)top=Math.min(r.bottom+8,innerHeight-h-8);
+  if(mp&&P.mx!=null){ // P card opens to the right of the pointer, flipping left / clamping vertically near the screen edges
+    left=P.mx+18;if(left+w>innerWidth-8)left=Math.max(8,P.mx-w-18);
+    top=Math.min(Math.max(8,P.my-Math.min(h/2,60)),Math.max(8,innerHeight-h-8));}
   ttEl.style.left=left+'px';ttEl.style.top=top+'px';
 }
 /** Extra planning-risk tiles: capacity lost to time off, engineers planned beyond availability, effort with no engineer, epics missing an owner or estimate. */

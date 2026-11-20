@@ -1,5 +1,10 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.19-GA
+
+- The **P** (project measure) card now opens to the right of the mouse pointer, flipping to the left and clamping vertically when near a screen edge.
+- Fixed the `parseRef` test for Meir references (no product change).
+
 ## 7.0.18-GA
 
 - V2MOM card: **Meir** and **T&I** references are now the same source (the FY27 Meir Amiel V2MOM, tabs M1–M9) and show their measure names. "Meir M5.3.5" resolves to T&I 5.3.5. The private snapshot now holds HPS and T&I (573 measures); T&P names are still unavailable.
