@@ -3140,3 +3140,15 @@ html body[data-hub=plan] #pl-actlog{color:#c2410c!important;background:#fff7ed!i
 html body[data-hub=plan] [data-fold-all]{color:#0f766e!important;background:#f0fdfa!important;border-color:#99f6e4!important}
 html body[data-hub=plan] #pl-fs-btn{color:#334155!important;background:#f1f5f9!important;border-color:#cbd5e1!important}
 html body[data-hub=plan] #pl-add-proj:hover,html body[data-hub=plan] [data-proj-toggle]:hover,html body[data-hub=plan] [data-epics-toggle]:hover,html body[data-hub=plan] [data-cols-toggle]:hover,html body[data-hub=plan] [data-dm-toggle]:hover,html body[data-hub=plan] #pl-actlog:hover,html body[data-hub=plan] [data-fold-all]:hover,html body[data-hub=plan] #pl-fs-btn:hover{filter:brightness(.96)}
+
+/* 7.0.44-GA: expanded project / outcome rows stand out, collapsed ones recede (colour and weight rather than opacity, so text stays readable) */
+html body[data-hub=plan] tr.pl-g-proj:has(.pl-caret[aria-expanded="true"]) td{background-color:#dcebfa!important;border-top:1px solid #9dc0e6!important;border-bottom:1px solid #9dc0e6!important}
+html body[data-hub=plan] tr.pl-g-proj:has(.pl-caret[aria-expanded="true"]) .pl-pj-n{color:#032d60!important;font-weight:700!important}
+html body[data-hub=plan] tr.pl-g-proj:has(.pl-caret[aria-expanded="false"]) td{background-color:#fafbfd!important}
+html body[data-hub=plan] tr.pl-g-proj:has(.pl-caret[aria-expanded="false"]) .pl-pj-n{color:#5f6f80!important;font-weight:500!important}
+html body[data-hub=plan] tr.pl-g-proj:has(.pl-caret[aria-expanded="false"]) :is(.pl-ty,.pl-gsum,.pl-pj-mt,.pl-open-gus,.pl-pj-add,.pl-pj-del){opacity:.7}
+html body[data-hub=plan] tr.pl-g-proj.pl-g-out:has(.pl-caret[aria-expanded="true"]) td{background-color:#d3dcf5!important;border-top-color:#a5b4e6!important;border-bottom-color:#a5b4e6!important}
+html body[data-hub=plan] tr.pl-g-proj.pl-g-out:has(.pl-caret[aria-expanded="true"]) .pl-pj-n{color:#1f2a5c!important}
+html body[data-hub=plan] tr.pl-g-proj.pl-g-out:has(.pl-caret[aria-expanded="false"]) td{background-color:#f1f3fa!important}
+html body[data-hub=plan] tr.pl-g-proj.pl-g-sub:has(.pl-caret[aria-expanded="true"]) td{background-color:#e4edf6!important}
+html body[data-hub=plan] tr.pl-g-proj:has(.pl-caret[aria-expanded="false"]):hover td{background-color:#eef4fa!important}
