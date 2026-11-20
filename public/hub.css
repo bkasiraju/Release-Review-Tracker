@@ -3260,3 +3260,8 @@ html body .pl-cmh small{color:#64748b;font-size:11px}
 html body .pl-cmh-m b{margin-right:8px;font-size:12px}
 html body .pl-cmh-m div{margin-top:2px;line-height:1.4;word-break:break-word}
 html body .pl-cmh-f{border-top:1px solid #eef2f6;padding-top:6px}
+
+/* 7.0.57-GA: Comments — wide thread and full-width box */
+html body .pl-sgp.pl-cmp .pl-cm-box textarea.hub-inline{width:100%!important;max-width:none!important;min-width:0!important;box-sizing:border-box!important}
+html body .pl-sgp.pl-cmp .pl-cm-t{font-size:13px}
+html body .pl-cmh{width:460px}

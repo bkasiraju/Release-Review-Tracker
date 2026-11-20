@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.57-GA
+
+- Comments: reading the thread no longer fails with "FeedItem requires a filter by Id" (the epic's feed is read from ADM_Epic__Feed, replies via FeedComment). Popover is wider (up to 62% of the screen, 760 px), the comment box is full width, and the title reads "Comments · GUS Chatter". Posts are made as the signed-in GUS user; @mentions remain plain text in this runtime.
+
 ## 7.0.56-GA
 
 - Comments fix: the GUS Apps runtime has no Connect API, so the thread failed with "cannot reach Chatter". It now reads the epic's FeedItem / FeedComment records and posts through the same sObjects (plain text: an @name is shown but does not notify; with Connect API access real mentions are still used).

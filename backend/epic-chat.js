@@ -25,10 +25,18 @@ const canRest = sf => typeof sf.request === 'function';
 const plain = (id, name, at, text, me) => ({ id, at: at || '', by: { id: '', name: name || 'Someone', photo: '' }, mine: false, parts: String(text || '').trim() ? [{ t: 'text', v: String(text).trim() }] : [] });
 /** Without REST access (the GUS Apps runtime) the thread is read from the Feed sObjects: plain text, newest 25 posts with their replies. */
 async function readSobjects(sf, id) {
-  const rows = (await sf.query(`SELECT Id, Body, CreatedDate, CreatedById, CreatedBy.Name, (SELECT Id, CommentBody, CreatedDate, CreatedById, CreatedBy.Name FROM FeedComments ORDER BY CreatedDate ASC LIMIT 20) FROM FeedItem WHERE ParentId = '${id}' AND Type IN ('TextPost','LinkPost','ContentPost','QuestionPost') ORDER BY CreatedDate DESC LIMIT 25`)).records || [];
+  // A custom object's feed is its own sObject (ADM_Epic__Feed); FeedItem alone demands an Id filter in this runtime.
+  const F = 'Id, Body, CreatedDate, CreatedById, CreatedBy.Name', W = `FROM ADM_Epic__Feed WHERE ParentId = '${id}' AND Type IN ('TextPost','LinkPost','ContentPost','QuestionPost') ORDER BY CreatedDate DESC LIMIT 25`;
+  let rows, byComment = null;
+  try { rows = (await sf.query(`SELECT ${F}, (SELECT Id, CommentBody, CreatedDate, CreatedById, CreatedBy.Name FROM FeedComments ORDER BY CreatedDate ASC LIMIT 20) ${W}`)).records || []; }
+  catch (_) {
+    rows = (await sf.query(`SELECT ${F} ${W}`)).records || [];
+    if (rows.length) { try { const cs = (await sf.query(`SELECT Id, FeedItemId, CommentBody, CreatedDate, CreatedById, CreatedBy.Name FROM FeedComment WHERE FeedItemId IN (${rows.map(r => `'${validId(r.Id)}'`).join(',')}) ORDER BY CreatedDate ASC`)).records || []; byComment = {}; cs.forEach(c => (byComment[c.FeedItemId] = byComment[c.FeedItemId] || []).push(c)); } catch (_2) { /* replies are best effort */ } }
+  }
   const me = SF_ID.test(String(sf.userId || '')) ? String(sf.userId).slice(0, 15) : '';
   const mk = (x, text) => ({ ...plain(x.Id, x.CreatedBy && x.CreatedBy.Name, x.CreatedDate, text), mine: !!me && String(x.CreatedById || '').slice(0, 15) === me });
-  return { posts: rows.map(r => ({ ...mk(r, r.Body), replies: ((r.FeedComments && r.FeedComments.records) || []).map(c => mk(c, c.CommentBody)).filter(c => c.parts.length), moreReplies: false })).filter(p => p.parts.length).reverse() };
+  const reps = r => ((r.FeedComments && r.FeedComments.records) || (byComment && byComment[r.Id]) || []);
+  return { posts: rows.map(r => ({ ...mk(r, r.Body), replies: reps(r).map(c => mk(c, c.CommentBody)).filter(c => c.parts.length), moreReplies: false })).filter(p => p.parts.length).reverse() };
 }
 async function read(sf, { epicId }) {
   const id = validId(epicId);

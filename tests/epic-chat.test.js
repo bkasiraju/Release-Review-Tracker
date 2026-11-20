@@ -18,7 +18,7 @@ test('post builds mention segments and rejects bad ids / empty text', async () =
 });
 test('without REST access the thread is read and posted through the Feed sObjects', async () => {
   const made = [];
-  const s = { userId: '005000000000001', query: async q => { assert.match(q, /FROM FeedItem WHERE ParentId = 'a0Xaaaaaaaaaaaa'/); return { records: [{ Id: '0D5a', Body: 'hello', CreatedDate: '2026-11-20T10:00:00Z', CreatedById: '005000000000001', CreatedBy: { Name: 'Me' }, FeedComments: { records: [{ Id: '0D7a', CommentBody: 'reply', CreatedBy: { Name: 'Bo' }, CreatedById: '005000000000002' }] } }] }; }, create: async (o, f) => { made.push([o, f]); return { id: '0D5new', success: true }; } };
+  const s = { userId: '005000000000001', query: async q => { assert.match(q, /FROM ADM_Epic__Feed WHERE ParentId = 'a0Xaaaaaaaaaaaa'/); return { records: [{ Id: '0D5a', Body: 'hello', CreatedDate: '2026-11-20T10:00:00Z', CreatedById: '005000000000001', CreatedBy: { Name: 'Me' }, FeedComments: { records: [{ Id: '0D7a', CommentBody: 'reply', CreatedBy: { Name: 'Bo' }, CreatedById: '005000000000002' }] } }] }; }, create: async (o, f) => { made.push([o, f]); return { id: '0D5new', success: true }; } };
   const r = await chat.read(s, { epicId: 'a0Xaaaaaaaaaaaa' });
   assert.equal(r.posts[0].parts[0].v, 'hello'); assert.equal(r.posts[0].replies[0].by.name, 'Bo'); assert.equal(r.posts[0].mine, true);
   const p = await chat.post(s, { epicId: 'a0Xaaaaaaaaaaaa', segments: [{ t: 'mention', id: '005000000000002', name: 'Bo' }, { t: 'text', v: ' hi' }] });
