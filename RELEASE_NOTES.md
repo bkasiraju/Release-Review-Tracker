@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.21-GA
+
+- Epic detail window: the SMART goal now shows right under the epic name, and the ATL/BTL status appears both as a chip (with the epic's days) and as a column in the workstream table.
+
 ## 7.0.20-GA
 
 - Planner header buttons reordered and renamed to say what they do: **Leaves & on-call**, **Save plan** (saves to the GUS Apps tracker only, nothing goes to GUS), **Pull from GUS** (was "Refresh from GUS"; now after Save), **Review & push to GUS** (was "Review & save to GUS").
