@@ -3119,3 +3119,8 @@ html body .pl-modal-al #pl-mb>.note{margin:0 0 4px!important;padding:2px 0!impor
 html body .pl-modal-al .pl-alg-h,html body .pl-modal-al .pl-alg-r{grid-template-columns:20px minmax(0,3fr) minmax(0,2fr) 100px 56px 20px;gap:8px;padding:5px 2px}
 html body .pl-modal-al .pl-alg-r input[type=checkbox]{margin:0}
 html body .pl-modal-al .pl-alg-r .pl-ib{padding:0;min-width:0;width:20px;height:20px;line-height:1}
+
+/* 7.0.40-GA: Action Log popover header actions */
+html body .pl-acp-hb{display:flex;align-items:center;gap:8px;flex:none}
+html body .pl-acp-x{width:26px;height:26px;border:0;border-radius:50%;background:transparent;color:#64748b;font-size:18px;line-height:1;cursor:pointer}
+html body .pl-acp-x:hover{background:#eef2f6;color:#0f172a}
