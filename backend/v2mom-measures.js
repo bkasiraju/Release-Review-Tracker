@@ -7,16 +7,16 @@ const TTL = 60 * 60 * 1000;
 const tabs = (n, p = 'M') => Array.from({ length: n }, (_, i) => p + (i + 1));
 const SOURCES = [
   { key: 'HPS', label: 'HPS FY27 V2MOM', sheetId: '1moQT0N8hJsSjyo973JRRcu8kZ565rYtnzm3CJfO0ZIg', tabs: tabs(12) },
-  { key: 'T&P', label: 'T&P FY27 V2MOM', sheetId: '1obLloL4_lZ5HQzFRwnp_WuOtczhpvGSyMYLJthDKbtY', tabs: tabs(13) }
-  // { key: 'T&I', label: 'T&I FY27 V2MOM', sheetId: '<sheet id>', tabs: tabs(12) }
+  { key: 'T&P', label: 'T&P FY27 V2MOM', sheetId: '1obLloL4_lZ5HQzFRwnp_WuOtczhpvGSyMYLJthDKbtY', tabs: tabs(13) },
+  { key: 'T&I', label: 'T&I FY27 V2MOM (Meir)', sheetId: '1mpT8gzb1qmt-KRUP-naIM4hHiJc1-numOhUZKrrecCQ', tabs: tabs(9) }
 ];
 const norm = s => String(s == null ? '' : s).replace(/\s+/g, ' ').trim();
 /** "HPS M6.2.2" / "hps 6.2.2" / "T&P M5.1.1" -> { key: 'HPS', code: '6.2.2' }, or null. */
 function parseRef(text) {
-  const m = /^\s*(HPS|T\s*&\s*P|T\s*&\s*I|TP|TI)\b[\s:-]*M?\s*(\d+(?:\.\d+)*)/i.exec(String(text || ''));
+  const m = /^\s*(HPS|T\s*&\s*P|T\s*&\s*I|TP|TI|Meir)\b[\s:-]*M?\s*(\d+(?:\.\d+)*)/i.exec(String(text || ''));
   if (!m) return null;
   const k = m[1].toUpperCase().replace(/\s/g, '');
-  return { key: k === 'TP' ? 'T&P' : k === 'TI' ? 'T&I' : k, code: m[2] };
+  return { key: k === 'TP' ? 'T&P' : k === 'TI' || k === 'MEIR' ? 'T&I' : k, code: m[2] };
 }
 /** Pure: rows of one method tab -> { '6.2.2': { title, owner, xref } }. */
 function parseTab(rows, key) {
