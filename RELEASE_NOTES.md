@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.35-GA
+
+- The Action Log count badge on the epic row is no longer clipped by the cell edge (smaller badge, with room reserved to its right and above).
+
 ## 7.0.34-GA
 
 - Action Log popover layout: the green ✓ save is at the top right, the action-item box spans the full popover width, owner and ETA sit side by side below it, and a very light frame marks the controls area.

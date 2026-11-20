@@ -3091,3 +3091,7 @@ html body .pl-acp-box{border:1px solid #eceff5;border-radius:8px;padding:8px;bac
 html body .pl-acp .pl-acp-t0{display:block;width:100%!important;max-width:none;box-sizing:border-box;margin:0 0 8px}
 html body .pl-acp .pl-acp-r{display:flex;gap:8px}
 html body .pl-acp .pl-acp-r>*{flex:1 1 0;min-width:0;width:auto!important;box-sizing:border-box}
+
+/* 7.0.35-GA: the Action Log count badge stays inside the cell instead of being clipped */
+html body .pl-grid .pl-nmw{padding:3px 8px 0 0;box-sizing:border-box}
+html body .pl-grid .pl-nmw .pl-ac-n{top:-3px;right:-4px;min-width:14px;height:14px;line-height:14px;font-size:9.5px;box-shadow:0 0 0 1.5px #fff}
