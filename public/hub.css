@@ -3074,3 +3074,11 @@ html body .pl-acp-l .pl-acp-t{flex:1 1 auto;min-width:0}
 html body .pl-acp-l small{color:#64748b;white-space:nowrap}
 html body .pl-acp-l li.done .pl-acp-t{color:#94a3b8;text-decoration:line-through}
 html body .pl-acp-l li.late small{color:#b91c1c;font-weight:600}
+
+/* 7.0.32-GA: equal spacing between the epic-row icons (GUS link, SMART goal, Outcome, Action Log) */
+html body .pl-grid .pl-nmw{gap:8px}
+html body .pl-grid .pl-nmw>.pl-sgw{margin:0;gap:0;flex:none}
+html body .pl-grid .pl-nmw>.pl-open-gus{margin:0;flex:none}
+html body .pl-grid .pl-nmw .pl-sg-pen{padding:0!important;margin:0}
+html body .pl-grid .pl-nmw .pl-sgw:hover .pl-sg-pen,html body .pl-grid .pl-nmw .pl-sg-pen:focus-visible{margin-left:2px}
+html body .pl-grid .pl-nmw .pl-sg,html body .pl-grid .pl-nmw .pl-open-gus{width:22px;height:22px;box-sizing:border-box}

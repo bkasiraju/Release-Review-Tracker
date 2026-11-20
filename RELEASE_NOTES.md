@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.32-GA
+
+- Epic-row icons (GUS link, SMART goal, Outcome, Action Log) are now the same size with equal 8 px gaps; the SMART goal edit pencil no longer adds extra space until hovered.
+
 ## 7.0.31-GA
 
 - The Action Log, Outcome and SMART goal popovers now open inside the dashboard (including in full-screen mode, where they were previously attached outside it and could not be seen or used).
