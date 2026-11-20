@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.46-GA
+
+- Hovering or expanding a project / outcome row no longer shifts the layout: borders keep a constant 1 px top and no bottom border, the highlight lines are inset shadows, and the project name keeps the same weight on hover (bold only when expanded).
+
 ## 7.0.45-GA
 
 - The project / outcome row under the mouse now stands out clearly: a stronger blue fill, a 2 px blue line above and below, full-strength bold name and chips.
