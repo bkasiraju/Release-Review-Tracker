@@ -923,7 +923,7 @@ function engTipHtml(x){
 let ttEl=null;
 document.addEventListener('mouseover',e=>{const h=e.target.closest&&e.target.closest('[data-tip-eng],[data-tip-meas],[data-tip-goal],[data-tip-meth]'),inTip=e.target.closest&&e.target.closest('.pl-tt');
   if(h||inTip){clearTimeout(P.ttT);P.ttT=0;}
-  if(h){if(!(ttEl&&ttEl.dataset.for===tipKey(h))){if(h.dataset.tipMeth){if(P.ttSf!==tipKey(h)){clearTimeout(P.ttS);P.ttSf=tipKey(h);P.ttS=setTimeout(()=>{if(h.isConnected)showTip(h);},1500);}}else showTip(h);}}
+  if(h){if(!(ttEl&&ttEl.dataset.for===tipKey(h))){if(h.dataset.tipMeth||h.dataset.tipMeas){if(P.ttSf!==tipKey(h)){clearTimeout(P.ttS);P.ttSf=tipKey(h);P.ttS=setTimeout(()=>{if(h.isConnected)showTip(h);},1500);}}else showTip(h);}}
   else if(!inTip){clearTimeout(P.ttS);P.ttSf='';}
   if(!h&&ttEl&&!P.ttPin&&!inTip&&!P.ttT)P.ttT=setTimeout(()=>{P.ttT=0;if(!P.ttPin)hideTip();},350);});
 document.addEventListener('focusin',e=>{const h=e.target.closest&&e.target.closest('[data-tip-eng],[data-tip-meas],[data-tip-goal],[data-tip-meth]');if(h)showTip(h);});

@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.16-GA
+
+- The **P** (project measure) hover card now also waits 1.5 s before appearing, like the V2MOM card.
+
 ## 7.0.15-GA
 
 - **V2MOM tooltip.** Appears after a 1.5 s hover instead of instantly; softer colours (the dark blue reference chips are now light grey) and smaller text, also on the SMART goal card. When the HPS / T&P sheets cannot be read the card says so instead of "not found".
