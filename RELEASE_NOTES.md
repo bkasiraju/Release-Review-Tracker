@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.64-GA
+
+- Comments are available on every epic that exists in GUS, including epics owned by another team (Chatter follows the signed-in user's own GUS access).
+
 ## 7.0.63-GA
 
 - Comments: fixed "body must be a non-empty string or array of message segments". The host's chatter.post / comment take a plain array of segments ({type:'mention',id} / {type:'text',text}), as the OneJDK dashboard uses; that form is now sent first (capitalised Connect form second). Not yet verified against live GUS.
