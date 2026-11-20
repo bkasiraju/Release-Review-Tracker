@@ -99,7 +99,7 @@ async function handleRequest(ctx){
       case 'hrp-measures':payload=await require('./hrp').getMeasures(sf,!!b.refresh);break;
       case 'plan-smart-goal-gen':payload=await planner.generateSmartGoal(sf,b.teamId,b.epic);break;
       case 'plan-smart-goal-save':payload=await planner.saveSmartGoal(sf,b.teamId,b.gusId,b.goal);break;
-      case 'plan-refresh-epics':payload=await planner.refreshEpics(sf,b.teamId,b.ids);break;
+      case 'plan-refresh-epics':payload=await planner.refreshEpics(sf,b.teamId,b.ids,b.projectIds);break;
       case 'plan-gus-epics':payload=await planner.listEpics(sf,b.teamId);break;
       case 'plan-find-epics':payload=await planner.findEpics(sf,b.teamId,b.query);break;
       case 'plan-create-workstream':payload=await planner.createWorkstream(sf,b.teamId,b.workstream);break;

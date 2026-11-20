@@ -890,29 +890,58 @@ function smartGoalPop(id,opener,edit){
       close();draw();}});
   if(e.smartGoal){ta.value=e.smartGoal;if(edit)editable();}else draft();
 }
-/** Pull each GUS-linked epic's current name, project and release from GUS, show what differs, and apply only what the user ticks. GUS is the source of truth. */
+/** Pull the current GUS state of the plan's linked projects (title, method), epics (name, project, release) and workstreams (name, owner, days, new ones), show what differs, and apply only what the user ticks. GUS is the source of truth. */
 async function refreshFromGus(btn){
-  const pl=P.plan;if(!pl)return;const mine=pl.epics.filter(e=>e.gusId);
-  if(!mine.length){window.toast?.('No epics on the dashboard are linked to GUS yet.',false);return;}
+  const pl=P.plan;if(!pl)return;const mine=pl.epics.filter(e=>e.gusId),gp=pl.projects.filter(p=>p.gusId);
+  if(!mine.length&&!gp.length){window.toast?.('No projects or epics on the dashboard are linked to GUS yet.',false);return;}
   if(btn){btn.disabled=true;btn.dataset.t=btn.textContent;btn.textContent='Checking GUS…';}
-  let r;try{r=await call('plan-refresh-epics',{teamId:H.team.Id,ids:mine.map(e=>e.gusId)});}catch(err){window.toast?.('Could not read GUS: '+err.message,true);return;}finally{if(btn){btn.disabled=false;btn.textContent=btn.dataset.t;}}
-  const by=new Map((r.epics||[]).map(x=>[x.id,x])),ch=[],gone=[];
+  let r;try{r=await call('plan-refresh-epics',{teamId:H.team.Id,ids:mine.map(e=>e.gusId),projectIds:gp.map(p=>p.gusId)});}catch(err){window.toast?.('Could not read GUS: '+err.message,true);return;}finally{if(btn){btn.disabled=false;btn.textContent=btn.dataset.t;}}
+  const by=new Map((r.epics||[]).map(x=>[x.id,x])),ch=[],gone=[],k15=v=>String(v||'').slice(0,15);
+  // Project titles and methods (also for projects that have no epics yet).
+  const gprj=new Map((r.projects||[]).map(x=>[k15(x.id),x]));
+  (r.epics||[]).forEach(x=>{if(x.projectId&&!gprj.has(k15(x.projectId)))gprj.set(k15(x.projectId),{id:x.projectId,name:x.projectName,method:x.method});});
+  for(const p of gp){const g=gprj.get(k15(p.gusId));if(!g)continue;
+    if(g.name&&g.name!==p.name)ch.push({who:projLabel(p),p,f:'pname',label:'Project title',from:p.name||'—',to:g.name,g});
+    if((g.method||'')!==(p.method||'')&&(g.method||p.method))ch.push({who:projLabel(p),p,f:'pmethod',label:'V2MOM method',from:p.method||'—',to:g.method||'—',g});}
   for(const e of mine){const g=by.get(e.gusId);if(!g){gone.push(e);continue;}
-    const cur=pl.projects.find(p=>p.id===e.projectId),pn=cur?cur.name:'—',rn=e.releaseName||(P.refs&&P.refs.releases.find(x=>x.id===e.releaseId)||{}).name||'—';
-    if(g.name&&g.name!==e.name)ch.push({e,f:'name',label:'Name',from:e.name||'—',to:g.name,g});
-    if(g.projectId&&gusProj(e)!==g.projectId)ch.push({e,f:'project',label:'Project',from:pn,to:g.projectName||'—',g});
-    if((g.releaseId||'')!==(e.releaseId||''))ch.push({e,f:'release',label:'Release',from:rn,to:g.releaseName||'No release',g});}
-  const body=ch.length?`<p class="note">GUS differs from the dashboard for ${new Set(ch.map(c=>c.e.id)).size} epic(s). Untick anything you want to keep as it is on the dashboard.</p><div class="pl-mo-scroll"><table class="pl-rps-t pl-rps-m"><thead><tr><th></th><th>Epic</th><th>Field</th><th>Dashboard</th><th>GUS</th></tr></thead><tbody>${ch.map((c,i)=>`<tr><td><input type="checkbox" data-rc="${i}" checked aria-label="Apply ${esc(c.label)} change"></td><td class="pl-mo-n">${esc(c.e.name||'(unnamed)')}</td><td>${c.label}</td><td>${esc(c.from)}</td><td><b>${esc(c.to)}</b></td></tr>`).join('')}</tbody></table></div>`:`<p class="pl-iss-ok">The dashboard matches GUS for ${mine.length} epic(s). Nothing to apply.</p>`;
-  const el=openModal('Refresh from GUS',body+(gone.length?`<p class="note">${gone.length} epic(s) were not found in GUS and are unchanged: ${esc(gone.map(e=>e.name||'(unnamed)').join(', '))}.</p>`:'')+`<div class="nd-actions"><button type="button" class="button" data-close>${ch.length?'Cancel':'Close'}</button>${ch.length?'<button type="button" class="button primary" data-rapply>Apply selected</button>':''}</div>`,btn,true);
+    const cur=pl.projects.find(p=>p.id===e.projectId),pn=cur?cur.name:'—',rn=e.releaseName||(P.refs&&P.refs.releases.find(x=>x.id===e.releaseId)||{}).name||'—',who=e.name||'(unnamed)';
+    if(g.name&&g.name!==e.name)ch.push({e,who,f:'name',label:'Epic name',from:e.name||'—',to:g.name,g});
+    if(g.projectId&&gusProj(e)!==g.projectId)ch.push({e,who,f:'project',label:'Project',from:pn,to:g.projectName||'—',g});
+    if((g.releaseId||'')!==(e.releaseId||''))ch.push({e,who,f:'release',label:'Release',from:rn,to:g.releaseName||'No release',g});
+    // Workstreams: only epics created from the planner can be traced in GUS.
+    const gws=(r.workstreams&&r.workstreams[e.gusId])||(r.workstreams&&r.workstreams[Object.keys(r.workstreams).find(k=>k15(k)===k15(e.gusId))||''])||[];
+    if(!fromPlanner(e))continue;
+    const seen=new Set();
+    for(const w of gws){const l=e.workstreams.find(x=>x.gusId&&k15(x.gusId)===k15(w.gusId));
+      if(l){seen.add(l);
+        if(w.name&&w.name!==l.name)ch.push({e,w:l,who,f:'wname',label:'Workstream name',from:l.name||'—',to:w.name,gw:w});
+        if(w.days>0&&Math.abs((Number(l.days)||0)-w.days)>0.001)ch.push({e,w:l,who:who+' › '+(l.name||w.name),f:'wdays',label:'Workstream days',from:String(l.days||0),to:String(w.days),gw:w});
+        const lo=wsNames(l).join(', ')||'—';if(w.assigneeName&&w.assigneeName!==lo&&!wsEngs(l).some(id=>k15(id)===k15(w.assigneeId)))ch.push({e,w:l,who:who+' › '+(l.name||w.name),f:'wown',label:'Workstream owner',from:lo,to:w.assigneeName,gw:w});}
+      else{const own=e.workstreams.find(x=>!x.gusId&&x.name&&x.name.trim().toLowerCase()===String(w.name).toLowerCase());
+        if(own){seen.add(own);ch.push({e,w:own,who,f:'wlink',label:'Workstream',from:own.name+' (not linked)',to:w.name+' (link to GUS)',gw:w});}
+        else ch.push({e,who,f:'wnew',label:'New workstream',from:'—',to:w.name,gw:w});}}
+    e.workstreams.filter(x=>x.gusId&&!seen.has(x)&&gws.length).forEach(x=>gone.push({name:(e.name||'(unnamed)')+' › '+(x.name||'workstream')}));}
+  const body=ch.length?`<p class="note">GUS differs from the dashboard for ${ch.length} item(s). Untick anything you want to keep as it is on the dashboard.</p><div class="pl-mo-scroll"><table class="pl-rps-t pl-rps-m"><thead><tr><th></th><th>Item</th><th>Field</th><th>Dashboard</th><th>GUS</th></tr></thead><tbody>${ch.map((c,i)=>`<tr><td><input type="checkbox" data-rc="${i}" checked aria-label="Apply ${esc(c.label)} change"></td><td class="pl-mo-n">${esc(c.who)}</td><td>${c.label}</td><td>${esc(c.from)}</td><td><b>${esc(c.to)}</b></td></tr>`).join('')}</tbody></table></div>`:`<p class="pl-iss-ok">The dashboard matches GUS for ${gp.length} project(s) and ${mine.length} epic(s), with their workstreams. Nothing to apply.</p>`;
+  const el=openModal('Pull from GUS',body+(gone.length?`<p class="note">${gone.length} item(s) were not found in GUS and are unchanged: ${esc(gone.map(e=>e.name||'(unnamed)').join(', '))}.</p>`:'')+`<div class="nd-actions"><button type="button" class="button" data-close>${ch.length?'Cancel':'Close'}</button>${ch.length?'<button type="button" class="button primary" data-rapply>Apply selected</button>':''}</div>`,btn,true);
   const ap=el.querySelector('[data-rapply]');if(!ap)return;
-  ap.onclick=()=>{const on=new Set([...el.querySelectorAll('[data-rc]:checked')].map(x=>+x.dataset.rc));let n=0;
-    ch.forEach((c,i)=>{if(!on.has(i))return;const e=c.e,g=c.g;n++;
-      if(c.f==='name')e.name=g.name;
+  ap.onclick=()=>{const on=new Set([...el.querySelectorAll('[data-rc]:checked')].map(x=>+x.dataset.rc));let n=0;const touched=new Set();
+    ch.forEach((c,i)=>{if(!on.has(i))return;const e=c.e,g=c.g,w=c.w,gw=c.gw;n++;
+      if(c.f==='pname')c.p.name=g.name;
+      else if(c.f==='pmethod')c.p.method=g.method||'';
+      else if(c.f==='name')e.name=g.name;
       else if(c.f==='release'){e.releaseId=g.releaseId||'';e.releaseName=g.releaseName||'';}
-      else{let p=pl.projects.find(x=>x.gusId===g.projectId);
+      else if(c.f==='project'){let p=pl.projects.find(x=>x.gusId===g.projectId);
         if(!p){p={id:uid('p'),name:g.projectName||'GUS project',short:shortProj(g.projectName||''),theme:'',gusId:g.projectId,method:g.method||'',programId:g.programId||'',programName:g.programName||''};pl.projects.push(p);}
         e.projectId=p.id;}
-      if(!P.gsnap)snapGus();P.gsnap.set(e.gusId,JSON.stringify(gusSnap(e)));});
+      else if(c.f==='wname')w.name=gw.name;
+      else if(c.f==='wdays')w.days=gw.days;
+      else if(c.f==='wown'){const m=P.members.find(x=>k15(x.id)===k15(gw.assigneeId));w.engId=m?m.id:'';w.engName=m?m.name:gw.assigneeName;w.engIds=m?[m.id]:[];w.engNames=m?[m.name]:[gw.assigneeName];}
+      else if(c.f==='wlink'){w.gusId=gw.gusId;if(gw.days>0&&!(w.days>0))w.days=gw.days;}
+      else if(c.f==='wnew'){const m=P.members.find(x=>k15(x.id)===k15(gw.assigneeId));
+        const blank=e.workstreams.findIndex(x=>!x.name&&!x.gusId&&!(x.days>0));if(blank>=0)e.workstreams.splice(blank,1);
+        e.workstreams.push({id:uid('w'),gusId:gw.gusId,name:gw.name,priority:e.priority,engId:m?m.id:'',engName:m?m.name:gw.assigneeName,engIds:m?[m.id]:[],engNames:m?[m.name]:(gw.assigneeName?[gw.assigneeName]:[]),days:gw.days,sprint:'',line:e.line});}
+      if(e&&e.gusId)touched.add(e);});
+    if(!P.gsnap)snapGus();touched.forEach(e=>P.gsnap.set(e.gusId,JSON.stringify(gusSnap(e))));
     closeModal();if(n){draw();queueSave();window.toast?.(`Applied ${n} change${n>1?'s':''} from GUS.`,false);}};
 }
 async function syncGus(){
@@ -1543,7 +1572,7 @@ H.register({id:'plan',label:'Release Planning (Quarterly)',icon:'plan',tone:'gre
   stat:()=>({text:'Planned vs available capacity, ABL and BTL'}),
   render(el){
     P.el=el;
-    el.innerHTML=`<div class="executive-heading"><div><h2>${icon('plan','green')} Release Planning (Quarterly)</h2><p>Plan projects, epics and workstreams for ${esc(H.team.Name)}. Effort is in days; epics above the line (ABL) are saved to GUS when you confirm.</p></div><div class="heading-actions"><span class="pl-state-anchor" hidden></span><div class="pl-dates"><label>Planned Release <select class="hub-inline" id="pl-rel" aria-label="Planned release"></select></label><span class="pl-win" id="pl-win"><label>Release Window <input type="date" class="hub-inline" id="pl-start" aria-label="Release Window start"></label><span aria-hidden="true">→</span><input type="date" class="hub-inline" id="pl-end" aria-label="Release Window end"></span><span class="note" id="pl-last"></span></div><button type="button" class="button pl-hb pl-hb-leaves" id="pl-leaves"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg> Leaves &amp; on-call</button><button type="button" class="button pl-hb pl-hb-save" id="pl-save" title="Save this plan to the GUS Apps tracker only. Nothing is written to GUS. Also saved automatically."><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h11l4 4v14H5zM8 3v6h8V3M8 21v-7h8v7"/></svg> Save plan</button><button type="button" class="button pl-hb" id="pl-refresh-gus" title="Refresh from GUS: pull each epic's project, name and release from GUS and review the differences before applying">Pull from GUS</button><button type="button" class="button primary" id="pl-commit">Review &amp; push to GUS</button></div></div>
+    el.innerHTML=`<div class="executive-heading"><div><h2>${icon('plan','green')} Release Planning (Quarterly)</h2><p>Plan projects, epics and workstreams for ${esc(H.team.Name)}. Effort is in days; epics above the line (ABL) are saved to GUS when you confirm.</p></div><div class="heading-actions"><span class="pl-state-anchor" hidden></span><div class="pl-dates"><label>Planned Release <select class="hub-inline" id="pl-rel" aria-label="Planned release"></select></label><span class="pl-win" id="pl-win"><label>Release Window <input type="date" class="hub-inline" id="pl-start" aria-label="Release Window start"></label><span aria-hidden="true">→</span><input type="date" class="hub-inline" id="pl-end" aria-label="Release Window end"></span><span class="note" id="pl-last"></span></div><button type="button" class="button pl-hb pl-hb-leaves" id="pl-leaves"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg> Leaves &amp; on-call</button><button type="button" class="button pl-hb pl-hb-save" id="pl-save" title="Save this plan to the GUS Apps tracker only. Nothing is written to GUS. Also saved automatically."><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h11l4 4v14H5zM8 3v6h8V3M8 21v-7h8v7"/></svg> Save plan</button><button type="button" class="button pl-hb" id="pl-refresh-gus" title="Pull from GUS: refresh project titles, epic names, projects and releases, and workstreams from GUS, then review the differences before applying">Pull from GUS</button><button type="button" class="button primary" id="pl-commit">Review &amp; push to GUS</button></div></div>
     <div id="pl-warn"></div>
     <div class="pl-tabs" role="tablist" aria-label="Release planning views"><button type="button" role="tab" data-tab="plan" class="on" aria-selected="true"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="4" width="14" height="12" rx="2"/><path d="M3 8.5h14M8 8.5V16"/></svg>Release Planner</button><button type="button" role="tab" data-tab="rps" aria-selected="false"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 16V9M10 16V4M16 16v-5"/></svg>Planned Release Summary</button></div>
     <div id="pl-main"><div id="pl-sum"></div>

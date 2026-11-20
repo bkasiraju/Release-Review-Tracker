@@ -524,12 +524,22 @@ async function syncEpics(sf, teamId, epics) {
 }
 
 /** Current GUS project, name and planned release for epics already on the dashboard (this team's epics only), so the dashboard can show what changed in GUS. */
-async function refreshEpics(sf, teamId, ids) {
+async function refreshEpics(sf, teamId, ids, projectIds) {
   planKey(teamId);
   const list = [...new Set((Array.isArray(ids) ? ids : []).map(gid).filter(Boolean))].slice(0, 200);
-  if (!list.length) return { epics: [] };
-  const rows = (await sf.query(`SELECT ${EPIC_SEL} FROM ADM_Epic__c WHERE Id IN (${list.map(i => `'${i}'`).join(',')})`)).records || [];
-  return { epics: rows.map(epicRow) };
+  const plist = [...new Set((Array.isArray(projectIds) ? projectIds : []).map(gid).filter(Boolean))].slice(0, 200);
+  const rows = list.length ? (await sf.query(`SELECT ${EPIC_SEL} FROM ADM_Epic__c WHERE Id IN (${list.map(i => `'${i}'`).join(',')})`)).records || [] : [];
+  // Linked projects are read on their own too, so a project's title and method refresh even when it has no epics.
+  let projects = [];
+  if (plist.length) {
+    try {
+      projects = ((await sf.query(`SELECT Id, Name, V2MOM_Method__c FROM PPM_Project__c WHERE Id IN (${plist.map(i => `'${i}'`).join(',')})`)).records || [])
+        .map(r => ({ id: r.Id, name: r.Name || '', method: r.V2MOM_Method__c || '' }));
+    } catch (_) { /* project titles are best effort */ }
+  }
+  let workstreams = {};
+  if (list.length) { try { workstreams = (await epicWorkstreams(sf, teamId, list)).byEpic; } catch (_) { /* workstreams are best effort */ } }
+  return { epics: rows.map(epicRow), projects, workstreams };
 }
 
 // ── SMART goal ──────────────────────────────────────────────────────────────

@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.54-GA
+
+- Pull from GUS now covers projects, epics and workstreams: project titles and V2MOM methods (including projects with no epics), epic names / projects / releases, and workstream names, owners, days, plus workstreams added in GUS. Everything is listed for review and only ticked items are applied. Workstreams are traced only for epics created from the planner.
+
 ## 7.0.53-GA
 
 - Fixed: when grouped by Outcome (or any non-Project grouping) the plain project list was also drawn underneath the groups, so every project appeared twice. The project list now only draws in Project grouping. (Introduced in 7.0.27.)
