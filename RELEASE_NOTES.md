@@ -1,5 +1,11 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.22-GA
+
+- **Outcome** on every epic: new editable Outcome column in the planner grid. On **Review & push to GUS** it is written as the first line of Epic Health Comments (`Outcome: <text>`); an existing first `Outcome:` line is replaced and the rest of the comments are untouched. Clearing it removes the line. A read-only comments field never fails the epic save; it is noted on the result instead.
+- New **Group by → Outcome** option: epics are grouped by outcome, each group header lists the measures (project short forms) that serve it, and epics without an outcome land in "No outcome".
+- Not yet: pulling an existing `Outcome:` line from GUS back into the planner.
+
 ## 7.0.21-GA
 
 - Epic detail window: the SMART goal now shows right under the epic name, and the ATL/BTL status appears both as a chip (with the epic's days) and as a column in the workstream table.

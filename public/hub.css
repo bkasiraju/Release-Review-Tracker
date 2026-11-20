@@ -3025,3 +3025,7 @@ html body .pl-tt-meth .pl-mv-t em{font-size:11px;color:#94a3b8}
 
 html body .pl-mo-goal{margin:0 0 12px;padding:9px 12px;border-radius:8px;background:#f4f7fb;border:1px solid #e3e9f1;color:#334155;font-size:13px;line-height:1.45}
 html body .pl-mo-goal b{display:block;margin-bottom:2px;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:#64748b}
+
+/* Outcome group header: the measures (projects) that serve the outcome */
+html body .pl-g-meas{display:inline-flex;flex-wrap:wrap;gap:4px;margin-left:10px;vertical-align:middle}
+html body .pl-g-meas span{padding:1px 7px;border-radius:999px;background:rgba(91,127,166,.14);color:#2f4b6b;font-size:11px;font-weight:600;line-height:18px}

@@ -267,3 +267,17 @@ test('SMART goal: saved at the top of the GUS description (replacing the old one
   assert.match(g.prompt,/EPIC TITLE: Queue hardening/);assert.match(g.prompt,/Retry \(3d\)/);assert.match(g.prompt,/Body text/);assert.doesNotMatch(g.prompt,/old goal/);assert.equal(g.descriptionUsed,true);assert.equal(g.maxWords,45);
   assert.equal(plan.withSmartGoal('x',''),'x');
 });
+
+test('Outcome: first line of Epic Health Comments is set, replaced, kept apart from the rest and removable', () => {
+  const { withOutcome, outcomeOf, cleanPlan } = require('../backend/plan.js');
+  assert.equal(withOutcome('', 'Faster restores'), 'Outcome: Faster restores');
+  assert.equal(withOutcome('Nov: on track\nDec: risk', 'Faster restores'), 'Outcome: Faster restores\nNov: on track\nDec: risk');
+  assert.equal(withOutcome('Outcome: old\nNov: on track', 'New one'), 'Outcome: New one\nNov: on track');
+  assert.equal(withOutcome('Outcome: old\nNov: on track', ''), 'Nov: on track');
+  assert.equal(withOutcome('Outcome: only', ''), '');
+  assert.equal(withOutcome('Outcome: a\n\nNov', 'a  b\nc'), 'Outcome: a b c\nNov');
+  assert.equal(outcomeOf('Outcome: Faster restores\nNov: x'), 'Faster restores');
+  assert.equal(outcomeOf('Nov: x'), '');
+  const p = cleanPlan({ projects: [], epics: [{ id: 'e1', name: 'E', outcome: '  Safer \n upgrades ' }] });
+  assert.equal(p.epics[0].outcome, 'Safer upgrades');
+});

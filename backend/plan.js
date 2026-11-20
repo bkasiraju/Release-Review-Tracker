@@ -29,8 +29,17 @@ const epicPayload = (e, project, includeBtl, projectId) => {
   const extra = { Description__c: epicDescription(e, project, includeBtl) };
   if (e.owners && e.owners[0]) { extra.Development_Lead__c = e.owners[0]; extra.OwnerId = e.owners[0]; } // the epic owner is the development lead
   if (e.foreign) return { name: e.name, fields: { Project__c: fields.Project__c }, extra: {} }; // an epic of another team is only tagged to the project
-  return { name: e.name, fields, extra };
+  return e.outcome ? { name: e.name, fields, extra, outcome: e.outcome } : { name: e.name, fields, extra };
 };
+/** The Outcome lives on the first line of Epic Health Comments as "Outcome: <text>"; the rest of the comments are kept as they are. */
+const outcomeLine = o => 'Outcome: ' + String(o || '').replace(/\s+/g, ' ').trim();
+function withOutcome(comments, outcome) {
+  const rest = String(comments || '').replace(/^\s*Outcome:[^\n]*(\r?\n|$)/i, '').replace(/^(\r?\n)+/, '');
+  const o = String(outcome || '').trim();
+  return o ? outcomeLine(o) + (rest ? '\n' + rest : '') : rest;
+}
+/** Outcome currently on the first line of Epic Health Comments (empty when none). */
+const outcomeOf = comments => { const m = /^\s*Outcome:[ \t]*([^\n]*)/i.exec(String(comments || '')); return m ? m[1].trim() : ''; };
 const epicHash = (e, project, includeBtl) => hash(epicPayload(e, project, includeBtl, project && project.gusId));
 /** Delta of an already-saved epic against what was last written: which workstreams are new/changed/removed. */
 function deltaOf(e, project, includeBtl) {
@@ -45,6 +54,7 @@ function deltaOf(e, project, includeBtl) {
   }
   if (sy && sy.ws) for (const id of Object.keys(sy.ws)) if (!inc.some(w => w.id === id)) changes.push('Removed a workstream');
   const unchanged = !!(sy && sy.hash === epicHash(e, project, includeBtl));
+  if (sy && (sy.outcome || '') !== (e.outcome || '')) changes.push(e.outcome ? 'Outcome set in the first line of Epic Health Comments' : 'Outcome removed from Epic Health Comments');
   if (!unchanged && !changes.length) changes.push(sy ? 'Epic details changed since the last save to GUS (name, release, priority, effort, owner or description)' : 'Epic already exists in GUS and has not been synced from this planner yet: its release, priority, effort, owner and description are brought in line with the plan');
   return { action: unchanged ? 'unchanged' : 'update', changes: unchanged ? [] : changes, wsFlags };
 }
@@ -59,10 +69,10 @@ function cleanPlan(input) {
   const epics = (Array.isArray(p.epics) ? p.epics : []).slice(0, MAX.epics).map((x, i) => ({
     id: lid(x.id, i, 'e'), projectId: lid(x.projectId, 0, ''), name: text(x.name, 255), line: x.line === 'ABL' ? 'ABL' : 'BTL',
     priority: Number.isFinite(Number(x.priority)) && x.priority !== '' && x.priority != null ? Math.min(Math.max(Math.round(Number(x.priority)), 0), 9999) : null,
-    theme: text(x.theme, 80), hrp: text(x.hrp, 80), v2mom: text(x.v2mom, 80), estimate: days(x.estimate), status: STATUS.includes(x.status) ? x.status : '', doc: /^https?:\/\//i.test(String(x.doc || '')) ? text(x.doc, 300) : '', smartGoal: goalText(text(x.smartGoal, 2000)),
+    theme: text(x.theme, 80), hrp: text(x.hrp, 80), v2mom: text(x.v2mom, 80), estimate: days(x.estimate), status: STATUS.includes(x.status) ? x.status : '', doc: /^https?:\/\//i.test(String(x.doc || '')) ? text(x.doc, 300) : '', smartGoal: goalText(text(x.smartGoal, 2000)), outcome: text(x.outcome, 500).replace(/\s+/g, ' ').trim(),
     owners: (Array.isArray(x.owners) ? x.owners : []).map(gid).filter(Boolean).slice(0, 12), ownerNames: (Array.isArray(x.ownerNames) ? x.ownerNames : []).slice(0, 12).map(n => text(n, 80)),
     releaseId: gid(x.releaseId), releaseName: text(x.releaseName, 120), gusId: gid(x.gusId), foreign: x.foreign === true,
-    synced: x.synced && typeof x.synced === 'object' && /^[0-9a-f]{24}$/.test(String(x.synced.hash || '')) ? { hash: x.synced.hash, at: text(x.synced.at, 40), ws: Object.fromEntries(Object.entries(x.synced.ws && typeof x.synced.ws === 'object' ? x.synced.ws : {}).filter(([k, v]) => LOCAL.test(k) && /^[0-9a-f]{24}$/.test(String(v))).slice(0, MAX.workstreams)) } : null,
+    synced: x.synced && typeof x.synced === 'object' && /^[0-9a-f]{24}$/.test(String(x.synced.hash || '')) ? { hash: x.synced.hash, outcome: text(x.synced.outcome, 500), at: text(x.synced.at, 40), ws: Object.fromEntries(Object.entries(x.synced.ws && typeof x.synced.ws === 'object' ? x.synced.ws : {}).filter(([k, v]) => LOCAL.test(k) && /^[0-9a-f]{24}$/.test(String(v))).slice(0, MAX.workstreams)) } : null,
     workstreams: (Array.isArray(x.workstreams) ? x.workstreams : []).slice(0, MAX.workstreams).map((s, j) => ({
       id: lid(s.id, j, 'w'), gusId: gid(s.gusId), name: text(s.name, 120), status: STATUS.includes(s.status) ? s.status : '', engIds: (Array.isArray(s.engIds) ? s.engIds : []).map(gid).filter(Boolean).slice(0, 12), engNames: (Array.isArray(s.engNames) ? s.engNames : []).slice(0, 12).map(n => text(n, 80)), priority: Number.isFinite(Number(s.priority)) && s.priority !== '' && s.priority != null ? Math.min(Math.max(Math.round(Number(s.priority)), 0), 9999) : null, engId: gid(s.engId), engName: text(s.engName, 80), days: days(s.days), line: s.line === 'ABL' || s.line === 'BTL' ? s.line : '', sprint: text(s.sprint, 60)
     }))
@@ -736,8 +746,15 @@ async function commitRun(sf, store, teamId, confirm, includeBtl, acknowledged) {
         epicId = newId(c); r.action = 'created';
       }
       done.epics.set(e.id, epicId); r.gusId = epicId; r.ok = true;
+      if (!e.foreign && (e.outcome || (e.synced && e.synced.outcome))) { // Outcome → first line of Epic Health Comments (kept apart from the core save so a read-only field never fails the epic)
+        try {
+          const cur = ((await sf.query(`SELECT Epic_Health_Comments__c c FROM ADM_Epic__c WHERE Id = '${epicId}'`)).records || [])[0];
+          const was = cur ? cur.c || '' : '', next = withOutcome(was, e.outcome);
+          if (next !== was) { const u = await sf.update('ADM_Epic__c', epicId, { Epic_Health_Comments__c: next }); if (u && !ok(u)) throw new Error(plain(errText(u))); }
+        } catch (err) { r.note = [r.note, 'Outcome not written to Epic Health Comments (' + String(err && err.message || err).slice(0, 100) + ')'].filter(Boolean).join(' · '); }
+      }
       if (pv && pv.delta && pv.delta.length) r.note = [r.note, pv.delta.join('; ')].filter(Boolean).join(' · ').slice(0, 300);
-      done.synced.set(e.id, { hash: hash(epicPayload(e, project, includeBtl === true, projectId)), at: new Date().toISOString(), ws: Object.fromEntries(e.workstreams.filter(w => includeBtl === true || wsLine(e, w) === 'ABL').map(w => [w.id, wsHash(e, w)])) });
+      done.synced.set(e.id, { hash: hash(epicPayload(e, project, includeBtl === true, projectId)), outcome: e.outcome || '', at: new Date().toISOString(), ws: Object.fromEntries(e.workstreams.filter(w => includeBtl === true || wsLine(e, w) === 'ABL').map(w => [w.id, wsHash(e, w)])) });
     } catch (err) { r.ok = false; r.error = String(err && err.message || err).slice(0, 300); }
     results.push(r);
   }
@@ -753,4 +770,4 @@ async function commitRun(sf, store, teamId, confirm, includeBtl, acknowledged) {
   return { results, failed: results.filter(x => !x.ok).length, plan: saved && saved.plan, revision: saved && saved.revision, saveError };
 }
 
-module.exports = { fiscalQuarter, refreshEpics, saveSmartGoal, generateSmartGoal, withSmartGoal, epicWorkstreams, epicLeads, deleteEpic, deleteWorkstream, programProjects, importV2mom, resolveProgram, teamProgram, getPlan, savePlan, getRefs, commitPlan, createProject, deleteProject, createEpic, listEpics, findEpics, createWorkstream, syncEpics, review, cleanPlan };
+module.exports = { withOutcome, outcomeOf, fiscalQuarter, refreshEpics, saveSmartGoal, generateSmartGoal, withSmartGoal, epicWorkstreams, epicLeads, deleteEpic, deleteWorkstream, programProjects, importV2mom, resolveProgram, teamProgram, getPlan, savePlan, getRefs, commitPlan, createProject, deleteProject, createEpic, listEpics, findEpics, createWorkstream, syncEpics, review, cleanPlan };
