@@ -3128,3 +3128,15 @@ html body .pl-acp-x:hover{background:#eef2f6;color:#0f172a}
 /* 7.0.41-GA: thin separator between projects with epics and projects without */
 html body[data-hub=plan] .pl-grid tr.pl-g-sep td{padding:0!important;height:22px;background:#fff!important;border-top:1px solid #d5dde6!important;border-bottom:0!important;box-shadow:none!important}
 html body[data-hub=plan] .pl-grid tr.pl-g-sep td span{display:inline-block;padding:3px 10px 0;font-size:10.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#7b8794}
+
+/* 7.0.42-GA: planner toolbar buttons coloured by group — add (green), lists (blue), columns (violet), import/export (amber), group-by (indigo), action log (orange), fold (teal), full screen (slate) */
+html body[data-hub=plan] #pl-add-proj{color:#047857!important;background:#ecfdf5!important;border-color:#a7f3d0!important}
+html body[data-hub=plan] [data-proj-toggle],html body[data-hub=plan] [data-epics-toggle]{color:#0b5cab!important;background:#f2f8fd!important;border-color:#c5d9ee!important}
+html body[data-hub=plan] [data-cols-toggle]{color:#6d28d9!important;background:#f5f3ff!important;border-color:#ddd6fe!important}
+html body[data-hub=plan] [data-dm-toggle]{color:#b45309!important;background:#fffbeb!important;border-color:#fde68a!important}
+html body[data-hub=plan] .pl-gb{color:#4338ca;font-weight:600}
+html body[data-hub=plan] .pl-gb select{color:#4338ca!important;background-color:#eef2ff!important;border-color:#c7d2fe!important}
+html body[data-hub=plan] #pl-actlog{color:#c2410c!important;background:#fff7ed!important;border-color:#fed7aa!important}
+html body[data-hub=plan] [data-fold-all]{color:#0f766e!important;background:#f0fdfa!important;border-color:#99f6e4!important}
+html body[data-hub=plan] #pl-fs-btn{color:#334155!important;background:#f1f5f9!important;border-color:#cbd5e1!important}
+html body[data-hub=plan] #pl-add-proj:hover,html body[data-hub=plan] [data-proj-toggle]:hover,html body[data-hub=plan] [data-epics-toggle]:hover,html body[data-hub=plan] [data-cols-toggle]:hover,html body[data-hub=plan] [data-dm-toggle]:hover,html body[data-hub=plan] #pl-actlog:hover,html body[data-hub=plan] [data-fold-all]:hover,html body[data-hub=plan] #pl-fs-btn:hover{filter:brightness(.96)}
