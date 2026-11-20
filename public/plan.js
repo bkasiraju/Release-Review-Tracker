@@ -798,7 +798,7 @@ function actionPop(epicId,opener){
   const list=()=>{const it=(e.actions||[]).slice().sort((x,y)=>(x.done-y.done)||String(x.eta||'9999').localeCompare(String(y.eta||'9999')));
     return it.length?`<ul class="pl-acp-l">${it.map(a=>`<li class="${a.done?'done':''}${!a.done&&a.eta&&a.eta<today?' late':''}" data-aid="${esc(a.id)}"><input type="checkbox" data-al-x${a.done?' checked':''} aria-label="Done"><span class="pl-acp-t">${esc(a.text)}</span><small>${esc(a.ownerName||'—')} · ${esc((a.eta||'—').slice(5))}</small><button type="button" class="pl-ib" data-al-del aria-label="Delete action item" title="Delete">×</button></li>`).join('')}</ul>`:'';};
   const paint=()=>{pop.innerHTML=`<div class="pl-acp-h"><b>Action Log</b><small>${esc(e.name||'(unnamed epic)')}</small></div><input class="hub-inline pl-acp-t0" type="text" maxlength="300" data-al-t placeholder="Action item…" aria-label="Action item"><div class="pl-acp-r"><select class="hub-inline" data-al-o aria-label="Owner"><option value="">Owner</option>${mem.map(m=>`<option value="${esc(m.id)}"${m.id===own?' selected':''}>${esc(m.name)}</option>`).join('')}</select><input class="hub-inline" type="date" data-al-d value="${etaDefault()}" aria-label="ETA"><button type="button" class="pl-acp-ok" data-al-add aria-label="Save action item" title="Save">✓</button></div>${list()}`;pop.querySelector('[data-al-t]').focus();};
-  document.body.appendChild(pop);paint();
+  H.popHost().appendChild(pop);paint();
   const r=opener.getBoundingClientRect(),w=Math.min(480,innerWidth-24);pop.style.width=w+'px';pop.style.left=Math.max(12,Math.min(r.left,innerWidth-w-12))+'px';pop.style.top=Math.min(r.bottom+8,Math.max(12,innerHeight-pop.offsetHeight-12))+'px';
   const close=()=>{pop.remove();document.removeEventListener('mousedown',away,true);document.removeEventListener('keydown',key,true);try{opener.focus();}catch(_){}draw();};
   const away=ev=>{if(!pop.contains(ev.target)&&!ev.target.closest('.pl-acw'))close();},key=ev=>{if(ev.key==='Escape'){ev.stopImmediatePropagation();ev.preventDefault();close();}};
@@ -835,7 +835,7 @@ function outcomePop(id,opener){
   const e=findE(id);if(!e)return;document.querySelector('.pl-sgp')?.remove();
   const pop=document.createElement('div');pop.className='pl-sgp pl-ocp';pop.setAttribute('role','dialog');pop.setAttribute('aria-label','Outcome');
   pop.innerHTML=`<h4>Outcome <small>${esc(e.name||'(unnamed epic)')}</small></h4><textarea rows="6" maxlength="500" placeholder="The outcome this epic and its measure drive." aria-label="Outcome"></textarea><p class="pl-sgp-n">Saved in the plan and written as the first line of the GUS Epic Health Comments (Outcome: …) when you push to GUS.</p><div class="pl-sgp-a"><button type="button" class="button" data-ocp-x>Close</button>${e.outcome?'<button type="button" class="button" data-ocp-clear>Clear</button>':''}<button type="button" class="button primary" data-ocp-save>Save</button></div>`;
-  document.body.appendChild(pop);
+  H.popHost().appendChild(pop);
   const r=opener.getBoundingClientRect(),w=Math.min(460,innerWidth-24);pop.style.width=w+'px';pop.style.left=Math.max(12,Math.min(r.left,innerWidth-w-12))+'px';
   pop.style.top=Math.min(r.bottom+8,Math.max(12,innerHeight-pop.offsetHeight-12))+'px';
   const ta=pop.querySelector('textarea');ta.value=e.outcome||'';ta.focus();
@@ -852,7 +852,7 @@ function smartGoalPop(id,opener,edit){
   const e=findE(id);if(!e)return;document.querySelector('.pl-sgp')?.remove();
   const pop=document.createElement('div');pop.className='pl-sgp';pop.setAttribute('role','dialog');pop.setAttribute('aria-label','SMART goal');
   pop.innerHTML=`<h4>SMART goal <small>${esc(e.name||'(unnamed epic)')}</small></h4><textarea rows="4" maxlength="500" placeholder="One sentence: the change, its metric and target, and the deadline." aria-label="SMART goal" ${e.smartGoal&&!edit?' readonly':''}></textarea><p class="pl-sgp-n" role="status"></p><div class="pl-sgp-a"><button type="button" class="button" data-sgp-x>Close</button><button type="button" class="button" data-sgp-gen>${e.smartGoal?'Redraft':'Draft'}</button><button type="button" class="button" data-sgp-ed${e.smartGoal&&!edit?'':' hidden'}>✎ Edit</button><button type="button" class="button primary" data-sgp-save${e.smartGoal&&!edit?' hidden':''}>Save</button></div>`;
-  document.body.appendChild(pop);
+  H.popHost().appendChild(pop);
   const r=opener.getBoundingClientRect(),w=Math.min(420,innerWidth-24);pop.style.width=w+'px';pop.style.left=Math.max(12,Math.min(r.left,innerWidth-w-12))+'px';
   const ta=pop.querySelector('textarea'),note=pop.querySelector('.pl-sgp-n'),sv=pop.querySelector('[data-sgp-save]'),ed=pop.querySelector('[data-sgp-ed]'),gen=pop.querySelector('[data-sgp-gen]');
   const below=r.bottom+8;pop.style.top=Math.min(below,Math.max(12,innerHeight-pop.offsetHeight-12))+'px';
