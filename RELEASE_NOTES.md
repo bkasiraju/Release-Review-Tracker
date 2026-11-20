@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.13-GA
+
+- **Measure names in the V2MOM tooltip.** Hover the **V2MOM** chip on a project row to see each method reference (for example HPS M6.2.2) with its measure name, owner and, for HPS, the mapped T&I / T&P number. Names are read live from the HPS FY27 and T&P FY27 V2MOM sheets (`backend/v2mom-measures.js`); nothing is stored in the repo. T&I needs its sheet added to `SOURCES` (one line) because no T&I V2MOM sheet was found.
+
 ## 7.0.12-GA
 
 - **SMART goal on hover.** Hover (or focus) the target icon on an epic with a saved goal to see a card with the epic name, its project and release, and the goal just below. Click the icon to view or edit.
