@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.25-GA
+
+- Group by Outcome now has a **View** switch: **Outcome → Epics** (as before) or **Outcome → Projects → Epics**, which nests each outcome's epics under their project rows (each folds independently).
+
 ## 7.0.24-GA
 
 - Group by Outcome: hovering a measure chip in a group header now shows that measure's card (name, owner, V2MOM mapping) after the usual 1 s delay, replacing the generic "Measures served by this outcome" text.
