@@ -3218,3 +3218,7 @@ html body .pl-acp .pl-acp-r select{appearance:none;-webkit-appearance:none;paddi
 html body .pl-acp .pl-acp-r input[type=date]{accent-color:#1b6ac9;color-scheme:light;font-variant-numeric:tabular-nums;cursor:pointer}
 html body .pl-acp .pl-acp-r input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;opacity:.55;padding:2px;border-radius:4px}
 html body .pl-acp .pl-acp-r input[type=date]::-webkit-calendar-picker-indicator:hover{opacity:1;background:#eef2f6}
+
+/* 7.0.52-GA: workstream rows keep their one-step indent under the epic in Outcome grouping (same offset as the epic row plus the usual 22 px) */
+html body[data-hub=plan] .pl-grid tr.pl-d-o[data-wr] td.c-ws{padding-left:60px!important}
+html body[data-hub=plan] .pl-grid tr.pl-d-op[data-wr] td.c-ws{padding-left:82px!important}
