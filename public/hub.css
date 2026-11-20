@@ -3060,3 +3060,17 @@ html body .pl-al-t tr.done td{color:#94a3b8;text-decoration:line-through}
 html body .pl-al-t tr.late td:nth-last-child(2){color:#b91c1c;font-weight:600}
 html body .pl-ac.closed{background:#ecfdf5!important;border-color:#a7f3d0!important;color:#047857!important}
 html body .pl-ac-n.ok{background:#047857}
+
+/* 7.0.30-GA: Action Log popover next to the icon */
+html body .pl-acp-h{margin-bottom:8px;font-size:13px;color:#1e1b4b}html body .pl-acp-h small{display:block;font-weight:400;font-size:11px;color:#64748b}
+html body .pl-acp-t0{width:100%;box-sizing:border-box;margin-bottom:8px}
+html body .pl-acp-r{display:flex;gap:8px;align-items:center}
+html body .pl-acp-r select{flex:1 1 auto;min-width:0}
+html body .pl-acp-ok{flex:none;width:30px;height:30px;border-radius:50%;border:0;background:#047857;color:#fff;font-size:16px;line-height:1;cursor:pointer}
+html body .pl-acp-ok:hover{background:#065f46}
+html body .pl-acp-l{list-style:none;margin:10px 0 0;padding:8px 0 0;border-top:1px solid #eef2f6;max-height:200px;overflow:auto}
+html body .pl-acp-l li{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:12px}
+html body .pl-acp-l .pl-acp-t{flex:1 1 auto;min-width:0}
+html body .pl-acp-l small{color:#64748b;white-space:nowrap}
+html body .pl-acp-l li.done .pl-acp-t{color:#94a3b8;text-decoration:line-through}
+html body .pl-acp-l li.late small{color:#b91c1c;font-weight:600}

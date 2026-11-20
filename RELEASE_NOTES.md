@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.30-GA
+
+- The epic Action Log is now a small popover next to its icon instead of a modal: a long action-item box, then owner (defaults to the epic owner) and ETA (defaults to today + 3 working days), and a green ✓ to save. Existing items of the epic are listed underneath to tick done or delete. The top **Action Log** button (all epics) keeps its window and uses the same default ETA.
+
 ## 7.0.29-GA
 
 - The epic Action Log icon now shows its state: blue when the epic has no action items, orange with the open count while any are open, and green with a ✓ once all are closed. The tooltip reads e.g. "2 open · 3 closed".
