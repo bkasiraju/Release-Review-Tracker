@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.45-GA
+
+- The project / outcome row under the mouse now stands out clearly: a stronger blue fill, a 2 px blue line above and below, full-strength bold name and chips.
+
 ## 7.0.44-GA
 
 - Expanded project / outcome rows are now clearly highlighted (stronger blue tint, bold dark name, a line above and below); collapsed rows recede (very light background, lighter name text, slightly muted chips). Done with colour and weight rather than opacity so text stays readable.

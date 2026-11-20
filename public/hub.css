@@ -3152,3 +3152,12 @@ html body[data-hub=plan] tr.pl-g-proj.pl-g-out:has(.pl-caret[aria-expanded="true
 html body[data-hub=plan] tr.pl-g-proj.pl-g-out:has(.pl-caret[aria-expanded="false"]) td{background-color:#f1f3fa!important}
 html body[data-hub=plan] tr.pl-g-proj.pl-g-sub:has(.pl-caret[aria-expanded="true"]) td{background-color:#e4edf6!important}
 html body[data-hub=plan] tr.pl-g-proj:has(.pl-caret[aria-expanded="false"]):hover td{background-color:#eef4fa!important}
+
+/* 7.0.45-GA: the hovered project / outcome row clearly stands out from the rest */
+html body[data-hub=plan] tr.pl-g-proj.pl-g-proj:has(.pl-caret[aria-expanded]):hover td{background-color:#bcd8f6!important;border-top:1px solid #3b82c4!important;border-bottom:1px solid #3b82c4!important;box-shadow:inset 0 2px 0 #3b82c4,inset 0 -2px 0 #3b82c4!important}
+html body[data-hub=plan] tr.pl-g-proj.pl-g-proj:has(.pl-caret[aria-expanded]):hover td:first-child{box-shadow:inset 5px 0 var(--pc,#3b82c4),inset 0 2px 0 #3b82c4,inset 0 -2px 0 #3b82c4!important}
+html body[data-hub=plan] tr.pl-g-proj.pl-g-proj:has(.pl-caret[aria-expanded]):hover .pl-pj-n{color:#021f3d!important;font-weight:700!important}
+html body[data-hub=plan] tr.pl-g-proj.pl-g-proj:has(.pl-caret[aria-expanded]):hover :is(.pl-ty,.pl-gsum,.pl-pj-mt,.pl-open-gus,.pl-pj-add,.pl-pj-del){opacity:1}
+html body[data-hub=plan] tr.pl-g-proj.pl-g-out.pl-g-proj:has(.pl-caret[aria-expanded]):hover td{background-color:#b8c6ef!important;border-top-color:#5568c0!important;border-bottom-color:#5568c0!important;box-shadow:inset 0 2px 0 #5568c0,inset 0 -2px 0 #5568c0!important}
+/* collapsed rows a touch darker so the hovered one is the only strongly tinted row */
+html body[data-hub=plan] tr.pl-g-proj:has(.pl-caret[aria-expanded="false"]) .pl-pj-n{color:#56667a!important}
