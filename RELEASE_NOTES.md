@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.51-GA
+
+- Action Log popover: Owner / ETA row re-laid out with padding, a wider owner select (flexible) and a fixed-width ETA; clean select with a chevron, and a modern date field with focus ring and softer calendar icon.
+
 ## 7.0.50-GA
 
 - Action Log popover: the save ✓ and close × buttons now share one 28 px circular format (green ✓, soft grey ×).

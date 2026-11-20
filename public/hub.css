@@ -3207,3 +3207,14 @@ html body[data-hub=plan] tr.pl-g-proj.pl-g-out.pl-g-proj:has(.pl-caret[aria-expa
 html body .pl-acp-ok,html body .pl-acp-x{flex:none;display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;padding:0;border-radius:50%;border:1px solid transparent;font-size:16px;line-height:1;cursor:pointer;transition:background-color .15s ease,color .15s ease}
 html body .pl-acp-x{background:#eef2f6;color:#475569}
 html body .pl-acp-x:hover{background:#dde4ec;color:#0f172a}
+
+/* 7.0.51-GA: Action Log owner / ETA row — wider owner, padded controls, clean select and modern date field */
+html body .pl-acp .pl-acp-box{padding:12px}
+html body .pl-acp .pl-acp-r{display:grid;grid-template-columns:minmax(0,1fr) 148px;gap:12px;margin-top:10px}
+html body .pl-acp .pl-acp-r>*{width:auto!important;min-width:0;height:34px;box-sizing:border-box;padding:0 12px;border:1px solid #d9e0e8;border-radius:8px;background-color:#fff;color:#1e293b;font:inherit;font-size:13px;transition:border-color .15s ease,box-shadow .15s ease}
+html body .pl-acp .pl-acp-r>*:hover{border-color:#b6c2d0}
+html body .pl-acp .pl-acp-r>*:focus{outline:0;border-color:#1b6ac9;box-shadow:0 0 0 3px rgba(27,106,201,.15)}
+html body .pl-acp .pl-acp-r select{appearance:none;-webkit-appearance:none;padding-right:30px;text-overflow:ellipsis;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 11px center}
+html body .pl-acp .pl-acp-r input[type=date]{accent-color:#1b6ac9;color-scheme:light;font-variant-numeric:tabular-nums;cursor:pointer}
+html body .pl-acp .pl-acp-r input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;opacity:.55;padding:2px;border-radius:4px}
+html body .pl-acp .pl-acp-r input[type=date]::-webkit-calendar-picker-indicator:hover{opacity:1;background:#eef2f6}
