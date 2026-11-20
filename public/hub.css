@@ -3287,3 +3287,8 @@ html body .pl-cmp .pl-cm-rt b{display:inline-block;padding:0 7px;border-radius:9
 html body .pl-cmp .pl-cm-box textarea{font-size:12px!important;min-height:44px!important;padding:6px 8px!important}
 html body .pl-cmh{font-size:11.5px;padding:8px 10px;gap:6px}
 html body .pl-cmh-m b{font-size:11.5px}
+
+/* 7.0.65 — edit-overlap dialog */
+.pl-cf{display:flex;flex-direction:column;gap:6px;max-height:50vh;overflow:auto;margin:8px 0}
+.pl-cf-r{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border:1px solid var(--line,#e2e8f0);border-radius:8px;font-size:13px}
+.pl-cf-m{color:#0b5cab}.pl-cf-t{color:#a15c00;margin-left:12px}

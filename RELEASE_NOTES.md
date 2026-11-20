@@ -1,5 +1,10 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.65-GA
+
+- Editing at the same time is now safe for every user. If a teammate saved the plan first, their changes and yours are merged automatically and silently when you touched different things (different epics, fields, workstreams or actions, or items added on both sides). Only when you both changed the same value is a small dialog shown, listing each overlap with your value and theirs; yours is kept unless you tick "use theirs". Previously you were told to reload and lost your edits.
+- Not covered: writes to GUS itself are still last-write-wins.
+
 ## 7.0.64-GA
 
 - Comments are available on every epic that exists in GUS, including epics owned by another team (Chatter follows the signed-in user's own GUS access).

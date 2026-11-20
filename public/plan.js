@@ -1030,7 +1030,7 @@ async function persistNow(epic,project){
       sp.epics.push(epic);
     }
     const r=await call('plan-save',{teamId:H.team.Id,plan:sp,revision:g.revision});
-    P.plan=r.plan.window&&r.plan.window.start?r.plan:{...r.plan,window:emptyPlan().window};P.rev=r.revision;P.plan.epics.forEach(deriveLine);snapGus();draw();setState('saved');
+    P.plan=r.plan.window&&r.plan.window.start?r.plan:{...r.plan,window:emptyPlan().window};P.rev=r.revision;P.plan.epics.forEach(deriveLine);setBase();snapGus();draw();setState('saved');
     return true;
   }catch(_){setState('error');return false;}
 }
@@ -1056,10 +1056,47 @@ async function syncWs(){
   P.wsBusy=false;
   if(ok){window.toast?.(`Created ${ok} workstream${ok>1?'s':''} in GUS and saved for the whole team.`,false);snapGus();queueSave();}
 }
+/** The plan as last agreed with the server: the common ancestor for merging when two people edit at once. */
+function setBase(){P.base=P.plan?JSON.stringify(P.plan):null;}
+/** Someone else saved first. Merge their changes with ours; silent when nothing overlaps, otherwise keep ours and say what overlapped. */
+async function reconcile(my,quiet){
+  const M=window.PlanMerge;
+  try{
+    if(!M||!P.base)throw new Error('changed');
+    const g=await call('plan-get',{teamId:H.team.Id});if(my!==P.seq)return;
+    const mine=JSON.stringify(P.plan),out=M.merge3(JSON.parse(P.base),P.plan,g.plan);
+    const r=await call('plan-save',{teamId:H.team.Id,plan:out.plan,revision:g.revision});if(my!==P.seq)return;
+    const keep=JSON.parse(mine),saved=r.plan.window&&r.plan.window.start?r.plan:{...r.plan,window:emptyPlan().window};
+    const typed=JSON.stringify(P.plan)!==mine;
+    P.plan=typed?M.merge3(keep,P.plan,saved).plan:saved;P.rev=r.revision;P.base=JSON.stringify(saved);P.plan.epics.forEach(deriveLine);
+    if(!P.gsnap)snapGus();
+    draw();setState(typed?'dirty':'saved');if(typed)queueSave();
+    if(out.conflicts.length)conflictDialog(out.conflicts);
+    return syncGus().then(syncWs);
+  }catch(e){if(my!==P.seq)return;setState(/changed/i.test(e.message)?'conflict':'error');if(!quiet&&!/^changed$/i.test(e.message))window.toast?.(e.message,true);}
+}
+const fmtV=v=>v==null||v===''?'(empty)':typeof v==='object'?JSON.stringify(v):String(v);
+function setAt(node,path,val){
+  for(let i=0;i<path.length-1;i++){const k=path[i];node=Array.isArray(node)?node.find(x=>x&&x.id===k):node&&node[k];if(!node)return false;}
+  node[path[path.length-1]]=val;return true;
+}
+/** Only shown when a teammate changed the very same value we did: our value was kept, and each overlap can be switched to theirs. */
+function conflictDialog(list){
+  const fields=list.filter(c=>c.field);
+  if(!fields.length){window.toast?.('A teammate deleted something you edited, so it was kept: '+list.map(c=>c.label).join('; '),true);return;}
+  const el=openModal('A teammate edited the same thing',`<p class="note">Your changes and a teammate's were saved together. These values were changed by both of you, so yours were kept. Tick any you would rather replace with theirs.</p>
+  <div class="pl-cf">${fields.map((c,i)=>`<label class="pl-cf-r"><input type="checkbox" data-i="${i}"><span><b>${esc(c.label)}</b> · ${esc(c.field)}<br><span class="pl-cf-m">You: ${esc(fmtV(c.mine))}</span> <span class="pl-cf-t">Theirs: ${esc(fmtV(c.theirs))}</span></span></label>`).join('')}</div>
+  <div class="nd-actions"><button type="button" class="button" data-close>Keep mine</button><button type="button" class="button primary" id="pl-cf-ok">Use ticked theirs</button></div>`,null);
+  el.querySelector('#pl-cf-ok').onclick=()=>{
+    let n=0;el.querySelectorAll('input:checked').forEach(b=>{const c=fields[+b.dataset.i];if(setAt(P.plan,c.p,c.theirs))n++;});
+    closeModal();if(n){P.plan.epics.forEach(deriveLine);draw();queueSave();}
+  };
+}
 async function flush(quiet){
   clearTimeout(P.timer);if(P.inflight)await P.inflight;if(P.state!=='dirty'&&P.state!=='error')return P.inflight;
   const my=P.seq;setState('saving');
-  P.inflight=call('plan-save',{teamId:H.team.Id,plan:P.plan,revision:P.rev}).then(r=>{if(my!==P.seq)return;P.rev=r.revision;if(P.state==='saving')setState('saved');return syncGus().then(syncWs);},e=>{if(my!==P.seq)return;setState(/changed/i.test(e.message)?'conflict':'error');if(!quiet)window.toast?.(e.message,true);});
+  const sent=JSON.stringify(P.plan);
+  P.inflight=call('plan-save',{teamId:H.team.Id,plan:P.plan,revision:P.rev}).then(r=>{if(my!==P.seq)return;P.rev=r.revision;P.base=sent;if(P.state==='saving')setState('saved');return syncGus().then(syncWs);},e=>{if(my!==P.seq)return;if(/changed/i.test(e.message))return reconcile(my,quiet);setState('error');if(!quiet)window.toast?.(e.message,true);});
   return P.inflight;
 }
 
@@ -1602,7 +1639,7 @@ async function openCommit(btl){
   }catch(err){el.querySelector('#pl-mb').innerHTML=`<p class="nd-msg error">${esc(err.message)}</p><div class="nd-actions"><button type="button" class="button" data-close>Close</button></div>`;}
 }
 function showResult(r){
-  if(r.plan){P.plan=r.plan;P.rev=r.revision;draw();}else load(P.el);
+  if(r.plan){P.plan=r.plan;P.rev=r.revision;setBase();draw();}else load(P.el);
   snapGus();
   const ok=r.results.filter(x=>x.ok).length;
   openModal(r.failed?'Saved with errors':'Saved to GUS',`<p class="note">${ok} of ${r.results.length} epic(s) saved to GUS${r.failed?`; ${r.failed} failed and can be retried — saved ones are not duplicated`:''}.${r.saveError?` The draft could not record the GUS ids (${esc(r.saveError)}); reload before retrying.`:''}</p>
@@ -1624,7 +1661,7 @@ async function load(el){
   try{
     const id=H.team.Id,[g,refs,members]=await Promise.all([call('plan-get',{teamId:id}),call('plan-refs',{teamId:id}).catch(e=>({releases:[],programs:[],projects:[],sprints:[],warnings:[e.message]})),H.members().catch(()=>[])]);
     if(my!==P.seq)return;
-    P.noGusSync=false;P.plan=g.plan.window.start?g.plan:{...g.plan,window:emptyPlan().window};setTimeout(snapGus,0);P.rev=g.revision;P.plan.epics.forEach(deriveLine);P.refs=refs;P.members=members;syncExtraEng();const linked=linkSharedProjects();
+    P.noGusSync=false;P.plan=g.plan.window.start?g.plan:{...g.plan,window:emptyPlan().window};setTimeout(snapGus,0);P.rev=g.revision;setBase();P.plan.epics.forEach(deriveLine);P.refs=refs;P.members=members;syncExtraEng();const linked=linkSharedProjects();
     const w=refs.warnings||[];el.querySelector('#pl-warn').innerHTML=w.length?`<p class="note pl-warn">Some GUS lists did not load (${esc(w.join('; '))}). Pickers may be incomplete.</p>`:'';
     fillRel();syncCommitBtn();
     el.querySelector('#pl-last').textContent=P.plan.lastCommit&&P.plan.lastCommit.at?`Last saved to GUS ${new Date(P.plan.lastCommit.at).toLocaleString()} (${P.plan.lastCommit.created} created, ${P.plan.lastCommit.updated} updated)`:'';
