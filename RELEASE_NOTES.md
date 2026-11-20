@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.37-GA
+
+- The top **Action Log** window is now a plain list: one aligned row per action item (tick, action item, epic, owner, ETA, delete), open and overdue first, closed struck through. The add form and the per-column filter boxes were removed there; add items from the Action Log icon on an epic row.
+
 ## 7.0.36-GA
 
 - The top **Action Log** button moved from the planner title to the toolbar on the right, directly before **Collapse all**.

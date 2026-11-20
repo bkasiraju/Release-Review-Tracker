@@ -3095,3 +3095,12 @@ html body .pl-acp .pl-acp-r>*{flex:1 1 0;min-width:0;width:auto!important;box-si
 /* 7.0.35-GA: the Action Log count badge stays inside the cell instead of being clipped */
 html body .pl-grid .pl-nmw{padding:3px 8px 0 0;box-sizing:border-box}
 html body .pl-grid .pl-nmw .pl-ac-n{top:-3px;right:-4px;min-width:14px;height:14px;line-height:14px;font-size:9.5px;box-shadow:0 0 0 1.5px #fff}
+
+/* 7.0.37-GA: simple all-epics Action Log list */
+html body .pl-alg-h,html body .pl-alg-r{display:grid;grid-template-columns:24px minmax(0,3fr) minmax(0,2fr) 130px 70px 24px;gap:12px;align-items:center;padding:8px 6px}
+html body .pl-alg-h{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:#64748b;font-weight:600;border-bottom:1px solid #e2e8f0}
+html body .pl-alg-r{border-bottom:1px solid #eef2f6;font-size:13px}
+html body .pl-alg-r>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html body .pl-alg-e{color:#64748b}
+html body .pl-alg-r.done>span{color:#94a3b8;text-decoration:line-through}
+html body .pl-alg-r.late .pl-alg-d{color:#b91c1c;font-weight:600}

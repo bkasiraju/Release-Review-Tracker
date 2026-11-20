@@ -813,23 +813,16 @@ function actionPop(epicId,opener){
   pop.addEventListener('keydown',ev=>{if(ev.key==='Enter'&&ev.target.matches('[data-al-t],[data-al-d]')){ev.preventDefault();add();}});
 }
 function openActionLog(epicId,opener){
-  const pl=P.plan,one=epicId?findE(epicId):null,prj=new Map(pl.projects.map(p=>[p.id,p])),mem=allMem(),isoToday=new Date().toISOString().slice(0,10);
-  const pool=()=>(one?[one]:pl.epics).flatMap(e=>(e.actions||[]).map(a=>({e,a})));
-  const fmtD=d=>{if(!d)return '—';const x=new Date(d+'T00:00:00');return isNaN(x)?d:x.toLocaleDateString(undefined,{month:'short',day:'numeric'});};
-  const body=()=>{const items=pool().sort((x,y)=>(x.a.done-y.a.done)||String(x.a.eta||'9999').localeCompare(String(y.a.eta||'9999')));
-    const own=one&&one.owners&&one.owners[0]||'';
-    return `<div class="pl-al"><div class="pl-al-add"><div class="pl-al-f">${one?'':`<select class="hub-inline" data-al-e aria-label="Epic">${pl.epics.map(e=>`<option value="${esc(e.id)}">${esc(projShort(prj.get(e.projectId)||{name:''}))} › ${esc(e.name||'(unnamed epic)')}</option>`).join('')}</select>`}<input class="hub-inline" type="text" data-al-t maxlength="300" placeholder="Action item…" aria-label="Action item"><select class="hub-inline" data-al-o aria-label="Owner"><option value="">Owner</option>${mem.map(m=>`<option value="${esc(m.id)}"${m.id===own?' selected':''}>${esc(m.name)}</option>`).join('')}</select><input class="hub-inline" type="date" data-al-d aria-label="ETA" value="${etaDefault()}"><button type="button" class="button primary" data-al-add>Add</button></div></div>
-    ${items.length?`<table class="pl-al-t"><thead><tr><th></th>${one?'':'<th>Epic</th>'}<th>Action item</th><th>Owner</th><th>ETA</th><th></th></tr></thead><tbody>${items.map(({e,a})=>`<tr class="${a.done?'done':''}${!a.done&&a.eta&&a.eta<isoToday?' late':''}" data-ae="${esc(e.id)}" data-aid="${esc(a.id)}"><td><input type="checkbox" data-al-x${a.done?' checked':''} aria-label="Done"></td>${one?'':`<td class="pl-al-ep" title="${esc(e.name)}">${esc(e.name||'(unnamed epic)')}</td>`}<td>${esc(a.text)}</td><td>${esc(a.ownerName||'—')}</td><td>${esc(fmtD(a.eta))}</td><td><button type="button" class="pl-ib" data-al-del aria-label="Delete action item" title="Delete">×</button></td></tr>`).join('')}</tbody></table>`:'<p class="note">No action items yet. Add the first one above.</p>'}</div>`;};
-  const el=openModal(one?`Action Log — ${one.name||'(unnamed epic)'}`:'Action Log — all epics',body(),opener,!one);
-  const paint=()=>{const keep=(el.querySelector('[data-al-e]')||{}).value;el.querySelector('#pl-mb').innerHTML=body();const s=el.querySelector('[data-al-e]');if(s&&keep)s.value=keep;draw();};
-  el.addEventListener('click',ev=>{const t=ev.target;
-    if(t.closest('[data-al-add]')){const tx=el.querySelector('[data-al-t]').value.replace(/\s+/g,' ').trim();if(!tx){el.querySelector('[data-al-t]').focus();return;}
-      const e=one||findE(el.querySelector('[data-al-e]').value);if(!e)return;const oid=el.querySelector('[data-al-o]').value;
-      (e.actions||(e.actions=[])).push({id:uid('a'),text:tx,ownerId:oid,ownerName:oid?memName(oid):'',eta:el.querySelector('[data-al-d]').value,done:false});queueSave();paint();el.querySelector('[data-al-t]').focus();return;}
-    const row=t.closest('tr[data-aid]');if(!row)return;const e=findE(row.dataset.ae),a=e&&(e.actions||[]).find(x=>x.id===row.dataset.aid);if(!a)return;
+  const pl=P.plan,today=isoLocal(new Date());
+  const fmtD=d=>{if(!d)return '—';const x=new Date(d+'T00:00:00');return isNaN(x)?d:x.toLocaleDateString(undefined,{day:'numeric',month:'short'});};
+  const body=()=>{const items=pl.epics.flatMap(e=>(e.actions||[]).map(a=>({e,a}))).sort((x,y)=>(x.a.done-y.a.done)||String(x.a.eta||'9999').localeCompare(String(y.a.eta||'9999')));
+    const open=items.filter(x=>!x.a.done).length;
+    return items.length?`<p class="note">${open} open · ${items.length-open} closed. Add an item with the <b>Action Log</b> icon on an epic row.</p><div class="pl-alg" role="list"><div class="pl-alg-h" aria-hidden="true"><span></span><span>Action item</span><span>Epic</span><span>Owner</span><span>ETA</span><span></span></div>${items.map(({e,a})=>`<div class="pl-alg-r${a.done?' done':''}${!a.done&&a.eta&&a.eta<today?' late':''}" role="listitem" data-ae="${esc(e.id)}" data-aid="${esc(a.id)}"><input type="checkbox" data-al-x${a.done?' checked':''} aria-label="Done"><span class="pl-alg-t">${esc(a.text)}</span><span class="pl-alg-e" title="${esc(e.name)}">${esc(e.name||'(unnamed epic)')}</span><span>${esc(a.ownerName||'—')}</span><span class="pl-alg-d">${esc(fmtD(a.eta))}</span><button type="button" class="pl-ib" data-al-del aria-label="Delete action item" title="Delete">×</button></div>`).join('')}</div>`:'<p class="note">No action items yet. Use the Action Log icon on an epic row to add one.</p>';};
+  const el=openModal('Action Log — all epics',body(),opener,true);
+  const paint=()=>{el.querySelector('#pl-mb').innerHTML=body();draw();};
+  el.addEventListener('click',ev=>{const t=ev.target,row=t.closest('[data-aid]');if(!row)return;const e=findE(row.dataset.ae),a=e&&(e.actions||[]).find(x=>x.id===row.dataset.aid);if(!a)return;
     if(t.closest('[data-al-del]')){e.actions=e.actions.filter(x=>x!==a);queueSave();paint();}
     else if(t.closest('[data-al-x]')){a.done=t.checked;queueSave();paint();}});
-  el.addEventListener('keydown',ev=>{if(ev.key==='Enter'&&ev.target.matches('[data-al-t],[data-al-d]')){ev.preventDefault();el.querySelector('[data-al-add]').click();}});
 }
 function outcomePop(id,opener){
   const e=findE(id);if(!e)return;document.querySelector('.pl-sgp')?.remove();
