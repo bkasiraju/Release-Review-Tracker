@@ -1182,9 +1182,7 @@ function drawPlanner(){
         if(open&&V.group==='outcome'&&V.ogrp==='projects'){const bp=new Map();g.es.forEach(e=>{if(!bp.has(e.projectId))bp.set(e.projectId,[]);bp.get(e.projectId).push(e);});
           bp.forEach((pes,pid)=>{const fk='op:'+g.k+'|'+pid,po=!fold.has(fk);rows.push(projRow(pid,pes,po,fk,true).replace('class="pl-g-proj"','class="pl-g-proj pl-g-sub"'));if(po)pes.forEach(emit);});}
         else if(open)g.es.forEach(emit);});
-    }else
-    depth='';
-    {const ents=[...byP].filter(([pid,es])=>!(filtering&&!es.length&&!pOnly(pid))),withE=ents.filter(([,es])=>es.length),noE=ents.filter(([,es])=>!es.length); // projects with epics first, those without below a thin separator
+    }else{depth='';const ents=[...byP].filter(([pid,es])=>!(filtering&&!es.length&&!pOnly(pid))),withE=ents.filter(([,es])=>es.length),noE=ents.filter(([,es])=>!es.length); // projects with epics first, those without below a thin separator
       const num=pid=>{const p=prj.get(pid)||{},m=/(\d+(?:\.\d+)*)/.exec(projShort(p)||p.name||'');return m?m[1].split('.').map(Number):null;};
       const byNo=([a],[b])=>{const x=num(a),y=num(b);if(x&&y){for(let i=0;i<Math.max(x.length,y.length);i++){const d=(x[i]??-1)-(y[i]??-1);if(d)return d;}return 0;}return x?-1:y?1:0;}; // measure / short-form numbers: M1.1.1 < M1.2.4 < M1.2.10 < M2.2.1
       withE.sort(byNo);noE.sort(byNo);
