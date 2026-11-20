@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.43-GA
+
+- Group by Project orders the projects by the measure number in their short form (HRP M1.1.1, M1.2.4, M1.2.10, M2.2.1 …), compared number by number, in both the "with epics" and "without epics" sections. Projects with no number go last.
+
 ## 7.0.42-GA
 
 - Planner toolbar buttons are tinted by purpose: **+ Project** green, **Projects / Epics** blue, **Columns** violet, **Import / Export** amber, **Group by** indigo, **Action Log** orange (matching its icon), **Expand / Collapse all** teal and **Full screen** slate.
