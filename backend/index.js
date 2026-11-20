@@ -65,6 +65,10 @@ async function handleRequest(ctx){
       case 'slack-channels':payload=await require('./slack-channels').list(sf,store);break;
       case 'slack-channels-save':payload=await require('./slack-channels').save(sf,store,ctx.slack,b);break;
       case 'post-slack-send':payload=await post.sendSlack(sf,ctx.slack,store,b);break;
+      case 'runtime-capabilities':{ // names only (no values or data): which calls the host exposes, to find a way to post real Chatter mentions
+        const names=o=>{const out=new Set();for(let x=o,i=0;x&&x!==Object.prototype&&i<4;x=Object.getPrototypeOf(x),i++)for(const k of Object.getOwnPropertyNames(x))try{if(k!=='constructor'&&typeof o[k]==='function')out.add(k);}catch{/* getter */}return [...out].sort();};
+        const keys=o=>o&&typeof o==='object'?Object.keys(o).sort():[];
+        payload={source,sf:names(sf),ctxFunctions:names(ctx),ctxKeys:keys(ctx),salesforceKeys:keys(ctx.salesforce),requestKeys:keys(ctx.request),sfKeys:keys(sf),hasConnectRest:typeof sf?.request==='function'};break;}
       case 'epic-chat-read':payload=await require('./epic-chat').read(sf,b);break;
       case 'epic-chat-post':payload=await require('./epic-chat').post(sf,b);break;
       case 'epic-chat-users':payload=await require('./epic-chat').users(sf,b);break;

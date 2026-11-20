@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.59-GA
+
+- Diagnostic only: new backend action runtime-capabilities lists the names (no values or data) of the calls the GUS Apps host exposes, to find a route for real Chatter @mentions. No behaviour change.
+
 ## 7.0.58-GA
 
 - Comments: compact type (12 px), one tinted card per message with the author, time and a ↩ Reply chip on one line, @mentions shown as chips, the epic as a chip under the title, and a smaller comment box, so more of the thread fits.
