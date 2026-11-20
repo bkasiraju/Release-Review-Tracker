@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.10-GA
+
+- **Cleaner Save to GUS review.** The dialog is larger (not full screen) with a fixed header and footer; only the epic list scrolls. Summary counts are one compact row of chips, the planned releases sit beneath, the long explanation is behind "How this works", each epic is a single row (name, Create/Update, ABL/BTL, days) that opens to a four-column detail grid and an aligned workstream table, and the review checkbox sits beside Cancel and Accept in the footer.
+
 ## 7.0.9-GA
 
 - The Team selector in the header now uses the same type size and weight as the neighbouring header buttons (it was heavier and taller).

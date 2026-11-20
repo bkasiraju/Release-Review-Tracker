@@ -2910,3 +2910,38 @@ html body .pl-tt.pl-tt-meas a.pl-tt-go{text-decoration:none;display:inline-block
 html body .hub-team .cs-btn,html body .hub-team select{font-size:13px!important;font-weight:500!important;min-height:32px!important;height:32px;min-width:0;padding-top:0;padding-bottom:0}
 html body .hub-team .cs-btn span{font-size:inherit;font-weight:inherit}
 html body .hub-team .tiny-label{font-size:11px}
+
+/* Save to GUS review: one clean, larger (not full-screen) dialog. Header, summary and footer stay put; only the epic list scrolls. */
+html body .nd-modal.pl-cm{width:min(1120px,92vw);height:min(84vh,860px);max-height:84vh;padding:0;display:flex;flex-direction:column;overflow:hidden;border-radius:14px;background:#fff}
+html body .pl-cm .nd-head{padding:16px 24px;border-bottom:1px solid #e3e9f0;flex:none}
+html body .pl-cm .nd-head h2{font-size:18px;font-weight:700;color:#032d60}
+html body .pl-cm .nd-x{width:32px;height:32px;border-radius:8px;border:0;background:transparent;font-size:22px;line-height:1;color:#5b6b7c}.pl-cm .nd-x:hover{background:#eef3f8}
+html body .pl-cm #pl-mb{flex:1;min-height:0;display:flex;flex-direction:column;padding:16px 24px 0;gap:12px}
+html body .pl-cm .cm-bar{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;flex:none}
+html body .pl-cm .cm-stats{display:flex;gap:8px;flex-wrap:wrap}
+html body .pl-cm .cm-stats>div{display:flex;align-items:baseline;gap:6px;padding:6px 12px;border:1px solid #d5e1ec;border-radius:999px;background:#f7fafc;white-space:nowrap}
+html body .pl-cm .cm-stats b{font-size:15px;color:#032d60}.pl-cm .cm-stats span{font-size:12px;color:#5b6b7c}
+html body .pl-cm .pl-btl-opt{margin:0!important;font-size:13px;font-weight:600}
+html body .pl-cm .nd-modal input[type=checkbox],html body .pl-cm input[type=checkbox]{width:16px!important;height:16px;margin:0;flex:none}
+html body .pl-cm .cm-meta{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;flex:none;font-size:13px}
+html body .pl-cm .cm-rel{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.pl-cm .cm-rel i{font-style:normal;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#5b6b7c;margin-right:2px}
+html body .pl-cm .cm-rel em{font-style:normal;font-weight:600;padding:2px 10px;border-radius:999px;background:#e8f1fb;color:#0b4f8a}
+html body .pl-cm .cm-how summary{cursor:pointer;color:#0b5cab;font-weight:600;list-style:none}.pl-cm .cm-how summary::-webkit-details-marker{display:none}
+html body .pl-cm .cm-how p{margin:8px 0 0;max-width:760px;color:#4b647a;line-height:1.5}
+html body .pl-cm .cm-list{flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;gap:8px;padding:2px 4px 8px 0}
+html body .pl-cm .pl-rv{flex:none;border:1px solid #d5e1ec!important;border-radius:10px!important;background:#fff;overflow:hidden}
+html body .pl-cm .pl-rv.bad{border-color:#c23934!important}
+html body .pl-cm .pl-rv>summary{display:grid;grid-template-columns:minmax(0,1fr) auto auto 80px;align-items:center;gap:10px;padding:10px 14px;background:#f7fafc;font-size:13px}
+html body .pl-cm .pl-rv[open]>summary{border-bottom:1px solid #e3e9f0}
+html body .pl-cm .pl-rv>summary b{font-size:13px;font-weight:600;color:#16324a}
+html body .pl-cm .pl-rv-eff{text-align:right;white-space:nowrap}
+html body .pl-cm .pl-rv-kv{grid-template-columns:repeat(4,minmax(0,1fr));gap:10px 20px;padding:12px 14px}
+html body .pl-cm .pl-rv-kv span{font-size:13px;gap:2px;color:#16324a}
+html body .pl-cm .pl-rv-ws{width:calc(100% - 28px);margin:0 14px 12px;table-layout:fixed}
+html body .pl-cm .pl-rv-ws th:nth-child(1){width:46%}html body .pl-cm .pl-rv-ws th:nth-child(2){width:30%}html body .pl-cm .pl-rv-ws th:nth-child(3){width:10%}html body .pl-cm .pl-rv-ws th:nth-child(4){width:14%}
+html body .pl-cm .pl-rv-ws th,html body .pl-cm .pl-rv-ws td{padding:6px 8px;font-size:12.5px;vertical-align:top;overflow-wrap:anywhere}
+html body .pl-cm .cm-foot{flex:none;display:flex;align-items:center;justify-content:space-between;gap:20px;margin:0 -24px;padding:14px 24px;border-top:1px solid #e3e9f0;background:#f7fafc}
+html body .pl-cm .pl-ack{display:flex;align-items:center;gap:10px;margin:0;padding:0;border:0;background:none;font-size:13px;font-weight:600;max-width:640px}
+html body .pl-cm .cm-foot .nd-actions{margin:0;flex:none}
+html body .pl-cm .pl-rv-empty{flex:none}
+@media(max-width:900px){html body .pl-cm .pl-rv-kv{grid-template-columns:repeat(2,minmax(0,1fr))}html body .pl-cm .cm-foot{flex-direction:column;align-items:stretch}}
