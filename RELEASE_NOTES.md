@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.20-GA
+
+- Planner header buttons reordered and renamed to say what they do: **Leaves & on-call**, **Save plan** (saves to the GUS Apps tracker only, nothing goes to GUS), **Pull from GUS** (was "Refresh from GUS"; now after Save), **Review & push to GUS** (was "Review & save to GUS").
+
 ## 7.0.19-GA
 
 - The **P** (project measure) card now opens to the right of the mouse pointer, flipping to the left and clamping vertically when near a screen edge.
