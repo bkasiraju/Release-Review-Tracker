@@ -2905,3 +2905,8 @@ html body .pl-tt.pl-tt-meas a.pl-tt-go{text-decoration:none;display:inline-block
 .pl-rs{all:unset;display:inline-flex;align-items:center;gap:5px;cursor:pointer;font:inherit;color:inherit;text-transform:inherit;letter-spacing:inherit}
 .pl-rs i{font-style:normal;font-size:10px;opacity:.45}.pl-rs.on i{opacity:1;color:#176b91}.pl-rs:hover i{opacity:1}.pl-rs:focus-visible{outline:2px solid #1b73b3;outline-offset:2px;border-radius:3px}
 .pl-rs-bar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:6px 0 10px;font-size:12px}.pl-rs-bar small{color:#5b6b7b;font-weight:600}
+
+/* team filter in the header: same type size and weight as the neighbouring header buttons */
+html body .hub-team .cs-btn,html body .hub-team select{font-size:13px!important;font-weight:500!important;min-height:32px!important;height:32px;min-width:0;padding-top:0;padding-bottom:0}
+html body .hub-team .cs-btn span{font-size:inherit;font-weight:inherit}
+html body .hub-team .tiny-label{font-size:11px}

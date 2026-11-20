@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.9-GA
+
+- The Team selector in the header now uses the same type size and weight as the neighbouring header buttons (it was heavier and taller).
+
 ## 7.0.8-GA
 
 - **HRP measure details are now live.** The **P** icon hover card reads every measure from the *HRP FY27 V2MOM* in GUS (title, status, owners, V2MOM refs and the full description, with bullets and headings), so all measures load, not just 1.1.1 and 1.1.3. Sub-codes such as 1.2.1.2 show their parent measure. The bundled 1.1.1 / 1.1.3 text remains as an offline fallback.
