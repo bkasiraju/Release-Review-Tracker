@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.48-GA
+
+- All-epics Action Log: the owner is shown as an avatar (name on hover) so the Epic and Action item columns get the space, and type sizes are consistent (12.5 px items, 12 px epic and ETA, 10.5 px headers).
+
 ## 7.0.47-GA
 
 - Smooth transitions in the planner grid: row highlight, expand / collapse tint and chip fades ease over about 0.18 s, and epic rows fade in when a project is expanded. Only colour, shadow and opacity animate, never layout, and users who prefer reduced motion get no animation.
