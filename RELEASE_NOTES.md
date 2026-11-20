@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.63-GA
+
+- Comments: fixed "body must be a non-empty string or array of message segments". The host's chatter.post / comment take a plain array of segments ({type:'mention',id} / {type:'text',text}), as the OneJDK dashboard uses; that form is now sent first (capitalised Connect form second). Not yet verified against live GUS.
+
 ## 7.0.62-GA
 
 - Comments: posts and replies go through the host's own Chatter helper (sf.chatter.post / comment), so @mentions are real and notify the tagged GUS user. The body shape is not documented, so two likely shapes are tried; if neither is accepted and the comment contains a tag, nothing is posted and the error is shown (no silent plain-text post). Comments without tags still fall back to the record-based post. Not yet verified against live GUS.

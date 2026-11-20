@@ -59,10 +59,11 @@ async function post(sf, { epicId, segments, replyTo }) {
   const reply = replyTo ? validId(replyTo) : '';
   const ch = sf.chatter;
   if (ch && typeof (reply ? ch.comment : ch.post) === 'function') {
-    // The host's own Chatter helper (Connect API underneath): real @mentions that notify. The body shape is not documented, so the likely ones are tried in turn; an error means nothing was posted.
-    const segs = raw.map(s => s.t === 'mention' ? { type: 'Mention', id: s.id } : { type: 'Text', text: s.v }).filter(s => s.type === 'Mention' || s.text);
+    // The host's own Chatter helper (Connect API underneath): real @mentions that notify. The host wants an array of segments; the capitalised Connect form is the second try. An error means nothing was posted.
+    // Verified against the host: it takes an array of lowercase segments ({type:'mention',id} / {type:'text',text}), as the OneJDK dashboard posts.
+    const low = raw.map(s => s.t === 'mention' ? { type: 'mention', id: s.id } : { type: 'text', text: s.v }).filter(s => s.type === 'mention' || s.text), cap = low.map(s => s.type === 'mention' ? { type: 'Mention', id: s.id } : { type: 'Text', text: s.text });
     let lastErr = '';
-    for (const shape of [{ messageSegments: segs }, { body: { messageSegments: segs } }]) {
+    for (const shape of [low, cap]) {
       try {
         const r = body(reply ? await ch.comment(reply, shape) : await ch.post(id, shape));
         return { posted: true, id: (r && r.id) || '', mentions: true };
