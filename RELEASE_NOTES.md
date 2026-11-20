@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.39-GA
+
+- The all-epics Action Log window is more compact: a narrower window, tighter margins, a plain summary line instead of a boxed note and slimmer rows.
+
 ## 7.0.38-GA
 
 - Action items can be edited: click an item's text (in the epic's Action Log popover, or in the all-epics list, which jumps to that epic's popover) to load it into the form, change the action, owner or ETA, and press ✓ to save the changes (or "Editing — cancel").

@@ -3110,3 +3110,12 @@ html body .pl-acp-l .pl-acp-t[data-al-edit],html body .pl-alg-t[data-al-edit]{cu
 html body .pl-acp-l .pl-acp-t[data-al-edit]:hover,html body .pl-alg-t[data-al-edit]:hover{text-decoration:underline;color:#0b5cab}
 html body .pl-acp-l li.editing{background:#f2f8fd;border-radius:6px}
 html body .pl-acp-cx{margin-top:6px;font-size:11px}
+
+/* 7.0.39-GA: compact all-epics Action Log */
+html body .pl-modal.pl-modal-al{width:min(960px,96vw)!important;max-width:960px!important}
+html body .pl-modal-al .nd-head{padding:10px 16px!important}
+html body .pl-modal-al #pl-mb{padding:6px 16px 12px!important}
+html body .pl-modal-al #pl-mb>.note{margin:0 0 4px!important;padding:2px 0!important;background:none!important;border:0!important;font-size:12px;color:#64748b}
+html body .pl-modal-al .pl-alg-h,html body .pl-modal-al .pl-alg-r{grid-template-columns:20px minmax(0,3fr) minmax(0,2fr) 100px 56px 20px;gap:8px;padding:5px 2px}
+html body .pl-modal-al .pl-alg-r input[type=checkbox]{margin:0}
+html body .pl-modal-al .pl-alg-r .pl-ib{padding:0;min-width:0;width:20px;height:20px;line-height:1}
