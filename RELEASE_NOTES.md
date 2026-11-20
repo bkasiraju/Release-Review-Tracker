@@ -1,5 +1,10 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.12-GA
+
+- **SMART goal on hover.** Hover (or focus) the target icon on an epic with a saved goal to see a card with the epic name, its project and release, and the goal just below. Click the icon to view or edit.
+- **Redesigned epic list.** The P0 / ABL / BTL / theme epic lists now open with summary tiles (epics, points, above/below the line with a split bar) and richer rows: priority badge, project code chip, release, ABL/BTL pill, engineer avatars and a days bar.
+
 ## 7.0.11-GA
 
 - **SMART goal drafting shows progress.** While the AI drafts, the box reads "Generating…", the button shows "Generating…" and the note animates, so it is clear something is happening.
