@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.58-GA
+
+- Comments: compact type (12 px), one tinted card per message with the author, time and a ↩ Reply chip on one line, @mentions shown as chips, the epic as a chip under the title, and a smaller comment box, so more of the thread fits.
+
 ## 7.0.57-GA
 
 - Comments: reading the thread no longer fails with "FeedItem requires a filter by Id" (the epic's feed is read from ADM_Epic__Feed, replies via FeedComment). Popover is wider (up to 62% of the screen, 760 px), the comment box is full width, and the title reads "Comments · GUS Chatter". Posts are made as the signed-in GUS user; @mentions remain plain text in this runtime.
