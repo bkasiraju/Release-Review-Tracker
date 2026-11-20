@@ -3058,3 +3058,5 @@ html body .pl-al-t td{padding:8px;border-bottom:1px solid #eef2f6;vertical-align
 html body .pl-al-t .pl-al-ep{max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#475569}
 html body .pl-al-t tr.done td{color:#94a3b8;text-decoration:line-through}
 html body .pl-al-t tr.late td:nth-last-child(2){color:#b91c1c;font-weight:600}
+html body .pl-ac.closed{background:#ecfdf5!important;border-color:#a7f3d0!important;color:#047857!important}
+html body .pl-ac-n.ok{background:#047857}
