@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.34-GA
+
+- Action Log popover layout: the green ✓ save is at the top right, the action-item box spans the full popover width, owner and ETA sit side by side below it, and a very light frame marks the controls area.
+
 ## 7.0.33-GA
 
 - Clicking an epic's Action Log icon now shows its action items first (open ones first, then closed), with the add box (action item, owner, ETA, ✓) underneath.
