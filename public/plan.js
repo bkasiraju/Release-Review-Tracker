@@ -923,8 +923,9 @@ function engTipHtml(x){
 let ttEl=null;
 document.addEventListener('mouseover',e=>{const h=e.target.closest&&e.target.closest('[data-tip-eng],[data-tip-meas],[data-tip-goal],[data-tip-meth]'),inTip=e.target.closest&&e.target.closest('.pl-tt');
   if(h||inTip){clearTimeout(P.ttT);P.ttT=0;}
-  if(h){if(!(ttEl&&ttEl.dataset.for===tipKey(h)))showTip(h);}
-  else if(ttEl&&!P.ttPin&&!inTip&&!P.ttT)P.ttT=setTimeout(()=>{P.ttT=0;if(!P.ttPin)hideTip();},350);});
+  if(h){if(!(ttEl&&ttEl.dataset.for===tipKey(h))){if(h.dataset.tipMeth){if(P.ttSf!==tipKey(h)){clearTimeout(P.ttS);P.ttSf=tipKey(h);P.ttS=setTimeout(()=>{if(h.isConnected)showTip(h);},1500);}}else showTip(h);}}
+  else if(!inTip){clearTimeout(P.ttS);P.ttSf='';}
+  if(!h&&ttEl&&!P.ttPin&&!inTip&&!P.ttT)P.ttT=setTimeout(()=>{P.ttT=0;if(!P.ttPin)hideTip();},350);});
 document.addEventListener('focusin',e=>{const h=e.target.closest&&e.target.closest('[data-tip-eng],[data-tip-meas],[data-tip-goal],[data-tip-meth]');if(h)showTip(h);});
 document.addEventListener('focusout',e=>{if(!P.ttPin&&!(e.relatedTarget&&e.relatedTarget.closest&&e.relatedTarget.closest('.pl-tt')))hideTip();});document.addEventListener('click',e=>{const h=e.target.closest&&e.target.closest('[data-tip-eng],[data-tip-meas],[data-tip-goal],[data-tip-meth]');if(h&&(h.dataset.tipGoal||h.dataset.tipMeth)){hideTip();return;}if(h){if(!(ttEl&&ttEl.dataset.for===tipKey(h)))showTip(h);P.ttPin=!!ttEl;return;}if(P.ttPin&&!(e.target.closest&&e.target.closest('.pl-tt')))hideTip();});document.addEventListener('keydown',e=>{if(e.key==='Escape')hideTip();});window.addEventListener('scroll',hideTip,true);
 const openEngDetail=b=>{if(!P.el)return;hideTip();P.rv='eng';P.evFocus=b.dataset.engDetail;setTab('rps');};
@@ -964,8 +965,8 @@ function methTipHtml(p){
   const refs=(p.method||'').split(/\s*\|\s*|\r?\n/).map(x=>x.trim()).filter(Boolean),M=P.v2m&&P.v2m.measures||{};
   const rows=refs.map(r=>{const m=/^\s*(HPS|T\s*&\s*P|T\s*&\s*I|TP|TI)\b[\s:-]*M?\s*(\d+(?:\.\d+)*)/i.exec(r),k=m?m[1].toUpperCase().replace(/\s/g,'').replace(/^TP$/,'T&P').replace(/^TI$/,'T&I'):'',hit=m&&M[k+' '+m[2]],code=m?k+' '+m[2]:r;
     const pend=!P.v2m,src=m&&(P.v2m&&P.v2m.sources||[]).includes(k);
-    return `<li class="pl-mv-i"><span class="pl-mv-code">${esc(code)}</span>${hit?`<b>${esc(hit.title)}</b><small>${hit.owner?'Owner: '+esc(hit.owner):''}${hit.owner&&hit.xref?' · ':''}${hit.xref?'Maps to '+esc(hit.xref):''}</small>`:`<em>${pend&&m?'Loading measure name…':m&&!src?'No source sheet is connected for '+esc(k)+' yet.':m?'Measure name not found in the sheet.':'No measure sheet is connected for this reference.'}</em>`}</li>`;}).join('');
-  return `<div class="pl-tt-h"><b>V2MOM methods</b><span class="pl-tc t">${refs.length}</span></div><div class="pl-mt-refs"><small>${esc(p.name||'')}</small></div><ul class="pl-mv-l2">${rows||'<li><em>No method set.</em></li>'}</ul>${P.v2m&&P.v2m.failed&&P.v2m.failed.length?`<div class="pl-tt-foot"><small class="pl-sgt-hint">Could not read the ${esc(P.v2m.failed.join(', '))} sheet${P.v2m.failed.length>1?'s':''}. Check Google Sheets access.</small></div>`:''}`;
+    return `<li class="pl-mv-i"><span class="pl-mv-code">${esc(code)}</span>${hit?`<b>${esc(hit.title)}</b><small>${hit.owner?'Owner: '+esc(hit.owner):''}${hit.owner&&hit.xref?' · ':''}${hit.xref?'Maps to '+esc(hit.xref):''}</small>`:`<em>${pend&&m?'Loading measure name…':m&&!src?'No source sheet is connected for '+esc(k)+' yet.':m&&(P.v2m.failed||[]).some(f=>f===k||f==='all')?'Sheet not readable from here.':m?'Measure name not found in the sheet.':'No measure sheet is connected for this reference.'}</em>`}</li>`;}).join('');
+  return `<div class="pl-tt-h"><b>V2MOM methods</b><span class="pl-tc t">${refs.length}</span></div><div class="pl-mt-refs"><small>${esc(p.name||'')}</small></div><ul class="pl-mv-l2">${rows||'<li><em>No method set.</em></li>'}</ul>${P.v2m&&P.v2m.failed&&P.v2m.failed.length?`<div class="pl-tt-foot"><small class="pl-sgt-hint">The ${esc(P.v2m.failed.join(', '))} V2MOM sheet${P.v2m.failed.length>1?'s are':' is'} not readable from here (no Google Sheets access), so measure names cannot be shown.</small></div>`:''}`;
 }
 function showTip(host){
   if(host.dataset.tipMeth){const p=P.plan.projects.find(x=>x.id===host.dataset.tipMeth);if(!p||!p.method)return;

@@ -3000,3 +3000,20 @@ html body .pl-tt.pl-tt-meth{width:430px;padding:14px 16px;border-radius:14px;bor
 
 .pl-modal .pl-rv-why{margin:10px 0 4px;padding:9px 12px;border-radius:10px;background:#f0f7ff;border:1px solid #d6e7f8;border-left:3px solid #0b5cab;font-size:12.5px;color:#16324a}
 .pl-modal .pl-rv-why ul{margin:5px 0 0 18px;padding:0}.pl-modal .pl-rv-why li{margin:2px 0}
+
+/* subtler, smaller V2MOM / SMART goal cards */
+html body .pl-tt.pl-tt-meth,html body .pl-tt.pl-tt-goal{font-size:11.5px;padding:12px 14px}
+html body .pl-tt-meth .pl-tt-h b,html body .pl-tt-goal .pl-tt-h b{font-size:12.5px}
+html body .pl-tt-meth .pl-mt-refs small{font-size:11px;color:#64748b}
+html body .pl-tt-meth .pl-tc.t{font-size:10.5px;padding:1px 8px}
+html body .pl-tt-meth .pl-mv-i{background:#f8fafc;border:1px solid #e8edf3;padding:7px 10px;border-radius:8px}
+html body .pl-tt-meth .pl-mv-code{background:#eef2f7;color:#475569;border:1px solid #e1e8f0;font-size:10.5px;font-weight:700;padding:1px 8px;border-radius:6px}
+html body .pl-tt-meth .pl-mv-i b{font-size:11.5px;font-weight:600;color:#334155}
+html body .pl-tt-meth .pl-mv-i small{font-size:10.5px;color:#7a8a9c}
+html body .pl-tt-meth .pl-mv-i em{font-size:11px;color:#94a3b8}
+html body .pl-tt-meth .pl-sgt-hint,html body .pl-tt-goal .pl-sgt-hint{font-size:10.5px;color:#94a3b8}
+html body .pl-sgt{background:#f8fafc;border-color:#e8edf3;border-left-color:#94a3b8}
+html body .pl-sgt-k{color:#64748b;font-size:10px}
+html body .pl-sgt p{font-size:12px;color:#334155}
+html body .pl-sgt-meta{font-size:11px}
+html body .pl-tt-meth .pl-mv-code{justify-self:start;align-self:start}
