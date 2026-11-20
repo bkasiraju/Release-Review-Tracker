@@ -3173,3 +3173,16 @@ html body[data-hub=plan] tr.pl-g-proj.pl-g-proj:has(.pl-caret[aria-expanded]):ho
 /* one weight per state, set by expanded / collapsed only */
 html body[data-hub=plan] tr.pl-g-proj:has(.pl-caret[aria-expanded="false"]):hover .pl-pj-n{font-weight:500!important}
 html body[data-hub=plan] tr.pl-g-proj:has(.pl-caret[aria-expanded="true"]):hover .pl-pj-n{font-weight:700!important}
+
+/* 7.0.47-GA: smooth transitions for row hover / expand / collapse (colour, shadow and opacity only — nothing that moves layout) */
+html body[data-hub=plan] tr.pl-g-proj td{transition:background-color .18s ease,box-shadow .18s ease,border-color .18s ease}
+html body[data-hub=plan] tr.pl-g-proj .pl-pj-n{transition:color .18s ease}
+html body[data-hub=plan] tr.pl-g-proj :is(.pl-ty,.pl-gsum,.pl-pj-mt,.pl-open-gus,.pl-pj-add,.pl-pj-del){transition:opacity .18s ease,background-color .18s ease,border-color .18s ease}
+html body[data-hub=plan] .pl-grid tr[data-e] td{transition:background-color .15s ease}
+html body[data-hub=plan] .pl-grid .pl-caret{transition:background-color .15s ease,color .15s ease}
+html body[data-hub=plan] .pl-grid tr[data-e]{animation:plRowIn .16s ease-out}
+@keyframes plRowIn{from{opacity:0}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){
+  html body[data-hub=plan] tr.pl-g-proj td,html body[data-hub=plan] tr.pl-g-proj .pl-pj-n,html body[data-hub=plan] tr.pl-g-proj :is(.pl-ty,.pl-gsum,.pl-pj-mt,.pl-open-gus,.pl-pj-add,.pl-pj-del),html body[data-hub=plan] .pl-grid tr[data-e] td,html body[data-hub=plan] .pl-grid .pl-caret{transition:none}
+  html body[data-hub=plan] .pl-grid tr[data-e]{animation:none}
+}
