@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.24-GA
+
+- Group by Outcome: hovering a measure chip in a group header now shows that measure's card (name, owner, V2MOM mapping) after the usual 1 s delay, replacing the generic "Measures served by this outcome" text.
+
 ## 7.0.23-GA
 
 - Outcome is no longer a grid column (the text is long). Each epic row now has an **Outcome** flag button next to the SMART goal button: click it to write, edit or clear the outcome and Save. It turns green once set and shows the text on hover. Group by → Outcome and the GUS write (first line of Epic Health Comments, `Outcome: …`) are unchanged.
