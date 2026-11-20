@@ -41,7 +41,7 @@ H.setTeam=id=>{
 };
 H.needTeam=el=>{
   if(H.hasTeam())return false;
-  el.innerHTML=`<div class="empty-state hub-empty">${icon('users','blue')}<h3>Select a team</h3><p>This page shows GUS data for one scrum team. Pick a team (MAPS, MQ, VegaCache, VegaStore or Caching Services) in the filter above.</p></div>`;
+  el.innerHTML=`<div class="empty-state hub-empty">${icon('users','blue')}<h3>Select a team</h3><p>This page shows GUS data for one scrum team. Pick a team in the filter above.</p></div>`;
   return true;
 };
 let membersCache=new Map();
@@ -207,7 +207,8 @@ function tile(p,stat){
   const soon=p.soon;
   return `<button class="hub-tile${soon?' soon':''}" data-go="${p.id}"><span class="hub-tile-head">${icon(p.icon,p.tone)}<strong>${esc(p.label.replace(/\s*\((Monthly|Quarterly)\)/,""))}</strong>${soon?'<em class="hub-soon">Coming soon</em>':''}<svg class="hub-tile-go" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="hub-tile-stat${stat&&stat.big!=null?'':' nobig'}">${stat&&stat.big!=null?`<b>${esc(stat.big)}</b>`:''}<small>${esc((stat&&stat.text)||p.desc)}</small></span>${stat&&stat.chips?`<span class="hub-tile-chips">${stat.chips}</span>`:''}</button>`;
 }
-const groupKey=t=>t.short==='MAPS'?'maps':t.short==='MQ'?'mq':/vegastore/i.test(t.Name)?'vegastore':/caching services/i.test(t.Name)?'caching':/vega/i.test(t.Name)?'vegacache':null;
+const groupKey=t=>t.key||null;
+const GROUPS=()=>(H.groups&&H.groups.length?H.groups:['maps','mq','vegacache','vegastore','caching']);
 const initials=n=>String(n).split(/\s+/).filter(Boolean).map(w=>w[0]).slice(0,2).join('').toUpperCase();
 let peopleData=null;
 const peopleByGroup=new Map();/** every roster loaded so far, keyed by group: loading another team's roster must not hide this one */
@@ -233,7 +234,7 @@ function loadPeople(g){
 /** Avatar lookup for other pages (matched by GUS user id, then name); resolves once the team's people are loaded. */
 H.personAvatar=(id,name)=>{const n=String(name||'').toLowerCase(),find=d=>d&&d.people.find(p=>(id&&p.id===id)||(n&&p.name.toLowerCase()===n));const g=groupKey(H.team);
   // This team's roster first, then any other roster already loaded (QA engineers and assignees can sit on another team).
-  let hit=g&&find(rosterOf(g));if(hit)return hit;for(const k of ['maps','mq','vegacache','vegastore','caching']){if(k!==g&&(hit=find(rosterOf(k))))return hit;}return null;};
+  let hit=g&&find(rosterOf(g));if(hit)return hit;for(const k of GROUPS()){if(k!==g&&(hit=find(rosterOf(k))))return hit;}return null;};
 /** Round avatar (photo when known, initials otherwise) for any page; falls back to the GUS photo, then to initials if an image fails. */
 H.avatarHtml=(id,name,size)=>{const pr=H.personAvatar(id,name),ini=String(name||'?').split(/\s+/).filter(Boolean).map(w=>w[0]).slice(0,2).join('').toUpperCase();
   if(!pr)H.peopleReady();return `<span class="hub-pa" data-i="${esc(ini)}" data-pid="${esc(id||'')}" data-pn="${esc(name||'')}"${size?` style="--s:${size}px"`:''}>${pr&&pr.avatar?`<img src="${esc(pr.avatar)}" alt="" decoding="async" ${pr.alt&&pr.alt!==pr.avatar?`data-alt="${esc(pr.alt)}"`:''} onerror="var a=this.dataset.alt;if(a){this.removeAttribute('data-alt');this.src=a;}else this.remove()">`:''}</span>`;};
@@ -468,7 +469,7 @@ function loadOrbit(){
     if(p.avatar){const im=new Image();im.decoding='async';im.alt='';im.onload=()=>{const b=el.firstChild;if(b){im.className='ri-img';b.appendChild(im);requestAnimationFrame(()=>im.classList.add('in'));}};im.src=p.avatar;}});};
   let used=0;
   const add=d=>{if(!d||!d.people)return;d.people.forEach(p=>{if(p.name&&H.leaderRank(p.name)<0&&!seen.has(p.name)){seen.set(p.name,p);if(used<N)fill(used++,p);}});};
-  const groups=['maps','mq','vegacache','vegastore','caching'];
+  const groups=GROUPS();
   // remember the strip so the next load can paint it (with its images already fetching) before any script runs
   const save=()=>{const l=[...seen.values()].filter(p=>p.avatar).slice(0,N).map(p=>({n:p.name,a:p.avatar}));if(l.length)try{localStorage.setItem('hub-boot-strip',JSON.stringify(l));}catch(_){}};
   groups.forEach(g=>{try{const c=JSON.parse(localStorage.getItem('hub-people2-'+g)||'null');if(c&&c.d)add(c.d);}catch(_){}});save();
@@ -488,7 +489,7 @@ async function boot(){
   window.addEventListener('popstate',route);
   $('hub-team').addEventListener('change',e=>H.setTeam(e.target.value));
   try{
-    const r=await call('hub-teams',{});H.teams=r.teams;
+    const r=await call('hub-teams',{});H.teams=r.teams;H.groups=r.groups||null;
     $('hub-team').innerHTML=[ALL,...H.teams].map(t=>`<option value="${esc(t.Id)}">${esc(t.short||t.Name)}</option>`).join('');
     let saved=null;try{const dflt=await H.loadDefaultTeam();const nav=(performance.getEntriesByType('navigation')[0]||{}).type;saved=(nav==='reload'?null:(location.hash.match(/^#\/plan\?full&team=([A-Za-z0-9]+)/)||[])[1])||dflt;}catch{/* ignore */}
     H.team=saved==='all'?ALL:H.teams.find(t=>t.Id===saved)||H.teams.find(t=>t.Id===r.primaryTeamId)||H.teams[0]||ALL;

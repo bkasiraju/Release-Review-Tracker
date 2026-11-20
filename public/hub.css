@@ -2897,3 +2897,11 @@ html body .pl-tt.pl-tt-meas{width:440px;font-size:12.5px}
 .pl-tt-meas ul.pl-mt-ul{margin:6px 0 4px 16px;list-style:disc}.pl-tt-meas ul.pl-mt-ul li{display:list-item;padding:2px 0;line-height:1.4}.pl-tt-meas ul.pl-mt-ul li>span{white-space:normal;overflow:visible}
 .pl-tt-meas dl.pl-mt-kv{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;margin:6px 0 4px}.pl-tt-meas dt{font-weight:700}.pl-tt-meas dd{margin:0;color:#5a6f82}
 html body .pl-tt.pl-tt-meas a.pl-tt-go{text-decoration:none;display:inline-block}
+.pl-tt-meas .pl-mt-body{max-height:48vh;overflow:auto;padding-right:2px}.pl-tt-meas .pl-mt-p{margin:5px 0;line-height:1.4}.pl-tt-meas .pl-mt-p.more{color:#5a6f82;font-style:italic}
+.pl-tt-meas .pl-mt-st{font-size:11.5px;font-weight:700;padding:2px 9px;border-radius:999px;background:#eef2f6;color:#33475b;border:1px solid #cbd5df}.pl-tt-meas .pl-mt-st.g{background:#e6f6ee;color:#0b6b3a;border-color:#9fd8b8}.pl-tt-meas .pl-mt-st.r{background:#fff4e0;color:#8a5a00;border-color:#f0cd8a}.pl-tt-meas .pl-mt-st.o{background:#fdecec;color:#a11d1d;border-color:#f1b0b0}
+.pl-tt-meas .pl-mt-own{color:#16324a}
+
+/* click-to-sort headings in the planned release summary */
+.pl-rs{all:unset;display:inline-flex;align-items:center;gap:5px;cursor:pointer;font:inherit;color:inherit;text-transform:inherit;letter-spacing:inherit}
+.pl-rs i{font-style:normal;font-size:10px;opacity:.45}.pl-rs.on i{opacity:1;color:#176b91}.pl-rs:hover i{opacity:1}.pl-rs:focus-visible{outline:2px solid #1b73b3;outline-offset:2px;border-radius:3px}
+.pl-rs-bar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:6px 0 10px;font-size:12px}.pl-rs-bar small{color:#5b6b7b;font-weight:600}

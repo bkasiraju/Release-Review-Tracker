@@ -387,8 +387,7 @@ async function createEpic(sf, teamId, input) {
 // One generic theme marks it, so workstreams are easy to tell apart from engineers' user stories.
 const WS_PREFIX = 'WS: ', THEME_NAME_MAX = 80;
 // One generic theme separates workstream stories from the engineers' user stories: R<release>_<team>_Workstream, e.g. R268_MQ_Workstream.
-const THEME_SHORT = [[/message queue/i, 'MQ'], [/\bmaps\b|managed async/i, 'MAPS'], [/vegacache.*\bface\b/i, 'VC-FACE'], [/vegastore/i, 'VS'], [/vegacache|caching services/i, 'VC']];
-const themeShort = name => (THEME_SHORT.find(([re]) => re.test(String(name || ''))) || [])[1] || '';
+const themeShort = name => require('./teams.config').themeOf(name);
 const wsThemeName = (release, short) => short ? `R${release}_${short}_Workstream`.slice(0, THEME_NAME_MAX) : '';
 async function teamName(sf, teamId) {
   const t = ((await sf.query(`SELECT Name FROM ADM_Scrum_Team__c WHERE Id = '${teamId}' LIMIT 1`)).records || [])[0];
@@ -442,7 +441,7 @@ async function createWorkstream(sf, teamId, input) {
   const release = ((epic.Planned_Release__r && epic.Planned_Release__r.Name || '').match(/\d{3,}/) || [PROGRAM_RELEASE])[0];
   try {
     const t = wsThemeName(release, themeShort(await teamName(sf, teamId)));
-    if (!t) warnings.push('Workstream theme not applied: this team has no theme short form (MQ, MAPS, VC, VC-FACE, VS). Ask a plan administrator to add it.');
+    if (!t) warnings.push('Workstream theme not applied: this team has no theme short form. Add the team to backend/teams.config.js (docs/ADDING_A_TEAM.md).');
     else { await assignTheme(sf, await ensureTheme(sf, teamId, t), workId); themes.push(t); }
   } catch (e) { warnings.push(plain(e && e.message || e).slice(0, 200)); }
   return { gusId: workId, created, themes, warnings };
@@ -577,7 +576,7 @@ async function teamShort(sf, teamId) {
 async function teamShortLookup(sf, teamId) {
   const t = ((await sf.query(`SELECT Name FROM ADM_Scrum_Team__c WHERE Id = '${teamId}' LIMIT 1`)).records || [])[0];
   if (!t) return null;
-  return /message queue/i.test(t.Name) ? 'MQ' : /maps|managed async/i.test(t.Name) ? 'MAPS' : String(t.Name).replace(/\s*\(.*\)/, '');
+  return require('./teams.config').shortOf(t.Name);
 }
 const releasePrefix = n => String(n || '').replace(/\s*-?\s*\d+\s*$/, '').trim().toLowerCase();
 

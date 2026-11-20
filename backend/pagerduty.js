@@ -6,10 +6,7 @@
 const direct = require('./slack-direct');
 const SF_ID = /^[a-zA-Z0-9]{15,18}$/;
 const WORKSPACE = 'https://salesforce.enterprise.slack.com';
-const CHANNELS = [
-  { like: /^Managed Async Processing/i, id: 'C09ALBDFVCY', name: '#maps-pagerduty' },
-  { like: /^Message Queue$/i, id: 'C025AEPQJQ1', name: '#mq-pagerduty' }
-];
+const CHANNELS = require('./teams.config').TEAMS.filter(e => e.pagerduty).map(e => ({ like: require('./teams.config').reOf(e), id: e.pagerduty.id, name: e.pagerduty.name }));
 const DAYS = 45, TTL = 2 * 60e3;
 const cache = new Map();
 

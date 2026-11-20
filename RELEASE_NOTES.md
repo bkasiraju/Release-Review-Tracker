@@ -1,5 +1,11 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.8-GA
+
+- **HRP measure details are now live.** The **P** icon hover card reads every measure from the *HRP FY27 V2MOM* in GUS (title, status, owners, V2MOM refs and the full description, with bullets and headings), so all measures load, not just 1.1.1 and 1.1.3. Sub-codes such as 1.2.1.2 show their parent measure. The bundled 1.1.1 / 1.1.3 text remains as an offline fallback.
+- **Sorting on every Planned Release Summary tab.** Click a column heading to sort ascending, again for descending, a third time to return to the default order: Priority board, Epic review and GUS Summary headings, plus a sort bar for Engineer View (name, epics, ABL, BTL).
+- **Config-driven teams.** Teams (GUS name, short form, theme, default product tag, leaders, PagerDuty channel) are defined in `backend/teams.config.js`; the hub, planner and people lists read from it. Steps are in `docs/ADDING_A_TEAM.md`. Behaviour for the existing five teams is unchanged.
+
 ## 7.0.7-GA
 
 - Hover (or focus / click) the **P** icon on a project row to see its HRP measure: number and title, V2MOM refs, scope, goals and dates, with an "Open tracker" link to the HRP V2MOM Tracker. Details are bundled for HRP M1.1.1 and M1.1.3 (`public/hrp-measures.js`); other projects show their name and V2MOM refs until an entry is added.

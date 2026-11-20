@@ -13,8 +13,11 @@ const SEED_TEAMS = [
   { Id: 'a00B0000000w4ZhIAI', Name: 'Message Queue', short: 'MQ' },
   { Id: 'a00EE00001IJPZVYA5', Name: 'Managed Async Processing Service (MAPS)', short: 'MAPS' }
 ];
-const TEAM_FILTER = "Active__c = true AND (Name = 'Message Queue' OR Name LIKE 'Managed Async Processing%' OR Name LIKE 'VegaCache%' OR Name = 'VegaStore' OR Name = 'Caching Services')";
-const shortName = n => /message queue/i.test(n) ? 'MQ' : /maps|managed async/i.test(n) ? 'MAPS' : String(n).replace(/\s*\(.*\)/, '');
+// Which teams exist, their short forms, themes, tags and leaders live in teams.config.js (one entry per team).
+const cfg = require('./teams.config');
+const TEAM_FILTER = cfg.teamFilter();
+const shortName = cfg.shortOf;
+const withConfig = t => { const e = cfg.entryFor(t.Name); return { ...t, key: e ? e.key : '', theme: cfg.themeOf(t.Name), tag: cfg.tagOf(t.Name) }; };
 
 function requireTeam(teamId) {
   if (!SF_ID.test(String(teamId || ''))) throw new Error('Unknown team');
@@ -28,8 +31,8 @@ async function userId(sf) {
 
 async function getTeams(sf) {
   let teams = [];
-  try { teams = ((await sf.query(`SELECT Id, Name FROM ADM_Scrum_Team__c WHERE ${TEAM_FILTER} ORDER BY Name`)).records || []).map(t => ({ Id: t.Id, Name: t.Name, short: shortName(t.Name) })); } catch (_) { /* fall back */ }
-  if (!teams.length) teams = SEED_TEAMS;
+  try { teams = ((await sf.query(`SELECT Id, Name FROM ADM_Scrum_Team__c WHERE ${TEAM_FILTER} ORDER BY Name`)).records || []).map(t => withConfig({ Id: t.Id, Name: t.Name, short: shortName(t.Name) })); } catch (_) { /* fall back */ }
+  if (!teams.length) teams = SEED_TEAMS.map(withConfig);
   let primaryTeamId = null;
   try {
     const uid = await userId(sf);
@@ -39,21 +42,22 @@ async function getTeams(sf) {
       if (rows.length) primaryTeamId = rows[0].Scrum_Team__c;
     }
   } catch (_) { /* default-selection hint only */ }
-  return { teams, primaryTeamId };
+  return { teams, primaryTeamId, groups: cfg.TEAMS.map(e => e.key) };
 }
 
 async function getMembers(sf, teamId) {
   requireTeam(teamId);
   const rows = (await sf.query(`SELECT Member_Name__c, Member_Name__r.Name, Role__c FROM ADM_Scrum_Team_Member__c WHERE Scrum_Team__c = '${teamId}' ORDER BY Member_Name__r.Name LIMIT 200`)).records || [];
   let members = rows.filter(r => r.Member_Name__r).map(r => ({ id: r.Member_Name__c, name: r.Member_Name__r.Name, role: r.Role__c || '' }));
-  // MQ's GUS roster also lists MAPS engineers: they are neither shown nor counted in MQ allocation (leadership stays).
+  // A team can exclude another team's members from its roster and allocation (MQ's GUS roster also lists MAPS engineers); leadership stays.
   const team = ((await sf.query(`SELECT Name FROM ADM_Scrum_Team__c WHERE Id = '${teamId}' LIMIT 1`)).records || [])[0];
-  if (team && /message queue/i.test(team.Name)) {
-    const maps = new Set(((await sf.query(`SELECT Member_Name__c FROM ADM_Scrum_Team_Member__c WHERE Scrum_Team__r.Active__c = true AND Scrum_Team__r.${TEAM_LIKE['Managed Async Processing Team']} LIMIT 200`)).records || []).map(r => r.Member_Name__c));
-    members = members.filter(m => !maps.has(m.id) || leaderRank(m.id) >= 0);
+  const entry = team && cfg.entryFor(team.Name), other = entry && entry.excludeMembersOf && cfg.entryByKey(entry.excludeMembersOf);
+  if (other) {
+    const excl = new Set(((await sf.query(`SELECT Member_Name__c FROM ADM_Scrum_Team_Member__c WHERE Scrum_Team__r.Active__c = true AND Scrum_Team__r.${cfg.sqlName(other)} LIMIT 200`)).records || []).map(r => r.Member_Name__c));
+    members = members.filter(m => !excl.has(m.id) || leaderRank(m.id) >= 0);
   }
-  // Allocation always includes named leaders per team: Ram + Jayant on MQ and MAPS, Jayant on VegaCache.
-  const must = !team ? [] : /message queue/i.test(team.Name) || /managed async|maps/i.test(team.Name) ? [RAM, JAYANT] : /^vegacache/i.test(team.Name) ? [JAYANT] : [];
+  // Allocation always includes the team's named leaders (allocLeaders in teams.config.js).
+  const must = ((entry && entry.allocLeaders) || []).map(n => LEADER_IDS[n]).filter(Boolean);
   for (const id of must.filter(id => !members.some(m => m.id === id))) {
     const u = ((await sf.query(`SELECT Id, Name FROM User WHERE Id = '${id}' LIMIT 1`)).records || [])[0];
     if (u) members.push({ id: u.Id, name: u.Name, role: 'Leader', alloc: true });
@@ -282,15 +286,10 @@ const KARTHIK = '005EE00000kbcyIYAQ';
 const AMIT = '005B0000005Lg7WIAS', JAYANT = '005B0000001zx4jIAA', RAM = '005B0000001tCGAIA2', AZEEM = '005B0000003OANyIAO', VENKAT = '005B0000006q4KcIAI', PRAMIT = '005EE00000StHjGYAV', BHANU = '005EE00000YvpWrYAJ';
 const LEADERS = [AZEEM, JAYANT, RAM, VENKAT, PRAMIT, KARTHIK, BHANU, AMIT]; // CFS leaders: always last, in exactly this order, on every team and list; no visual marking
 const leaderRank = id => { const k = LEADERS.indexOf(id); return k < 0 ? -1 : k; };
-const PEOPLE = { // leadership configured per team; any other leader already on a team's roster is moved into the leader block too. Amit and Jayant lead every team.
-  'Managed Async Processing Team': [AMIT, JAYANT, RAM, PRAMIT, BHANU],
-  'Message Queue Team': [AMIT, JAYANT, RAM, PRAMIT, BHANU],
-  'VegaStore Team': [AMIT, JAYANT],
-  'Caching Services Team': [AMIT, JAYANT],
-  'VegaCache Team': [AMIT, JAYANT, AZEEM, VENKAT, KARTHIK, BHANU]
-};
-const groupOf = g => g === 'maps' ? 'Managed Async Processing Team' : g === 'mq' ? 'Message Queue Team' : g === 'vegacache' ? 'VegaCache Team' : g === 'vegastore' ? 'VegaStore Team' : g === 'caching' ? 'Caching Services Team' : null;
-const TEAM_LIKE = { 'Managed Async Processing Team': "Name LIKE 'Managed Async Processing%'", 'Message Queue Team': "Name = 'Message Queue'", 'VegaCache Team': "Name LIKE 'VegaCache%'", 'VegaStore Team': "Name = 'VegaStore'", 'Caching Services Team': "Name = 'Caching Services'" };
+const LEADER_IDS = { AMIT, JAYANT, RAM, AZEEM, VENKAT, PRAMIT, KARTHIK, BHANU };
+const PEOPLE = Object.fromEntries(cfg.TEAMS.map(e => [e.group, e.leaders.map(n => LEADER_IDS[n]).filter(Boolean)])); // leadership per team (teams.config.js); any other leader already on a team's roster is moved into the leader block too. Amit and Jayant lead every team.
+const groupOf = g => { const e = cfg.entryByKey(g); return e ? e.group : null; };
+const TEAM_LIKE = Object.fromEntries(cfg.TEAMS.map(e => [e.group, cfg.sqlName(e)]));
 const SLACK_PHOTOS = require('./avatars');
 const avatarCache = new Map(); // email -> { url, at }; Slack avatars rarely change, so reuse for 6h across requests
 const AVATAR_TTL = 6 * 3600e3;
@@ -320,8 +319,9 @@ async function getPeople(sf, slack, group) {
   const lead = PEOPLE[name];
   const memberRows = (await sf.query(`SELECT Member_Name__c FROM ADM_Scrum_Team_Member__c WHERE Scrum_Team__r.Active__c = true AND Scrum_Team__r.${TEAM_LIKE[name]} LIMIT 200`)).records || [];
   let own = memberRows.map(r => r.Member_Name__c).filter(Boolean);
-  if (name === 'Message Queue Team') { // anyone already shown under MAPS is not repeated under MQ (leadership stays on both)
-    const maps = new Set(((await sf.query(`SELECT Member_Name__c FROM ADM_Scrum_Team_Member__c WHERE Scrum_Team__r.Active__c = true AND Scrum_Team__r.${TEAM_LIKE['Managed Async Processing Team']} LIMIT 200`)).records || []).map(r => r.Member_Name__c));
+  const ex = cfg.entryByGroup(name).excludeMembersOf, exe = ex && cfg.entryByKey(ex);
+  if (exe) { // anyone already shown under the other team is not repeated here (leadership stays on both)
+    const maps = new Set(((await sf.query(`SELECT Member_Name__c FROM ADM_Scrum_Team_Member__c WHERE Scrum_Team__r.Active__c = true AND Scrum_Team__r.${TEAM_LIKE[exe.group]} LIMIT 200`)).records || []).map(r => r.Member_Name__c));
     own = own.filter(i => !maps.has(i));
   }
   // Karthik Sethuraman's direct reports are part of the team he is on
