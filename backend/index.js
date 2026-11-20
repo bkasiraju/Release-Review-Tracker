@@ -65,6 +65,9 @@ async function handleRequest(ctx){
       case 'slack-channels':payload=await require('./slack-channels').list(sf,store);break;
       case 'slack-channels-save':payload=await require('./slack-channels').save(sf,store,ctx.slack,b);break;
       case 'post-slack-send':payload=await post.sendSlack(sf,ctx.slack,store,b);break;
+      case 'epic-chat-read':payload=await require('./epic-chat').read(sf,b);break;
+      case 'epic-chat-post':payload=await require('./epic-chat').post(sf,b);break;
+      case 'epic-chat-users':payload=await require('./epic-chat').users(sf,b);break;
       case 'post-chatter':payload=await post.postChatter(sf,b);break;
       case 'hub-teams':payload=await hub.getTeams(sf);break;
       case 'sal-list':payload=await require('./actions').list(store,b.teamId);break;

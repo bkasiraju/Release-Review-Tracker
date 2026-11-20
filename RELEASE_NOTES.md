@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.55-GA
+
+- Epic Comments: a Comments button next to Action Log opens an inline popover with the epic's GUS Chatter thread (posts and replies, oldest first). Post with ✓ or Ctrl/⌘+Enter; type @ to mention a GUS user (sent as a real Chatter mention); Reply on any post; ↻ re-reads GUS, so replies made in GUS show on open. Nothing is stored in the plan. Only for epics that exist in GUS. New backend actions epic-chat-read / epic-chat-post / epic-chat-users. Not yet exercised against live GUS Chatter; unit tests use a stubbed GUS client.
+
 ## 7.0.54-GA
 
 - Pull from GUS now covers projects, epics and workstreams: project titles and V2MOM methods (including projects with no epics), epic names / projects / releases, and workstream names, owners, days, plus workstreams added in GUS. Everything is listed for review and only ticked items are applied. Workstreams are traced only for epics created from the planner.
