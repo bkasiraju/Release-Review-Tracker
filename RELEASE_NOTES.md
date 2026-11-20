@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.26-GA
+
+- A new workstream now defaults its workstream owner to the epic owner, both from the **+** on an epic row and in the New workstream dialog (which follows the chosen epic until you pick an engineer yourself). It can be changed afterwards as before; epics with no owner still start unassigned.
+
 ## 7.0.25-GA
 
 - Group by Outcome now has a **View** switch: **Outcome → Epics** (as before) or **Outcome → Projects → Epics**, which nests each outcome's epics under their project rows (each folds independently).

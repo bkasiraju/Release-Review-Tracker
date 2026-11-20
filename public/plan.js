@@ -185,13 +185,15 @@ function newProjectAt(){
     hint.hidden=!hit&&!local;hint.textContent=hit||local?'This project already exists in GUS. It will be linked, not duplicated.':'';};
   setMode(md);
 }
+/** A new workstream defaults to the epic owner as its workstream owner (changeable afterwards). */
+function ownerDefault(e){const id=e&&e.owners&&e.owners[0];if(!id)return {engId:'',engName:'',engIds:[],engNames:[]};const nm=(e.ownerNames&&e.ownerNames[0])||memName(id)||'';return {engId:id,engName:nm,engIds:[id],engNames:nm?[nm]:[]};}
 function newWorkstreamAt(epicId,afterWid){
   const pl=P.plan;if(!pl.epics.length){window.toast?.('Add an epic first, then add workstreams under it.',true);newEpicAt();return;}
   const prj=new Map(pl.projects.map(p=>[p.id,p])),eng=allMem().slice().sort((a,b)=>String(a.name).localeCompare(String(b.name)));
   const tags=P.refs.tags||[],tagKey='ri-ws-tag-'+H.team.Id,lastTag=defTag(tags,tagKey);
   const body=
     crSection('Workstream',crField('Epic','workstream is added under this epic',`<select class="hub-inline" data-e>${pl.epics.map((e,i)=>opt(e.id,`${projShort(prj.get(e.projectId)||{name:''})} › ${e.name||'(unnamed epic)'}${e.gusId?'':'  (not in GUS yet)'}`,epicId?e.id===epicId:i===pl.epics.length-1)).join('')}</select>`,'wide')+crField('Workstream name','',`<input class="hub-inline" type="text" data-n maxlength="200" placeholder="e.g. API changes" autocomplete="off">`,'wide'))+
-    crSection('Assignment',crField('Engineer','optional',`<select class="hub-inline" data-g><option value="">Unassigned</option>${eng.map(m=>opt(m.id,m.name,false)).join('')}</select>`)+crField('Planned effort','days',`<input class="hub-inline" type="number" min="0" max="1000" step="0.5" data-d placeholder="0">`))+
+    crSection('Assignment',crField('Engineer','optional',`<select class="hub-inline" data-g><option value="">Unassigned</option>${eng.map(m=>opt(m.id,m.name,m.id===ownerDefault(pl.epics.find(x=>x.id===epicId)||pl.epics[pl.epics.length-1]).engId)).join('')}</select>`)+crField('Planned effort','days',`<input class="hub-inline" type="number" min="0" max="1000" step="0.5" data-d placeholder="0">`))+
     `<section class="pl-cr-s" data-gussec><h3>GUS</h3><div class="pl-cr-g">`+
       `<label class="pl-cr-f wide pl-cr-chk"><input type="checkbox" data-gus checked><span>Also create the workstream in GUS as a parent User Story on the epic</span></label>`+
       (lastTag?`<div hidden>${crField('Product tag','required by GUS · pick one of the team\'s tags',`<select class="hub-inline" data-t><option value="">Select a tag…</option>${tags.map(t=>opt(t.id,t.name,t.id===lastTag)).join('')}</select>`,'wide')}</div>`:crField('Product tag','required by GUS · pick one of the team\'s tags',`<select class="hub-inline" data-t><option value="">Select a tag…</option>${tags.map(t=>opt(t.id,t.name,t.id===lastTag)).join('')}</select>`,'wide'))+
@@ -228,7 +230,8 @@ function newWorkstreamAt(epicId,afterWid){
     const pr=e&&prj.get(e.projectId),sh=pr?projShort(pr):'',n=nm.value.trim();
     chips.innerHTML=useGus()?crAuto([['Story type','User Story'],['Subject','WS: '+(n||'…')],['Theme',wsTheme(e&&e.releaseName)],['Parent','Epic']]):'';};
   el._ready=()=>!!eSel.value&&!!nm.value.trim();
-  eSel.onchange=sync;chk.onchange=sync;nm.oninput=sync;
+  const gSel=el.querySelector('[data-g]');let gTouched=false;gSel.addEventListener('change',()=>{gTouched=true;});
+  eSel.onchange=()=>{if(!gTouched){const id=ownerDefault(epicNow()).engId;gSel.value=[...gSel.options].some(o=>o.value===id)?id:'';}sync();};chk.onchange=sync;nm.oninput=sync;
   sync();nm.focus();
 }
 // Opened from a project row: creates a new epic under that project (with its workstreams) or adds an existing GUS epic of that project.
@@ -895,7 +898,7 @@ async function persistNow(epic,project){
 }
 /** + on an epic row: a new empty workstream line (ABL unless the epic is BTL) at the end of its list, edited in place. Once it has a name it is created in GUS in the background. */
 function addWsRow(e){
-  const w={id:uid('w'),name:'',priority:e.priority||0,engId:'',engName:'',engIds:[],engNames:[],days:0,sprint:'',line:e.line==='BTL'?'BTL':'ABL'};
+  const w={id:uid('w'),name:'',priority:e.priority||0,...ownerDefault(e),days:0,sprint:'',line:e.line==='BTL'?'BTL':'ABL'};
   e.workstreams.push(w);setCollapsed('p:'+e.projectId,false);setCollapsed('e:'+e.id,false);draw();queueSave();
   const i=P.el.querySelector(`tr[data-wr="${w.id}"] [data-f="name"]`);if(i){i.scrollIntoView({block:'nearest'});i.focus();}
 }
