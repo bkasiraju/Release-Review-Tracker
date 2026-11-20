@@ -57,6 +57,19 @@ async function post(sf, { epicId, segments, replyTo }) {
   if (!flat.trim()) throw new Error('Write a comment first.');
   if (flat.length > MAX_TEXT) throw new Error(`Comment is too long (max ${MAX_TEXT} characters).`);
   const reply = replyTo ? validId(replyTo) : '';
+  const ch = sf.chatter;
+  if (ch && typeof (reply ? ch.comment : ch.post) === 'function') {
+    // The host's own Chatter helper (Connect API underneath): real @mentions that notify. The body shape is not documented, so the likely ones are tried in turn; an error means nothing was posted.
+    const segs = raw.map(s => s.t === 'mention' ? { type: 'Mention', id: s.id } : { type: 'Text', text: s.v }).filter(s => s.type === 'Mention' || s.text);
+    let lastErr = '';
+    for (const shape of [{ messageSegments: segs }, { body: { messageSegments: segs } }]) {
+      try {
+        const r = body(reply ? await ch.comment(reply, shape) : await ch.post(id, shape));
+        return { posted: true, id: (r && r.id) || '', mentions: true };
+      } catch (e) { lastErr = String((e && e.message) || e).slice(0, 200); }
+    }
+    if (!raw.some(s => s.t === 'mention')) { /* no tags to lose: fall through to the plain-text path */ } else throw new Error('GUS Chatter did not accept the comment with mentions: ' + lastErr);
+  }
   if (!canRest(sf)) {
     // The GUS Apps runtime has no Connect API: the comment is posted through the Feed sObjects as plain text, so an @name is shown but does not notify.
     if (typeof sf.create !== 'function') throw new Error('GUS Apps cannot post to Chatter from this session.');

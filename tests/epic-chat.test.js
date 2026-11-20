@@ -26,3 +26,13 @@ test('without REST access the thread is read and posted through the Feed sObject
   await chat.post(s, { epicId: 'a0Xaaaaaaaaaaaa', replyTo: '0D5aaaaaaaaaaaaaaa', segments: [{ t: 'text', v: 'ok' }] });
   assert.deepEqual(made[1], ['FeedComment', { FeedItemId: '0D5aaaaaaaaaaaaaaa', CommentBody: 'ok' }]);
 });
+test('the host chatter helper is used for real mentions, trying body shapes in turn', async () => {
+  const seen = [];
+  const s = { userId: '005000000000001', chatter: { post: async (id, b) => { seen.push([id, b]); if (!b.body) throw new Error('bad shape'); return { id: '0D5new' }; } }, create: async () => { throw new Error('should not fall back'); } };
+  const r = await chat.post(s, { epicId: 'a0Xaaaaaaaaaaaa', segments: [{ t: 'mention', id: '005000000000002', name: 'Bo' }, { t: 'text', v: ' hi' }] });
+  assert.equal(r.mentions, true); assert.equal(seen.length, 2);
+  assert.deepEqual(seen[1][1], { body: { messageSegments: [{ type: 'Mention', id: '005000000000002' }, { type: 'Text', text: ' hi' }] } });
+  const bad = { chatter: { post: async () => { throw new Error('nope'); } }, create: async () => ({ id: 'x', success: true }) };
+  await assert.rejects(chat.post(bad, { epicId: 'a0Xaaaaaaaaaaaa', segments: [{ t: 'mention', id: '005000000000002', name: 'Bo' }] }), /did not accept/);
+  assert.equal((await chat.post(bad, { epicId: 'a0Xaaaaaaaaaaaa', segments: [{ t: 'text', v: 'plain' }] })).plain, true);
+});
