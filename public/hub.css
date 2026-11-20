@@ -3029,3 +3029,7 @@ html body .pl-mo-goal b{display:block;margin-bottom:2px;font-size:10.5px;letter-
 /* Outcome group header: the measures (projects) that serve the outcome */
 html body .pl-g-meas{display:inline-flex;flex-wrap:wrap;gap:4px;margin-left:10px;vertical-align:middle}
 html body .pl-g-meas span{padding:1px 7px;border-radius:999px;background:rgba(91,127,166,.14);color:#2f4b6b;font-size:11px;font-weight:600;line-height:18px}
+
+/* 7.0.23-GA: Outcome button on the epic row */
+html body .pl-oc{color:#b45309!important;border-color:#fde68a!important;background:#fffbeb!important}
+html body .pl-oc.has{background:#ecfdf5!important;border-color:#a7f3d0!important;color:#047857!important}
