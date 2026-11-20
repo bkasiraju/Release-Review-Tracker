@@ -791,9 +791,9 @@ function smartGoalPop(id,opener,edit){
   const clean=t=>String(t||'').replace(/```[a-z]*/gi,'').replace(/\*\*|__/g,'').split(/\n\s*\n/)[0].replace(/^\s*(?:SMART\s+goal|goal)\s*[:\-–]\s*/i,'').replace(/^["'“”]+|["'“”]+$/g,'').replace(/\s+/g,' ').trim();
   const words=t=>t.split(/\s+/).filter(Boolean).length;
   const draft=async()=>{
-    gen.disabled=sv.disabled=true;note.textContent='Drafting from the epic name, workstreams and GUS description…';
+    gen.disabled=sv.disabled=true;gen.textContent='Generating…';ta.value='';ta.readOnly=true;ta.placeholder='Generating…';pop.classList.add('pl-sgp-busy');note.textContent='Generating SMART goal from the epic name, workstreams and GUS description…';
     const pr=P.plan.projects.find(p=>p.id===e.projectId);
-    try{const r=await call('plan-smart-goal-gen',{teamId:H.team.Id,epic:{name:e.name,gusId:e.gusId||'',release:e.releaseName||'',project:pr&&pr.name||'',workstreams:e.workstreams.filter(x=>x.name&&x.name.trim()).map(x=>({name:x.name,days:x.days}))}});
+    try{const r=await call('plan-smart-goal-gen',{teamId:H.team.Id,epic:{name:e.name,gusId:e.gusId||'',release:e.releaseName||'',end:((P.refs&&P.refs.releases||[]).find(x=>x.id===e.releaseId)||{}).end||(P.plan.window&&P.plan.window.end)||'',project:pr&&pr.name||'',workstreams:e.workstreams.filter(x=>x.name&&x.name.trim()).map(x=>({name:x.name,days:x.days}))}});
       let ai=false;try{ai=typeof window.AppletAI?.complete==='function'&&window.AppletAI.isAvailable()===true;}catch(_){}
       if(!ai){note.textContent='GUS Apps AI is not available in this session, so no draft was made. Write the goal as one sentence: change, metric, deadline.';ta.readOnly=false;sv.hidden=false;ed.hidden=true;return;}
       let goal='',msg=r.prompt;
@@ -805,7 +805,7 @@ function smartGoalPop(id,opener,edit){
       if(!goal)throw Error('the AI reply was not a short single sentence; try Redraft');
       ta.value=goal;ta.readOnly=false;sv.hidden=false;ed.hidden=true;note.textContent=`${words(goal)} words (target ≤ ${r.maxWords})${r.descriptionUsed?' · used the GUS epic description':''} · Review, edit and Save.`;}
     catch(err){note.textContent='Could not draft: '+err.message;ta.readOnly=false;sv.hidden=false;ed.hidden=true;}
-    finally{gen.disabled=sv.disabled=false;gen.textContent='Redraft';ta.focus();}};
+    finally{gen.disabled=sv.disabled=false;gen.textContent='Redraft';ta.placeholder='One sentence: the change, its metric and target, and the deadline.';pop.classList.remove('pl-sgp-busy');ta.focus();}};
   pop.addEventListener('click',async ev=>{const b=ev.target.closest('button');if(!b)return;
     if(b.matches('[data-sgp-x]'))close();
     else if(b.matches('[data-sgp-gen]'))draft();

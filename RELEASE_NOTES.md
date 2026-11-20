@@ -1,5 +1,10 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.11-GA
+
+- **SMART goal drafting shows progress.** While the AI drafts, the box reads "Generating…", the button shows "Generating…" and the note animates, so it is clear something is happening.
+- **Deadline is a quarter, not a release.** The goal now ends with the fiscal quarter of the release end date (for example "before the end of Q4") instead of naming the release. Quarters follow the Salesforce fiscal year (starts 1 Feb; Nov–Jan is Q4).
+
 ## 7.0.10-GA
 
 - **Cleaner Save to GUS review.** The dialog is larger (not full screen) with a fixed header and footer; only the epic list scrolls. Summary counts are one compact row of chips, the planned releases sit beneath, the long explanation is behind "How this works", each epic is a single row (name, Create/Update, ABL/BTL, days) that opens to a four-column detail grid and an aligned workstream table, and the review checkbox sits beside Cancel and Accept in the footer.

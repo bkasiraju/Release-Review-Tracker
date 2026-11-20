@@ -2945,3 +2945,8 @@ html body .pl-cm .pl-ack{display:flex;align-items:center;gap:10px;margin:0;paddi
 html body .pl-cm .cm-foot .nd-actions{margin:0;flex:none}
 html body .pl-cm .pl-rv-empty{flex:none}
 @media(max-width:900px){html body .pl-cm .pl-rv-kv{grid-template-columns:repeat(2,minmax(0,1fr))}html body .pl-cm .cm-foot{flex-direction:column;align-items:stretch}}
+
+.pl-sgp.pl-sgp-busy textarea{background:#f3f3f3;color:#706e6b;font-style:italic}
+.pl-sgp.pl-sgp-busy .pl-sgp-n::after{content:'';display:inline-block;width:1.2em;text-align:left;animation:plsgdots 1.2s steps(4,end) infinite}
+@keyframes plsgdots{0%{content:''}25%{content:'.'}50%{content:'..'}75%{content:'...'}}
+@media (prefers-reduced-motion:reduce){.pl-sgp.pl-sgp-busy .pl-sgp-n::after{animation:none}}
