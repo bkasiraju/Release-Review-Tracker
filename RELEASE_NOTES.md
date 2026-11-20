@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.36-GA
+
+- The top **Action Log** button moved from the planner title to the toolbar on the right, directly before **Collapse all**.
+
 ## 7.0.35-GA
 
 - The Action Log count badge on the epic row is no longer clipped by the cell edge (smaller badge, with room reserved to its right and above).
