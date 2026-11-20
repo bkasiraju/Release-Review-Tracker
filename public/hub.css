@@ -3035,4 +3035,12 @@ html body .pl-oc{color:#b45309!important;border-color:#fde68a!important;backgrou
 html body .pl-oc.has{background:#ecfdf5!important;border-color:#a7f3d0!important;color:#047857!important}
 
 /* 7.0.25-GA: project sub-rows inside an Outcome group */
-html body .pl-g-sub .pl-pj-bar{padding-left:22px}
+
+html body[data-hub=plan] tr.pl-g-sub td:first-child .pl-pj-bar{padding-left:22px}
+/* 7.0.27-GA: Outcome view hierarchy — outcome (indigo tint) › project (neutral grey-blue) › epic (white), each level indented one step */
+html body[data-hub=plan] tr.pl-g-proj.pl-g-out td{background-color:#e6eaf7!important;border-top:1px solid #c9d1ec!important}
+html body[data-hub=plan] tr.pl-g-proj.pl-g-out .pl-pj-n{font-size:13px!important;font-weight:700!important;color:#1f2a5c!important}
+html body[data-hub=plan] tr.pl-g-proj.pl-g-sub td{background-color:#f2f5f8!important}
+html body[data-hub=plan] tr.pl-g-proj.pl-g-sub .pl-pj-n{font-weight:600!important}
+html body[data-hub=plan] .pl-grid tr.pl-d-o td.c-name{padding-left:34px!important}
+html body[data-hub=plan] .pl-grid tr.pl-d-op td.c-name{padding-left:56px!important}
