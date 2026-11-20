@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.33-GA
+
+- Clicking an epic's Action Log icon now shows its action items first (open ones first, then closed), with the add box (action item, owner, ETA, ✓) underneath.
+
 ## 7.0.32-GA
 
 - Epic-row icons (GUS link, SMART goal, Outcome, Action Log) are now the same size with equal 8 px gaps; the SMART goal edit pencil no longer adds extra space until hovered.
