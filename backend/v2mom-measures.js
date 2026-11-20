@@ -44,7 +44,10 @@ async function getMeasures(googleSheets, force) {
     for (const [tab, rows] of Object.entries(sheets)) for (const [code, m] of Object.entries(parseTab(rows, src.key))) measures[src.key + ' ' + code] = { ...m, label: src.label, tab };
   }));
   const v = { measures, sources: SOURCES.map(s => s.key), failed, fetchedAt: new Date().toISOString() };
-  if (Object.keys(measures).length) cache = { t: Date.now(), v };
-  return v;
+  if (Object.keys(measures).length) { cache = { t: Date.now(), v }; return v; }
+  try { // private point-in-time copy (git-ignored) when the live sheets can't be read
+    const snap = require('./v2mom-snapshot.private.js');
+    return { ...v, measures: snap.measures, failed: [], snapshot: snap.fetchedAt };
+  } catch (e) { return v; }
 }
 module.exports = { getMeasures, parseTab, parseRef, SOURCES };

@@ -1,5 +1,11 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.17-GA
+
+- Hover delay for the V2MOM and **P** measure cards is now 1 s (was 1.5 s).
+- V2MOM card: the reference code is a compact chip beside the measure name (no more full-width bars), with owner and cross-reference underneath.
+- V2MOM measure names now display: when the live sheet read isn't available, the card falls back to a private point-in-time copy of the HPS FY27 V2MOM (327 measures) that ships with the deployed app but is not in this public repo. It can go stale; T&P and T&I names still need a readable source.
+
 ## 7.0.16-GA
 
 - The **P** (project measure) hover card now also waits 1.5 s before appearing, like the V2MOM card.

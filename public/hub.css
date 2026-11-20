@@ -3017,3 +3017,8 @@ html body .pl-sgt-k{color:#64748b;font-size:10px}
 html body .pl-sgt p{font-size:12px;color:#334155}
 html body .pl-sgt-meta{font-size:11px}
 html body .pl-tt-meth .pl-mv-code{justify-self:start;align-self:start}
+
+html body .pl-tt-meth .pl-mv-i{display:flex;align-items:flex-start;gap:10px;padding:8px 10px}
+html body .pl-tt-meth .pl-mv-code{flex:none;width:auto;min-width:0;margin-top:1px}
+html body .pl-tt-meth .pl-mv-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+html body .pl-tt-meth .pl-mv-t em{font-size:11px;color:#94a3b8}
