@@ -1,5 +1,11 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.101-GA
+
+- Dashboard and GUS now sync both ways automatically. Edits to a linked workstream's name, owner or planned days are pushed to GUS on save. GUS changes (epic fields, workstreams) are pulled in on load, when you return to the tab and every 60 seconds, so the Pull from GUS dialog normally has nothing to show.
+- If both sides changed the same field, GUS wins. The first sync after upgrading has no baseline, so dashboard values are pushed to GUS.
+- The "Last saved to GUS" note moved into the page header, before the team name, and the header action row is aligned on one line.
+
 ## 7.0.100-GA
 
 - Epics with no SMART goal now say "SMART goal missing" in the full-screen epic lists and the epic dialog. Clicking it (or Enter) closes the dialog and jumps to that epic's row in the planner, highlighted.

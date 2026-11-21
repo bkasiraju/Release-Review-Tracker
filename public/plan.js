@@ -545,6 +545,7 @@ async function fetchWs(quiet){
       const blank=e.workstreams.findIndex(w=>!w.name&&!w.gusId&&!(w.days>0));if(blank>=0)e.workstreams.splice(blank,1);
       e.workstreams.push({id:uid('w'),gusId:g.gusId,name:g.name,priority:e.priority,engId:m?m.id:'',engName:m?m.name:g.assigneeName,engIds:m?[m.id]:[],engNames:m?[m.name]:(g.assigneeName?[g.assigneeName]:[]),days:g.days,sprint:'',line:e.line});n++;}));
     if(n){snapGus();draw();queueSave();}
+    setTimeout(gusPoll,300);
     if(!quiet)window.toast?.(n?`Fetched ${n} workstream${n===1?'':'s'} from GUS.`:'No new workstreams found in GUS for epics created from this planner.',false);
   }catch(x){if(!quiet)window.toast?.('Could not fetch workstreams: '+x.message,true);}
 }
@@ -781,6 +782,9 @@ function setState(s){P.state=s;if(s==='saved'){P.stateAt=new Date().toLocaleTime
 const AUTOSAVE_MS=1500,HEARTBEAT_MS=120000;
 function queueSave(){setState('dirty');clearTimeout(P.timer);P.timer=setTimeout(()=>{if(P.plan&&P.el&&P.el.isConnected)flush(true);},AUTOSAVE_MS);}
 setInterval(()=>{if(P.plan&&P.el&&P.el.isConnected&&(P.state==='dirty'||P.state==='error'))flush(true);},HEARTBEAT_MS);
+/** Keep the dashboard current with GUS: a quiet two-way sync every minute while the planner is open and nothing is unsaved, and whenever the tab comes back into view. */
+const gusPoll=()=>{if(P.plan&&P.el&&P.el.isConnected&&P.state==='saved'&&!P.autoBusy&&!document.hidden&&!document.querySelector('.pl-modal,.nd-overlay')){P.autoBusy=true;Promise.resolve(refreshFromGus(null,true)).catch(()=>{}).finally(()=>{P.autoBusy=false;});}};
+setInterval(gusPoll,60000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(gusPoll,500);});
 window.addEventListener('beforeunload',ev=>{if(P.state==='dirty'||P.state==='error'){ev.preventDefault();ev.returnValue='';}});
 // Edits to epics that exist in GUS are written through to GUS after each plan save (administrators only).
 const gusProj=e=>((P.plan&&P.plan.projects||[]).find(p=>p.id===e.projectId)||{}).gusId||'';
@@ -965,13 +969,28 @@ function smartGoalPop(id,opener,edit){
       close();draw();}});
   if(e.smartGoal){ta.value=e.smartGoal;if(edit)editable();}else draft();
 }
+const wsVals=w=>({name:(w.name||'').trim(),assigneeId:wsEngs(w)[0]||'',days:Number(w.days)||0});
+/** Write dashboard edits of already-linked workstreams to their GUS stories; returns how many were updated. */
+async function pushWsEdits(list){
+  const pl=P.plan;if(!pl||!list.length)return 0;const todo=[];pl.epics.forEach(e=>e.workstreams.forEach(w=>{if(list.includes(w)&&w.gusId&&(w.name||'').trim())todo.push([e,w]);}));if(!todo.length)return 0;
+  try{const r=await call('plan-sync-workstreams',{teamId:H.team.Id,items:todo.map(([e,w])=>({gusId:w.gusId,name:w.name.trim(),assigneeId:wsEngs(w)[0]||'',days:w.days||0,epicName:e.name||''}))});
+    let ok=0;r.results.forEach((x,i)=>{if(x.ok){todo[i][1].gb=wsVals(todo[i][1]);ok++;}else window.toast?.(`GUS did not update workstream “${todo[i][1].name}”: ${x.err}`,true);});
+    if(ok)window.toast?.(`Updated ${ok} workstream${ok>1?'s':''} in GUS.`,false);return ok;}
+  catch(x){window.toast?.('GUS workstream update failed: '+x.message,true);return 0;}}
+/** After a save: push workstream edits (name, owner, days) made since the last agreement with GUS. */
+async function syncWsEdits(){
+  const pl=P.plan;if(!pl||P.noGusSync)return;const list=[];
+  pl.epics.forEach(e=>{if(e.gusId&&!e.foreign)e.workstreams.forEach(w=>{if(w.gusId&&w.gb&&!sameJson(w.gb,wsVals(w)))list.push(w);});});
+  if(list.length&&await pushWsEdits(list))queueSave();}
+const sameJson=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 /** Pull the current GUS state of the plan's linked projects (title, method), epics (name, project, release) and workstreams (name, owner, days, new ones), show what differs, and apply only what the user ticks. GUS is the source of truth. */
-async function refreshFromGus(btn){
+async function refreshFromGus(btn,auto){
   const pl=P.plan;if(!pl)return;const mine=pl.epics.filter(e=>e.gusId),gp=pl.projects.filter(p=>p.gusId);
-  if(!mine.length&&!gp.length){window.toast?.('No projects or epics on the dashboard are linked to GUS yet.',false);return;}
+  if(!mine.length&&!gp.length){if(!auto)window.toast?.('No projects or epics on the dashboard are linked to GUS yet.',false);return;}
   if(btn){btn.disabled=true;btn.dataset.t=btn.textContent;btn.textContent='Checking GUS…';}
-  let r;try{r=await call('plan-refresh-epics',{teamId:H.team.Id,ids:mine.map(e=>e.gusId),projectIds:gp.map(p=>p.gusId)});}catch(err){window.toast?.('Could not read GUS: '+err.message,true);return;}finally{if(btn){btn.disabled=false;btn.textContent=btn.dataset.t;}}
-  const by=new Map((r.epics||[]).map(x=>[x.id,x])),ch=[],gone=[],k15=v=>String(v||'').slice(0,15);
+  let r;try{r=await call('plan-refresh-epics',{teamId:H.team.Id,ids:mine.map(e=>e.gusId),projectIds:gp.map(p=>p.gusId)});}catch(err){if(!auto)window.toast?.('Could not read GUS: '+err.message,true);return;}finally{if(btn){btn.disabled=false;btn.textContent=btn.dataset.t;}}
+  const by=new Map((r.epics||[]).map(x=>[x.id,x])),gone=[],k15=v=>String(v||'').slice(0,15);
+  let ch=[];
   // Project titles and methods (also for projects that have no epics yet).
   const gprj=new Map((r.projects||[]).map(x=>[k15(x.id),x]));
   (r.epics||[]).forEach(x=>{if(x.projectId&&!gprj.has(k15(x.projectId)))gprj.set(k15(x.projectId),{id:x.projectId,name:x.projectName,method:x.method});});
@@ -996,10 +1015,7 @@ async function refreshFromGus(btn){
         if(own){seen.add(own);ch.push({e,w:own,who,f:'wlink',label:'Workstream',from:own.name+' (not linked)',to:w.name+' (link to GUS)',gw:w});}
         else ch.push({e,who,f:'wnew',label:'New workstream',from:'—',to:w.name,gw:w});}}
     e.workstreams.filter(x=>x.gusId&&!seen.has(x)&&gws.length).forEach(x=>gone.push({name:(e.name||'(unnamed)')+' › '+(x.name||'workstream')}));}
-  const body=ch.length?`<p class="note">GUS differs from the dashboard for ${ch.length} item(s). Untick anything you want to keep as it is on the dashboard.</p><div class="pl-mo-scroll"><table class="pl-rps-t pl-rps-m"><thead><tr><th></th><th>Item</th><th>Field</th><th>Dashboard</th><th>GUS</th></tr></thead><tbody>${ch.map((c,i)=>`<tr><td><input type="checkbox" data-rc="${i}" checked aria-label="Apply ${esc(c.label)} change"></td><td class="pl-mo-n">${esc(c.who)}</td><td>${c.label}</td><td>${esc(c.from)}</td><td><b>${esc(c.to)}</b></td></tr>`).join('')}</tbody></table></div>`:`<p class="pl-iss-ok">The dashboard matches GUS for ${gp.length} project(s) and ${mine.length} epic(s), with their workstreams. Nothing to apply.</p>`;
-  const el=openModal('Pull from GUS',body+(gone.length?`<p class="note">${gone.length} item(s) were not found in GUS and are unchanged: ${esc(gone.map(e=>e.name||'(unnamed)').join(', '))}.</p>`:'')+`<div class="nd-actions"><button type="button" class="button" data-close>${ch.length?'Cancel':'Close'}</button>${ch.length?'<button type="button" class="button primary" data-rapply>Apply selected</button>':''}</div>`,btn,true);
-  const ap=el.querySelector('[data-rapply]');if(!ap)return;
-  ap.onclick=()=>{const on=new Set([...el.querySelectorAll('[data-rc]:checked')].map(x=>+x.dataset.rc));let n=0;const touched=new Set();
+  const applyIdx=on=>{let n=0;const touched=new Set();
     ch.forEach((c,i)=>{if(!on.has(i))return;const e=c.e,g=c.g,w=c.w,gw=c.gw;n++;
       if(c.f==='pname')c.p.name=g.name;
       else if(c.f==='pmethod')c.p.method=g.method||'';
@@ -1017,7 +1033,29 @@ async function refreshFromGus(btn){
         e.workstreams.push({id:uid('w'),gusId:gw.gusId,name:gw.name,priority:e.priority,engId:m?m.id:'',engName:m?m.name:gw.assigneeName,engIds:m?[m.id]:[],engNames:m?[m.name]:(gw.assigneeName?[gw.assigneeName]:[]),days:gw.days,sprint:'',line:e.line});}
       if(e&&e.gusId)touched.add(e);});
     if(!P.gsnap)snapGus();touched.forEach(e=>P.gsnap.set(e.gusId,JSON.stringify(gusSnap(e))));
-    closeModal();if(n){draw();queueSave();window.toast?.(`Applied ${n} change${n>1?'s':''} from GUS.`,false);}};
+    return n;};
+  // Automatic two-way sync: GUS changes flow to the dashboard when the dashboard side is untouched, dashboard edits flow to GUS when GUS is untouched; true conflicts are left for the Pull dialog.
+  const wv=wsVals;
+  const FW={wname:'name',wown:'assigneeId',wdays:'days'},FE={name:'name',release:'releaseId',project:'projectId'};
+  const dirOf=c=>{
+    if(c.f==='pname'||c.f==='pmethod'||c.f==='wnew'||c.f==='wlink')return 'pull';
+    if(FE[c.f]&&c.e){let b={};try{b=JSON.parse((P.gsnap&&P.gsnap.get(c.e.gusId))||'{}');}catch(_){}const k=FE[c.f];const cur=k==='projectId'?gusProj(c.e):k==='name'?(c.e.name||''):(c.e.releaseId||'');return 'pull';}
+    if(FW[c.f]&&c.w){const k=FW[c.f],b=c.w.gb;if(!b)return 'push';const cur=wv(c.w)[k],gv=k==='name'?c.gw.name:k==='days'?c.gw.days:c.gw.assigneeId;
+      if(cur===b[k]||(k==='assigneeId'&&String(cur).slice(0,15)===String(b[k]).slice(0,15)))return 'pull';if(gv===b[k]||(k==='assigneeId'&&String(gv).slice(0,15)===String(b[k]).slice(0,15)))return 'push';return 'pull';}
+    return 'skip';};
+  if(auto){
+    const pull=new Set(),push=[];ch.forEach((c,i)=>{const d=dirOf(c);if(d==='pull')pull.add(i);else if(d==='push'&&c.f in FW)push.push(c);});
+    const n=pull.size?applyIdx(pull):0;
+    // Workstreams in agreement (or just reconciled) get a fresh baseline so later edits on either side are recognised.
+    const pushed=await pushWsEdits(push.map(c=>c.w));
+    pl.epics.forEach(e=>e.workstreams.forEach(w=>{if(w.gusId&&!(ch.some(c=>c.w===w)&&!(pull.has(ch.findIndex(c=>c.w===w))||push.some(c=>c.w===w))))w.gb=wv(w);}));
+    if(n||pushed||push.length){draw();queueSave();if(n)window.toast?.(`Updated ${n} item${n>1?'s':''} from GUS.`,false);}
+    else if(pl.epics.some(e=>e.workstreams.some(w=>w.gusId&&!sameJson(w.gb,wv(w))))){queueSave();}
+    return;}
+  const body=ch.length?`<p class="note">GUS differs from the dashboard for ${ch.length} item(s). Untick anything you want to keep as it is on the dashboard.</p><div class="pl-mo-scroll"><table class="pl-rps-t pl-rps-m"><thead><tr><th></th><th>Item</th><th>Field</th><th>Dashboard</th><th>GUS</th></tr></thead><tbody>${ch.map((c,i)=>`<tr><td><input type="checkbox" data-rc="${i}" checked aria-label="Apply ${esc(c.label)} change"></td><td class="pl-mo-n">${esc(c.who)}</td><td>${c.label}</td><td>${esc(c.from)}</td><td><b>${esc(c.to)}</b></td></tr>`).join('')}</tbody></table></div>`:`<p class="pl-iss-ok">The dashboard matches GUS for ${gp.length} project(s) and ${mine.length} epic(s), with their workstreams. Nothing to apply.</p>`;
+  const el=openModal('Pull from GUS',body+(gone.length?`<p class="note">${gone.length} item(s) were not found in GUS and are unchanged: ${esc(gone.map(e=>e.name||'(unnamed)').join(', '))}.</p>`:'')+`<div class="nd-actions"><button type="button" class="button" data-close>${ch.length?'Cancel':'Close'}</button>${ch.length?'<button type="button" class="button primary" data-rapply>Apply selected</button>':''}</div>`,btn,true);
+  const ap=el.querySelector('[data-rapply]');if(!ap)return;
+  ap.onclick=()=>{const n=applyIdx(new Set([...el.querySelectorAll('[data-rc]:checked')].map(x=>+x.dataset.rc)));closeModal();if(n){draw();queueSave();window.toast?.(`Applied ${n} change${n>1?'s':''} from GUS.`,false);}};
 }
 async function syncGus(){
   if(!P.plan||P.noGusSync)return;if(!P.gsnap)snapGus();
@@ -1084,7 +1122,7 @@ async function reconcile(my,quiet){
     if(!P.gsnap)snapGus();
     draw();setState(typed?'dirty':'saved');if(typed)queueSave();
     if(out.conflicts.length)conflictDialog(out.conflicts);
-    return syncGus().then(syncWs);
+    return syncGus().then(syncWs).then(syncWsEdits);
   }catch(e){if(my!==P.seq)return;setState(/changed/i.test(e.message)?'conflict':'error');if(!quiet&&!/^changed$/i.test(e.message))window.toast?.(e.message,true);}
 }
 const fmtV=v=>v==null||v===''?'(empty)':typeof v==='object'?JSON.stringify(v):String(v);
@@ -1108,7 +1146,7 @@ async function flush(quiet){
   clearTimeout(P.timer);if(P.inflight)await P.inflight;if(P.state!=='dirty'&&P.state!=='error')return P.inflight;
   const my=P.seq;setState('saving');
   const sent=JSON.stringify(P.plan);
-  P.inflight=call('plan-save',{teamId:H.team.Id,plan:P.plan,revision:P.rev}).then(r=>{if(my!==P.seq)return;P.rev=r.revision;P.base=sent;if(P.state==='saving')setState('saved');return syncGus().then(syncWs);},e=>{if(my!==P.seq)return;if(/changed/i.test(e.message))return reconcile(my,quiet);setState('error');if(!quiet)window.toast?.(e.message,true);});
+  P.inflight=call('plan-save',{teamId:H.team.Id,plan:P.plan,revision:P.rev}).then(r=>{if(my!==P.seq)return;P.rev=r.revision;P.base=sent;if(P.state==='saving')setState('saved');return syncGus().then(syncWs).then(syncWsEdits);},e=>{if(my!==P.seq)return;if(/changed/i.test(e.message))return reconcile(my,quiet);setState('error');if(!quiet)window.toast?.(e.message,true);});
   return P.inflight;
 }
 
@@ -1711,7 +1749,7 @@ H.register({id:'plan',label:'Release Planning (Quarterly)',icon:'plan',tone:'gre
   stat:()=>({text:'Planned vs available capacity, ABL and BTL'}),
   render(el){
     P.el=el;
-    el.innerHTML=`<div class="executive-heading"><div><h2>${icon('plan','green')} Release Planning (Quarterly)</h2><p>Plan projects, epics and workstreams for ${esc(H.team.Name)}. Effort is in days; epics above the line (ABL) are saved to GUS when you confirm.</p></div><div class="heading-actions"><span class="pl-state-anchor" hidden></span><div class="pl-dates"><label>Planned Release <span class="pl-relw"><select class="hub-inline" id="pl-rel" aria-label="Planned release"></select><button type="button" class="pl-rel-v" id="pl-rel-v" aria-haspopup="listbox" aria-expanded="false" aria-label="Choose planned release"></button><div class="pl-rel-m" id="pl-rel-m" role="listbox" hidden></div></span></label><span class="pl-win" id="pl-win"><label>Release Window <input type="date" class="hub-inline" id="pl-start" aria-label="Release Window start"></label><span aria-hidden="true">→</span><input type="date" class="hub-inline" id="pl-end" aria-label="Release Window end"></span><span class="note" id="pl-last"></span></div><button type="button" class="button pl-hb pl-hb-leaves" id="pl-leaves" title="Leaves &amp; on-call: record each engineer's leave, holidays and on-call days. They reduce the days an engineer has available, which drives the allocation bars, headroom and over-allocation flags."><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg> Leaves &amp; on-call</button><button type="button" class="button pl-hb" id="pl-refresh-gus" title="Pull from GUS: read the latest project titles, epic names, projects, releases and workstreams from GUS and show the differences. Nothing changes in the plan until you apply them.">Pull from GUS</button><button type="button" class="button primary" id="pl-commit" title="Save to GUS: saves the plan to GUS Apps for the whole team, then lists only the epics that are new or differ from GUS. You review them and accept to write them to GUS.">Save to GUS</button></div></div>
+    el.innerHTML=`<div class="executive-heading"><div><h2>${icon('plan','green')} Release Planning (Quarterly)</h2><p><span class="pl-last" id="pl-last"></span>Plan projects, epics and workstreams for ${esc(H.team.Name)}. Effort is in days; epics above the line (ABL) are saved to GUS when you confirm.</p></div><div class="heading-actions"><span class="pl-state-anchor" hidden></span><div class="pl-dates"><label>Planned Release <span class="pl-relw"><select class="hub-inline" id="pl-rel" aria-label="Planned release"></select><button type="button" class="pl-rel-v" id="pl-rel-v" aria-haspopup="listbox" aria-expanded="false" aria-label="Choose planned release"></button><div class="pl-rel-m" id="pl-rel-m" role="listbox" hidden></div></span></label><span class="pl-win" id="pl-win"><label>Release Window <input type="date" class="hub-inline" id="pl-start" aria-label="Release Window start"></label><span aria-hidden="true">→</span><input type="date" class="hub-inline" id="pl-end" aria-label="Release Window end"></span></div><button type="button" class="button pl-hb pl-hb-leaves" id="pl-leaves" title="Leaves &amp; on-call: record each engineer's leave, holidays and on-call days. They reduce the days an engineer has available, which drives the allocation bars, headroom and over-allocation flags."><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg> Leaves &amp; on-call</button><button type="button" class="button pl-hb" id="pl-refresh-gus" title="Pull from GUS: read the latest project titles, epic names, projects, releases and workstreams from GUS and show the differences. Nothing changes in the plan until you apply them.">Pull from GUS</button><button type="button" class="button primary" id="pl-commit" title="Save to GUS: saves the plan to GUS Apps for the whole team, then lists only the epics that are new or differ from GUS. You review them and accept to write them to GUS.">Save to GUS</button></div></div>
     <div id="pl-warn"></div>
     <div class="pl-tabs" role="tablist" aria-label="Release planning views"><button type="button" role="tab" data-tab="plan" class="on" aria-selected="true"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="4" width="14" height="12" rx="2"/><path d="M3 8.5h14M8 8.5V16"/></svg>Release Planner</button><button type="button" role="tab" data-tab="rps" aria-selected="false"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 16V9M10 16V4M16 16v-5"/></svg>Planned Release Summary</button></div>
     <div id="pl-main"><div id="pl-sum"></div>

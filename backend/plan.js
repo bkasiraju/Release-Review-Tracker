@@ -484,6 +484,33 @@ async function createWorkstream(sf, teamId, input) {
   return { gusId: workId, created, themes, warnings };
 }
 
+/** Write edits made on the dashboard through to workstream stories that already exist in GUS (name, assignee, planned days). Only this team's "WS: " stories are touched. */
+async function syncWorkstreams(sf, teamId, items) {
+  planKey(teamId);
+  const out = [];
+  for (const x of (Array.isArray(items) ? items : []).slice(0, 100)) {
+    const id = gid(x && x.gusId);
+    if (!id) { out.push({ gusId: '', ok: false, err: 'Not a GUS workstream' }); continue; }
+    try {
+      const w = ((await sf.query(`SELECT Id, Subject__c, Details__c FROM ADM_Work__c WHERE Id = '${id}' AND Scrum_Team__c = '${teamId}' AND Subject__c LIKE '${WS_PREFIX}%' LIMIT 1`)).records || [])[0];
+      if (!w) throw new Error('Not a workstream story of this team.');
+      const f = {};
+      if (x.name != null) { const n = text(x.name, 200); if (!n) throw new Error('Workstream name cannot be empty.'); f.Subject__c = WS_PREFIX + n; }
+      const a = gid(x.assigneeId); if (a) f.Assignee__c = a;
+      if (x.days != null && Number(x.days) > 0) {
+        const d = days(x.days), det = String(w.Details__c || '');
+        if (/\(planned [\d.]+ days\)/.test(det)) f.Details__c = det.replace(/\(planned [\d.]+ days\)/, `(planned ${d} days)`);
+        else if (x.name != null && x.epicName) f.Details__c = wsDetails(text(x.epicName, 255), text(x.name, 200), d);
+      }
+      if (!Object.keys(f).length) { out.push({ gusId: id, ok: true }); continue; }
+      const r = await sf.update('ADM_Work__c', id, f);
+      if (r && !ok(r)) throw new Error(plain(errText(r)) || 'GUS rejected the update.');
+      out.push({ gusId: id, ok: true });
+    } catch (e) { out.push({ gusId: id, ok: false, err: String(e && e.message || e) }); }
+  }
+  return { results: out };
+}
+
 // The team's epics already in GUS, so they can be added to the plan table instead of retyped.
 async function listEpics(sf, teamId) {
   planKey(teamId);
@@ -808,4 +835,4 @@ async function commitRun(sf, store, teamId, confirm, includeBtl, acknowledged) {
   return { results, failed: results.filter(x => !x.ok).length, plan: saved && saved.plan, revision: saved && saved.revision, saveError };
 }
 
-module.exports = { withOutcome, outcomeOf, fiscalQuarter, refreshEpics, saveSmartGoal, generateSmartGoal, withSmartGoal, epicWorkstreams, epicLeads, deleteEpic, deleteWorkstream, programProjects, importV2mom, resolveProgram, teamProgram, getPlan, savePlan, getRefs, commitPlan, createProject, deleteProject, createEpic, listEpics, findEpics, createWorkstream, syncEpics, review, cleanPlan };
+module.exports = { syncWorkstreams, withOutcome, outcomeOf, fiscalQuarter, refreshEpics, saveSmartGoal, generateSmartGoal, withSmartGoal, epicWorkstreams, epicLeads, deleteEpic, deleteWorkstream, programProjects, importV2mom, resolveProgram, teamProgram, getPlan, savePlan, getRefs, commitPlan, createProject, deleteProject, createEpic, listEpics, findEpics, createWorkstream, syncEpics, review, cleanPlan };

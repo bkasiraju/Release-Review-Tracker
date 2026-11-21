@@ -3430,3 +3430,9 @@ html body .pl-tt.pl-tt-goal{z-index:100000!important}
 html body .pl-ls-sg{cursor:help}
 html body .pl-ls-sgm{color:#b45309;text-decoration:underline dotted;text-underline-offset:2px;cursor:pointer}
 html body .pl-ls-sgm:hover{color:#92400e}
+/* 7.0.101 last-saved note lives in the header text, before the team; action row stays on one aligned line */
+html body[data-hub=plan] .executive-heading .pl-last{display:inline;margin:0 8px 0 0;padding:0 8px 0 0;border:0;border-right:1px solid #c9d6e2;background:none;font-size:12px;font-weight:600;color:#047857;white-space:nowrap}
+html body[data-hub=plan] .executive-heading .pl-last:empty{display:none}
+html body[data-hub=plan] .heading-actions{align-items:center;flex-wrap:nowrap;gap:10px}
+html body[data-hub=plan] .heading-actions .pl-dates{flex-wrap:nowrap;align-items:center;gap:10px;margin:0}
+html body[data-hub=plan] .heading-actions .pl-dates label{margin:0;display:inline-flex;align-items:center;gap:8px}
