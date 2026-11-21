@@ -3443,3 +3443,14 @@ html body:not([data-hub=plan]) .ri-lastgus{display:none}
 html body #epic-table .epic-expand-toggle{width:20px;height:20px;min-width:20px;border-radius:5px;padding:0}
 html body #epic-table .epic-expand-toggle svg{width:11px;height:11px}
 html body #epic-table .epic-summary-row>.epic-expand-cell,html body #epic-table thead th.epic-expand-heading,html body #epic-table thead tr.cf-row>th:first-child,html body #epic-table thead tr.cf-row>td:first-child{width:32px;min-width:32px;max-width:32px;padding:4px 6px;text-align:center;box-sizing:border-box}
+/* 7.0.104 row click expands the epic; the "+" column is hidden */
+html body #epic-table .epic-expand-cell,html body #epic-table thead th.epic-expand-heading,html body #epic-table thead tr.cf-row>:first-child{display:none!important}
+html body #epic-table tr.epic-summary-row{cursor:pointer}
+html body #epic-table tr.epic-summary-row:focus-visible{outline:2px solid #1b73b3;outline-offset:-2px}
+/* 7.0.104 epic drawer work items: Nudge gets its own column so Owner / Sprint / SP line up under their headers */
+html body .work-grid-scroll .work-row,html body .work-grid-scroll .work-headers{grid-template-columns:94px minmax(180px,1fr) var(--work-status) var(--work-owner) var(--work-sprint) 52px 76px!important;column-gap:8px}
+html body .work-grid-scroll .work-headers::after{content:"";grid-column:7}
+html body .work-grid-scroll .work-row .nudge-btn{grid-column:7;grid-row:1;justify-self:end;align-self:center;height:24px;padding:0 10px;font-size:12px;line-height:1;width:auto;min-width:0;white-space:nowrap}
+html body .work-grid-scroll .work-row .work-points{grid-column:6;justify-self:end;white-space:nowrap}
+html body .work-grid-scroll .work-row .work-sprint{overflow-wrap:normal;word-break:normal;white-space:normal;line-height:1.35}
+html body .work-grid-scroll .work-list{min-width:max(900px,calc(180px + 94px + var(--work-status) + var(--work-owner) + var(--work-sprint) + 52px + 76px + 48px))}

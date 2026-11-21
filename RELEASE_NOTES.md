@@ -1,5 +1,10 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.104-GA
+
+- Epic table: click anywhere on a row to expand or collapse its monthly details (links, dropdowns, buttons and text selection still work as before, and Enter works on a focused row). The "+" column is removed to save space.
+- Epic details drawer: the Nudge button no longer takes a column in the work-item grid, which had shifted Owner, Sprint and SP out from under their headers and wrapped the sprint name one word per line. Nudge now has its own right-hand column.
+
 ## 7.0.103-GA
 
 - The expand "+" button on the epic table is smaller (20px) and its column is narrower, so the Epic Name header, its filter and the other column headers line up and are no longer pushed right.
