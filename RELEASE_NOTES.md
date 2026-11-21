@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.107-GA
+
+- Release Review: the RELEASE picker and the separate selected-release chip are merged into one control. The picker now shows the selected release name (for example "VegaCache · 266"), or "N releases" when several are selected. Remove or add releases from its dropdown.
+
 ## 7.0.106-GA
 
 - Epic table: restored the narrow expand column. Hiding it in 7.0.104-GA shifted the header and filter cells so Epic Name was squeezed and its text vanished. The column is now 28px with a small 18px button, and the whole row stays clickable.

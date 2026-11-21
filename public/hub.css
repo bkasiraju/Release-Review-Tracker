@@ -3463,3 +3463,6 @@ html body .release-toolbar>label.hub-team{margin:0 6px 0 0;display:inline-flex;a
 html body #epic-table .epic-expand-toggle{width:18px;height:18px;min-width:18px}
 html body #epic-table .epic-expand-toggle svg{width:10px;height:10px}
 html body #epic-table .epic-summary-row>.epic-expand-cell,html body #epic-table thead th.epic-expand-heading,html body #epic-table thead tr.cf-row>:first-child{width:28px;min-width:28px;max-width:28px;padding:4px 4px}
+/* 7.0.107 the release picker names the selected release itself; the separate chip is gone */
+html body #dashboard-controls #selected-release-summary{display:none!important}
+html body .release-picker .multi-trigger-label{white-space:nowrap;font-weight:600}
