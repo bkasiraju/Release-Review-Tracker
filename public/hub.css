@@ -3466,3 +3466,11 @@ html body #epic-table .epic-summary-row>.epic-expand-cell,html body #epic-table 
 /* 7.0.107 the release picker names the selected release itself; the separate chip is gone */
 html body #dashboard-controls #selected-release-summary{display:none!important}
 html body .release-picker .multi-trigger-label{white-space:nowrap;font-weight:600}
+/* 7.0.109 expanded epic detail table: columns keep their sized widths and share any spare room, so there are no empty bands */
+html body #epic-table .epic-expanded-table{table-layout:auto!important;width:100%!important}
+html body #epic-table .epic-expanded-table col{min-width:0}
+html body #epic-table .epic-expanded-table th,html body #epic-table .epic-expanded-table td{padding:8px 12px;overflow-wrap:break-word;word-break:normal}
+html body #epic-table .epic-expanded-table td:has(.epic-meta),html body #epic-table .epic-expanded-table td.name-cell{min-width:240px}
+html body #epic-table .epic-expanded-table .work-complete,html body #epic-table .epic-expanded-table td .progress{max-width:100%}
+html body .epic-expanded-wrap,html body #epic-table .epic-expanded-cell>div{overflow-x:auto}
+html body #epic-table .epic-expanded-table.epic-expanded-narrow{width:max-content!important;min-width:0!important}

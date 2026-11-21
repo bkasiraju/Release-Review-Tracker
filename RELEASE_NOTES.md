@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.109-GA
+
+- Expanded epic rows: the detail table now keeps each column at its sized width and shares spare room across columns, so Epic Name no longer wraps one word per line next to a huge update column, and there are no empty white bands. When only a few narrow columns are shown (for example just Work Items Complete) the table shrinks to fit instead of stretching.
+
 ## 7.0.108-GA
 
 - Expanded table columns: the default selection is now a lean set: Epic Name, Development Lead, Monthly updates (review month and two preceding), Path to Green and % of Work Items Complete. Epic Status stays required above each detail table. Releases where someone has already saved their own column choices keep them, and "Use GUS order" now resets to this lean set.
