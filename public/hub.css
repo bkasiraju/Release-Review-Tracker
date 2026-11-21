@@ -3408,3 +3408,10 @@ html body .pl-board .pl-bd-top h3{margin:0;flex:0 0 auto;white-space:nowrap}
 html body .pl-board .pl-bd-top .pl-bl-row{margin:0;flex:0 0 auto;display:flex;gap:12px;white-space:nowrap}
 html body .pl-board .pl-bd-top .note{margin:0;padding:0;border:0;background:none;flex:1 1 0;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:#5b6b7c}
 html body .pl-board .pl-bd-top .pl-bd-n{flex:0 0 auto;font-size:12px;color:#44546a;white-space:nowrap}
+/* 7.0.96: tables with column filters stay inside their card */
+html body .pl-rps-t{width:100%;max-width:100%;box-sizing:border-box}
+html body .pl-rps-t thead th{white-space:normal;overflow-wrap:anywhere;vertical-align:bottom;line-height:1.25}
+html body .pl-rps-t thead tr.cf-row th{white-space:nowrap;overflow:hidden;padding:4px 6px}
+html body .pl-rps-t .cf-in{min-width:0;width:100%;max-width:100%}
+html body .pl-rps-t .cf-clear{max-width:100%}
+html body .pl-card.pl-saved,html body .pl-mo-scroll{overflow-x:auto;box-sizing:border-box}
