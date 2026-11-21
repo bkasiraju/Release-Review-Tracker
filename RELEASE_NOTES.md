@@ -1,5 +1,11 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.78-GA
+
+- One "Save to GUS" button replaces "Save plan" and "Review & push to GUS": it saves the plan to GUS Apps for the whole team, then lists only the epics that are new or differ from GUS; accepting writes them to GUS. The review now compares each epic with its live GUS record (name, project, release, effort, priority, lead, description), so epics the auto-sync already updated are not offered again. If nothing differs it says "Everything is already saved to GUS".
+- Tooltips on Leaves & on-call, Pull from GUS and Save to GUS explain what each does.
+- Clicking anywhere on a project or group row (not on a button, link or chip) expands or collapses it, the same as its caret.
+
 ## 7.0.77-GA
 
 - The V2MOM method chip now comes before the P icon on every initiative row.

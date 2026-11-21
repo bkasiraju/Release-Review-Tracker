@@ -42,7 +42,7 @@ function withOutcome(comments, outcome) {
 const outcomeOf = comments => { const m = /^\s*Outcome:[ \t]*([^\n]*)/i.exec(String(comments || '')); return m ? m[1].trim() : ''; };
 const epicHash = (e, project, includeBtl) => hash(epicPayload(e, project, includeBtl, project && project.gusId));
 /** Delta of an already-saved epic against what was last written: which workstreams are new/changed/removed. */
-function deltaOf(e, project, includeBtl) {
+function deltaOf(e, project, includeBtl, liveSame) {
   if (!e.gusId) return { action: 'create', changes: [], wsFlags: {} };
   const sy = e.synced || null, wsFlags = {}, changes = [];
   const inc = e.workstreams.filter(w => includeBtl || wsLine(e, w) === 'ABL');
@@ -56,7 +56,33 @@ function deltaOf(e, project, includeBtl) {
   const unchanged = !!(sy && sy.hash === epicHash(e, project, includeBtl));
   if (sy && (sy.outcome || '') !== (e.outcome || '')) changes.push(e.outcome ? 'Outcome set in the first line of Epic Health Comments' : 'Outcome removed from Epic Health Comments');
   if (!unchanged && !changes.length) changes.push(sy ? 'Epic details changed since the last save to GUS (name, release, priority, effort, owner or description)' : 'Epic already exists in GUS and has not been synced from this planner yet: its release, priority, effort, owner and description are brought in line with the plan');
+  // GUS already holds exactly this (auto-saved or edited since the last commit): nothing to send, unless only the Outcome differs.
+  if (!unchanged && liveSame && !(sy && (sy.outcome || '') !== (e.outcome || ''))) return { action: 'unchanged', changes: [], wsFlags };
   return { action: unchanged ? 'unchanged' : 'update', changes: unchanged ? [] : changes, wsFlags };
+}
+const plainText = t => String(t || '').replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/\s+/g, ' ').trim();
+/** Epics whose GUS record already equals what the plan would write (name, project, release, effort, priority, lead and description), looked up live so auto-saved edits are not offered again. */
+async function liveInSync(sf, plan, includeBtl) {
+  const same = new Set(), byProject = new Map(plan.projects.map(p => [p.id, p]));
+  const list = plan.epics.filter(e => e.gusId && !e.foreign && (includeBtl || e.line === 'ABL'));
+  const rows = new Map();
+  for (let i = 0; i < list.length; i += 100) {
+    try { for (const r of (await sf.query(`SELECT Id, Name, Project__c, Planned_Release__c, Planned_Story_Points__c, Priority__c, Development_Lead__c, Description__c FROM ADM_Epic__c WHERE Id IN (${list.slice(i, i + 100).map(x => `'${gid(x.gusId)}'`).join(',')})`)).records || []) rows.set(String(r.Id).slice(0, 15), r); } catch (_) { /* no live data: fall back to the saved fingerprint */ }
+  }
+  const id15 = v => String(v || '').slice(0, 15);
+  for (const e of list) {
+    const g = rows.get(id15(e.gusId)), project = byProject.get(e.projectId);
+    if (!g || !project || !project.gusId) continue;
+    const pl = epicPayload(e, project, includeBtl, project.gusId), f = pl.fields, x = pl.extra;
+    if (String(g.Name || '').trim() !== String(pl.name || '').trim()) continue;
+    if (id15(g.Project__c) !== id15(f.Project__c) || id15(g.Planned_Release__c) !== id15(f.Planned_Release__c)) continue;
+    if (Math.abs(Number(g.Planned_Story_Points__c || 0) - Number(f.Planned_Story_Points__c || 0)) > 0.001) continue;
+    if (f.Priority__c != null && Number(g.Priority__c) !== Number(f.Priority__c)) continue;
+    if (x.Development_Lead__c && id15(g.Development_Lead__c) !== id15(x.Development_Lead__c)) continue;
+    if (plainText(String(g.Description__c || '').replace(SMART_RE, '')) !== plainText(String(x.Description__c || '').replace(SMART_RE, ''))) continue;
+    same.add(e.id);
+  }
+  return same;
 }
 
 const STATUS = ['Planned', 'In Progress', 'Completed', 'On Hold'];
@@ -658,7 +684,7 @@ function epicDescription(e, project, includeBtl) {
 }
 
 // New projects are tagged to the team's program automatically; `program` is that program (or null when GUS has none).
-function review(plan, releaseIds, program, includeBtl) {
+function review(plan, releaseIds, program, includeBtl, liveSame) {
   const byProject = new Map(plan.projects.map(p => [p.id, p]));
   const items = [], blockers = [];
   for (const e of plan.epics.filter(x => includeBtl || x.line === 'ABL')) {
@@ -676,7 +702,7 @@ function review(plan, releaseIds, program, includeBtl) {
     else if (!e.releaseId) problems.push('Select a planned release');
     else if (releaseIds && !releaseIds.has(e.releaseId)) problems.push(`Planned release “${e.releaseName || e.releaseId}” is not one of this team’s planned releases`);
     if (!e.foreign && !(effort > 0)) problems.push('Add effort (days) on at least one workstream');
-    const dl = deltaOf(e, project, includeBtl), item = { delta: dl.changes, epicId: e.id, name: e.name, project: project ? project.name : '', program: project ? (project.gusId ? project.programName : (program ? program.name : '')) : '', projectAction: project ? (project.gusId ? 'existing' : 'create-or-link') : '', release: e.releaseName, priority: e.priority, effort, action: dl.action, problems, line: e.line, status: e.status, theme: e.theme, hrp: e.hrp, v2mom: e.v2mom, doc: e.doc, owners: e.ownerNames || [], workstreams: e.workstreams.filter(w => includeBtl || wsLine(e, w) === 'ABL').map(w => ({ flag: e.gusId ? dl.wsFlags[w.id] : 'new', name: w.name, eng: (w.engNames && w.engNames.length ? w.engNames : [w.engName].filter(Boolean)).join(', '), days: w.days, status: w.status })), description: epicDescription(e, project, includeBtl) };
+    const dl = deltaOf(e, project, includeBtl, liveSame && liveSame.has(e.id)), item = { delta: dl.changes, epicId: e.id, name: e.name, project: project ? project.name : '', program: project ? (project.gusId ? project.programName : (program ? program.name : '')) : '', projectAction: project ? (project.gusId ? 'existing' : 'create-or-link') : '', release: e.releaseName, priority: e.priority, effort, action: dl.action, problems, line: e.line, status: e.status, theme: e.theme, hrp: e.hrp, v2mom: e.v2mom, doc: e.doc, owners: e.ownerNames || [], workstreams: e.workstreams.filter(w => includeBtl || wsLine(e, w) === 'ABL').map(w => ({ flag: e.gusId ? dl.wsFlags[w.id] : 'new', name: w.name, eng: (w.engNames && w.engNames.length ? w.engNames : [w.engName].filter(Boolean)).join(', '), days: w.days, status: w.status })), description: epicDescription(e, project, includeBtl) };
     items.push(item);
     if (problems.length) blockers.push({ epicId: e.id, name: e.name || '(unnamed epic)', problems });
   }
@@ -706,7 +732,8 @@ async function commitRun(sf, store, teamId, confirm, includeBtl, acknowledged) {
     try { for (const r of (await sf.query(`SELECT Id, Team__c FROM ADM_Epic__c WHERE Id IN (${gids.slice(i, i + 150).map(x => `'${gid(x)}'`).join(',')})`)).records || []) teamOf.set(String(r.Id).slice(0, 15), String(r.Team__c || '').slice(0, 15)); } catch (_) { /* keep the saved flags */ }
   }
   for (const e of plan.epics) if (e.gusId && teamOf.has(String(e.gusId).slice(0, 15))) e.foreign = teamOf.get(String(e.gusId).slice(0, 15)) !== String(teamId).slice(0, 15);
-  const preview = review(plan, rel, program, includeBtl === true);
+  const liveSame = await liveInSync(sf, plan, includeBtl === true).catch(() => new Set());
+  const preview = review(plan, rel, program, includeBtl === true, liveSame);
   if (!confirm) return { preview };
   if (!preview.items.length) throw new Error('No epics to save. Mark epics ABL (or include below-the-line epics) to save them to GUS.');
   if (preview.blockers.length) throw new Error(`Fix ${preview.blockers.length} epic(s) before saving to GUS.`);
