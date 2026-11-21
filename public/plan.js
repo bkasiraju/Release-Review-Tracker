@@ -1198,7 +1198,7 @@ const projChat=pid=>{const n=P.plan.epics.reduce((t,e)=>t+(e.projectId===pid&&P.
 function clearChatFilter(){const V=P.view;if(V.flag!=='chat')return false;V.flag='';V.chatPid='';V.kpi='';drawSummary();drawTools();drawPlanner();wire();return true;}
 function toggleChatFilter(pid){const V=P.view;if(V.flag==='chat'&&V.chatPid===pid){clearChatFilter();return;}
   Object.assign(V,{q:'',tok:[],release:[],line:[],eng:[],theme:[],col:{}});saveFilters();V.flag='chat';V.chatPid=pid;V.kpi='';setCollapsed('p:'+pid,false);drawSummary();drawTools();drawPlanner();wire();}
-document.addEventListener('keydown',ev=>{if(ev.key!=='Escape'||!P.plan||P.view.flag!=='chat')return;if(document.querySelector('.nd-overlay,.hub-confirm-ov,.pl-confirm,.pl-mspop,.pl-cmp,.pl-cmh,.cs.open,.ms.open'))return;if(clearChatFilter()){ev.stopImmediatePropagation();ev.preventDefault();}},true);
+document.addEventListener('keydown',ev=>{if(ev.key!=='Escape'||!P.plan||P.view.flag!=='chat')return;if(document.querySelector('.nd-overlay,.hub-confirm-ov,.pl-confirm,.pl-mspop,.pl-cmp,.cs.open,.ms.open'))return;cmHide();if(clearChatFilter()){ev.stopImmediatePropagation();ev.preventDefault();}},true);
 /** Comment counts for every GUS-linked epic, in batches, so the badges show without hovering each epic. */
 async function loadChatCounts(){const pl=P.plan,my=P.seq;if(!pl)return;const eps=pl.epics.filter(e=>e.gusId);if(!eps.length)return;P.chat=P.chat||new Map();
   try{for(let i=0;i<eps.length;i+=100){const part=eps.slice(i,i+100),r=await call('epic-chat-counts',{epicIds:part.map(e=>e.gusId)});if(my!==P.seq||P.plan!==pl)return;part.forEach(e=>P.chat.set(e.id,r.counts[String(e.gusId).slice(0,15)]||0));}

@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.76-GA
+
+- Comments filter: Esc clears it even while a comment hover preview is showing; if a comment thread or menu is open, the first Esc closes that and the next Esc clears the filter.
+
 ## 7.0.75-GA
 
 - Planning metrics, By theme / method and Engineer bandwidth sit side by side on one line. Click one to expand it full width underneath (the other two close); click it again to collapse.
