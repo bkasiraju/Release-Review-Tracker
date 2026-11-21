@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.90-GA
+
+- Planned Release dates are larger (11px, still smaller than the 13px name) and darker, and the picker no longer shrinks.
+
 ## 7.0.89-GA
 
 - The leave / on-call / holidays button is now named "Availability register".
