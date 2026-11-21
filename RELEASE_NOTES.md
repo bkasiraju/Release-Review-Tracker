@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.102-GA
+
+- Fixed "Could not load the plan" (Cannot set properties of null) introduced in 7.0.101-GA. The planner removes its page heading, which took the "Last saved to GUS" note with it. The note now lives in the top bar, before TEAM, and only shows on the planner.
+
 ## 7.0.101-GA
 
 - Dashboard and GUS now sync both ways automatically. Edits to a linked workstream's name, owner or planned days are pushed to GUS on save. GUS changes (epic fields, workstreams) are pulled in on load, when you return to the tab and every 60 seconds, so the Pull from GUS dialog normally has nothing to show.
