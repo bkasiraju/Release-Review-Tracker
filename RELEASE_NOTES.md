@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.77-GA
+
+- The V2MOM method chip now comes before the P icon on every initiative row.
+
 ## 7.0.76-GA
 
 - Comments filter: Esc clears it even while a comment hover preview is showing; if a comment thread or menu is open, the first Esc closes that and the next Esc clears the filter.

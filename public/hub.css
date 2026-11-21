@@ -3328,3 +3328,5 @@ html body[data-hub=plan] #pl-sum .pl-kbox>:not(h3),html body[data-hub=plan] #pl-
 html body[data-hub=plan] #pl-sum .pl-card.collapsed>:not(h3){display:none!important}
 html body[data-hub=plan] #pl-sum .pl-kbox.collapsed>:not(h3){display:none!important}
 @media(max-width:900px){html body[data-hub=plan] #pl-sum{grid-template-columns:1fr}}
+
+.pl-pj-t>.pl-pj-mt{margin:0 8px 0 0}.pl-pj-t>.pl-pj-m{margin-right:8px}
