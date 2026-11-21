@@ -3402,3 +3402,9 @@ html body .pl-cfl{display:flex;flex-direction:column;gap:2px;min-width:200px}
 html body .pl-cfl small{font-size:10px;font-weight:700;text-transform:uppercase;color:#5b6b7c;letter-spacing:.05em}
 html body .pl-epv-e[hidden],html body .pl-br[hidden],html body .pl-ev[hidden],html body .pl-ev-e[hidden],html body .pl-epv-g[hidden]{display:none!important}
 html body .cf-row th{padding:3px 6px}
+/* 7.0.95: Priority board header on one line */
+html body .pl-board .pl-bd-top{display:flex;align-items:center;gap:16px;min-width:0;flex-wrap:nowrap}
+html body .pl-board .pl-bd-top h3{margin:0;flex:0 0 auto;white-space:nowrap}
+html body .pl-board .pl-bd-top .pl-bl-row{margin:0;flex:0 0 auto;display:flex;gap:12px;white-space:nowrap}
+html body .pl-board .pl-bd-top .note{margin:0;padding:0;border:0;background:none;flex:1 1 0;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:#5b6b7c}
+html body .pl-board .pl-bd-top .pl-bd-n{flex:0 0 auto;font-size:12px;color:#44546a;white-space:nowrap}

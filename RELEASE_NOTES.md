@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.95-GA
+
+- Priority board header is one line: title, status counts, the drag hint (plain text, shortened with … and a tooltip when narrow) and the epic count on the right.
+
 ## 7.0.94-GA
 
 - The top filter bar is hidden on Priority board and Saved epics (they have column filters). It stays on Overview, Epic review and Engineer View. If filters set on another tab are still applied, a one-line note with "Clear them" appears.
