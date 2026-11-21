@@ -3444,7 +3444,6 @@ html body #epic-table .epic-expand-toggle{width:20px;height:20px;min-width:20px;
 html body #epic-table .epic-expand-toggle svg{width:11px;height:11px}
 html body #epic-table .epic-summary-row>.epic-expand-cell,html body #epic-table thead th.epic-expand-heading,html body #epic-table thead tr.cf-row>th:first-child,html body #epic-table thead tr.cf-row>td:first-child{width:32px;min-width:32px;max-width:32px;padding:4px 6px;text-align:center;box-sizing:border-box}
 /* 7.0.104 row click expands the epic; the "+" column is hidden */
-html body #epic-table .epic-expand-cell,html body #epic-table thead th.epic-expand-heading,html body #epic-table thead tr.cf-row>:first-child{display:none!important}
 html body #epic-table tr.epic-summary-row{cursor:pointer}
 html body #epic-table tr.epic-summary-row:focus-visible{outline:2px solid #1b73b3;outline-offset:-2px}
 /* 7.0.104 epic drawer work items: Nudge gets its own column so Owner / Sprint / SP line up under their headers */
@@ -3460,3 +3459,7 @@ html body #dashboard-controls #selected-release-summary{display:inline-flex;marg
 html body #dashboard-controls #selected-release-summary.hidden{display:none}
 html body #dashboard-controls #selected-release-summary .selected-release-chip{white-space:nowrap}
 html body .release-toolbar>label.hub-team{margin:0 6px 0 0;display:inline-flex;align-items:center;gap:8px;flex:0 0 auto}
+/* 7.0.106 keep the narrow expand column (hiding it broke header/filter alignment); the whole row is also clickable */
+html body #epic-table .epic-expand-toggle{width:18px;height:18px;min-width:18px}
+html body #epic-table .epic-expand-toggle svg{width:10px;height:10px}
+html body #epic-table .epic-summary-row>.epic-expand-cell,html body #epic-table thead th.epic-expand-heading,html body #epic-table thead tr.cf-row>:first-child{width:28px;min-width:28px;max-width:28px;padding:4px 4px}
