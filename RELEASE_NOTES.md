@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.94-GA
+
+- The top filter bar is hidden on Priority board and Saved epics (they have column filters). It stays on Overview, Epic review and Engineer View. If filters set on another tab are still applied, a one-line note with "Clear them" appears.
+
 ## 7.0.93-GA
 
 - Planned Release Summary: every table has column filters. Saved epics and the full-screen epic list get a filter row under the header; Priority board and Epic review get a filter box under each column heading; Engineer View filters by engineer and by epic/project/theme. Filters persist while you switch tabs and redraw.
