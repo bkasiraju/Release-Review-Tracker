@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.69-GA
+
+- Engineer bandwidth: the 85% / 100% highlights are now gentler. The whole engineer row gets a soft yellow (ABL above 85%) or soft red (above 100%) tint with a coloured edge, so the name and the allocation read as one row; the label keeps normal text colour with a small pill ("Above 85%" / "Over 100%") instead of a full-width coloured band.
+
 ## 7.0.68-GA
 
 - Engineer bandwidth: the allocation label now reads "ABL - x%, BTL - y%, Remaining - z%" and no longer shows the "= 100%" total. Above 85% ABL is highlighted yellow; above 100% it is flagged OUTLIER.
