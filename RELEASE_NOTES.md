@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.73-GA
+
+- Summary tiles: every tile now filters the epics grid. "Remaining capacity" shows the epics of engineers who still have unplanned days, and "Saved in GUS" shows epics already in GUS. Clicking the active tile again clears the filter.
+
 ## 7.0.72-GA
 
 - Engineer bandwidth: more space between the ABL, BTL and Remaining figures in the allocation label.

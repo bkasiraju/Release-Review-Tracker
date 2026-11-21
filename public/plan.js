@@ -1102,8 +1102,8 @@ async function flush(quiet){
 
 // ── Rendering ───────────────────────────────────────────────────────────────
 const opt=(v,l,sel)=>`<option value="${esc(v)}"${sel?' selected':''}>${esc(l)}</option>`;
-const KPI_ACT={'Available':'all','ABL epics':'abl','BTL epics':'btl','Planned ABL':'abl','Planned BTL':'btl','Total planned':'all','Headroom (ABL)':'abl','Over capacity':'abl','Time off & on-call':'off','Over-allocated':'over','Unassigned effort':'unassigned','Incomplete epics':'incomplete','Pending GUS save':'pending'};
-const KPI_HINT={all:'Show every epic',abl:'Show above-the-line work',btl:'Show below-the-line work',off:'Show epics worked by engineers with time off or on-call',over:'Show epics of over-allocated engineers',unassigned:'Show epics with workstreams that have days but no engineer',incomplete:'Show epics missing an owner or an estimate',pending:'Show ABL epics not yet saved to GUS'};
+const KPI_ACT={'Available':'all','ABL epics':'abl','BTL epics':'btl','Planned ABL':'abl','Planned BTL':'btl','Total planned':'all','Headroom (ABL)':'abl','Over capacity':'abl','Time off & on-call':'off','Over-allocated':'over','Unassigned effort':'unassigned','Incomplete epics':'incomplete','Pending GUS save':'pending','Remaining capacity':'free','Saved in GUS':'saved'};
+const KPI_HINT={all:'Show every epic',abl:'Show above-the-line work',btl:'Show below-the-line work',off:'Show epics worked by engineers with time off or on-call',over:'Show epics of over-allocated engineers',unassigned:'Show epics with workstreams that have days but no engineer',incomplete:'Show epics missing an owner or an estimate',pending:'Show ABL epics not yet saved to GUS',free:'Show epics of engineers who still have unplanned capacity',saved:'Show epics already saved in GUS'};
 const kpi=(label,val,sub,cls='',ic='chart',tone='blue',chip='')=>{const a=KPI_ACT[label]||'';return `<div class="pl-kpi pl-t-${tone} ${cls}${a&&P.view.kpi===a?' pl-kpi-on':''}"${a?` data-kpi="${a}" role="button" tabindex="0" title="${KPI_HINT[a]} in the grid" aria-pressed="${P.view.kpi===a}"`:''}>${icon(ic,tone)}<div class="pl-kpi-b"><span>${esc(label)}</span><b>${val}</b><small title="${esc(String(sub).replace(/<[^>]*>/g,'').replace(/&(amp|lt|gt|quot|#39);/g,(m,k)=>({amp:'&',lt:'<',gt:'>',quot:'"','#39':"'"})[k]))}">${sub}</small></div>${chip?`<em class="pl-chip">${esc(chip)}</em>`:''}</div>`;};
 /** Rich hover card for an engineer's allocation: section chips, then their themes and epics. */
 function engTipHtml(x){
@@ -1199,10 +1199,11 @@ function applyKpi(a){
   else{
     let eng=[];
     if(a==='over')eng=cap.filter(x=>x.abl+x.btl>x.avail+0.001).map(x=>x.id);
+    if(a==='free')eng=cap.filter(x=>x.avail-x.abl-x.btl>0.001).map(x=>x.id);
     if(a==='off')eng=cap.filter(x=>(x.leave||0)+(x.holiday||0)+(x.oncall||0)>0).map(x=>x.id);
-    if((a==='over'||a==='off')&&!eng.length){window.toast?.(a==='over'?'No engineers are over-allocated.':'No engineer has time off or on-call.',false);return;}
+    if((a==='over'||a==='off'||a==='free')&&!eng.length){window.toast?.(a==='over'?'No engineers are over-allocated.':a==='free'?'No engineer has unplanned capacity left.':'No engineer has time off or on-call.',false);return;}
     Object.assign(V,{q:'',tok:[],release:[],line:a==='abl'?['ABL']:a==='btl'?['BTL']:[],eng,theme:[],col:{}});saveFilters();
-    V.flag=['unassigned','incomplete','pending'].includes(a)?a:'';V.kpi=a;
+    V.flag=['unassigned','incomplete','pending','saved'].includes(a)?a:'';V.kpi=a;
   }
   drawSummary();drawTools();drawPlanner();wire();
   const g=P.el.querySelector('#pl-planner');if(g&&P.tab!=='rps')g.scrollIntoView({block:'nearest'});
@@ -1232,7 +1233,7 @@ function drawPlanner(){
   const projOpts=sel=>pl.projects.map(p=>opt(p.id,p.name||'(unnamed project)',p.id===sel)).join('');
   const engOpts=sel=>'<option value="">Unassigned</option>'+allMem().map(m=>opt(m.id,m.name,m.id===sel)).join('');
   const V=P.view,prj=new Map(pl.projects.map(p=>[p.id,p])),q=(/^\s*([a-z0-9]+)\s*:/i.exec(V.q)&&SA[/^\s*([a-z0-9]+)/i.exec(V.q)[1].toLowerCase()]?'':V.q.trim().toLowerCase()),colF=Object.entries(V.col||{}).filter(([k,v])=>v&&v.trim()&&gridCols().includes(k)).map(([k,v])=>[k,v.trim().toLowerCase()]),filtering=!!(q||colF.length||V.flag||V.tok.length||MF.some(k=>V[k].length));
-  const FLAG={unassigned:e=>e.workstreams.some(w=>(w.days||0)>0&&!wsEngs(w).length),incomplete:e=>!(e.owners&&e.owners.length)||!e.workstreams.some(w=>(w.days||0)>0),pending:e=>e.line==='ABL'&&!e.gusId};
+  const FLAG={unassigned:e=>e.workstreams.some(w=>(w.days||0)>0&&!wsEngs(w).length),incomplete:e=>!(e.owners&&e.owners.length)||!e.workstreams.some(w=>(w.days||0)>0),pending:e=>e.line==='ABL'&&!e.gusId,saved:e=>!!e.gusId};
   const match=e=>{const p=prj.get(e.projectId);
     if(V.flag&&FLAG[V.flag]&&!FLAG[V.flag](e))return false;
     if(V.release.length&&!V.release.includes(e.releaseId))return false;if(V.line.length&&!(e.workstreams.length?e.workstreams.some(w=>V.line.includes(wl(e,w))):V.line.includes(e.line)))return false;
@@ -1242,7 +1243,7 @@ function drawPlanner(){
     if(q&&!((e.name||'')+' '+(p&&p.name||'')+' '+e.workstreams.map(w=>w.name).join(' ')).toLowerCase().includes(q))return false;return true;};
   const tokOk=(e,p)=>{const by={};V.tok.forEach(t=>(by[t.k]=by[t.k]||[]).push(t));return Object.keys(by).every(k=>{const vs=skVals(k,e,p).map(x=>String(x).toLowerCase());return by[k].some(t=>{const v=t.v.toLowerCase();return t.x?vs.includes(v):vs.some(x=>x.includes(v));});});};
   const shown=pl.epics.filter(match);
-  const cnt=P.el.querySelector('#pl-count');if(cnt)cnt.textContent=filtering?`${shown.length} of ${pl.epics.length} epics${V.flag?' · '+({unassigned:'unassigned effort',incomplete:'incomplete',pending:'pending GUS save'})[V.flag]:''}`:`${pl.epics.length} epic${pl.epics.length===1?'':'s'}`;
+  const cnt=P.el.querySelector('#pl-count');if(cnt)cnt.textContent=filtering?`${shown.length} of ${pl.epics.length} epics${V.flag?' · '+({unassigned:'unassigned effort',incomplete:'incomplete',pending:'pending GUS save',saved:'saved in GUS'})[V.flag]:''}`:`${pl.epics.length} epic${pl.epics.length===1?'':'s'}`;
   const gsum=es=>{const d=l=>fmt(es.filter(e=>e.line===l).reduce((a,e)=>a+epicDays(e),0));return `<span class="pl-gsum"><i>${es.length} epic${es.length===1?'':'s'}</i><i class="abl">ABL ${d('ABL')}d</i><i class="btl">BTL ${d('BTL')}d</i></span>`;};
   const cols=gridCols();
   const gridHtml=()=>{
