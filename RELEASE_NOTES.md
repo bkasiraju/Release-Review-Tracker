@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.66-GA
+
+- Engineer bandwidth: an engineer allocated above 85% now gets a yellow highlighter on the allocation figure and bar; above 100% it shows as a red outlier badge. Applies to the Team total row too.
+
 ## 7.0.65-GA
 
 - Editing at the same time is now safe for every user. If a teammate saved the plan first, their changes and yours are merged automatically and silently when you touched different things (different epics, fields, workstreams or actions, or items added on both sides). Only when you both changed the same value is a small dialog shown, listing each overlap with your value and theirs; yours is kept unless you tick "use theirs". Previously you were told to reload and lost your edits.

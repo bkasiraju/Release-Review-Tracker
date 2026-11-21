@@ -3292,3 +3292,12 @@ html body .pl-cmh-m b{font-size:11.5px}
 .pl-cf{display:flex;flex-direction:column;gap:6px;max-height:50vh;overflow:auto;margin:8px 0}
 .pl-cf-r{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border:1px solid var(--line,#e2e8f0);border-radius:8px;font-size:13px}
 .pl-cf-m{color:#0b5cab}.pl-cf-t{color:#a15c00;margin-left:12px}
+
+/* Engineer bandwidth: >85% allocated = yellow highlighter, >100% = outlier */
+.pl-alloc.warn b{background:linear-gradient(transparent 8%,#fff176 8%,#ffe94d 92%,transparent 92%);border-radius:3px;padding:0 4px}
+.pl-alloc.warn .pl-alloc-bar{box-shadow:0 0 0 1px #e6b800 inset}
+.pl-alloc.warn strong{color:#7a5a00}
+.pl-alloc.over b{background:#c23934;color:#fff;border-radius:10px;padding:0 8px}
+.pl-alloc.over b em,.pl-alloc.over b strong{color:#fff}
+.pl-alloc.over b strong::after{content:" outlier";font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.04em}
+.pl-alloc.over .pl-alloc-bar{box-shadow:0 0 0 2px #c23934 inset}
