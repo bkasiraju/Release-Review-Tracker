@@ -3439,3 +3439,7 @@ html body[data-hub=plan] .heading-actions .pl-dates label{margin:0;display:inlin
 html body .ri-lastgus{font-size:11.5px;font-weight:600;color:#047857;white-space:nowrap;margin-right:10px}
 html body .ri-lastgus:empty{display:none}
 html body:not([data-hub=plan]) .ri-lastgus{display:none}
+/* 7.0.103 compact expand "+" column on the epic table so headers and filters stay aligned */
+html body #epic-table .epic-expand-toggle{width:20px;height:20px;min-width:20px;border-radius:5px;padding:0}
+html body #epic-table .epic-expand-toggle svg{width:11px;height:11px}
+html body #epic-table .epic-summary-row>.epic-expand-cell,html body #epic-table thead th.epic-expand-heading,html body #epic-table thead tr.cf-row>th:first-child,html body #epic-table thead tr.cf-row>td:first-child{width:32px;min-width:32px;max-width:32px;padding:4px 6px;text-align:center;box-sizing:border-box}

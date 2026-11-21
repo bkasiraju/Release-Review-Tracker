@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.103-GA
+
+- The expand "+" button on the epic table is smaller (20px) and its column is narrower, so the Epic Name header, its filter and the other column headers line up and are no longer pushed right.
+
 ## 7.0.102-GA
 
 - Fixed "Could not load the plan" (Cannot set properties of null) introduced in 7.0.101-GA. The planner removes its page heading, which took the "Last saved to GUS" note with it. The note now lives in the top bar, before TEAM, and only shows on the planner.
