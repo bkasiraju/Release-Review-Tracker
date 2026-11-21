@@ -1199,6 +1199,13 @@ function clearChatFilter(){const V=P.view;if(V.flag!=='chat')return false;V.flag
 function toggleChatFilter(pid){const V=P.view;if(V.flag==='chat'&&V.chatPid===pid){clearChatFilter();return;}
   Object.assign(V,{q:'',tok:[],release:[],line:[],eng:[],theme:[],col:{}});saveFilters();V.flag='chat';V.chatPid=pid;V.kpi='';setCollapsed('p:'+pid,false);drawSummary();drawTools();drawPlanner();wire();}
 document.addEventListener('keydown',ev=>{if(ev.key!=='Escape'||!P.plan||P.view.flag!=='chat')return;if(document.querySelector('.nd-overlay,.hub-confirm-ov,.pl-confirm,.pl-mspop,.pl-cmp,.cs.open,.ms.open'))return;cmHide();if(clearChatFilter()){ev.stopImmediatePropagation();ev.preventDefault();}},true);
+/** Pressing Esc twice quickly refreshes the page (after any pending edit is saved). */
+let escAt=0;
+document.addEventListener('keydown',ev=>{if(ev.key!=='Escape'||ev.repeat||!P.el||!P.el.isConnected)return;const now=Date.now(),dbl=now-escAt<700;escAt=dbl?0:now;if(!dbl)return;
+  const go=()=>{try{(window.top||window).location.reload();}catch(_){location.reload();}};
+  if(P.plan&&(P.state==='dirty'||P.state==='saving')){window.toast?.('Saving your changes, then refreshing…',false);flush().then(()=>{if(P.state==='saved'||P.state==='idle')go();else window.toast?.('Could not save the plan, so the page was not refreshed.',true);});}
+  else if(P.state==='conflict'||P.state==='error')window.toast?.('Resolve the save problem first; the page was not refreshed so nothing is lost.',true);
+  else go();},true);
 /** Comment counts for every GUS-linked epic, in batches, so the badges show without hovering each epic. */
 async function loadChatCounts(){const pl=P.plan,my=P.seq;if(!pl)return;const eps=pl.epics.filter(e=>e.gusId);if(!eps.length)return;P.chat=P.chat||new Map();
   try{for(let i=0;i<eps.length;i+=100){const part=eps.slice(i,i+100),r=await call('epic-chat-counts',{epicIds:part.map(e=>e.gusId)});if(my!==P.seq||P.plan!==pl)return;part.forEach(e=>P.chat.set(e.id,r.counts[String(e.gusId).slice(0,15)]||0));}

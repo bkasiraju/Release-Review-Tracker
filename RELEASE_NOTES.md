@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.79-GA
+
+- Pressing Esc twice quickly refreshes the page. Pending edits are saved first; if the plan cannot be saved, the page is not refreshed and a message says why.
+
 ## 7.0.78-GA
 
 - One "Save to GUS" button replaces "Save plan" and "Review & push to GUS": it saves the plan to GUS Apps for the whole team, then lists only the epics that are new or differ from GUS; accepting writes them to GUS. The review now compares each epic with its live GUS record (name, project, release, effort, priority, lead, description), so epics the auto-sync already updated are not offered again. If nothing differs it says "Everything is already saved to GUS".
