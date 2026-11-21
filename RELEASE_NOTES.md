@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.111-GA
+
+- Expanded epic rows: the detail table now uses a fixed layout with column widths set as percentages of the row, so the columns always fill the full width with no empty band on the right. Project and Epic Name get a wider minimum so titles stop wrapping one word per line, and monthly update columns take the largest share. The table scrolls inside its own frame only when the window is too narrow.
+
 ## 7.0.110-GA
 
 - Planning metrics: "Total planned" is split into two tiles, "ATL (Planned)" (above the line, counted toward allocation) and "BTL (Planned, not priority)" (shown for reference only). Remaining capacity is now Available minus ATL planned, and the "used" percentage in the summary line uses ATL only. Clicking each tile filters to that line.
