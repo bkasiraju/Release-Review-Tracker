@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.81-GA
+
+- The release summary line ("N epics planned… Needs attention…") now sits to the right of the Overview / Priority board / Epic review / Engineer View / GUS Summary tabs.
+
 ## 7.0.80-GA
 
 - On project rows, the method chip is renamed "V2MOM Ref" and moved to the right, just before the "X epics" chip; its expanded text stays beside it on the left.
