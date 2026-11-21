@@ -3315,3 +3315,16 @@ html body[data-hub=plan] .pl-kg.one .pl-kpi-b small{white-space:nowrap;overflow:
 @media(max-width:900px){html body[data-hub=plan] .pl-kg.one .pl-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
 html body .pl-g-proj .pl-pj-add{opacity:.75;transition:opacity .12s}
 html body .pl-g-proj:hover .pl-pj-add,html body .pl-g-proj .pl-pj-add:hover,html body .pl-g-proj .pl-pj-add:focus-visible{opacity:1}
+
+/* Planning metrics, By theme / method and Engineer bandwidth: three headers on one line; the one you open expands full width underneath */
+html body[data-hub=plan] #pl-sum{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;align-items:start}
+html body[data-hub=plan] #pl-sum>.pl-sum-grid,html body[data-hub=plan] #pl-sum>.pl-kbox,html body[data-hub=plan] #pl-sum .pl-sum-grid>.pl-card{display:contents!important}
+html body[data-hub=plan] #pl-sum h3{order:1;margin:0!important;display:flex;align-items:center;gap:10px;min-width:0;padding:9px 12px!important;background:#fff;border:1px solid #d8e2ec;border-radius:10px;cursor:pointer;overflow:hidden}
+html body[data-hub=plan] #pl-sum h3:has(.pl-fold[aria-expanded=true]){border-color:#0b5cab;box-shadow:0 0 0 1px #0b5cab inset;background:#f3f8fe}
+html body[data-hub=plan] #pl-sum h3 .pl-fold{flex:none;white-space:nowrap}
+html body[data-hub=plan] #pl-sum h3 .pl-kbrief{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html body[data-hub=plan] #pl-sum h3>small{margin-left:auto;flex:none}
+html body[data-hub=plan] #pl-sum .pl-kbox>:not(h3),html body[data-hub=plan] #pl-sum .pl-sum-grid>.pl-card>:not(h3){order:2;grid-column:1/-1;background:#fff;border:1px solid #d8e2ec;border-radius:10px;padding:10px 12px;margin:0}
+html body[data-hub=plan] #pl-sum .pl-card.collapsed>:not(h3){display:none!important}
+html body[data-hub=plan] #pl-sum .pl-kbox.collapsed>:not(h3){display:none!important}
+@media(max-width:900px){html body[data-hub=plan] #pl-sum{grid-template-columns:1fr}}
