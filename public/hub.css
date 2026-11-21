@@ -3351,3 +3351,7 @@ html body[data-hub=plan] .pl-relw .pl-rel-v small{font-size:10px;font-weight:400
 html body[data-hub=plan] .pl-relw::before{content:"";position:absolute;inset:0;background:#fff;border-radius:6px}
 /* 7.0.83: the V2MOM Ref card never captures the pointer, so the buttons beneath it stay reachable */
 html body .pl-tt.pl-tt-meth{pointer-events:none}
+/* 7.0.84: + Epic on projects with no epics flashes a light red border */
+@keyframes plAddFlash{0%,100%{border-color:#f5b5b5;box-shadow:0 0 0 0 rgba(220,38,38,0)}50%{border-color:#dc2626;box-shadow:0 0 0 3px rgba(220,38,38,.22)}}
+html body[data-hub=plan] tr.pl-g-proj .pl-pj-add.pl-pj-add-empty{opacity:1!important;border:1px solid #f5b5b5!important;color:#b91c1c!important;animation:plAddFlash 1.4s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){html body[data-hub=plan] tr.pl-g-proj .pl-pj-add.pl-pj-add-empty{animation:none;border-color:#dc2626!important}}

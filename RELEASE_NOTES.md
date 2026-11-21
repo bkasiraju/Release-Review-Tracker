@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.84-GA
+
+- On projects with no epics yet, the "+ Epic" button has a light red border that flashes, so empty projects are easy to spot. Reduced-motion users get a steady red border.
+
 ## 7.0.83-GA
 
 - The V2MOM Ref hover card no longer blocks the pointer: moving down over it reaches the rows and buttons beneath, and the card closes.
