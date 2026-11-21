@@ -3355,3 +3355,6 @@ html body .pl-tt.pl-tt-meth{pointer-events:none}
 @keyframes plAddFlash{0%,100%{border-color:#f5b5b5;box-shadow:0 0 0 0 rgba(220,38,38,0)}50%{border-color:#dc2626;box-shadow:0 0 0 3px rgba(220,38,38,.22)}}
 html body[data-hub=plan] tr.pl-g-proj .pl-pj-add.pl-pj-add-empty{opacity:1!important;border:1px solid #f5b5b5!important;color:#b91c1c!important;animation:plAddFlash 1.4s ease-in-out infinite}
 @media (prefers-reduced-motion:reduce){html body[data-hub=plan] tr.pl-g-proj .pl-pj-add.pl-pj-add-empty{animation:none;border-color:#dc2626!important}}
+/* 7.0.85: hide the native select text so only the overlay label shows */
+html body[data-hub=plan] .pl-relw #pl-rel{color:transparent!important;-webkit-text-fill-color:transparent!important;text-shadow:none!important}
+html body[data-hub=plan] .pl-relw #pl-rel option{color:#16325c;-webkit-text-fill-color:#16325c}
