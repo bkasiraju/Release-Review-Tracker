@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.67-GA
+
+- Engineer bandwidth: the yellow (above 85%) and outlier (above 100%) highlights are driven by Prioritised (ABL) only, as a share of availability. BTL work no longer triggers them.
+
 ## 7.0.66-GA
 
 - Engineer bandwidth: an engineer allocated above 85% now gets a yellow highlighter on the allocation figure and bar; above 100% it shows as a red outlier badge. Applies to the Team total row too.
