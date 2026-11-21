@@ -3332,3 +3332,9 @@ html body[data-hub=plan] #pl-sum .pl-kbox.collapsed>:not(h3){display:none!import
 .pl-pj-t>.pl-pj-mt{margin:0 8px 0 0}.pl-pj-t>.pl-pj-m{margin-right:8px}
 
 html body .pl-g-proj{cursor:pointer}
+/* 7.0.80: V2MOM Ref sits on the right before the epics chip; chat chip dims like the other row chips */
+html body[data-hub=plan] tr.pl-g-proj .pl-pj-t>.pl-pj-mt{margin:0 8px 0 0}
+html body[data-hub=plan] tr.pl-g-proj .pl-pj-t>.pl-pj-m{margin:0 8px 0 0}
+html body[data-hub=plan] tr.pl-g-proj:has(.pl-caret[aria-expanded="false"]) .pl-pj-chat{opacity:.7}
+html body[data-hub=plan] tr.pl-g-proj.pl-g-proj:has(.pl-caret[aria-expanded]):hover .pl-pj-chat{opacity:1}
+html body[data-hub=plan] tr.pl-g-proj .pl-pj-chat{transition:opacity .18s ease,background-color .18s ease,border-color .18s ease}

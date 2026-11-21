@@ -1,5 +1,10 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.80-GA
+
+- On project rows, the method chip is renamed "V2MOM Ref" and moved to the right, just before the "X epics" chip; its expanded text stays beside it on the left.
+- The comment-count chip now uses the same dimmed/hover opacity as the rest of the row.
+
 ## 7.0.79-GA
 
 - Pressing Esc twice quickly refreshes the page. Pending edits are saved first; if the plan cannot be saved, the page is not refreshed and a message says why.
