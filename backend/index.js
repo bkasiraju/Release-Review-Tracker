@@ -71,6 +71,7 @@ async function handleRequest(ctx){
         payload={source,sf:names(sf),ctxFunctions:names(ctx),ctxKeys:keys(ctx),salesforceKeys:keys(ctx.salesforce),requestKeys:keys(ctx.request),sfKeys:keys(sf),hasConnectRest:typeof sf?.request==='function',chatterType:typeof sf?.chatter,chatter:sf&&sf.chatter?names(sf.chatter):[],chatterKeys:keys(sf&&sf.chatter),chatterSigs:Object.fromEntries(['post','comment','getFeed','getComments'].map(k=>{try{const f=sf.chatter[k];return [k,typeof f==='function'?{len:f.length,src:String(f).slice(0,900)}:typeof f];}catch(e){return [k,'err'];}})),slack:ctx.slack?names(ctx.slack):[]};break;}
       case 'epic-chat-read':payload=await require('./epic-chat').read(sf,b);break;
       case 'epic-chat-post':payload=await require('./epic-chat').post(sf,b);break;
+      case 'epic-chat-counts':payload=await require('./epic-chat').counts(sf,b);break;
       case 'epic-chat-users':payload=await require('./epic-chat').users(sf,b);break;
       case 'post-chatter':payload=await post.postChatter(sf,b);break;
       case 'hub-teams':payload=await hub.getTeams(sf);break;

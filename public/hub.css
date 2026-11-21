@@ -3301,3 +3301,17 @@ html body .pl-cmh-m b{font-size:11.5px}
 .pl-alloc.over:has(.pl-alloc-bar) b::after{content:"Over 100%";display:inline-block;margin-left:8px;padding:1px 8px;border-radius:10px;background:#c23934;color:#fff;font-size:10px;font-weight:700;letter-spacing:.03em;vertical-align:1px}
 .pl-alloc.warn b::after{content:"Above 85%";display:inline-block;margin-left:8px;padding:1px 8px;border-radius:10px;background:#f5c518;color:#4a3800;font-size:10px;font-weight:700;letter-spacing:.03em;vertical-align:1px}
 .pl-alloc b em{margin-right:14px}.pl-alloc b em.f{margin-right:0}
+
+.pl-pj-chat{display:inline-flex;align-items:center;gap:4px;margin-left:8px;padding:1px 8px;border:1px solid #b9d9d3;border-radius:12px;background:#eaf7f4;color:#0b6b5e;font-size:11.5px;font-weight:700;cursor:pointer;vertical-align:middle}
+.pl-pj-chat:hover{background:#d6f0ea}.pl-pj-chat.on{background:#0b6b5e;border-color:#0b6b5e;color:#fff}
+
+/* Planning metrics: the essential tiles on one line; +Epic is quieter until its row is hovered */
+html body[data-hub=plan] .pl-kg.one{display:block!important}
+html body[data-hub=plan] .pl-kg.one .pl-kpis{grid-template-columns:repeat(7,minmax(0,1fr))!important}
+html body[data-hub=plan] .pl-kg.one .pl-kpi{padding:7px 8px!important;gap:8px}
+html body[data-hub=plan] .pl-kg.one .pl-chip{display:none}
+html body[data-hub=plan] .pl-kg.one .pl-kpi-b small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+@media(max-width:1400px){html body[data-hub=plan] .pl-kg.one .pl-kpis{grid-template-columns:repeat(4,minmax(0,1fr))!important}}
+@media(max-width:900px){html body[data-hub=plan] .pl-kg.one .pl-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+html body .pl-g-proj .pl-pj-add{opacity:.75;transition:opacity .12s}
+html body .pl-g-proj:hover .pl-pj-add,html body .pl-g-proj .pl-pj-add:hover,html body .pl-g-proj .pl-pj-add:focus-visible{opacity:1}

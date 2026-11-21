@@ -94,4 +94,13 @@ async function users(sf, { q: term }) {
   const rows = (await sf.query(`SELECT Id, Name, Title FROM User WHERE IsActive = true AND UserType = 'Standard' AND Name LIKE '%${like}%' ORDER BY Name LIMIT 8`)).records || [];
   return { users: rows.map(u => ({ id: u.Id, name: u.Name, title: u.Title || '' })) };
 }
-module.exports = { read, post, users, parts };
+/** Number of Chatter posts on each of the given epics (for the comment badges), without opening every thread. */
+async function counts(sf, { epicIds }) {
+  const ids = [...new Set((Array.isArray(epicIds) ? epicIds : []).map(validId))].slice(0, 200);
+  const out = {};
+  if (!ids.length) return { counts: out };
+  const rows = (await sf.query(`SELECT ParentId FROM ADM_Epic__Feed WHERE ParentId IN (${ids.map(i => `'${i}'`).join(',')}) AND Type IN ('TextPost','LinkPost','ContentPost','QuestionPost') LIMIT 2000`)).records || [];
+  rows.forEach(r => { const k = String(r.ParentId || '').slice(0, 15); out[k] = (out[k] || 0) + 1; });
+  return { counts: out };
+}
+module.exports = { read, post, users, counts, parts };

@@ -1,5 +1,11 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.74-GA
+
+- Comments on initiatives: every project row shows a chat chip with the total number of GUS Chatter posts across its epics. Click it to show only that project's epics that have comments; click again or press Esc to clear. Comment counts now load for all epics when the plan opens, so the badge on each epic shows without hovering.
+- Planning metrics: reduced to the seven essential tiles on one line (Available, Total planned with ABL/BTL split, Remaining capacity, Over-allocated, Unassigned effort, Incomplete epics, Pending GUS save). Removed: ABL epics, BTL epics, Planned ABL, Planned BTL, Headroom, Time off & on-call, Saved in GUS.
+- "+ Epic" on a project row is shown at 75% opacity and becomes fully opaque when the row is hovered.
+
 ## 7.0.73-GA
 
 - Summary tiles: every tile now filters the epics grid. "Remaining capacity" shows the epics of engineers who still have unplanned days, and "Saved in GUS" shows epics already in GUS. Clicking the active tile again clears the filter.
