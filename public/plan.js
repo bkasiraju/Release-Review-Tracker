@@ -731,6 +731,7 @@ function drawRps(){
   const epicsHtml=`<section class="pl-card pl-epv"><h3>${icon('stack','violet')} Epic review <small>${epics.length} epic${epics.length===1?'':'s'} · ${fmt(tot)} ABL pts</small><span class="pl-ev-ctl"><button type="button" class="text-button" data-evall="1">Expand all</button><button type="button" class="text-button" data-evall="0">Collapse all</button></span></h3><p class="note">Click an epic to expand its workstreams; ⤢ opens the epic full screen. Use the filters and Group by above to narrow the list.</p><div class="pl-epv-h"><span aria-sort="${rsAria('epics','title')}">${rsBtn('epics','title','Title / workstream')}</span><span aria-sort="${rsAria('epics','theme')}">${rsBtn('epics','theme','Theme')}</span><span aria-sort="${rsAria('epics','pri')}">${rsBtn('epics','pri','Priority')}</span><span aria-sort="${rsAria('epics','owner')}">${rsBtn('epics','owner','Owner(s)')}</span><span aria-sort="${rsAria('epics','status')}">${rsBtn('epics','status','Status')}</span><span aria-sort="${rsAria('epics','pts')}">${rsBtn('epics','pts','Points')}</span><span></span></div>${epvList.map((e,i,a)=>(gfn&&(i===0||gfn(a[i-1])!==gfn(e))?`<div class="pl-grp-h pl-epv-g">${esc(gfn(e))} <small>${a.filter(x=>gfn(x)===gfn(e)).length}</small></div>`:'')+epvRow(e)).join('')||'<p class="note">No epics match the filters.</p>'}</section>`;
   const bodies={epics:epicsHtml,overview:`${stripH}<div class="pl-rps-top">${donut}${prio}</div>`,board:boardHtml,saved:savedHtml,eng:engHtml};
   el.innerHTML=`<div class="pl-rv-bar">${nav}${headline}</div>`+fbar+`<div class="pl-rv-body">${bodies[rv]}</div>`;
+  el.querySelectorAll('.pl-rfbar select').forEach(x=>H.customSelect(x));if(window.PlCf)PlCf.apply(el);
   if(rv==='eng'&&P.evFocus!=null){const f=[...el.querySelectorAll('[data-ev]')].find(n=>n.dataset.ev===String(P.evFocus));P.evFocus=null;if(f)f.scrollIntoView({block:'start'});}
   if(!el.dataset.board){el.dataset.board='1';let drag=null;
     const clr=()=>el.querySelectorAll('.pl-br-over').forEach(x=>x.classList.remove('pl-br-over'));
@@ -1735,34 +1736,35 @@ window.addEventListener('hub:team',()=>{closeModal();clearTimeout(P.timer);});
 })();
 })();
 
-/* Planner dropdowns: every native <select> on the planner opens the same styled list as the Planned Release picker.
- * The select stays the source of truth: choosing an item sets its value and fires `change`, so existing handlers are unchanged. */
-(()=>{
-  let menu=null,cur=null,idx=-1;
-  const close=()=>{if(menu){menu.remove();menu=null;}if(cur)cur.removeAttribute('aria-expanded');cur=null;idx=-1;};
-  const eligible=s=>s&&s.tagName==='SELECT'&&document.body.dataset.hub==='plan'&&!s.multiple&&!(s.size>1)&&s.id!=='pl-rel'&&!s.disabled;
-  const items=()=>[...menu.querySelectorAll('.pl-rel-o:not([disabled])')];
-  const mark=i=>{const it=items();if(!it.length)return;idx=(i+it.length)%it.length;it.forEach((x,j)=>x.classList.toggle('hot',j===idx));it[idx].scrollIntoView({block:'nearest'});};
-  const pick=v=>{const s=cur;close();if(!s)return;s.value=v;s.dispatchEvent(new Event('input',{bubbles:true}));s.dispatchEvent(new Event('change',{bubbles:true}));s.focus();};
-  const open=s=>{close();cur=s;s.setAttribute('aria-expanded','true');
-    const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
-    menu=document.createElement('div');menu.className='pl-rel-m pl-dd';menu.setAttribute('role','listbox');
-    menu.innerHTML=[...s.options].map(o=>`<button type="button" role="option" class="pl-rel-o${o.selected?' on':''}" data-dd="${esc(o.value)}" aria-selected="${o.selected}"${o.disabled?' disabled':''}><span class="pl-rel-n">${esc(o.textContent.trim()||'—')}</span></button>`).join('');
-    document.body.appendChild(menu);
-    const r=s.getBoundingClientRect(),h=menu.offsetHeight,below=innerHeight-r.bottom-12,top=below>=Math.min(h,200)||r.top<h?r.bottom+6:r.top-h-6;
-    menu.style.minWidth=r.width+'px';menu.style.left=Math.max(8,Math.min(r.left,innerWidth-menu.offsetWidth-8))+'px';menu.style.top=Math.max(8,top)+'px';menu.style.maxHeight=Math.max(160,Math.min(340,top===r.bottom+6?below:r.top-18))+'px';
-    mark(Math.max(0,s.selectedIndex));};
-  document.addEventListener('mousedown',e=>{const s=e.target.closest&&e.target.closest('select');
-    if(menu&&!(e.target.closest&&e.target.closest('.pl-dd'))&&s!==cur)close();
-    if(!eligible(s))return;e.preventDefault();s.focus();if(cur===s)close();else open(s);},true);
-  document.addEventListener('click',e=>{const o=e.target.closest&&e.target.closest('.pl-dd .pl-rel-o');if(o&&!o.disabled)pick(o.dataset.dd);},true);
-  document.addEventListener('keydown',e=>{
-    if(menu){const k=e.key;
-      if(k==='Escape'){e.stopImmediatePropagation();e.preventDefault();const s=cur;close();s&&s.focus();return;}
-      if(k==='ArrowDown'||k==='ArrowUp'){e.preventDefault();mark(idx+(k==='ArrowDown'?1:-1));return;}
-      if(k==='Enter'||k===' '){e.preventDefault();const it=items()[idx];if(it)pick(it.dataset.dd);return;}
-      if(k==='Tab'){close();return;}return;}
-    const s=e.target;if(eligible(s)&&(e.key==='ArrowDown'||e.key==='ArrowUp'||e.key==='Enter'||e.key===' ')){e.preventDefault();open(s);}},true);
-  window.addEventListener('scroll',e=>{if(menu&&!(e.target.closest&&e.target.closest('.pl-dd')))close();},true);
-  window.addEventListener('resize',close);
+/* Column filters for the Planned Release Summary tabs (Priority board, Epic review, Engineer View). Saved Epics and the full-screen list are real tables and use colfilter.js.
+ * A filter row sits under each header; rows are hidden in the DOM, and the values survive redraws. */
+window.PlCf=(()=>{
+  const S={epics:{},board:{},eng:{}};
+  const norm=t=>String(t||'').replace(/\s+/g,' ').trim().toLowerCase();
+  const txt=n=>{if(!n)return '';let t=n.textContent;n.querySelectorAll('select').forEach(x=>{t+=' '+((x.selectedOptions[0]||{}).textContent||'');});return norm(t);};
+  const row=(tab,hdr,labels,run)=>{
+    const r=document.createElement('div');r.className=hdr.className+' pl-cfrow';r.setAttribute('role','group');r.setAttribute('aria-label','Column filters');
+    labels.forEach((l,i)=>{const c=document.createElement('span');if(l){const inp=document.createElement('input');inp.type='search';inp.className='pl-cfi';inp.placeholder='Filter';inp.autocomplete='off';inp.value=S[tab][i]||'';inp.setAttribute('aria-label','Filter '+l);
+      ['click','keydown','mousedown'].forEach(e=>inp.addEventListener(e,ev=>ev.stopPropagation()));
+      inp.addEventListener('input',()=>{S[tab][i]=norm(inp.value);run();});c.appendChild(inp);}r.appendChild(c);});
+    hdr.after(r);return r;};
+  const active=tab=>Object.keys(S[tab]).filter(k=>S[tab][k]);
+  const labelsOf=h=>[...h.children].map(c=>{const t=norm(c.textContent);return t?c.textContent.replace(/[↕↑↓▲▼]/g,'').trim():'';});
+  function epics(el){const h=el.querySelector('.pl-epv-h');if(!h)return;
+    const run=()=>{const ids=active('epics');el.querySelectorAll('.pl-epv-e').forEach(d=>{const sm=d.querySelector('summary'),ws=[...d.querySelectorAll('.pl-epv-w')];
+      const ok=ids.every(i=>{const f=S.epics[i];return txt(sm.children[i]).includes(f)||ws.some(w=>txt(w.children[i]).includes(f));});d.hidden=!ok;});
+      el.querySelectorAll('.pl-epv-g').forEach(g=>{let n=g.nextElementSibling,any=false;while(n&&!n.classList.contains('pl-epv-g')){if(n.classList.contains('pl-epv-e')&&!n.hidden)any=true;n=n.nextElementSibling;}g.hidden=!!ids.length&&!any;});};
+    row('epics',h,labelsOf(h).map((l,i)=>i===6?'':l),run);run();}
+  function board(el){const h=el.querySelector('.pl-bh');if(!h)return;
+    const run=()=>{const ids=active('board');el.querySelectorAll('.pl-br').forEach(r=>{r.hidden=!ids.every(i=>txt(r.children[i]).includes(S.board[i]));});};
+    row('board',h,[''].concat(labelsOf(h).slice(1)),run);run();}
+  function eng(el){const root=el.querySelector('.pl-eng'),h=root&&root.querySelector('.pl-rs-bar');if(!h)return;
+    const run=()=>{const f=S.eng,who=f[0]||'',ep=f[1]||'';root.querySelectorAll('details.pl-ev').forEach(d=>{const nm=norm((d.querySelector('.pl-ev-who')||{}).textContent),eps=[...d.querySelectorAll('.pl-ev-e')];
+      eps.forEach(e=>{e.hidden=!!ep&&!norm(e.textContent).includes(ep);});
+      d.hidden=(!!who&&!nm.includes(who))||(!!ep&&!eps.some(e=>!e.hidden));});};
+    const r=document.createElement('div');r.className='pl-rs-bar pl-cfrow pl-cfrow-eng';r.setAttribute('role','group');r.setAttribute('aria-label','Column filters');
+    [['Engineer',0],['Epic / project / theme',1]].forEach(([l,i])=>{const lab=document.createElement('label');lab.className='pl-cfl';lab.innerHTML='<small></small>';lab.firstChild.textContent=l;const inp=document.createElement('input');inp.type='search';inp.className='pl-cfi';inp.placeholder='Filter';inp.autocomplete='off';inp.value=S.eng[i]||'';inp.setAttribute('aria-label','Filter '+l);
+      inp.addEventListener('input',()=>{S.eng[i]=norm(inp.value);run();});lab.appendChild(inp);r.appendChild(lab);});
+    h.after(r);run();}
+  return {apply(el){epics(el);board(el);eng(el);}};
 })();

@@ -1,7 +1,7 @@
 /* Column-level filtering for every data table (6.24.0). Adds a filter row under each header and hides rows that do not match.
    The Release Planner grid has its own column search and is skipped. Tables are re-rendered by the pages, so a MutationObserver re-adds the row and re-applies the saved values. */
 (function(){
-  const SKIP='.pl-grid,.pl-rps-t,.pl-rv-ws,.epic-expanded-table,[data-nocf]';
+  const SKIP='.pl-grid,.pl-rv-ws,.epic-expanded-table,[data-nocf]';
   const saved=new Map();           // table key -> {colIndex: text}
   const norm=s=>String(s||'').replace(/\s+/g,' ').trim().toLowerCase();
   const cellText=c=>{let t=c.textContent;c.querySelectorAll('input,select,textarea').forEach(f=>{t+=' '+(f.tagName==='SELECT'?(f.selectedOptions[0]||{}).textContent||'':f.value);});return norm(t);};

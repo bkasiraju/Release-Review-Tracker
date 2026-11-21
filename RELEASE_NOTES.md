@@ -1,5 +1,11 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.93-GA
+
+- Planned Release Summary: every table has column filters. Saved epics and the full-screen epic list get a filter row under the header; Priority board and Epic review get a filter box under each column heading; Engineer View filters by engineer and by epic/project/theme. Filters persist while you switch tabs and redraw.
+- The Summary filter dropdowns use the app's standard dropdown (the same one as the rest of the hub), replacing the generic list added in 7.0.92.
+- The summary line above the tabs is plain text, with no border or tint.
+
 ## 7.0.92-GA
 
 - Every dropdown on the planner (filters, Group by, Sort, engineer pickers and the rest) now opens the same styled list as Planned Release: rounded card, check on the current choice, hover tint, keyboard Up/Down/Enter, Esc to close. Values and change handling are unchanged.

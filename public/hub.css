@@ -3390,3 +3390,15 @@ body[data-hub=plan] .pl-dd .pl-rel-o.hot{background:#f1f6fb}
 body[data-hub=plan] .pl-dd .pl-rel-o.on.hot{background:#dcebfa}
 body[data-hub=plan] .pl-dd .pl-rel-o[disabled]{opacity:.45;cursor:default}
 body[data-hub=plan] select[aria-expanded=true]{border-color:#1b73b3;box-shadow:0 0 0 2px rgba(27,115,179,.2)}
+/* 7.0.93: summary headline is plain text (no border or tint) */
+html body .pl-rv-bar .pl-rv-head,html body .pl-rv-bar .pl-rv-head.ok,html body .pl-rv-bar .pl-rv-head.warn{border:0!important;background:none!important;box-shadow:none!important;padding:0 4px!important;border-radius:0!important}
+/* column filter rows under summary headers */
+html body .pl-cfrow{background:none!important;height:auto!important;margin-top:2px;padding-top:0;padding-bottom:0;text-transform:none;letter-spacing:0}
+html body .pl-cfrow>span{min-width:0}
+html body .pl-cfi{width:100%;box-sizing:border-box;height:24px;border:1px solid #d5e0ea;border-radius:6px;padding:0 8px;font:inherit;font-size:11.5px;font-weight:400;color:#16325c;background:#fff}
+html body .pl-cfi:focus{outline:none;border-color:#1b73b3;box-shadow:0 0 0 2px rgba(27,115,179,.2)}
+html body .pl-cfrow-eng{display:flex;gap:12px;align-items:flex-end;margin:6px 0}
+html body .pl-cfl{display:flex;flex-direction:column;gap:2px;min-width:200px}
+html body .pl-cfl small{font-size:10px;font-weight:700;text-transform:uppercase;color:#5b6b7c;letter-spacing:.05em}
+html body .pl-epv-e[hidden],html body .pl-br[hidden],html body .pl-ev[hidden],html body .pl-ev-e[hidden],html body .pl-epv-g[hidden]{display:none!important}
+html body .cf-row th{padding:3px 6px}
