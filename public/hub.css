@@ -3475,3 +3475,5 @@ html body #epic-table .epic-expanded-table .work-complete,html body #epic-table 
 html body .epic-expanded-wrap,html body #epic-table .epic-expanded-cell>div{overflow-x:auto}
 html body #epic-table .epic-expanded-table td:first-child,html body #epic-table .epic-expanded-table th:first-child{padding-left:14px}
 html body #epic-table .epic-detail-row .epic-detail-scroll{overflow-x:auto;max-width:100%}
+html body #epic-table .epic-detail-row>td{padding:6px 10px 10px}
+html body #epic-table .epic-detail-row .epic-detail-heading{display:none}
