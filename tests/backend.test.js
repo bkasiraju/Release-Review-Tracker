@@ -282,17 +282,17 @@ test('read-only hover summary uses displayed engineer text, live health and deli
  const result=await s.monthlySummary({releaseId:r.id,epicId:ID,month:'2026-10',previewOnly:true,displayedText:'Engineer update: readiness review completed.',useSdk:true});assert.match(result.ai.message,/Engineer update: readiness review completed/);assert.match(result.ai.message,/"epicHealth":"On Track"/);assert.match(result.ai.message,/"pathToGreen":"Complete partner validation"/);assert.match(result.ai.message,/Validate rollout readiness/);assert.equal(JSON.stringify(await store.get('epic',ID)),before);assert.equal(gus.rows[ID].comments,comments);assert.equal(gus.writes,0);await assert.rejects(()=>s.monthlySummary({releaseId:r.id,epicId:ID,month:'2026-10',previewOnly:true,displayedText:'x'.repeat(50001)}),/50,000/);
 });
 
-test('existing and new source lists follow column order; custom choices survive until GUS definition changes',async()=>{
- const {s,gus,store,r}=await setup();const first=[{key:'project',field:'Project__r.Name',label:'Project'},{key:'name',field:'Name',label:'Epic Name'},{key:'health',field:'Health__c',label:'Health'},{key:'lead',field:'Development_Lead__r.Name',label:'Development Lead'},{key:'months',field:'Epic_Health_Comments__c',label:'Epic Health Comments'},{key:'pathToGreen',field:'Path_to_Green__c',label:'Path to Green'}];
+test('existing and new source lists default to the lean column set; custom choices survive until GUS definition changes',async()=>{
+ const LEAN1=['name','lead','months','pathToGreen','health'],LEAN2=['name','lead','months','health'];const {s,gus,store,r}=await setup();const first=[{key:'project',field:'Project__r.Name',label:'Project'},{key:'name',field:'Name',label:'Epic Name'},{key:'health',field:'Health__c',label:'Health'},{key:'lead',field:'Development_Lead__r.Name',label:'Development Lead'},{key:'months',field:'Epic_Health_Comments__c',label:'Epic Health Comments'},{key:'pathToGreen',field:'Path_to_Green__c',label:'Path to Green'}];
  let cols=first;gus.resolveEpicInputs=async()=>({ids:[ID],sources:[{id:'00B000000000001',definitionSource:'live-gus'}],columns:cols});
- let created=await s.saveRelease({name:'Linked source',year:2026,links:'https://gus.lightning.force.com/lightning/o/ADM_Epic__c/list?filterName=Review'});assert.deepEqual(created.columns,first.map(c=>c.key));
+ let created=await s.saveRelease({name:'Linked source',year:2026,links:'https://gus.lightning.force.com/lightning/o/ADM_Epic__c/list?filterName=Review'});assert.deepEqual(created.columns,LEAN1);
  // Simulate a pre-upgrade linked release with legacy mandatory columns and no mode.
  created=await store.put('release',created.id,{...created,columnMode:undefined,columns:['name','health','months','pathToGreen','lead']},created.revision);
- await s.fetch(created.id);created=await s.release(created.id);assert.deepEqual(created.columns,first.map(c=>c.key));
+ await s.fetch(created.id);created=await s.release(created.id);assert.deepEqual(created.columns,LEAN1);
  let custom=await s.saveSettings({releaseId:created.id,revision:created.revision,columns:['project','name','health','pathToGreen','months']});assert.equal(custom.columnMode,'custom');await s.fetch(created.id);assert.deepEqual((await s.release(created.id)).columns,custom.columns);
  cols=[first[0],first[1],first[3],{key:'gus:Priority__c',field:'Priority__c',label:'Priority'},first[2],first[4]];
- await s.fetch(created.id);let changed=await s.release(created.id);assert.deepEqual(changed.columns,cols.map(c=>c.key));assert.equal(changed.columnMode,'gus');assert.equal(changed.columns.includes('pathToGreen'),false);
- const restored=await s.saveSettings({releaseId:changed.id,revision:changed.revision,columns:['name','health'],columnMode:'gus'});assert.deepEqual(restored.columns,cols.map(c=>c.key));assert.equal(gus.writes,0);
+ await s.fetch(created.id);let changed=await s.release(created.id);assert.deepEqual(changed.columns,LEAN2);assert.equal(changed.columnMode,'gus');assert.equal(changed.columns.includes('pathToGreen'),false);
+ const restored=await s.saveSettings({releaseId:changed.id,revision:changed.revision,columns:['name','health'],columnMode:'gus'});assert.deepEqual(restored.columns,LEAN2);assert.equal(gus.writes,0);
 });
 
 test('monthly work read attaches bounded, month-filtered status history and closure dates',async()=>{

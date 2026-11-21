@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.108-GA
+
+- Expanded table columns: the default selection is now a lean set: Epic Name, Development Lead, Monthly updates (review month and two preceding), Path to Green and % of Work Items Complete. Epic Status stays required above each detail table. Releases where someone has already saved their own column choices keep them, and "Use GUS order" now resets to this lean set.
+
 ## 7.0.107-GA
 
 - Release Review: the RELEASE picker and the separate selected-release chip are merged into one control. The picker now shows the selected release name (for example "VegaCache · 266"), or "N releases" when several are selected. Remove or add releases from its dropdown.
