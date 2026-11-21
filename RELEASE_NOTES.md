@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.92-GA
+
+- Every dropdown on the planner (filters, Group by, Sort, engineer pickers and the rest) now opens the same styled list as Planned Release: rounded card, check on the current choice, hover tint, keyboard Up/Down/Enter, Esc to close. Values and change handling are unchanged.
+
 ## 7.0.91-GA
 
 - Planned Release is now a custom dropdown: the release name is large and the dates sit beside it as a small pill, both in the closed picker and in the open list. The current choice has a check and a tint; Esc closes the list.

@@ -1734,3 +1734,35 @@ window.addEventListener('hub:team',()=>{closeModal();clearTimeout(P.timer);});
   document.addEventListener('click',e=>{const tr=e.target.closest&&e.target.closest('.pl-grid tbody tr');if(!tr)return;document.querySelectorAll('.pl-grid tr.pl-row-on').forEach(x=>x!==tr&&x.classList.remove('pl-row-on'));tr.classList.add('pl-row-on');});
 })();
 })();
+
+/* Planner dropdowns: every native <select> on the planner opens the same styled list as the Planned Release picker.
+ * The select stays the source of truth: choosing an item sets its value and fires `change`, so existing handlers are unchanged. */
+(()=>{
+  let menu=null,cur=null,idx=-1;
+  const close=()=>{if(menu){menu.remove();menu=null;}if(cur)cur.removeAttribute('aria-expanded');cur=null;idx=-1;};
+  const eligible=s=>s&&s.tagName==='SELECT'&&document.body.dataset.hub==='plan'&&!s.multiple&&!(s.size>1)&&s.id!=='pl-rel'&&!s.disabled;
+  const items=()=>[...menu.querySelectorAll('.pl-rel-o:not([disabled])')];
+  const mark=i=>{const it=items();if(!it.length)return;idx=(i+it.length)%it.length;it.forEach((x,j)=>x.classList.toggle('hot',j===idx));it[idx].scrollIntoView({block:'nearest'});};
+  const pick=v=>{const s=cur;close();if(!s)return;s.value=v;s.dispatchEvent(new Event('input',{bubbles:true}));s.dispatchEvent(new Event('change',{bubbles:true}));s.focus();};
+  const open=s=>{close();cur=s;s.setAttribute('aria-expanded','true');
+    const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
+    menu=document.createElement('div');menu.className='pl-rel-m pl-dd';menu.setAttribute('role','listbox');
+    menu.innerHTML=[...s.options].map(o=>`<button type="button" role="option" class="pl-rel-o${o.selected?' on':''}" data-dd="${esc(o.value)}" aria-selected="${o.selected}"${o.disabled?' disabled':''}><span class="pl-rel-n">${esc(o.textContent.trim()||'—')}</span></button>`).join('');
+    document.body.appendChild(menu);
+    const r=s.getBoundingClientRect(),h=menu.offsetHeight,below=innerHeight-r.bottom-12,top=below>=Math.min(h,200)||r.top<h?r.bottom+6:r.top-h-6;
+    menu.style.minWidth=r.width+'px';menu.style.left=Math.max(8,Math.min(r.left,innerWidth-menu.offsetWidth-8))+'px';menu.style.top=Math.max(8,top)+'px';menu.style.maxHeight=Math.max(160,Math.min(340,top===r.bottom+6?below:r.top-18))+'px';
+    mark(Math.max(0,s.selectedIndex));};
+  document.addEventListener('mousedown',e=>{const s=e.target.closest&&e.target.closest('select');
+    if(menu&&!(e.target.closest&&e.target.closest('.pl-dd'))&&s!==cur)close();
+    if(!eligible(s))return;e.preventDefault();s.focus();if(cur===s)close();else open(s);},true);
+  document.addEventListener('click',e=>{const o=e.target.closest&&e.target.closest('.pl-dd .pl-rel-o');if(o&&!o.disabled)pick(o.dataset.dd);},true);
+  document.addEventListener('keydown',e=>{
+    if(menu){const k=e.key;
+      if(k==='Escape'){e.stopImmediatePropagation();e.preventDefault();const s=cur;close();s&&s.focus();return;}
+      if(k==='ArrowDown'||k==='ArrowUp'){e.preventDefault();mark(idx+(k==='ArrowDown'?1:-1));return;}
+      if(k==='Enter'||k===' '){e.preventDefault();const it=items()[idx];if(it)pick(it.dataset.dd);return;}
+      if(k==='Tab'){close();return;}return;}
+    const s=e.target;if(eligible(s)&&(e.key==='ArrowDown'||e.key==='ArrowUp'||e.key==='Enter'||e.key===' ')){e.preventDefault();open(s);}},true);
+  window.addEventListener('scroll',e=>{if(menu&&!(e.target.closest&&e.target.closest('.pl-dd')))close();},true);
+  window.addEventListener('resize',close);
+})();

@@ -3383,3 +3383,10 @@ html body[data-hub=plan] .pl-rel-o:hover{background:#f1f6fb}
 html body[data-hub=plan] .pl-rel-o.on{background:#e8f1fb}
 html body[data-hub=plan] .pl-rel-o.on::before{content:"";position:absolute;left:10px;top:50%;width:5px;height:9px;border:solid #1b73b3;border-width:0 2px 2px 0;transform:translateY(-62%) rotate(45deg)}
 html body[data-hub=plan] .pl-relw[aria-expanded=true]::after{transform:translateY(-30%) rotate(225deg)}
+/* 7.0.92: planner-wide dropdown list */
+body[data-hub=plan] .pl-rel-m.pl-dd{position:fixed;z-index:100000;overflow:auto;width:max-content;max-width:min(92vw,520px)}
+body[data-hub=plan] .pl-dd .pl-rel-o{padding-right:14px}
+body[data-hub=plan] .pl-dd .pl-rel-o.hot{background:#f1f6fb}
+body[data-hub=plan] .pl-dd .pl-rel-o.on.hot{background:#dcebfa}
+body[data-hub=plan] .pl-dd .pl-rel-o[disabled]{opacity:.45;cursor:default}
+body[data-hub=plan] select[aria-expanded=true]{border-color:#1b73b3;box-shadow:0 0 0 2px rgba(27,115,179,.2)}
