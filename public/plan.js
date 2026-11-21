@@ -1363,6 +1363,10 @@ function hoistTools(){
   const box=P.el.querySelector('#pl-tools'),gt=P.el.querySelector('#pl-planner .pl-grid-tools');if(!box)return;
   box.querySelectorAll(':scope > .pl-grid-tools').forEach(x=>{if(x!==gt)x.remove();});if(gt)box.appendChild(gt);
 }
+/** Redraw the grid for a fold/unfold without flicker: keep the scroll position and switch row transitions off for the redraw, so rows that are rebuilt under the pointer don't fade between their normal and hover looks. */
+function quietDraw(){const pe=P.el.querySelector('#pl-planner'),sy=window.scrollY,sc=[];for(let n=pe;n;n=n.parentElement)if(n.scrollTop)sc.push([n,n.scrollTop]);
+  if(pe)pe.classList.add('pl-nofx');drawPlanner();wire();window.scrollTo(window.scrollX,sy);sc.forEach(([n,t])=>{n.scrollTop=t;});
+  if(pe){clearTimeout(P.nofxT);P.nofxT=setTimeout(()=>pe.classList.remove('pl-nofx'),350);}}
 const wire=()=>{P.el.querySelectorAll('#pl-planner select').forEach(s=>H.customSelect(s));wireColFilters();};
 let cfTimer;
 /** Inline column searches: update the filter and redraw the grid, keeping focus and caret in the box being typed in. */
@@ -1536,7 +1540,7 @@ function onClick(ev){
   const fd=t.closest('[data-fold]')||(t.closest('#pl-sum h3')?.querySelector('[data-fold]'))||(t.closest('.pl-card>h3>small,.pl-kbox>h3>small,.pl-kbox>h3>.pl-kbrief')?.parentElement.querySelector('[data-fold]'));if(fd){const k=fd.dataset.fold,on=!P.open[k];if(on&&['kpis','theme','eng'].includes(k))['kpis','theme','eng'].forEach(o=>{P.open[o]=false;});P.open[k]=on;drawSummary();return;}
   const fa=t.closest('[data-fold-all]');if(fa){const c=collapsed();c.clear();if(fa.dataset.foldAll==='1'){pl.projects.forEach(p=>c.add('p:'+p.id));(P.gkeys||[]).forEach(k=>c.add('g:'+k));}try{localStorage.setItem(colKey(),JSON.stringify([...c]));}catch(_){}drawPlanner();wire();return;}
   const mt=t.closest('[data-m-toggle]');if(mt){const k=mt.dataset.mToggle;if(P.mOpen.has(k))P.mOpen.delete(k);else P.mOpen.add(k);drawPlanner();wire();return;}
-  const fr=t.closest('[data-fold-row]')||(t.closest('tr.pl-g-proj')&&!t.closest('button,a,input,select,textarea,label,summary,[contenteditable],[data-tip-meas],[data-tip-meth]')&&t.closest('tr.pl-g-proj').querySelector('[data-fold-row]'));if(fr){const k=fr.dataset.foldRow;setCollapsed(k,!collapsed().has(k));drawPlanner();wire();return;}
+  const fr=t.closest('[data-fold-row]')||(t.closest('tr.pl-g-proj')&&!t.closest('button,a,input,select,textarea,label,summary,[contenteditable],[data-tip-meas],[data-tip-meth]')&&t.closest('tr.pl-g-proj').querySelector('[data-fold-row]'));if(fr){const k=fr.dataset.foldRow;setCollapsed(k,!collapsed().has(k));quietDraw();return;}
   if(t.closest('[data-proj-add-epic]')){newEpicAt(c.p);return;}
   if(t.closest('[data-epics-toggle]')){P.epicsOpen=!P.epicsOpen;if(P.epicsOpen)P.projOpen=false;drawPlanner();wire();return;}
   const ge=t.closest('[data-goto-epic]');if(ge&&!t.closest('a')){const id=ge.dataset.gotoEpic,ee=findE(id);if(ee){setCollapsed('p:'+ee.projectId,false);setCollapsed('e:'+id,false);}P.epicsOpen=false;drawPlanner();wire();const row=P.el.querySelector(`[data-e="${id}"]`);if(row){row.scrollIntoView({block:'center'});row.classList.add('pl-flash');setTimeout(()=>row.classList.remove('pl-flash'),2600);}return;}

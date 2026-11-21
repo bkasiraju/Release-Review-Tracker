@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.97-GA
+
+- Clicking a project or epic row to expand or collapse no longer flickers or jumps: the grid keeps its scroll position and skips the fade transitions while it redraws.
+
 ## 7.0.96-GA
 
 - Saved epics and the full-screen list: the last column header and its filter no longer spill past the card edge. Headers wrap, filter boxes shrink with their column, and the card scrolls sideways only if it must.

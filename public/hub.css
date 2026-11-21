@@ -3415,3 +3415,5 @@ html body .pl-rps-t thead tr.cf-row th{white-space:nowrap;overflow:hidden;paddin
 html body .pl-rps-t .cf-in{min-width:0;width:100%;max-width:100%}
 html body .pl-rps-t .cf-clear{max-width:100%}
 html body .pl-card.pl-saved,html body .pl-mo-scroll{overflow-x:auto;box-sizing:border-box}
+/* 7.0.97: no fades while a fold/unfold redraws the grid */
+html body #pl-planner.pl-nofx *,html body #pl-planner.pl-nofx *::before,html body #pl-planner.pl-nofx *::after{transition:none!important;animation:none!important}
