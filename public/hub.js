@@ -91,6 +91,9 @@ let gusEl=null; // keep a handle: the planner re-renders its markup and would ot
 function placeTeam(){
   const bar=$('dashboard-controls'),t=document.querySelector('label.hub-team');if(!bar||!t)return;
   const back=bar.querySelector('#pl-back');
+  const tb=bar.querySelector('.release-toolbar'),rp=tb&&tb.querySelector('.release-picker');
+  /* where the release controls are shown, Team is the first control, before RELEASE */
+  if(rp&&tb.getClientRects().length){if(t.parentNode!==tb||t.nextElementSibling!==rp)tb.insertBefore(t,rp);return;}
   if(back){if(t.parentNode!==bar||t.nextElementSibling!==back)bar.insertBefore(t,back);}
   else if(t.parentNode!==bar||bar.lastElementChild!==t)bar.append(t);
 }
@@ -99,15 +102,17 @@ function placeGus(){
   const el=gusEl||$('gus-links'),hp=$('hub-panel');if(!el||!hp)return;
   const vis=x=>!x.closest('.hidden')&&x.getClientRects().length,h=[...document.querySelectorAll('main .executive-heading')].find(vis);
   const sum=$('selected-release-summary');let row=$('ctl-row');
+  /* the selected-release chips sit inline, right after the release picker's + button, instead of on a row of their own */
+  {const nb=$('new-release');if(sum&&nb&&nb.parentNode&&sum.previousElementSibling!==nb)nb.after(sum);}
   /* Release Planning: the Open-in-GUS chips sit inline, directly before the planner's Full screen / Export template / Import controls */
   const pb=document.body.dataset.hub==='plan'?[...document.querySelectorAll('.pl-planner-btns')].find(vis):null;
-  if(pb){if(el.parentNode!==pb||pb.firstElementChild!==el)pb.prepend(el);if(sum&&sum.parentNode===row)$('dashboard-controls').after(sum);if(row&&!row.children.length)row.remove();return;}
-  if(h){if(h.nextElementSibling!==el)h.after(el);if(sum&&sum.parentNode===row)$('dashboard-controls').after(sum);if(row&&!row.children.length)row.remove();}
+  if(pb){if(el.parentNode!==pb||pb.firstElementChild!==el)pb.prepend(el);if(row&&!row.children.length)row.remove();return;}
+  if(h){if(h.nextElementSibling!==el)h.after(el);if(row&&!row.children.length)row.remove();}
   else{/* one line: "Open in GUS" links on the left, selected release chips on the right */
     if(!row){row=document.createElement('div');row.id='ctl-row';}
     if(row.nextElementSibling!==hp)hp.before(row);
     if(el.parentNode!==row)row.prepend(el);
-    if(sum&&sum.parentNode!==row)row.append(sum);}
+    }
 }
 let gusObs;function watchGus(){if(gusObs)return;const m=document.querySelector('main')||document.body;gusObs=new MutationObserver(placeGus);gusObs.observe(m,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});}
 function renderGusLinks(id){

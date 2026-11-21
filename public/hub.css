@@ -3454,3 +3454,9 @@ html body .work-grid-scroll .work-row .nudge-btn{grid-column:7;grid-row:1;justif
 html body .work-grid-scroll .work-row .work-points{grid-column:6;justify-self:end;white-space:nowrap}
 html body .work-grid-scroll .work-row .work-sprint{overflow-wrap:normal;word-break:normal;white-space:normal;line-height:1.35}
 html body .work-grid-scroll .work-list{min-width:max(900px,calc(180px + 94px + var(--work-status) + var(--work-owner) + var(--work-sprint) + 52px + 76px + 48px))}
+/* 7.0.105 selected-release chips sit inline beside the release picker; no label, no extra row */
+html body #selected-release-summary:not(.hidden)::before{content:none!important;display:none}
+html body #dashboard-controls #selected-release-summary{display:inline-flex;margin:0!important;padding:0;flex:0 1 auto;min-width:0;gap:4px}
+html body #dashboard-controls #selected-release-summary.hidden{display:none}
+html body #dashboard-controls #selected-release-summary .selected-release-chip{white-space:nowrap}
+html body .release-toolbar>label.hub-team{margin:0 6px 0 0;display:inline-flex;align-items:center;gap:8px;flex:0 0 auto}

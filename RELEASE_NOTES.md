@@ -1,5 +1,10 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.105-GA
+
+- Release Review: the "Selected Teams or Releases" row is gone. The selected-release chips now sit inline right after the release picker's + button, so there is no extra row or gap.
+- Release Review: the Team selector is now the first control, before RELEASE.
+
 ## 7.0.104-GA
 
 - Epic table: click anywhere on a row to expand or collapse its monthly details (links, dropdowns, buttons and text selection still work as before, and Enter works on a focused row). The "+" column is removed to save space.
