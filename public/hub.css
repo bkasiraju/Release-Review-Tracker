@@ -3425,3 +3425,6 @@ html body .pl-donut-card .pl-theme-leg button span{flex:1 1 auto;min-width:0;ove
 html body .pl-donut-card .pl-theme-leg button b{flex:0 0 auto;margin-left:auto}
 html body .pl-donut-card{overflow:hidden}
 html body .pl-arc-l{font-size:6.5px;font-weight:800;fill:#fff;pointer-events:none;stroke:none;paint-order:stroke}
+/* 7.0.99: SMART goal hover card works inside full-screen lists */
+html body .pl-tt.pl-tt-goal{z-index:100000!important}
+html body .pl-ls-sg{cursor:help}

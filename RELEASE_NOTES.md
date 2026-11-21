@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.99-GA
+
+- In the full-screen epic lists (for example P0 epics), hovering "SMART goal" under an epic shows the SMART goal card, the same one used elsewhere in the planner.
+
 ## 7.0.98-GA
 
 - Theme Payload Distribution: each slice (4% or more of the total) shows its points as a label, and the theme legend is one column so names and points are never cut off.
