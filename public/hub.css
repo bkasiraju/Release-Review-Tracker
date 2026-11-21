@@ -3417,3 +3417,11 @@ html body .pl-rps-t .cf-clear{max-width:100%}
 html body .pl-card.pl-saved,html body .pl-mo-scroll{overflow-x:auto;box-sizing:border-box}
 /* 7.0.97: no fades while a fold/unfold redraws the grid */
 html body #pl-planner.pl-nofx *,html body #pl-planner.pl-nofx *::before,html body #pl-planner.pl-nofx *::after{transition:none!important;animation:none!important}
+/* 7.0.98: theme legend never clips; slice labels show the points */
+html body .pl-donut-card .pl-theme-leg{grid-template-columns:minmax(0,1fr);gap:2px}
+html body .pl-donut-card .pl-theme-leg button{display:flex;align-items:center;gap:8px;width:100%;min-width:0;box-sizing:border-box}
+html body .pl-donut-card .pl-theme-leg button i{flex:0 0 10px;margin:0}
+html body .pl-donut-card .pl-theme-leg button span{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html body .pl-donut-card .pl-theme-leg button b{flex:0 0 auto;margin-left:auto}
+html body .pl-donut-card{overflow:hidden}
+html body .pl-arc-l{font-size:6.5px;font-weight:800;fill:#fff;pointer-events:none;stroke:none;paint-order:stroke}

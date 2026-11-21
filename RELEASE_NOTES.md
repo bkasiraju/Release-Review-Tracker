@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.98-GA
+
+- Theme Payload Distribution: each slice (4% or more of the total) shows its points as a label, and the theme legend is one column so names and points are never cut off.
+
 ## 7.0.97-GA
 
 - Clicking a project or epic row to expand or collapse no longer flickers or jumps: the grid keeps its scroll position and skips the fade transitions while it redraws.
