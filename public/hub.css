@@ -3349,3 +3349,5 @@ html body[data-hub=plan] .pl-relw #pl-rel option{color:#16325c}
 html body[data-hub=plan] .pl-relw .pl-rel-v{position:absolute;left:11px;right:30px;top:0;bottom:0;display:flex;align-items:center;gap:5px;overflow:hidden;white-space:nowrap;font-size:12px;font-weight:600;color:#16325c;pointer-events:none}
 html body[data-hub=plan] .pl-relw .pl-rel-v small{font-size:10px;font-weight:400;color:#5a6b7d}
 html body[data-hub=plan] .pl-relw::before{content:"";position:absolute;inset:0;background:#fff;border-radius:6px}
+/* 7.0.83: the V2MOM Ref card never captures the pointer, so the buttons beneath it stay reachable */
+html body .pl-tt.pl-tt-meth{pointer-events:none}
