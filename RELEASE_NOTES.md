@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.72-GA
+
+- Engineer bandwidth: more space between the ABL, BTL and Remaining figures in the allocation label.
+
 ## 7.0.71-GA
 
 - Engineer bandwidth: the ABL, BTL and Remaining percentages now show the days in brackets, e.g. "ABL - 88% (43d), BTL - 0% (0d), Remaining - 12% (6d)", also on the Team total row.
