@@ -1,5 +1,10 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.100-GA
+
+- Epics with no SMART goal now say "SMART goal missing" in the full-screen epic lists and the epic dialog. Clicking it (or Enter) closes the dialog and jumps to that epic's row in the planner, highlighted.
+- Fixed the SMART goal hover card in the full-screen list, which was not receiving the epic id in 7.0.99-GA.
+
 ## 7.0.99-GA
 
 - In the full-screen epic lists (for example P0 epics), hovering "SMART goal" under an epic shows the SMART goal card, the same one used elsewhere in the planner.

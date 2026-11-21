@@ -3428,3 +3428,5 @@ html body .pl-arc-l{font-size:6.5px;font-weight:800;fill:#fff;pointer-events:non
 /* 7.0.99: SMART goal hover card works inside full-screen lists */
 html body .pl-tt.pl-tt-goal{z-index:100000!important}
 html body .pl-ls-sg{cursor:help}
+html body .pl-ls-sgm{color:#b45309;text-decoration:underline dotted;text-underline-offset:2px;cursor:pointer}
+html body .pl-ls-sgm:hover{color:#92400e}
