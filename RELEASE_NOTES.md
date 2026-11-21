@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.88-GA
+
+- The "Leaves & on-call" button is renamed "Leave/Oncall/Holidays register".
+
 ## 7.0.87-GA
 
 - The Planned Release picker now fits its label (no empty space) and shows a dropdown chevron.
