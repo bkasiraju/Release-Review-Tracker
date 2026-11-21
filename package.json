@@ -1,6 +1,6 @@
 {
   "name": "cfs-release-review-tracker",
-  "version": "7.0.109-GA",
+  "version": "7.0.110-GA",
   "private": true,
   "scripts": {
     "start": "node server.js",
