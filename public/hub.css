@@ -3477,3 +3477,7 @@ html body #epic-table .epic-expanded-table td:first-child,html body #epic-table 
 html body #epic-table .epic-detail-row .epic-detail-scroll{overflow-x:auto;max-width:100%}
 html body #epic-table .epic-detail-row>td{padding:6px 10px 10px}
 html body #epic-table .epic-detail-row .epic-detail-heading{display:none}
+/* 7.0.113 tighter gap between the expand button and the epic icon */
+html body #epic-table .epic-summary-row>.epic-expand-cell,html body #epic-table thead th.epic-expand-heading,html body #epic-table thead tr.cf-row>:first-child{width:24px;min-width:24px;max-width:24px;padding:4px 2px 4px 6px}
+html body #epic-table .epic-summary-row>.epic-expand-cell+td{padding-left:4px}
+html body #epic-table .epic-expanded-table th{overflow:hidden}

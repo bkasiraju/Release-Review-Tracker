@@ -19,7 +19,7 @@
  function summaryColumnSizes(rows=[],width=1080,measure=text=>String(text).length*6.5){
   const widest=(key,extra,min,max)=>Math.max(min,Math.min(max,Math.max(0,...rows.map(e=>measure(String(e[key]||''))))+extra));
   const weights=[widest('name',48,280,440),widest('lead',48,170,300),widest('health',34,110,160),220,120],base=weights.reduce((a,b)=>a+b,0),usable=Math.max(base,Number(width)-40||0);
-  return [40,...weights.map(w=>Math.round(w/base*usable))];
+  return [28,...weights.map(w=>Math.round(w/base*usable))];
  }
  function columnSizes(columns,rows=[],label=key=>key,measure=text=>String(text).length*6.5){
   return columns.map(key=>{
