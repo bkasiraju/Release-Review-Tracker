@@ -1,0 +1,6 @@
+{
+  "summary": "8.0.0-GA GOLDEN BUILD (revision r1): the code of 7.0.121-GA. Implementing-agent review only, not independent; nothing verified in a signed-in browser; GUS sync and Slack posting not exercised live; 79 baseline test failures predate this work.",
+  "blockingIssues": [],
+  "caveats": ["Nothing verified in a signed-in browser", "Two-way GUS sync and plan-sync-workstreams never run against live GUS", "Slack @mention and post not verified against live Slack", "Golden dataset backup not captured for this build"],
+  "recommendation": "ApproveWithCaveats"
+}
