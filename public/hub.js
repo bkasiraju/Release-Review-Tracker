@@ -259,6 +259,7 @@ function cellLen(c){
   return t.length+(c.querySelector('button')?5:0);
 }
 function fitTable(t){
+  if(t.classList.contains('epic-expanded-table')||t.closest('.epic-expanded-table'))return; // sized by the review table itself (percent widths)
   const host=t.parentElement;if(!host||!t.tHead||!t.tBodies.length)return;
   const avail=host.clientWidth;if(!avail)return;
   const hr=t.tHead.rows[t.tHead.rows.length-1];if(!hr)return;

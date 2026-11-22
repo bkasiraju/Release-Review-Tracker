@@ -1,5 +1,10 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.114-GA
+
+- Expanded epic rows: found why the column widths never applied. The generic table auto-sizer was injecting its own pixel column widths ahead of the table's. It now leaves this table alone, so Epic Name, Lead, the month columns, Path to Green and Work Complete take their intended widths. Checked in a headless browser against the fixture data: seven columns fill the full row width.
+- Review epic rows now follow the planner row style: muted at rest, and the hovered or focused row gets the blue highlight with everything on it (buttons, dropdowns, details) at full strength. The expanded row stays softly highlighted.
+
 ## 7.0.113-GA
 
 - Expanded epic rows: column widths are now set on the header cells themselves, so they are honoured. Epic Name is wide, monthly update columns are equal (the review month no longer takes most of the row), and Path to Green and Work Items Complete stay visible.
