@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.118-GA
+
+- No more flicker: the table is only redrawn when its content actually changes, so background refreshes, focus and resize no longer repaint rows or close an open tooltip or preview. Auto-refresh also waits while a tooltip is showing or the pointer is on the table.
+
 ## 7.0.117-GA
 
 - Full screen: tooltips, previews, drawers, dialogs and toasts now appear above the full-screen epic table. Full screen is requested for the whole page, so popups are no longer hidden outside the table.
