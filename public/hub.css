@@ -3518,3 +3518,7 @@ html body .nd2 .button.primary,html body .nd2 .nd-go,html body .nd2 .nd-go:not(:
 html body .nd2 .button.primary:hover:not(:disabled),html body .nd2 .nd-go:hover:not(:disabled){background:#d3e5f8;border-color:#6aa0d6}
 html body .nd2 .button.primary:disabled,html body .nd2 .nd-go:disabled{background:#f3f6f9;border-color:#e0e6ed;color:#94a3b8}
 html body .nd2 #nd-text{min-height:210px;line-height:1.5;white-space:pre-wrap}
+
+/* 7.0.121 — Nudge buttons: same light style and size as Summary; no dark-blue fill on hover/focus */
+html body .nudge-btn,html body .work-grid-scroll .work-row .nudge-btn{font:600 10px/1.4 inherit;font-family:inherit;padding:4px 10px;height:auto;border:1px solid #99c4e2;border-radius:999px;background:#f2f6f9;color:#225477;box-shadow:none}
+html body .nudge-btn:hover,html body .nudge-btn:focus-visible,html body tr.epic-summary-row:hover .nudge-btn:hover{background:#d3e5f8;border-color:#6aa0d6;color:#173f5c}
