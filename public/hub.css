@@ -3507,3 +3507,7 @@ html body:has(.table-card.expanded) .ui-tooltip,html body:has(.table-card.expand
 html body:has(.table-card.expanded) .overlay,html body:has(.table-card.expanded) .hub-confirm-ov,html body:has(.table-card.expanded) .nd-overlay{z-index:2147483300!important}
 html body:has(.table-card.expanded) .drawer,html body:has(.table-card.expanded) .modal,html body:has(.table-card.expanded) dialog{z-index:2147483400!important}
 html body:has(.table-card.expanded) #toasts,html body:has(.table-card.expanded) .toasts{z-index:2147483700!important}
+
+/* 7.0.119 — the expand column is always the compact 28px, in every column group the table can carry */
+html body #epic-table>colgroup>col:first-child{width:28px!important;min-width:28px!important}
+html body #epic-table:not(.epic-expanded-table){table-layout:fixed}

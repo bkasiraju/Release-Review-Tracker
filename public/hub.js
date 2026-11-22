@@ -272,8 +272,9 @@ function fitTable(t){
     cols.push({h,max:Math.max(max,h),avg:rows.length?sum/rows.length:0});
   }
   const fixed=c=>c.max<=FIT_SHORT;
+  if(t.id==='epic-table')cols[0]={h:1,max:1,avg:1,pin:28}; // the expand column is always the compact 28px, whatever its cells hold
   let used=0,wsum=0;
-  for(const c of cols){if(fixed(c)){c.px=Math.ceil(c.max*FIT_CH+FIT_PAD);used+=c.px;}else{c.w=Math.max(c.avg,c.h);wsum+=c.w;}}
+  for(const c of cols){if(c.pin){c.px=c.pin;used+=c.px;}else if(fixed(c)){c.px=Math.ceil(c.max*FIT_CH+FIT_PAD);used+=c.px;}else{c.w=Math.max(c.avg,c.h);wsum+=c.w;}}
   const flex=cols.filter(c=>!fixed(c)),room=Math.max(avail-used,FIT_MIN_TEXT*flex.length);
   for(const c of flex)c.px=Math.max(FIT_MIN_TEXT,Math.floor(room*c.w/wsum));
   const sig=cols.map(c=>c.px).join(',');
