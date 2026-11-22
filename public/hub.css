@@ -3522,3 +3522,7 @@ html body .nd2 #nd-text{min-height:210px;line-height:1.5;white-space:pre-wrap}
 /* 7.0.121 — Nudge buttons: same light style and size as Summary; no dark-blue fill on hover/focus */
 html body .nudge-btn,html body .work-grid-scroll .work-row .nudge-btn{font:600 10px/1.4 inherit;font-family:inherit;padding:4px 10px;height:auto;border:1px solid #99c4e2;border-radius:999px;background:#f2f6f9;color:#225477;box-shadow:none}
 html body .nudge-btn:hover,html body .nudge-btn:focus-visible,html body tr.epic-summary-row:hover .nudge-btn:hover{background:#d3e5f8;border-color:#6aa0d6;color:#173f5c}
+
+/* 8.0.0-GA — epic drawers show the Development Lead under the epic name */
+html body .drawer-header p.drawer-lead{margin-top:4px;font-size:12px;color:#475569}
+html body .drawer-header p.drawer-lead strong{color:#173f5c;font-weight:600}

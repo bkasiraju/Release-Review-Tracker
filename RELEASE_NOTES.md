@@ -4,6 +4,10 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r2 (folded)
+
+- Epic drawers (Monthly Health Update, Epic Details, Path to Green, V2MOM measure, notes, legacy years) now show the Development Lead under the epic name.
+
 ## 7.0.121-GA
 
 - Review dashboard: the row Nudge button no longer turns dark blue on hover or focus; it uses the same light style and the same smaller font size as the Summary button.
