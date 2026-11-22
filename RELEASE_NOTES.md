@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.115-GA
+
+- Release epics full screen is now literally full screen: the table covers the whole window edge to edge above the page header, and the table fills the full height with the footer pinned at the bottom. Where the browser allows it, it also uses the browser's real full-screen mode; press Esc or the close button to leave.
+
 ## 7.0.114-GA
 
 - Expanded epic rows: found why the column widths never applied. The generic table auto-sizer was injecting its own pixel column widths ahead of the table's. It now leaves this table alone, so Epic Name, Lead, the month columns, Path to Green and Work Complete take their intended widths. Checked in a headless browser against the fixture data: seven columns fill the full row width.
