@@ -4,6 +4,10 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r3 (folded)
+
+- Epics that still need a Review Status (Watch, Canceled, Not Started) get an amber edge and tint in the review table. When a publish is refused for a missing Review Status, the page scrolls to that epic, highlights it and focuses its Review Status field, and the message says to set it in the highlighted row.
+
 ### 8.0.0-GA r2 (folded)
 
 - Epic drawers (Monthly Health Update, Epic Details, Path to Green, V2MOM measure, notes, legacy years) now show the Development Lead under the epic name.

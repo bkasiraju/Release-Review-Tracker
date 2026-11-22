@@ -3,7 +3,7 @@
   "label": "GOLDEN BUILD",
   "product": "Release Intelligence",
   "artifact": "cfs-release-review-tracker.zip",
-  "sha256": "4f1c6c4ad26fc5373eaaec9e8f99128de666a41eff0ff83f931021b98e191a42",
+  "sha256": "ec78983f1ab8fad8cc6edc14ba8170a82d7d2a448916d9220f3f83c2ee7375d9",
   "gitTags": [
     "v8.0.0-GA",
     "GOLDEN-BUILD-8.0.0-GA"
@@ -11,8 +11,8 @@
   "productionUrl": "https://gus-apps.internal.salesforce.com/applets/cfs-release-review-tracker/",
   "preferredRollbackTag": "GOLDEN-BUILD-8.0.0-GA",
   "previousBaselineTag": "GOLDEN-BUILD-7.0.0-GA",
-  "revision": "20261122-8.0.0-r2",
-  "sourceVersion": "7.0.121-GA + Development Lead in epic drawers",
+  "revision": "20261122-8.0.0-r3",
+  "sourceVersion": "7.0.121-GA + Development Lead in drawers + Review Status highlights",
   "foldPolicy": "Further changes are folded into 8.0.0-GA only; each fold bumps the revision and refreshes this folder. First snapshot: releases/8.0.0-GA-original.",
   "verification": {
     "validationScope": "Focused headless-browser probes for the table, full screen, tooltips and expand column; slack_channels tests pass; the full suite still has the 79 failures that predate this work; GUS two-way sync, Slack posting and the new GUS queries not verified against live GUS/Slack; UI not verified in a signed-in browser; live footer version needs a signed-in GUS Apps check; not independently reviewed",

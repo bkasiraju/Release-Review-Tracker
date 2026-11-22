@@ -3526,3 +3526,11 @@ html body .nudge-btn:hover,html body .nudge-btn:focus-visible,html body tr.epic-
 /* 8.0.0-GA — epic drawers show the Development Lead under the epic name */
 html body .drawer-header p.drawer-lead{margin-top:4px;font-size:12px;color:#475569}
 html body .drawer-header p.drawer-lead strong{color:#173f5c;font-weight:600}
+
+/* 8.0.0-GA — epics that still need a Review Status are flagged in the table; the one that blocked a publish pulses */
+html body #epic-table tr.epic-summary-row.review-missing>td.epic-expand-cell{box-shadow:inset 3px 0 #e0a43a}
+html body #epic-table tr.epic-summary-row.review-missing:not(:hover)>td{background:#fffaf0}
+html body #epic-table tr.epic-summary-row.review-attention>td{background:#fff1d6!important;animation:rvAttn 1.2s ease-in-out 3}
+html body #epic-table tr.epic-summary-row.review-attention>td.epic-expand-cell{box-shadow:inset 4px 0 #d9822b}
+@keyframes rvAttn{50%{background:#ffe2a8}}
+@media(prefers-reduced-motion:reduce){html body #epic-table tr.epic-summary-row.review-attention>td{animation:none}}
