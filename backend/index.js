@@ -30,6 +30,10 @@ async function handleRequest(ctx){
       case 'state':payload=await service.state();break;
       case 'list-catalog':payload={lists:(gus.definitions||require('./list-definitions')).map(d=>({name:d.developerName,label:d.label,url:'https://gus.lightning.force.com/lightning/o/ADM_Epic__c/list?filterName='+encodeURIComponent(d.developerName),verifiedAt:d.verifiedAt}))};break;
       case 'inspect-list':payload=await gus.resolveEpicInputs(b.links);break;
+      case 'team-releases':payload={releases:await gus.teamPlannedReleases(b.teamId)};break;
+      case 'use-planned-release':payload=await service.usePlannedRelease(b);break;
+      case 'review-defaults':payload=await service.reviewDefaults();break;
+      case 'set-review-default':payload=await service.setReviewDefault(b);break;
       case 'save-release':payload=await service.saveRelease(b);break;
       case 'delete-release':payload=await service.deleteRelease(b);break;
       case 'save-v2mom-mapping':payload=await service.saveMapping(b);break;

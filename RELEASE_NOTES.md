@@ -4,6 +4,12 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r4 (folded)
+
+- Release Review can now take its epic list from a GUS Planned Release (`ADM_Planned_Release__c`) and the epics related to it, instead of saved list views. Paste a Planned Release URL or ID, or pick one from the new Planned releases list in the Add/Edit release drawer. Columns, order, selection and dashboard are unchanged; the epic list is re-read from GUS on each refresh.
+- The drawer lists every planned release filed on the selected team (past, current and future, from the team's Planned Releases related list) with dates, epic count and a phase label, so it works for every team. A ☆ Set default button marks the planned release a team's review opens on (shared, stored per team), for example 268 once planning ends. Saved list-view releases keep working.
+- Not verified against live GUS or in a signed-in browser. The checks used a stubbed GUS client.
+
 ### 8.0.0-GA r3 (folded)
 
 - Epics that still need a Review Status (Watch, Canceled, Not Started) get an amber edge and tint in the review table. When a publish is refused for a missing Review Status, the page scrolls to that epic, highlights it and focuses its Review Status field, and the message says to set it in the highlighted row.

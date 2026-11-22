@@ -5,6 +5,13 @@ const EPIC_FIELDS={name:'Name',project:'Project__r.Name',health:'Health__c',prio
 const WORK_FIELDS={number:'Name',title:'Subject__c',status:'Status__c',assignee:'Assignee__r.Name',sprint:'Sprint__r.Name',sprintStart:'Sprint__r.Start_Date__c',sprintEnd:'Sprint__r.End_Date__c',points:'Story_Points__c',priority:'Priority__c'};
 const FIELD_PATH=/^[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*$/;
 function validId(id){if(typeof id!=='string'||!/^([a-zA-Z0-9]{15}|[a-zA-Z0-9]{18})$/.test(id))throw Error('Use a GUS epic record link or a 15/18-character Salesforce record ID.');return id.slice(0,15);}
+const PLANNED_ID=/^aBQ[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?$/;
+// A Planned Release is the review source: its record URL (or bare id) resolves to the epics filed against it.
+function plannedReleaseId(item){
+  if(PLANNED_ID.test(item))return item;
+  if(!item.includes('://'))return null;
+  try{const u=new URL(item);if(!['gus.my.salesforce.com','gus.lightning.force.com'].includes(u.hostname))return null;const m=u.pathname.match(/^\/lightning\/r\/ADM_Planned_Release__c\/([A-Za-z0-9]{15}(?:[A-Za-z0-9]{3})?)\/view\/?$/);return m&&PLANNED_ID.test(m[1])?m[1]:null;}catch{return null;}
+}
 function parseEpicLinks(input){
   if(typeof input!=='string'||input.length>100000)throw Error('Paste up to 500 epic links.');
   const ids=[];
@@ -69,6 +76,18 @@ class Gus{
     const ids=[],sources=[],columns=[];
     const normalized=input.replace(/\[[^\]]*\]\((https:\/\/[^)\s]+)\)/g,'$1');
     for(const item of normalized.split(/[\s,]+/).filter(Boolean)){
+      const planned=plannedReleaseId(item);
+      if(planned){
+        if(sources.some(s=>s.id===planned.slice(0,15)))continue;
+        const rel=(await this.sf.query(`SELECT Id, Name, Team__r.Name, Start_Date__c, End_Date__c FROM ADM_Planned_Release__c WHERE Id = '${planned}' LIMIT 1`)).records?.[0];
+        if(!rel)throw Error('That Planned Release is not visible in GUS.');
+        const records=await this.queryAll(`SELECT Id FROM ADM_Epic__c WHERE Planned_Release__c = '${planned}' ORDER BY Name LIMIT 501`);
+        if(records.length>500)throw Error('A Planned Release supports up to 500 epics.');
+        for(const row of records){const id=validId(row.Id);if(!ids.includes(id))ids.push(id);}
+        sources.push({type:'planned-release',url:item,id:planned.slice(0,15),label:rel.Name,team:rel.Team__r?.Name||null,start:rel.Start_Date__c||null,end:rel.End_Date__c||null,definitionSource:'planned-release'});
+        if(ids.length>500)throw Error('A release supports up to 500 epics. Remove extra links.');
+        continue;
+      }
       let list=null;
       if(item.includes('://')){
         let u;try{u=new URL(item);}catch{throw Error('Invalid GUS link.');}
@@ -107,6 +126,13 @@ class Gus{
     }
     if(columns.length>50)throw Error('Use saved lists with up to 50 distinct visible fields.');
     return {ids,sources,columns};
+  }
+  // Every planned release filed on a scrum team (past, current and future), with its epic count.
+  async teamPlannedReleases(teamId){
+    if(!/^[a-zA-Z0-9]{15,18}$/.test(String(teamId||'')))throw Error('Choose a team.');
+    const [rels,counts]=await Promise.all([this.queryAll(`SELECT Id, Name, Start_Date__c, End_Date__c FROM ADM_Planned_Release__c WHERE Team__c = '${teamId}' ORDER BY Start_Date__c DESC NULLS LAST, Name DESC LIMIT 60`),this.queryAll(`SELECT Planned_Release__c r, COUNT(Id) c FROM ADM_Epic__c WHERE Planned_Release__r.Team__c = '${teamId}' GROUP BY Planned_Release__c`).catch(()=>[])]);
+    const n=new Map(counts.map(x=>[String(x.r).slice(0,15),x.c])),today=new Date().toISOString().slice(0,10);
+    return rels.map(r=>({id:r.Id,name:r.Name,start:r.Start_Date__c||null,end:r.End_Date__c||null,epics:n.get(String(r.Id).slice(0,15))||0,phase:r.Start_Date__c&&r.Start_Date__c>today?'future':r.End_Date__c&&r.End_Date__c<today?'past':'current',url:'https://gus.lightning.force.com/lightning/r/ADM_Planned_Release__c/'+r.Id+'/view'}));
   }
   async queryAll(q){let page=await this.sf.query(q);const records=[...(page.records||[])];let pages=0;
     while(page.done===false){if(!page.nextRecordsUrl)throw Error('GUS returned an incomplete page without a continuation URL.');if(++pages>100)throw Error('Too many results. Narrow the release.');

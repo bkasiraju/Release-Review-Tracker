@@ -8,7 +8,7 @@ function publicParsed(p){const latestMonths={},monthEntries={};for(const section
 const LEAN_COLUMNS=['name','lead','months','pathToGreen','completion'];
 function listDefaults(columns=[]){const have=new Set(columns.map(c=>c.key));return [...new Set([...LEAN_COLUMNS.filter(k=>!columns.length||have.has(k)||k==='name'||k==='months'),'name','health'])];}
 const CANON_COLUMNS=['project','name','owner','health','reviewStatus','months','pathToGreen','completion','planned','actual','closed','inProgress','newPoints','waiting','lead','team'];
-function releaseScope(r){const lists=Array.isArray(r.sources)?r.sources.map(s=>s?.id).filter(id=>typeof id==='string'&&/^00B[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?$/.test(id)).map(id=>id.slice(0,15)).sort():[];const manual=[];if(lists.length)for(const token of String(r.inputLinks||'').replace(/\[[^\]]*\]\((https:\/\/[^)\s]+)\)/g,'$1').split(/[\s,]+/).filter(Boolean)){let id=null;if(/^[A-Za-z0-9]{15}(?:[A-Za-z0-9]{3})?$/.test(token)&&!token.startsWith('00B'))id=token;else if(token.includes('://')){try{const path=new URL(token).pathname,idMatch=path.match(/^\/lightning\/r\/ADM_Epic__c\/([A-Za-z0-9]{15}(?:[A-Za-z0-9]{3})?)\/view\/?$/)||path.match(/^\/([A-Za-z0-9]{15}(?:[A-Za-z0-9]{3})?)\/?$/);if(idMatch)id=idMatch[1];}catch{}}if(id)manual.push(id.slice(0,15));}return JSON.stringify([lists.length?['lists',...new Set(lists)]:String(r.name||'').trim().replace(/\s+/g,' ').toLowerCase(),r.year,lists.length?[...new Set(manual)].sort():[...(r.epicIds||[])].sort(),lists.length?null:String(r.inputLinks||'').trim().replace(/\s+/g,' ').toLowerCase()]);}
+function releaseScope(r){const lists=Array.isArray(r.sources)?r.sources.map(s=>s?.id).filter(id=>typeof id==='string'&&/^(?:00B|aBQ)[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?$/.test(id)).map(id=>id.slice(0,15)).sort():[];const manual=[];if(lists.length)for(const token of String(r.inputLinks||'').replace(/\[[^\]]*\]\((https:\/\/[^)\s]+)\)/g,'$1').split(/[\s,]+/).filter(Boolean)){let id=null;if(/^[A-Za-z0-9]{15}(?:[A-Za-z0-9]{3})?$/.test(token)&&!token.startsWith('00B')&&!token.startsWith('aBQ'))id=token;else if(token.includes('://')){try{const path=new URL(token).pathname,idMatch=path.match(/^\/lightning\/r\/ADM_Epic__c\/([A-Za-z0-9]{15}(?:[A-Za-z0-9]{3})?)\/view\/?$/)||path.match(/^\/([A-Za-z0-9]{15}(?:[A-Za-z0-9]{3})?)\/?$/);if(idMatch)id=idMatch[1];}catch{}}if(id)manual.push(id.slice(0,15));}return JSON.stringify([lists.length?['lists',...new Set(lists)]:String(r.name||'').trim().replace(/\s+/g,' ').toLowerCase(),r.year,lists.length?[...new Set(manual)].sort():[...(r.epicIds||[])].sort(),lists.length?null:String(r.inputLinks||'').trim().replace(/\s+/g,' ').toLowerCase()]);}
 function activeReleases(rows){const deleted=new Set(rows.filter(r=>r._deleted).flatMap(r=>r._deletedAliases||[r.id]));return rows.filter(r=>!r._deleted&&!deleted.has(r.id));}
 class Service{
   constructor(store,gus,options={}){this.store=store;this.gus=gus;this.shared=options.shared===true;this.googleSheets=options.googleSheets;this.readOnly=options.readOnly===true;}
@@ -33,6 +33,25 @@ class Service{
     const allowedColumns=new Set([...CANON_COLUMNS,...resolved.columns.map(c=>c.key)]);
     if(columns!==null&&(!Array.isArray(columns)||columns.some(c=>typeof c!=='string'||!allowedColumns.has(c))))throw Error('Invalid column settings. Choose a supported dashboard or source-list column.');
     const value={id,name,year,epicIds:ids,inputLinks,sources:resolved.sources,sourceColumns:resolved.columns,columnMode,months:[...new Set(months)],hiddenMonths:old?.hiddenMonths||[],visibleMonths:old?.visibleMonths,detailStatusColumns:old?.detailStatusColumns||[],columns,_storageConflicts:data.resolveStorage?[]:(old?._storageConflicts||[])};return this.store.put('release',id,value,old?data.revision:null);
+  }
+  // Planned Release → review release. Reuses the release already tracking that planned release, else creates one that
+  // keeps the dashboard's current column order.
+  async usePlannedRelease(data){
+    const pid=String(data.plannedId||'');if(!/^aBQ[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?$/.test(pid))throw Error('Choose a planned release.');
+    const key=pid.slice(0,15),rows=activeReleases(await this.releaseCatalog()).sort((a,b)=>String(b.updatedAt||'').localeCompare(String(a.updatedAt||'')));
+    const have=rows.find(r=>(r.sources||[]).some(x=>x?.id===key));if(have)return have;
+    const template=rows.find(r=>Array.isArray(r.columns)&&r.columns.length),canon=new Set(CANON_COLUMNS);
+    const columns=template?template.columns.filter(c=>canon.has(c)):undefined;
+    const name=String(data.name||'').trim()||'Planned release',year=Number(String(data.start||'').slice(0,4))||new Date().getFullYear();
+    return this.saveRelease({name,year,links:'https://gus.lightning.force.com/lightning/r/ADM_Planned_Release__c/'+pid+'/view',columns:columns&&columns.includes('name')?columns:undefined});
+  }
+  async reviewDefaults(){const doc=await this.store.get('settings','review-defaults');return {map:doc?.map&&typeof doc.map==='object'?doc.map:{}};}
+  async setReviewDefault(data){
+    if(this.readOnly)throw Error('Sample preview is read-only.');
+    const team=String(data.teamId||'');if(!/^[a-zA-Z0-9]{15,18}$/.test(team))throw Error('Choose a team first.');
+    const cur=await this.store.get('settings','review-defaults'),map={...(cur?.map||{})};
+    if(data.releaseId){await this.release(data.releaseId);map[team]=data.releaseId;}else delete map[team];
+    await this.store.put('settings','review-defaults',{map},cur?cur.revision:null);return {map};
   }
   async executive(data){
     const id=validId(data.epicId),month=validMonth(data.month),r=await this.release(data.releaseId);if(!r.epicIds.includes(id))throw Error('Epic is not part of this release.');

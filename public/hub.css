@@ -3534,3 +3534,12 @@ html body #epic-table tr.epic-summary-row.review-attention>td{background:#fff1d6
 html body #epic-table tr.epic-summary-row.review-attention>td.epic-expand-cell{box-shadow:inset 4px 0 #d9822b}
 @keyframes rvAttn{50%{background:#ffe2a8}}
 @media(prefers-reduced-motion:reduce){html body #epic-table tr.epic-summary-row.review-attention>td{animation:none}}
+
+/* 8.0.0-GA r4: planned-release picker in the release drawer */
+html body .planned-list{display:flex;flex-direction:column;gap:6px;max-height:260px;overflow:auto}
+html body .planned-row{display:flex;align-items:center;gap:8px;padding:6px 8px;border:1px solid #d8dde6;border-radius:6px;background:#fff}
+html body .planned-row .planned-name{flex:1;display:flex;flex-direction:column;min-width:0}
+html body .planned-row .planned-name small{color:#5c6b7e}
+html body .planned-row .button.small{font-size:11px;padding:2px 8px}
+html body .planned-row [aria-pressed="true"]{background:#eaf5fe;border-color:#0b6b8a;color:#0b5a75}
+html body .planned-future{background:#e8f4ff}html body .planned-current{background:#e3f5e8}html body .planned-past{background:#eef0f3}
