@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.117-GA
+
+- Full screen: tooltips, previews, drawers, dialogs and toasts now appear above the full-screen epic table. Full screen is requested for the whole page, so popups are no longer hidden outside the table.
+
 ## 7.0.116-GA
 
 - Full screen: rows other than the one under the pointer are strongly faded (30%); hovering or focusing a row brings it back to full strength with the blue highlight, and an expanded row stays at full strength.

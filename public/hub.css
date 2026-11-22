@@ -3501,3 +3501,9 @@ html body .table-card.expanded .table-footer{margin-top:auto}
 html body .table-card.expanded #epic-table tr.epic-summary-row:not(.is-open)>td>*{opacity:.3}
 html body .table-card.expanded #epic-table tr.epic-summary-row:not(.is-open):hover>td>*,html body .table-card.expanded #epic-table tr.epic-summary-row:not(.is-open):focus-within>td>*{opacity:1}
 html body .table-card.expanded #epic-table tr.epic-summary-row.is-open>td>*{opacity:1}
+
+/* 7.0.117 — full-screen epic table: every popup (tooltips, previews, drawers, toasts, dialogs) stacks above the table */
+html body:has(.table-card.expanded) .ui-tooltip,html body:has(.table-card.expanded) .epic-updates-preview,html body:has(.table-card.expanded) .comment-ai-preview,html body:has(.table-card.expanded) .review-recovery-popup,html body:has(.table-card.expanded) .pl-tt,html body:has(.table-card.expanded) .pl-nt{z-index:2147483600!important}
+html body:has(.table-card.expanded) .overlay,html body:has(.table-card.expanded) .hub-confirm-ov,html body:has(.table-card.expanded) .nd-overlay{z-index:2147483300!important}
+html body:has(.table-card.expanded) .drawer,html body:has(.table-card.expanded) .modal,html body:has(.table-card.expanded) dialog{z-index:2147483400!important}
+html body:has(.table-card.expanded) #toasts,html body:has(.table-card.expanded) .toasts{z-index:2147483700!important}
