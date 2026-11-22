@@ -1,5 +1,11 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.120-GA
+
+- Nudge: dark-blue buttons replaced with the light blue palette (selected message type, Send, Copy).
+- Nudge message for epics now asks specifically for the month's Epic Health comment in GUS, listing what it should cover (progress, completed work, risks/blockers with Path to Green, next milestone and ETA). ETA and Blocked variants are specific too.
+- Slack posts are formatted cleanly: `@Name` in the message becomes a real Slack @mention (no duplicate greeting line), `*bold*` is kept, and the GUS URL becomes an `Open in GUS` link with no unfurl card.
+
 ## 7.0.119-GA
 
 - Epic table: the expand (+) column is pinned to the compact 28px, so the wide variant with the large gap before the epic icon can no longer appear.

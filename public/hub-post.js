@@ -2,13 +2,28 @@
 (function(){
 'use strict';
 const H=window.Hub,{esc,call}=H;
-const rec=o=>`data-nudge="${esc(o.id)}" data-name="${esc(o.name||'')}" data-subject="${esc((o.subject||'').slice(0,300))}" data-who="${esc(o.assignee||'')}"`;
+const rec=o=>`data-nudge="${esc(o.id)}" data-name="${esc(o.name||'')}" data-subject="${esc((o.subject||'').slice(0,300))}" data-who="${esc(o.assignee||'')}" data-month="${esc(o.month||'')}"`;
 H.nudgeBtn=o=>o&&o.id?`<button type="button" class="nudge-btn" ${rec(o)} title="Nudge ${esc(o.assignee||'someone')} about ${esc(o.name||'this item')} on Slack or GUS Chatter" aria-label="Nudge about ${esc(o.name||'this item')}">Nudge</button>`:'';
 let S=null;
 const link=id=>`${H.GUS}${/^a3Q/.test(id)?'ADM_Epic__c':'ADM_Work__c'}/${id}/view`;
-const KINDS={update:['Status update','Could you share an update?'],eta:['ETA check','Could you confirm the ETA?'],block:['Blocked?','Is anything blocking this, and how can I help?']};
+const isEpic=s=>/^a3Q/.test(s.id);
+const monthName=m=>{const d=/^(\d{4})-(\d{2})/.exec(m||'')?new Date(+RegExp.$1,+RegExp.$2-1,1):new Date();return d.toLocaleString('en',{month:'long',year:'numeric'});};
+const KINDS={update:['Status update'],eta:['ETA check'],block:['Blocked?']};
 const one=t=>String(t||'').replace(/\s+/g,' ').trim();
-const draft=(s,u,k)=>`Hi ${(u?u.name:s.who||'there').split(' ')[0]},\n\nQuick nudge on ${s.name}${s.subject&&s.subject!==s.name?' — '+one(s.subject):''}.\n${KINDS[k||s.kind||'update'][1]}\n\n${link(s.id)}`;
+/** Plain text with Slack-style *bold*. On send "@Full Name" becomes a real @mention and the GUS link becomes a clean link. */
+const draft=(s,u,k)=>{
+  const who=u?u.name:s.who||'',kind=k||s.kind||'update',link1=link(s.id),mo=monthName(s.month),greet=`Hi ${who?'@'+who:'there'},`;
+  if(isEpic(s)){
+    const ask={
+      update:`*Action needed: add the ${mo} Epic Health comment in GUS*\nThe ${mo} Epic Health comment is missing for *${s.name}*. Please add it in the epic's Epic Health comments in GUS (or in ReleaseIQ: expand the row, add the comment and save) today.\n\nPlease cover:\n• Where the epic stands against the plan this month\n• What was completed since the last update\n• Risks or blockers, and the Path to Green if the epic is Watch or Blocked\n• Next milestone and ETA`,
+      eta:`*Action needed: confirm the ETA and add the ${mo} Epic Health comment in GUS*\nThe ${mo} Epic Health comment is missing for *${s.name}*. Please confirm the current ETA for this epic and record it, with the month's progress, in the Epic Health comments in GUS.`,
+      block:`*Action needed: tell us what is blocking, and add the ${mo} Epic Health comment in GUS*\nThe ${mo} Epic Health comment is missing for *${s.name}*. If anything is blocking this epic, please note the blocker, the owner and the Path to Green in the Epic Health comments in GUS, and say how we can help.`
+    }[kind];
+    return `${greet}\n\n${ask}\n\n${link1}\n\nThank you!`;
+  }
+  const ask={update:'Could you share an update on this work item?',eta:'Could you confirm the ETA?',block:'Is anything blocking this, and how can I help?'}[kind];
+  return `${greet}\n\n*Quick nudge* on ${s.name}${s.subject&&s.subject!==s.name?' — '+one(s.subject):''}.\n${ask}\n\n${link1}`;
+};
 const ICO={slack:'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 3 7 21M17 3l-2 18M4 8h17M3 16h17"/></svg>',chatter:'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12Z"/></svg>',copy:'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg>',send:'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-11 11M22 2l-7 20-4-9-9-4z"/></svg>',bell:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg>',info:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>'};
 function close(){if(S){S.el.remove();document.removeEventListener('keydown',S.key);S.opener&&S.opener.focus&&S.opener.focus();S=null;}}
 function msg(t,kind){const n=S.el.querySelector('#nd-msg');n.className='nd-msg '+(kind||'');n.textContent=t||'';}
@@ -41,7 +56,7 @@ async function search(term,auto){
 }
 function open(btn){
   close();
-  const d=btn.dataset;S={kind:'update',id:d.nudge,name:d.name,subject:d.subject,who:d.who,tab:'slack',user:null,slack:null,busy:false,edited:false,seq:0,users:[],opener:btn};
+  const d=btn.dataset;S={kind:'update',id:d.nudge,name:d.name,subject:d.subject,who:d.who,month:d.month,tab:'slack',user:null,slack:null,busy:false,edited:false,seq:0,users:[],opener:btn};
   const el=document.createElement('div');el.className='nd-overlay';
   el.innerHTML=`<div class="nd-modal nd2" role="dialog" aria-modal="true" aria-labelledby="nd-title"><div class="nd-head"><span class="nd-badge">${ICO.bell}</span><div class="nd-ttl"><h2 id="nd-title">Nudge</h2><p><b>${esc(d.name)}</b>${d.subject&&d.subject!==d.name?' · '+esc(d.subject):''}</p></div><button type="button" class="nd-x" data-close aria-label="Close">×</button></div>
   <div id="nd-tabs" class="nd-tabs" role="tablist"></div>

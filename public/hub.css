@@ -3511,3 +3511,10 @@ html body:has(.table-card.expanded) #toasts,html body:has(.table-card.expanded) 
 /* 7.0.119 — the expand column is always the compact 28px, in every column group the table can carry */
 html body #epic-table>colgroup>col:first-child{width:28px!important;min-width:28px!important}
 html body #epic-table:not(.epic-expanded-table){table-layout:fixed}
+
+/* 7.0.120 — Nudge: no dark-blue buttons; selected chips and primary actions use the light blue-slate palette */
+html body .nd2 .nd-kind.on{background:#dbeafe;border-color:#93c5fd;color:#0b3d6b;font-weight:600}
+html body .nd2 .button.primary,html body .nd2 .nd-go,html body .nd2 .nd-go:not(:disabled){background:#e6f1fb;border:1px solid #93c5fd;color:#0b3d6b;box-shadow:none}
+html body .nd2 .button.primary:hover:not(:disabled),html body .nd2 .nd-go:hover:not(:disabled){background:#d3e5f8;border-color:#6aa0d6}
+html body .nd2 .button.primary:disabled,html body .nd2 .nd-go:disabled{background:#f3f6f9;border-color:#e0e6ed;color:#94a3b8}
+html body .nd2 #nd-text{min-height:210px;line-height:1.5;white-space:pre-wrap}

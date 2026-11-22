@@ -60,7 +60,16 @@ async function sendSlack(sf, slack, store, { userId, teamId, text }) {
   const t = await slackTarget(sf, slack, userId);
   if (!t.slackUserId) throw new Error(t.notice);
   let from = ''; try { if (!SF_ID.test(String(sf.userId || ''))) throw 0; const me = ((await sf.query(`SELECT Name FROM User WHERE Id = '${q(sf.userId)}' LIMIT 1`)).records || [])[0]; from = me && me.Name || ''; } catch (_) { /* signature is optional */ }
-  const text2 = `<@${t.slackUserId}>\n${body}${from ? `\n\n_Sent by ${from} via ReleaseIQ_` : ''}`;
+  const tag = `<@${t.slackUserId}>`;
+  let msg = body.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  // "@Full Name" (and the first name) in the text becomes a real mention; otherwise the mention leads the message
+  const names = [t.name, String(t.name || '').split(' ')[0]].filter(Boolean);
+  let tagged = false;
+  for (const n of names) { const re = new RegExp('@' + n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(?![\\w])', 'g'); if (re.test(msg)) { msg = msg.replace(re, tag); tagged = true; break; } }
+  if (!tagged) msg = tag + '\n' + msg;
+  // GUS record links become a clean named link; the unfurl card is off
+  msg = msg.replace(/(^|\s)(https:\/\/[^\s<>]+\/(?:ADM_Epic__c|ADM_Work__c)\/[^\s<>]+)/g, (m0, pre, url) => `${pre}<${url}|Open in GUS>`);
+  const text2 = `${msg}${from ? `\n\n_Sent by ${from} via ReleaseIQ_` : ''}`;
   let r;
   try { r = typeof slack.postMessage === 'function' ? await slack.postMessage({ channel: ch.id, text: text2 }) : await slack.apiCall('chat.postMessage', { channel: ch.id, text: text2, unfurl_links: false }); }
   catch (e) { throw new Error(`GUS MIYO could not post to ${ch.name || 'the channel'}: ${String((e && e.message) || e).slice(0, 160)}. Check that @GUS MIYO is invited there.`); }
