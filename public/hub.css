@@ -3496,3 +3496,8 @@ html body .table-card.expanded,html body .table-card.expanded:fullscreen{positio
 html body .table-card.expanded .table-scroll{flex:1 1 auto;height:auto!important;max-height:none!important;min-height:0!important;overflow:auto}
 html body .table-card.expanded .table-footer{flex:0 0 auto}
 html body .table-card.expanded .filterbar,html body .table-card.expanded .card-heading{flex:0 0 auto}
+/* 7.0.116 full screen: rows other than the one under the pointer are strongly faded */
+html body .table-card.expanded .table-footer{margin-top:auto}
+html body .table-card.expanded #epic-table tr.epic-summary-row:not(.is-open)>td>*{opacity:.3}
+html body .table-card.expanded #epic-table tr.epic-summary-row:not(.is-open):hover>td>*,html body .table-card.expanded #epic-table tr.epic-summary-row:not(.is-open):focus-within>td>*{opacity:1}
+html body .table-card.expanded #epic-table tr.epic-summary-row.is-open>td>*{opacity:1}

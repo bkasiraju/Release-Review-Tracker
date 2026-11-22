@@ -1,5 +1,9 @@
 - Removed the "GUS Apps Hub" footer link; added "For feedback, reach out to Bhanu Kasiraju" at the end of the footer. The 5.0.0-GA golden build is unchanged.
 
+## 7.0.116-GA
+
+- Full screen: rows other than the one under the pointer are strongly faded (30%); hovering or focusing a row brings it back to full strength with the blue highlight, and an expanded row stays at full strength.
+
 ## 7.0.115-GA
 
 - Release epics full screen is now literally full screen: the table covers the whole window edge to edge above the page header, and the table fills the full height with the footer pinned at the bottom. Where the browser allows it, it also uses the browser's real full-screen mode; press Esc or the close button to leave.
