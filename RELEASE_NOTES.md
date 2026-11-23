@@ -4,6 +4,10 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r7 (folded)
+
+- The expanded epic detail no longer repeats the Epic name column (the epic row above already shows it). Columns are Project, the review month and the two before it, Path to green and Work complete; the freed width goes to the month columns.
+
 ### 8.0.0-GA r6 (folded)
 
 - Removed the empty white band to the right of the review table. The summary table was getting two column groups, which doubled its width and forced a sideways scroll; it now fits the card exactly.
