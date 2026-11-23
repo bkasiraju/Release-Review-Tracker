@@ -370,7 +370,7 @@ async function loadSprint(sprintId){
 }
 /** Deep links: #/sprints/pulse and #/sprints/standup open that view directly. */
 const hashView=()=>(/^#\/sprints\/(pulse|standup)\b/.exec(location.hash)||[])[1]||null;
-function syncHash(v){if(document.body.dataset.hub==='sprints'&&hashView()!==v)history.replaceState(null,'','#/sprints/'+v);}
+function syncHash(v){if(document.body.dataset.hub==='sprints'&&hashView()!==v)history.replaceState(null,'','#/sprints/'+v);window.Hub?.syncUrl?.();}
 async function show(){
   const hv=hashView();if(hv&&hv!==S.view)setSubview(hv);else syncHash(S.view);
   const H=window.Hub;H.peopleReady().then(()=>{if(S.members.length){renderMembers();renderModal();renderStandup();}});

@@ -32,8 +32,17 @@ H.setDefaultTeam=id=>{
 };
 H.hasTeam=()=>H.team.Id!=='all';
 H.onTeam=fn=>{listeners.add(fn);return()=>listeners.delete(fn);};
+/** The team in the URL (`#/plan?full&team=<Id>`, or `team=all`), so every page link is team-specific and shareable. */
+H.hashTeam=()=>(location.hash.match(/[?&]team=([A-Za-z0-9]+)/)||[])[1]||null;
+H.syncUrl=()=>{
+  const m=location.hash.match(/^#\/([a-z]+)(?:\/[^?]*)?(?:\?(.*))?$/),id=m?m[1]:(H.current||'home');
+  const path=m?location.hash.split('?')[0]:'#/'+id,q=((m&&m[2])||'').split('&').filter(x=>x&&!/^team=/.test(x));
+  q.push('team='+encodeURIComponent(H.team.Id));
+  const h=path+'?'+q.join('&');if(h!==location.hash)history.replaceState(null,'',h);
+};
 H.setTeam=id=>{
   H.team=H.teams.find(t=>t.Id===id)||ALL;
+  H.syncUrl();
   $('hub-team').value=H.team.Id;H.syncSelects();setCrumb();
   window.dispatchEvent(new Event('hub:team'));
   for(const fn of listeners)fn(H.team);
@@ -132,7 +141,8 @@ H.go=(id,opts={})=>{
   if(p.legacy)legacy(p.legacy);
   if(id!=='plan')document.querySelectorAll('#pl-back').forEach(x=>x.remove());
   renderNav();renderCurrent();renderGusLinks(id);placeGus();
-  if(!opts.silent&&!new RegExp('^#/'+id+'(/|$)').test(location.hash))history.pushState(null,'','#/'+id);
+  if(!opts.silent&&!new RegExp('^#/'+id+'(/|\\?|$)').test(location.hash))history.pushState(null,'','#/'+id);
+  if(H.team)H.syncUrl();
   window.scrollTo(0,0);
 };
 
@@ -456,7 +466,7 @@ function soon(id,label,ic,tone,desc){
 }
 
 // ── Boot ────────────────────────────────────────────────────────────────────
-function route(){const id=(location.hash.match(/^#\/([a-z]+)/)||[])[1];H.go(id||'home',{silent:true});}
+function route(){const id=(location.hash.match(/^#\/([a-z]+)/)||[])[1],t=H.hashTeam();if(t&&H.team&&t!==H.team.Id&&(t==='all'||H.teams.some(x=>x.Id===t))){H.setTeam(t);}H.go(id||'home',{silent:true});}
 /** Keep the loading screen up until the first page has stopped changing, so sections do not appear and then jump. */
 const LOAD_T0=performance.now(),MIN_LOAD_MS=0;
 function settle(){
@@ -499,7 +509,7 @@ async function boot(){
   try{
     const r=await call('hub-teams',{});H.teams=r.teams;H.groups=r.groups||null;
     $('hub-team').innerHTML=[ALL,...H.teams].map(t=>`<option value="${esc(t.Id)}">${esc(t.short||t.Name)}</option>`).join('');
-    let saved=null;try{const dflt=await H.loadDefaultTeam();const nav=(performance.getEntriesByType('navigation')[0]||{}).type;saved=(nav==='reload'?null:(location.hash.match(/^#\/plan\?full&team=([A-Za-z0-9]+)/)||[])[1])||dflt;}catch{/* ignore */}
+    let saved=null;try{const dflt=await H.loadDefaultTeam();saved=H.hashTeam()||dflt;}catch{/* ignore */}
     H.team=saved==='all'?ALL:H.teams.find(t=>t.Id===saved)||H.teams.find(t=>t.Id===r.primaryTeamId)||H.teams[0]||ALL;
     $('hub-team').value=H.team.Id;$('hub-team').dataset.pref='1';H.customSelect($('hub-team'));
   }catch(e){window.toast?.('Team list unavailable: '+e.message,true);}

@@ -4,6 +4,10 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r9 (folded)
+
+- Every page URL now carries the selected team (`team=<id>` or `team=all`), e.g. `#/plan?full&team=a00B…`. The address updates when the team dropdown changes, and opening, reloading or going back to a link selects that team, so links are team-specific and shareable. A URL without a team falls back to your saved/default team.
+
 ### 8.0.0-GA r8 (folded)
 
 - Epic name is now an optional column: unchecked by default in the Columns dialog and no longer locked, so it can be added to the expanded detail when wanted. Defaults are Project, the review month and the two before it, Path to green and Work complete. Releases with their own saved column choice keep it.
