@@ -6,7 +6,7 @@ const formatComment=ReviewComments.formatComment;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const now=new Date();const currentMonth=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
 const labels={project:'Project',name:'Epic name',owner:'Owner',health:'Epic Status',reviewStatus:'Review Status',pathToGreen:'Path to green',completion:'Work complete',planned:'Planned SP',actual:'Actual SP',closed:'Closed SP',inProgress:'In progress SP',newPoints:'New SP',waiting:'Waiting SP',lead:'Development lead',team:'Team'};
-const defaults=['project','name','health','lead','months','pathToGreen'],leanColumns=['name','lead','months','pathToGreen','completion'],lockedColumns=['name','health'];
+const defaults=['project','name','health','lead','months','pathToGreen'],leanColumns=['project','name','months','pathToGreen','completion'],lockedColumns=['name','health'];
 const displayColumns=r=>{const source=(r?.sourceColumns||[]).map(c=>c.key),keys=r?.columnMode==='custom'&&Array.isArray(r.columns)?r.columns:leanColumns.filter(k=>!source.length||source.includes(k)||k==='name'||k==='months');return [...new Set([...keys,...lockedColumns])];};
 const state={releases:[],epics:[],releaseId:new URLSearchParams(location.search).get('release')||'',view:'overview',review:currentMonth,connection:null,demo:false,testMode:false,busy:false,fetching:false,drawer:null,unsaved:false,workItems:[],workSort:{key:'number',direction:1},workError:'',workUnavailable:[],workTruncated:false,fullUpdates:false,selectionPrefetchNeeded:false,sortKey:'health',sort:1,releaseIds:null,loaded:false,healthMetric:null,groupBy:[]};
 let returnFocus=null, bannerTimer=null, recoveryPopup=null;

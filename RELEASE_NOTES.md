@@ -4,6 +4,11 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r6 (folded)
+
+- Removed the empty white band to the right of the review table. The summary table was getting two column groups, which doubled its width and forced a sideways scroll; it now fits the card exactly.
+- Default review columns for every team are now Project, Epic name, the review month plus the two before it, Path to green and Work complete (Development lead is no longer a default). Releases whose columns were customised in the Columns dialog keep their own choice.
+
 ### 8.0.0-GA r5 (folded)
 
 - The gap between the Release Review tab bar and Release Health Metrics is about 26px shorter (the empty control row's margins and the Metrics heading's padding).

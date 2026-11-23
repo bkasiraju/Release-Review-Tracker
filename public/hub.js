@@ -260,6 +260,7 @@ function cellLen(c){
 }
 function fitTable(t){
   if(t.classList.contains('epic-expanded-table')||t.closest('.epic-expanded-table'))return; // sized by the review table itself (percent widths)
+  if(t.id==='epic-table'){t.querySelectorAll(':scope>colgroup.fit-cols').forEach(g=>g.remove());t.classList.remove('fit');delete t.dataset.fit;return;} // the review table writes its own colgroup; a second one doubled the table width
   const host=t.parentElement;if(!host||!t.tHead||!t.tBodies.length)return;
   const avail=host.clientWidth;if(!avail)return;
   const hr=t.tHead.rows[t.tHead.rows.length-1];if(!hr)return;
