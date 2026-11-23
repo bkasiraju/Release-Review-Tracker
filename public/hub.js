@@ -35,6 +35,7 @@ H.onTeam=fn=>{listeners.add(fn);return()=>listeners.delete(fn);};
 /** The team in the URL (`#/plan?full&team=<Id>`, or `team=all`), so every page link is team-specific and shareable. */
 H.hashTeam=()=>(location.hash.match(/[?&]team=([A-Za-z0-9]+)/)||[])[1]||null;
 H.syncUrl=()=>{
+  if(!H.teams||!H.teams.length)return;
   const m=location.hash.match(/^#\/([a-z]+)(?:\/[^?]*)?(?:\?(.*))?$/),id=m?m[1]:(H.current||'home');
   const path=m?location.hash.split('?')[0]:'#/'+id,q=((m&&m[2])||'').split('&').filter(x=>x&&!/^team=/.test(x));
   q.push('team='+encodeURIComponent(H.team.Id));
@@ -466,7 +467,7 @@ function soon(id,label,ic,tone,desc){
 }
 
 // ── Boot ────────────────────────────────────────────────────────────────────
-function route(){const id=(location.hash.match(/^#\/([a-z]+)/)||[])[1],t=H.hashTeam();if(t&&H.team&&t!==H.team.Id&&(t==='all'||H.teams.some(x=>x.Id===t))){H.setTeam(t);}H.go(id||'home',{silent:true});}
+function route(){const id=(location.hash.match(/^#\/([a-z]+)/)||[])[1],t=H.hashTeam();let sw=false;if(t&&H.team&&t!==H.team.Id&&(t==='all'||H.teams.some(x=>x.Id===t))){H.team=H.teams.find(x=>x.Id===t)||ALL;$('hub-team').value=H.team.Id;H.syncSelects();sw=true;}H.go(id||'home',{silent:true});if(sw){window.dispatchEvent(new Event('hub:team'));for(const fn of listeners)fn(H.team);}}
 /** Keep the loading screen up until the first page has stopped changing, so sections do not appear and then jump. */
 const LOAD_T0=performance.now(),MIN_LOAD_MS=0;
 function settle(){
@@ -509,7 +510,7 @@ async function boot(){
   try{
     const r=await call('hub-teams',{});H.teams=r.teams;H.groups=r.groups||null;
     $('hub-team').innerHTML=[ALL,...H.teams].map(t=>`<option value="${esc(t.Id)}">${esc(t.short||t.Name)}</option>`).join('');
-    let saved=null;try{const dflt=await H.loadDefaultTeam();saved=H.hashTeam()||dflt;}catch{/* ignore */}
+    let saved=null;try{const dflt=await H.loadDefaultTeam();const ht=H.hashTeam();saved=ht&&(ht==='all'||H.teams.some(x=>x.Id===ht))?ht:dflt;}catch{/* ignore */}
     H.team=saved==='all'?ALL:H.teams.find(t=>t.Id===saved)||H.teams.find(t=>t.Id===r.primaryTeamId)||H.teams[0]||ALL;
     $('hub-team').value=H.team.Id;$('hub-team').dataset.pref='1';H.customSelect($('hub-team'));
   }catch(e){window.toast?.('Team list unavailable: '+e.message,true);}
