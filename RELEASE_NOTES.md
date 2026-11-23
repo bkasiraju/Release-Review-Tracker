@@ -4,6 +4,10 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r5 (folded)
+
+- The gap between the Release Review tab bar and Release Health Metrics is about 26px shorter (the empty control row's margins and the Metrics heading's padding).
+
 ### 8.0.0-GA r4 (folded)
 
 - Release Review can now take its epic list from a GUS Planned Release (`ADM_Planned_Release__c`) and the epics related to it, instead of saved list views. Paste a Planned Release URL or ID, or pick one from the new Planned releases list in the Add/Edit release drawer. Columns, order, selection and dashboard are unchanged; the epic list is re-read from GUS on each refresh.

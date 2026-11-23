@@ -3543,3 +3543,8 @@ html body .planned-row .planned-name small{color:#5c6b7e}
 html body .planned-row .button.small{font-size:11px;padding:2px 8px}
 html body .planned-row [aria-pressed="true"]{background:#eaf5fe;border-color:#0b6b8a;color:#0b5a75}
 html body .planned-future{background:#e8f4ff}html body .planned-current{background:#e3f5e8}html body .planned-past{background:#eef0f3}
+
+/* 8.0.0-GA r5: tighter gap between the Release Review tab and Release Health Metrics */
+html body #ctl-row{margin:0 0 6px!important}
+html body #overview-panel .overview-group-summary{min-height:22px;padding:0 1px 3px}
+html body .dashboard-bar+#ctl-row+#hub-panel+#overview-panel,html body #overview-panel{margin-top:0}
