@@ -4,6 +4,10 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r8 (folded)
+
+- Epic name is now an optional column: unchecked by default in the Columns dialog and no longer locked, so it can be added to the expanded detail when wanted. Defaults are Project, the review month and the two before it, Path to green and Work complete. Releases with their own saved column choice keep it.
+
 ### 8.0.0-GA r7 (folded)
 
 - The expanded epic detail no longer repeats the Epic name column (the epic row above already shows it). Columns are Project, the review month and the two before it, Path to green and Work complete; the freed width goes to the month columns.

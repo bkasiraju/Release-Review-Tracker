@@ -5,8 +5,8 @@ const reviewPolicy=require('./review-policy');
 const {parseEpicLinks,validId,safeError}=require('./gus');
 function yearValue(y){y=Number(y);if(!Number.isInteger(y)||y<2000||y>2099)throw Error('Reference year must be between 2000 and 2099.');return y;}
 function publicParsed(p){const latestMonths={},monthEntries={};for(const section of p.sections||[]){const key=section.effectiveMonth||section.month;if(!key)continue;(monthEntries[key]||=[]).push(section.text);if(!Object.hasOwn(latestMonths,key))latestMonths[key]=section.text;}return {months:p.months,latestMonths,monthEntries,unassigned:p.unassigned,inferred:p.inferred,yearAmbiguous:p.yearAmbiguous};}
-const LEAN_COLUMNS=['project','name','months','pathToGreen','completion'];
-function listDefaults(columns=[]){const have=new Set(columns.map(c=>c.key));return [...new Set([...LEAN_COLUMNS.filter(k=>!columns.length||have.has(k)||k==='name'||k==='months'),'name','health'])];}
+const LEAN_COLUMNS=['project','months','pathToGreen','completion'];
+function listDefaults(columns=[]){const have=new Set(columns.map(c=>c.key));return [...new Set([...LEAN_COLUMNS.filter(k=>!columns.length||have.has(k)||k==='months'),'health'])];}
 const CANON_COLUMNS=['project','name','owner','health','reviewStatus','months','pathToGreen','completion','planned','actual','closed','inProgress','newPoints','waiting','lead','team'];
 function releaseScope(r){const lists=Array.isArray(r.sources)?r.sources.map(s=>s?.id).filter(id=>typeof id==='string'&&/^(?:00B|aBQ)[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?$/.test(id)).map(id=>id.slice(0,15)).sort():[];const manual=[];if(lists.length)for(const token of String(r.inputLinks||'').replace(/\[[^\]]*\]\((https:\/\/[^)\s]+)\)/g,'$1').split(/[\s,]+/).filter(Boolean)){let id=null;if(/^[A-Za-z0-9]{15}(?:[A-Za-z0-9]{3})?$/.test(token)&&!token.startsWith('00B')&&!token.startsWith('aBQ'))id=token;else if(token.includes('://')){try{const path=new URL(token).pathname,idMatch=path.match(/^\/lightning\/r\/ADM_Epic__c\/([A-Za-z0-9]{15}(?:[A-Za-z0-9]{3})?)\/view\/?$/)||path.match(/^\/([A-Za-z0-9]{15}(?:[A-Za-z0-9]{3})?)\/?$/);if(idMatch)id=idMatch[1];}catch{}}if(id)manual.push(id.slice(0,15));}return JSON.stringify([lists.length?['lists',...new Set(lists)]:String(r.name||'').trim().replace(/\s+/g,' ').toLowerCase(),r.year,lists.length?[...new Set(manual)].sort():[...(r.epicIds||[])].sort(),lists.length?null:String(r.inputLinks||'').trim().replace(/\s+/g,' ').toLowerCase()]);}
 function activeReleases(rows){const deleted=new Set(rows.filter(r=>r._deleted).flatMap(r=>r._deletedAliases||[r.id]));return rows.filter(r=>!r._deleted&&!deleted.has(r.id));}
@@ -43,7 +43,7 @@ class Service{
     const template=rows.find(r=>Array.isArray(r.columns)&&r.columns.length),canon=new Set(CANON_COLUMNS);
     const columns=template?template.columns.filter(c=>canon.has(c)):undefined;
     const name=String(data.name||'').trim()||'Planned release',year=Number(String(data.start||'').slice(0,4))||new Date().getFullYear();
-    return this.saveRelease({name,year,links:'https://gus.lightning.force.com/lightning/r/ADM_Planned_Release__c/'+pid+'/view',columns:columns&&columns.includes('name')?columns:undefined});
+    return this.saveRelease({name,year,links:'https://gus.lightning.force.com/lightning/r/ADM_Planned_Release__c/'+pid+'/view',columns:columns&&columns.length?columns:undefined});
   }
   async reviewDefaults(){const doc=await this.store.get('settings','review-defaults');return {map:doc?.map&&typeof doc.map==='object'?doc.map:{}};}
   async setReviewDefault(data){
@@ -132,7 +132,7 @@ class Service{
     if(data.revision!==r.revision)throw Error('This release changed. Reload its latest settings before saving.');
     const patch={};
     if(data.columns!==undefined){const allowed=new Set([...CANON_COLUMNS,...(r.sourceColumns||[]).map(c=>c.key)]);
-      if(!Array.isArray(data.columns)||!data.columns.includes('name')||data.columns.some(c=>typeof c!=='string'||!allowed.has(c)))throw Error('Invalid column settings. Choose supported dashboard columns.');
+      if(!Array.isArray(data.columns)||data.columns.some(c=>typeof c!=='string'||!allowed.has(c)))throw Error('Invalid column settings. Choose supported dashboard columns.');
       patch.columns=[...new Set([...data.columns,'name','health'])];patch.columnMode=data.columnMode==='gus'?'gus':'custom';if(patch.columnMode==='gus')patch.columns=listDefaults(r.sourceColumns||[]);
     }
     if(data.detailStatusColumns!==undefined){if(!Array.isArray(data.detailStatusColumns)||data.detailStatusColumns.some(k=>!['health','reviewStatus'].includes(k)))throw Error('Choose supported detail status columns.');patch.detailStatusColumns=[...new Set(data.detailStatusColumns)];}

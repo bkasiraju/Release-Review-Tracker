@@ -283,7 +283,7 @@ test('read-only hover summary uses displayed engineer text, live health and deli
 });
 
 test('existing and new source lists default to the lean column set; custom choices survive until GUS definition changes',async()=>{
- const LEAN1=['name','lead','months','pathToGreen','health'],LEAN2=['name','lead','months','health'];const {s,gus,store,r}=await setup();const first=[{key:'project',field:'Project__r.Name',label:'Project'},{key:'name',field:'Name',label:'Epic Name'},{key:'health',field:'Health__c',label:'Health'},{key:'lead',field:'Development_Lead__r.Name',label:'Development Lead'},{key:'months',field:'Epic_Health_Comments__c',label:'Epic Health Comments'},{key:'pathToGreen',field:'Path_to_Green__c',label:'Path to Green'}];
+ const LEAN1=['project','months','pathToGreen','health'],LEAN2=['project','months','health'];const {s,gus,store,r}=await setup();const first=[{key:'project',field:'Project__r.Name',label:'Project'},{key:'name',field:'Name',label:'Epic Name'},{key:'health',field:'Health__c',label:'Health'},{key:'lead',field:'Development_Lead__r.Name',label:'Development Lead'},{key:'months',field:'Epic_Health_Comments__c',label:'Epic Health Comments'},{key:'pathToGreen',field:'Path_to_Green__c',label:'Path to Green'}];
  let cols=first;gus.resolveEpicInputs=async()=>({ids:[ID],sources:[{id:'00B000000000001',definitionSource:'live-gus'}],columns:cols});
  let created=await s.saveRelease({name:'Linked source',year:2026,links:'https://gus.lightning.force.com/lightning/o/ADM_Epic__c/list?filterName=Review'});assert.deepEqual(created.columns,LEAN1);
  // Simulate a pre-upgrade linked release with legacy mandatory columns and no mode.
