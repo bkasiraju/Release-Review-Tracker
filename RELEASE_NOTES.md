@@ -4,6 +4,10 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r25 (folded)
+
+- Live sync: when GUS Apps answers "Could not verify who you are (identity unavailable)", the background refresh now retries once after 8 seconds, then pauses live sync for 10 minutes with a single clear message (reload to sign in again) instead of repeating the error every minute. The last known data stays on screen. Any successful refresh clears the pause.
+
 ### 8.0.0-GA r24 (folded)
 
 - Add existing GUS epic: the Planned release field now applies in this mode too. An epic of the team brought in from an earlier release (e.g. 266 into 268) has its Planned Release updated in GUS to the chosen release, and its Scheduled Build set to the build named after the release number (268), or cleared if no such build exists. Epics of other teams are not changed.

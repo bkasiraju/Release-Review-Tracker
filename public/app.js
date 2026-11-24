@@ -143,8 +143,15 @@ function queueMonthly(id,month,value,snapshot=null){
 }
 function resumeMonthlySaves(){if(state.demo||state.connection?.sharedBackend)return;for(const e of state.epics)for(const [month,d] of Object.entries(e.drafts||{})){if(!d.autoSync)continue;const existing=saveJobs.get(jobKey(e.id,month));if(existing){if(existing.status==='failed'&&existing.request?.requestId===d.requestId&&existing.value===d.value&&existing.request.base===d.base){existing.saved=e;void runMonthlyJob(existing);}continue;}const r=state.releases.find(r=>r.id===d.releaseId&&r.epicIds.includes(e.id));if(!r)continue;const job={id:e.id,month,value:d.value,name:e.name,releaseId:r.id,saved:e,status:'queued'};saveJobs.set(jobKey(e.id,month),job);void runMonthlyJob(job);}}
 async function refreshSharedDashboard(){
+ if(state.authLost&&Date.now()-state.authLost<600000)return;
  if(recoveryPopup||state.demo||state.testMode||!state.connection||document.visibilityState!=='visible'||state.drawer||state.unsaved||state.busy||state.fetching||state.refreshSweep||state.autoRefreshing||commentPreview||epicUpdatesPreview||!$('ui-tooltip')?.hidden||$('table-card').matches(':hover')||state.executiveGenerating||[...saveJobs.values()].some(j=>['queued','saving','publishing'].includes(j.status)))return;
- state.autoRefreshing=true;const metric=syncMetric('Dashboard sync');try{await reload(metric);resumeMonthlySaves();if(![...saveJobs.values()].some(j=>['queued','saving','publishing'].includes(j.status)))await fetchEpics(undefined,true,true,metric);}catch(error){metric.detail='Dashboard sync needs attention';toast('Could not refresh shared GUS data: '+error.message,true);}finally{state.autoRefreshing=false;showSyncMetric(metric);}
+ state.autoRefreshing=true;const metric=syncMetric('Dashboard sync');try{await reload(metric);state.authRetried=false;state.authLost=0;resumeMonthlySaves();if(![...saveJobs.values()].some(j=>['queued','saving','publishing'].includes(j.status)))await fetchEpics(undefined,true,true,metric);}catch(error){
+  // The host could not resolve the signed-in user (expired / not-yet-ready session): retry once quietly, then pause live sync instead of repeating the error every minute.
+  if(/verify who you are|identity unavailable|access was refused/i.test(String(error&&error.message))){
+   if(!state.authRetried){state.authRetried=true;metric.detail='Sign-in is being re-checked';setTimeout(refreshSharedDashboard,8000);}
+   else{state.authLost=Date.now();metric.detail='Live sync paused: sign-in could not be verified';toast('Live sync is paused: GUS could not verify your sign-in, so the last known data is shown. Reload this page to sign in again.',true);}
+  }else{metric.detail='Dashboard sync needs attention';toast('Could not refresh shared GUS data: '+error.message,true);}
+ }finally{state.autoRefreshing=false;showSyncMetric(metric);}
 }
 function months(){const all=new Set([...reviewMonths(state.review),...selectedReleases().flatMap(r=>[...(r.months||[]),...(r.visibleMonths||[]),...(r.hiddenMonths||[])])]);for(const e of selectedEpics()){Object.keys(e.parsed?.months||{}).forEach(m=>all.add(m));Object.keys(e.drafts||{}).forEach(m=>all.add(m));}return [...all].sort().reverse();}
 function visibleRows(){const query=$('search').value.toLowerCase(),health=filterValues('health-filter'),owner=filterValues('owner-filter');
