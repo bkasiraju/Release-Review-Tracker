@@ -4,6 +4,10 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r21 (folded)
+
+- Teams dialog: leader chips fixed (oversized checkbox and wrapped names); each chip is a compact pill with a normal checkbox, name and role on one line.
+
 ### 8.0.0-GA r20 (folded)
 
 - Teams dialog: built-in teams are shown as compact chips; only teams added in the app are listed as rows with Edit / Remove.
