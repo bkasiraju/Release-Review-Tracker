@@ -31,8 +31,11 @@ function open(){
   ov.innerHTML=`<div class="nd-modal pl-modal v2w" role="dialog" aria-modal="true" aria-label="V2MOM measures import"><div class="v2w-h"><h2>V2MOM measures import <small>${esc(H.team.Name)}</small></h2><button type="button" class="nd-x" data-x aria-label="Close">×</button></div><div class="nd-b" data-b></div></div>`;
   H.popHost().appendChild(ov);
   const b=ov.querySelector('[data-b]'),close=()=>ov.remove();
-  ov.addEventListener('click',e=>{if(e.target===ov||e.target.closest('[data-x]'))close();});
-  ov.addEventListener('keydown',e=>{if(e.key==='Escape')close();});
+  // Typing a sheet link / tab names marks the wizard dirty; closing it then asks first (same prompt as the planner dialogs).
+  let dirty=false,asking=false;ov.addEventListener('input',e=>{const t=e.target;if(t&&!/^(checkbox|radio|file)$/.test(t.type||''))dirty=true;});
+  const leave=async()=>{if(asking)return;if(dirty){asking=true;const ok=await window.Hub.confirm({title:'Unsaved changes',message:'You have unsaved changes. Leave without saving?',ok:'Leave',cancel:'Stay',danger:true});asking=false;if(!ok)return;}close();};
+  ov.addEventListener('click',e=>{if(e.target===ov||e.target.closest('[data-x]'))leave();});
+  ov.addEventListener('keydown',e=>{if(e.key==='Escape'&&!document.querySelector('.hub-confirm-ov'))leave();});
   let parsed=null,sheets=null,programs=[],teamProg=null;
   call('plan-refs',{teamId:H.team.Id}).then(r=>{programs=r.programs||[];}).catch(()=>{});
 

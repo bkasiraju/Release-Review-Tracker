@@ -57,7 +57,7 @@ function draw(){
  $('tm-x').onclick=close;
  if($('tm-add'))$('tm-add').onclick=()=>{editing=true;picked=null;draw();$('tm-q').focus();};
  box.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>{editing=b.dataset.edit;picked=null;draw();});
- box.querySelectorAll('[data-del]').forEach(b=>b.onclick=async()=>{const t=cfg.teams.find(x=>x.key===b.dataset.del);if(!window.confirm('Remove '+t.group+' from ReleaseIQ? Its GUS team and releases are not touched.'))return;b.disabled=true;try{cfg=await api('teams-config');cfg=await api('delete-team',{key:t.key});await window.Hub.refreshTeams();window.toast?.(t.group+' removed.');draw();}catch(e){window.toast?.(e.message||String(e),true);b.disabled=false;}});
+ box.querySelectorAll('[data-del]').forEach(b=>b.onclick=async()=>{const t=cfg.teams.find(x=>x.key===b.dataset.del);if(!await window.Hub.confirm({title:'Remove team?',message:'Remove '+t.group+' from ReleaseIQ? Its GUS team and releases are not touched.',ok:'Remove',cancel:'Cancel',danger:true}))return;b.disabled=true;try{cfg=await api('teams-config');cfg=await api('delete-team',{key:t.key});await window.Hub.refreshTeams();window.toast?.(t.group+' removed.');draw();}catch(e){window.toast?.(e.message||String(e),true);b.disabled=false;}});
  if($('tm-form')){
   loadLeaders();
   $('tm-gus').onchange=()=>loadLeaders(editing===true);

@@ -4,6 +4,10 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r32 (folded)
+
+- The in-app "Unsaved changes" prompt (Stay / Leave) now also guards the V2MOM import wizard, the Add/Edit action item dialog, the Nudge message dialog (edited, unsent text) and the legacy drawer / Path to Green popup; native browser confirms there (and on Remove team) were replaced with the in-app dialog.
+
 ### 8.0.0-GA r31 (folded)
 
 - The unsaved-changes prompt in planner dialogs now uses the in-app confirmation dialog (Stay / Leave) instead of the browser's native popup.

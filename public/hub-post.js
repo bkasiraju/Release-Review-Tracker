@@ -25,6 +25,8 @@ const draft=(s,u,k)=>{
   return `${greet}\n\n*Quick nudge* on ${s.name}${s.subject&&s.subject!==s.name?' — '+one(s.subject):''}.\n${ask}\n\n${link1}`;
 };
 const ICO={slack:'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 3 7 21M17 3l-2 18M4 8h17M3 16h17"/></svg>',chatter:'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12Z"/></svg>',copy:'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg>',send:'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-11 11M22 2l-7 20-4-9-9-4z"/></svg>',bell:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg>',info:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>'};
+/** Closing with an edited, unsent message asks first. */
+async function leave(){const s=S;if(!s)return;if(s.edited&&!s.asking){s.asking=true;const ok=await window.Hub.confirm({title:'Unsaved changes',message:'This message has not been sent. Leave without sending?',ok:'Leave',cancel:'Stay',danger:true});s.asking=false;if(!ok)return;}else if(s.asking)return;if(S===s)close();}
 function close(){if(S){S.el.remove();document.removeEventListener('keydown',S.key);S.opener&&S.opener.focus&&S.opener.focus();S=null;}}
 function msg(t,kind){const n=S.el.querySelector('#nd-msg');n.className='nd-msg '+(kind||'');n.textContent=t||'';}
 function draw(){
@@ -64,14 +66,14 @@ function open(btn){
   <div class="nd-row"><label class="nd-lab" for="nd-text">Message</label><span id="nd-count" class="nd-count"></span></div><div id="nd-kinds" class="nd-kinds"></div><textarea id="nd-text" rows="5" maxlength="4000"></textarea>
   <div id="nd-chan" class="nd-chan"></div><div id="nd-hint" class="nd-hint"></div><div id="nd-msg" class="nd-msg" role="status"></div><div id="nd-actions" class="nd-actions"></div></div>`;
   document.body.appendChild(el);S.el=el;
-  S.key=e=>{if(e.key==='Escape')close();};document.addEventListener('keydown',S.key);
+  S.key=e=>{if(e.key==='Escape'&&!document.querySelector('.hub-confirm-ov'))leave();};document.addEventListener('keydown',S.key);
   el.querySelector('#nd-text').value=draft(S,null);
   el.querySelector('#nd-text').oninput=()=>{S.edited=true;draw();};
   el.addEventListener('change',e=>{if(e.target.id==='nd-chsel'){S.chanTeam=e.target.value;draw();}});
   el.querySelector('#nd-q').oninput=e=>{clearTimeout(timer);const v=e.target.value;timer=setTimeout(()=>search(v,false),250);};
   el.querySelector('#nd-q').onfocus=e=>{if(!e.target.value&&!S.users.length)search('',false);};
   el.addEventListener('click',async e=>{
-    const t=e.target.closest('button,a');if(e.target===el||(t&&t.matches('[data-close]')))return close();
+    const t=e.target.closest('button,a');if(e.target===el||(t&&t.matches('[data-close]')))return leave();
     if(!t)return;
     if(t.dataset.kind){S.kind=t.dataset.kind;S.edited=false;el.querySelector('#nd-text').value=draft(S,S.user);draw();}
     else if('chcfg' in t.dataset){openChannels();}
@@ -80,10 +82,10 @@ function open(btn){
     else if('clear' in t.dataset){S.user=null;S.slack=null;draw();}
     else if('copy' in t.dataset){const txt=el.querySelector('#nd-text').value;try{await navigator.clipboard.writeText(txt);msg('Copied. Paste it into the Slack DM.','ok');}catch(_){msg('Copy failed — select the message text and copy it manually.','err');}}
     else if('slackSend' in t.dataset){const text=el.querySelector('#nd-text').value,s=S;s.busy=true;msg('');draw();
-      try{const cc=(s.slack.channels||[]).find(c=>c.teamId===s.chanTeam);if(!cc||!await H.confirm({title:'Post to Slack?',message:`Post this message in ${cc.name} (${cc.team}) and @mention ${s.user.name}?`,ok:'Post'})){s.busy=false;draw();return;}const r=await call('post-slack-send',{userId:s.user.id,teamId:s.chanTeam,text});if(S===s){s.busy=false;draw();msg('Posted in '+(r.channel||'the channel')+' and mentioned '+(r.to||'the recipient')+'.','ok');}}
+      try{const cc=(s.slack.channels||[]).find(c=>c.teamId===s.chanTeam);if(!cc||!await H.confirm({title:'Post to Slack?',message:`Post this message in ${cc.name} (${cc.team}) and @mention ${s.user.name}?`,ok:'Post'})){s.busy=false;draw();return;}const r=await call('post-slack-send',{userId:s.user.id,teamId:s.chanTeam,text});if(S===s){s.busy=false;s.edited=false;draw();msg('Posted in '+(r.channel||'the channel')+' and mentioned '+(r.to||'the recipient')+'.','ok');}}
       catch(err){if(S===s){s.busy=false;draw();msg('Not sent: '+err.message+' You can still copy the message.','err');}}}
     else if('send' in t.dataset){const text=el.querySelector('#nd-text').value,s=S;s.busy=true;msg('');draw();
-      try{const r=await call('post-chatter',{recordId:s.id,userId:s.user.id,text});if(S===s){s.busy=false;draw();msg('Posted to GUS Chatter'+(r.id?' ('+r.id+')':'')+'.','ok');}}
+      try{const r=await call('post-chatter',{recordId:s.id,userId:s.user.id,text});if(S===s){s.busy=false;s.edited=false;draw();msg('Posted to GUS Chatter'+(r.id?' ('+r.id+')':'')+'.','ok');}}
       catch(err){if(S===s){s.busy=false;draw();msg('Not posted: '+err.message,'err');}}}
   });
   draw();el.querySelector('#nd-q').focus();

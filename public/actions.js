@@ -72,10 +72,13 @@ function openAdd(btn,ed){
   <label class="nd-lab" for="sal-det">Action item details</label><textarea id="sal-det" rows="4" maxlength="1000" placeholder="What needs to happen?">${ed?esc(ed.details):''}</textarea>
   <div id="sal-msg" class="nd-msg" role="status"></div><div class="nd-actions"><button type="button" class="button primary" data-save>${ed?'Save changes':'Add to log'}</button><button type="button" class="button" data-x>Cancel</button></div></div>`;
   document.body.appendChild(el);A.modal={el,opener:btn,key:e=>{if(e.key==='Escape'&&!document.querySelector('.nd-overlay:not(.sal-ov)'))closeModal();}};document.addEventListener('keydown',A.modal.key);
+  let dirty=false,asking=false;el.addEventListener('input',e=>{dirty=true;});el.addEventListener('change',e=>{dirty=true;});
+  const leave=async()=>{if(asking)return;if(dirty){asking=true;const ok=await window.Hub.confirm({title:'Unsaved changes',message:'You have unsaved changes. Leave without saving?',ok:'Leave',cancel:'Stay',danger:true});asking=false;if(!ok)return;}closeModal();};
+  document.removeEventListener('keydown',A.modal.key);  A.modal.key=e=>{if(e.key==='Escape'&&!document.querySelector('.nd-overlay:not(.sal-ov),.hub-confirm-ov'))leave();};document.addEventListener('keydown',A.modal.key);
   if(!mem.length)el.querySelector('#sal-msg').textContent='Team members are still loading — close and try again in a moment.';
   el.querySelector('#sal-det').focus();
   el.addEventListener('click',async e=>{
-    if(e.target===el||e.target.closest('[data-x]'))return closeModal();
+    if(e.target===el||e.target.closest('[data-x]'))return leave();
     if(!e.target.closest('[data-save]'))return;
     const msg=el.querySelector('#sal-msg'),det=el.querySelector('#sal-det').value.trim(),btn2=e.target.closest('[data-save]');
     if(!det){msg.className='nd-msg err';msg.textContent='Describe the action item.';return;}
