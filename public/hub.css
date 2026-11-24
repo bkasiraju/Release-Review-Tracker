@@ -3591,3 +3591,18 @@ html body .topbar a.back-home svg,html body a.pl-back svg{width:16px;height:16px
 html body .topbar a.back-home:hover,html body a.pl-back:hover{background:#144a6e!important;border-color:#144a6e!important;box-shadow:0 2px 6px rgba(16,40,64,.3)!important}
 html body .topbar a.back-home:hover svg,html body a.pl-back:hover svg{transform:translateX(-3px)}
 html body .topbar a.back-home:focus-visible,html body a.pl-back:focus-visible{outline:3px solid #9ec3e2;outline-offset:2px}
+
+/* r15: light, readable Back buttons (no heavy blue) and room beside the ⚙ team button so nothing overlaps */
+html body .topbar a.back-home,html body a.pl-back{background:#f1f6fb!important;border:1px solid #b9d3ea!important;color:#17456b!important;font-weight:600;box-shadow:none!important;padding:7px 14px 7px 10px}
+html body .topbar a.back-home *,html body a.pl-back *{color:#17456b!important;stroke:#17456b!important}
+html body .topbar a.back-home:hover,html body a.pl-back:hover{background:#e1edf8!important;border-color:#8fb8dc!important;box-shadow:none!important}
+html body .dashboard-bar:has(>#pl-back)>.hub-team{margin-right:196px}
+/* r15: compact size */
+html body .topbar a.back-home,html body a.pl-back{gap:5px;padding:4px 10px 4px 8px!important;border-radius:6px;font-size:12px;line-height:18px;min-height:0;height:auto}
+html body .topbar a.back-home svg,html body a.pl-back svg{width:13px;height:13px}
+html body .dashboard-bar:has(>#pl-back)>.hub-team{margin-right:140px}
+
+/* r15: ⚙ Teams button is a 3D icon tile, last in the page bar */
+html body .tm-open{width:auto;height:auto;margin:0 0 0 6px;padding:0;border:0;background:transparent;display:inline-flex;align-items:center;flex:none;box-shadow:none}
+html body .tm-open:hover{background:transparent}html body .tm-open:hover .cfs-icon{filter:brightness(1.08);transform:translateY(-1px)}
+html body .tm-open:focus-visible{outline:3px solid #9ec3e2;outline-offset:2px;border-radius:10px}

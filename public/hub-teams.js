@@ -73,6 +73,11 @@ function draw(){
 }
 async function open(){editing=null;try{await load();}catch(e){window.toast?.('Teams unavailable: '+(e.message||e),true);}}
 window.openTeamsDialog=open;
-function addButton(){const l=document.querySelector('label.hub-team');if(!l||l.querySelector('.tm-open'))return;const b=document.createElement('button');b.type='button';b.className='tm-open';b.title='Manage teams — add a team';b.setAttribute('aria-label','Manage teams');b.textContent='⚙';b.onclick=open;l.append(b);}
-window.addEventListener('hub:team',addButton);document.addEventListener('DOMContentLoaded',()=>setTimeout(addButton,300));
+/* The ⚙ Teams button is the last control of the page bar (after Refresh), drawn as the same 3D tile as the page icons. */
+let tmBtn=null;
+function addButton(){const bar=document.getElementById('dashboard-controls');if(!bar||!document.querySelector('label.hub-team'))return;
+ if(!tmBtn){tmBtn=document.createElement('button');tmBtn.type='button';tmBtn.className='tm-open';tmBtn.title='Manage teams — add a team';tmBtn.setAttribute('aria-label','Manage teams');tmBtn.innerHTML=window.ReviewIcons?window.ReviewIcons.icon('settings','blue'):'⚙';tmBtn.onclick=open;}
+ const tb=bar.querySelector('.release-toolbar'),host=tb&&tb.getClientRects().length?tb:bar;
+ if(tmBtn.parentNode!==host||host.lastElementChild!==tmBtn)host.append(tmBtn);}
+window.addEventListener('hub:team',addButton);window.addEventListener('hashchange',()=>setTimeout(addButton,50));document.addEventListener('DOMContentLoaded',()=>{setTimeout(addButton,300);const bar=document.getElementById('dashboard-controls');if(bar)new MutationObserver(addButton).observe(bar,{childList:true,subtree:true});});
 })();

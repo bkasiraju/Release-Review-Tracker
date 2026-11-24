@@ -105,7 +105,7 @@ function placeTeam(){
   /* where the release controls are shown, Team is the first control, before RELEASE */
   if(rp&&tb.getClientRects().length){if(t.parentNode!==tb||t.nextElementSibling!==rp)tb.insertBefore(t,rp);return;}
   if(back){if(t.parentNode!==bar||t.nextElementSibling!==back)bar.insertBefore(t,back);}
-  else if(t.parentNode!==bar||bar.lastElementChild!==t)bar.append(t);
+  else if(t.parentNode!==bar||[...bar.children].filter(x=>!x.classList.contains('tm-open')).pop()!==t)bar.append(t); // the ⚙ Teams button (hub-teams.js) always sits last
 }
 function placeGus(){
   placeTeam();

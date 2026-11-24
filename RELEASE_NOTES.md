@@ -4,6 +4,10 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r15 (folded)
+
+- Back to Hub / Back to Team Hub restyled again: light tint with a dark-blue label and border instead of solid blue. On the planner the team selector and ⚙ button now keep clear of "Back to Team Hub" (no overlap). The buttons are compact. The Teams ⚙ button is now a 3D icon tile like the page icons and sits last in the page bar, after Refresh.
+
 ### 8.0.0-GA r14 (folded)
 
 - "Back to Hub" and "Back to Team Hub" are now a solid dark-blue pill with a white label and arrow (the pale tint made the label unreadable), with a hover shift and a visible focus ring.
