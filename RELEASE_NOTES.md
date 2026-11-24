@@ -4,6 +4,11 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r28 (folded)
+
+- V2MOM import: re-importing adds only the delta. A measure already on the dashboard (same project id, short form or name, hidden ones included) is skipped and left unchanged: no new GUS project, and its name, short form and method are never overridden. The result summary reports new vs. unchanged.
+- V2MOM import: a tab named M<n> is always method M<n> (a title cell naming another method no longer relabels it); up to 30 method tabs can be read.
+
 ### 8.0.0-GA r27 (folded)
 
 - Planner table: the Theme column is wider (190px) so theme values are readable; Epic Name and Workstream take slightly less width so the later columns sit closer to the left.

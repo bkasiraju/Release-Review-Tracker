@@ -97,7 +97,7 @@ function open(){
 
   const step3=(items,prefix)=>{
     const def=get('program')||(teamProg&&teamProg.name)||'';
-    b.innerHTML=`<p class="note">Step 3 of 3 · Choose the GUS program. ${items.length} project${items.length===1?'':'s'} will be created under it (existing projects with the same name are reused) and added to <b>${esc(H.team.Name)}</b>'s plan.</p>
+    b.innerHTML=`<p class="note">Step 3 of 3 · Choose the GUS program. ${items.length} project${items.length===1?'':'s'} will be created under it (existing projects with the same name are reused; measures already on the dashboard are skipped and left unchanged) and added to <b>${esc(H.team.Name)}</b>'s plan.</p>
     <label class="pl-cr-f"><span>GUS program name <small>exact name of the PPM program${teamProg?`; this team's default is ${esc(teamProg.name)}`:''}</small></span><input class="v2w-in" data-prog list="v2w-progs" value="${esc(def)}" placeholder="e.g. ${esc(H.team.short||H.team.Name)} - 268"><datalist id="v2w-progs">${programs.map(p=>`<option value="${esc(p.name)}">`).join('')}</datalist></label>
     <div class="v2w-sum">${items.map(i=>`<div>${esc(i.name)} <small>${esc(i.method)}</small></div>`).join('')}</div>
     <p class="pl-cr-err" role="alert" hidden></p>
@@ -114,9 +114,9 @@ function open(){
   };
 
   const done=r=>{
-    const bad=r.results.filter(x=>!x.ok);
-    b.innerHTML=`<p class="note"><b>${r.results.length-bad.length}</b> of ${r.results.length} projects are in program <b>${esc(r.program.name)}</b> (${r.created} newly created in GUS, ${r.added} added to the plan).</p>
-    <div class="v2w-sum">${r.results.map(x=>`<div class="${x.ok?'':'bad'}">${x.ok?'✓':'✗'} ${esc(x.name)} <small>${x.ok?(x.created?'created':'already existed'):esc(x.error)}</small></div>`).join('')}</div>
+    const bad=r.results.filter(x=>!x.ok),sk=r.skipped||0;
+    b.innerHTML=`<p class="note"><b>${r.added}</b> new project${r.added===1?'':'s'} added to the plan in program <b>${esc(r.program.name)}</b> (${r.created} newly created in GUS).${sk?` ${sk} already on the dashboard ${sk===1?'was':'were'} left unchanged.`:''}</p>
+    <div class="v2w-sum">${r.results.map(x=>`<div class="${x.ok?'':'bad'}">${x.ok?'✓':'✗'} ${esc(x.name)} <small>${x.ok?(x.skipped?'already on the dashboard, unchanged':x.created?'created':'already existed in GUS, added'):esc(x.error)}</small></div>`).join('')}</div>
     <div class="pl-cr-foot"><span></span><span class="pl-cr-btns"><button type="button" class="v2w-btn pri" data-view>Open planner</button></span></div>`;
     b.querySelector('[data-view]').onclick=()=>{close();H.go('plan');if(H.current==='plan')location.reload();};
   };

@@ -7,7 +7,7 @@ const { csvRows } = require('./review-policy');
 const norm = s => String(s == null ? '' : s).replace(/\s+/g, ' ').trim();
 const low = s => norm(s).toLowerCase();
 const CODE = /^\d+(?:\.\d+)+$/;
-const MAX_TABS = 12, MAX_ROWS = 600;
+const MAX_TABS = 30, MAX_ROWS = 600;
 
 /** Finds the header row and the columns we need. Returns null when the tab has no Measure + Owner header. */
 function findHeader(rows) {
@@ -47,7 +47,10 @@ function parseSheets(sheets, opts = {}) {
     const list = Array.isArray(rows) ? rows.slice(0, MAX_ROWS) : [];
     const h = findHeader(list);
     if (!h) { skipped.push({ tab, reason: 'No Measure and Owner header row found' }); continue; }
-    const title = tabTitle(list, tab);
+    // A tab named M<n> is method M<n>: a title cell naming another method never relabels it.
+    let title = tabTitle(list, tab);
+    const tn = /^M(\d+)$/i.exec(norm(tab));
+    if (tn && !new RegExp('^M' + tn[1] + '\\b', 'i').test(title)) title = 'M' + tn[1];
     let found = 0;
     for (let r = h.row + 1; r < list.length; r++) {
       const row = list[r] || [];

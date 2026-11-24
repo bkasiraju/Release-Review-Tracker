@@ -261,32 +261,40 @@ async function importV2mom(sf, store, teamId, input) {
   const program = await resolveProgram(sf, teamId, input && input.programName);
   if (!program) throw new Error(input && String(input.programName || '').trim() ? `No GUS program named “${String(input.programName).trim()}” was found. Check the spelling (it must match the program name in GUS).` : 'This team has no GUS program yet. Enter the GUS program name.');
   const prefix = slug(input && input.prefix) || slug(teamId).slice(0, 8) || 'v2';
+  // Re-imports add only what is new: a measure already on the dashboard (same project id, GUS project, short form or name; hidden ones included) is left exactly as it is.
+  const cur = await getPlan(store, teamId), plan = cleanPlan(cur.plan);
+  const low = v => String(v || '').trim().toLowerCase();
+  const known = it => {
+    const code = String(it.code || ''), id = (prefix + '-m' + slug(code)).slice(0, 40);
+    return plan.projects.find(p => p.id === id || (it.short && low(p.short) === low(it.short)) || (it.name && low(p.name) === low(it.name)));
+  };
   const results = [];
   for (const it of items) {
     const name = String(it.name || '').trim(), res = { code: String(it.code || ''), name };
     try {
       if (!name) throw new Error('Name is empty.');
+      const have = known(it);
+      if (have) { Object.assign(res, { ok: true, skipped: true, gusId: have.gusId || '', name: have.name || name }); results.push(res); continue; }
       const r = await ensureProject(sf, teamId, { name, method: it.method }, program);
       Object.assign(res, { gusId: r.id, created: r.created, ok: true });
     } catch (e) { Object.assign(res, { ok: false, error: String(e && e.message || e) }); }
     results.push(res);
   }
-  // Add the projects to this team's plan (shared catalog is updated by savePlan)
-  const done = results.filter(r => r.ok);
+  const done = results.filter(r => r.ok && !r.skipped);
   let added = 0;
   if (done.length) {
-    const cur = await getPlan(store, teamId), plan = cleanPlan(cur.plan);
     for (const r of done) {
       const it = items[results.indexOf(r)], code = String(it.code || '');
       let p = plan.projects.find(x => x.gusId === r.gusId);
-      if (!p) { p = { id: (prefix + '-m' + slug(code)).slice(0, 40) || ('v2-' + r.gusId), name: r.name, short: String(it.short || '').slice(0, 60), method: '', theme: '', gusId: r.gusId }; plan.projects.push(p); added++; }
-      Object.assign(p, { name: r.name, short: String(it.short || p.short || '').slice(0, 60), method: String(it.method || p.method || '').slice(0, 1000), gusId: r.gusId, programId: program.id, programName: program.name });
+      if (p) continue; // already on the dashboard under another name: not overridden
+      p = { id: (prefix + '-m' + slug(code)).slice(0, 40) || ('v2-' + r.gusId), name: r.name, short: String(it.short || '').slice(0, 60), method: String(it.method || '').slice(0, 1000), theme: '', gusId: r.gusId, programId: program.id, programName: program.name };
+      plan.projects.push(p); added++;
     }
-    plan.hiddenProjects = (plan.hiddenProjects || []).filter(h => !plan.projects.some(p => p.id === h));
+    plan.hiddenProjects = (plan.hiddenProjects || []).filter(h => !done.some(r => plan.projects.some(p => p.id === h && p.gusId === r.gusId)));
     await savePlan(store, teamId, plan, cur.revision);
     refsCache.delete(teamId);
   }
-  return { program, results, added, created: results.filter(r => r.created).length };
+    return { program, results, added, created: results.filter(r => r.created).length, skipped: results.filter(r => r.skipped).length };
 }
 /** Projects tagged to a named GUS program, for the Add project picker. With no name, the team's own program is used. */
 async function programProjects(sf, teamId, name) {
