@@ -76,7 +76,8 @@ class Service{
     for(const m of mem){const r=String(m.Role__c||'');add(m.Member_Name__c,m.Member_Name__r?.Name,r&&r!=='Developer'&&r!=='Software Engineer'?r:'',/^(Engineering Manager|Architect|Scrum (Master|Lead))/i.test(r));}
     const want=[...new Set((Array.isArray(b.ids)?b.ids:[]).map(String).filter(i=>cfg.USER_ID.test(i)&&!by.has(i)))];
     if(want.length)for(const u of (await sf.query(`SELECT Id, Name FROM User WHERE Id IN (${want.map(i=>`'${i}'`).join(',')})`)).records||[])add(u.Id,u.Name,'Current leader',false);
-    return {team:{id:t.Id,name:t.Name},people:[...by.values()]};
+    const tags=((await sf.query(`SELECT Name FROM ADM_Product_Tag__c WHERE Team__c = '${t.Id}' AND Active__c = true ORDER BY Name LIMIT 100`)).records||[]).map(r=>r.Name).filter(Boolean);
+    return {team:{id:t.Id,name:t.Name},people:[...by.values()],tags};
   }
   async saveTeam(data){
     if(this.readOnly)throw Error('Sample preview is read-only.');

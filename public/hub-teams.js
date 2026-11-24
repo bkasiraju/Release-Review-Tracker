@@ -18,18 +18,23 @@ function form(t){const e=t||{key:'',group:'',gus:'',short:'',theme:'',tag:'',lea
  <div class="tm-field"><label for="tm-short">Short name</label><input id="tm-short" maxlength="12" value="${esc(e.short)}"></div>
  <div class="tm-field"><label for="tm-key">Team key</label><input id="tm-key" maxlength="31" value="${esc(e.key)}" ${t?'disabled':''}></div>
  <div class="tm-field"><label for="tm-theme">Workstream theme</label><input id="tm-theme" maxlength="12" value="${esc(e.theme)}"></div>
- <div class="tm-field"><label for="tm-tag">Default product tag <em>(optional)</em></label><input id="tm-tag" maxlength="80" value="${esc(e.tag)}"></div></div>
+ <div class="tm-field"><label for="tm-tag">Default product tag <em>(optional)</em></label><input id="tm-tag" maxlength="80" value="${esc(e.tag)}"><span id="tm-tags" class="tm-tags"></span><small>Active product tags of the GUS scrum team appear here to pick from.</small></div></div>
  <div class="tm-field"><label>Leaders</label><div id="tm-leaders" class="tm-leaders" aria-live="polite"><em>Pick the GUS scrum team to see its Scrum Lead, Engineering Manager and Architect.</em></div><small>Leaders come from the scrum team in GUS: Scrum Lead, Engineering Manager and Architect are pre-selected. They are shown in the team's people list.</small></div>
  <div id="tm-err" class="tm-err" role="alert"></div>
  <div class="tm-actions"><button type="button" class="button" id="tm-cancel">Cancel</button><button type="submit" class="button primary" id="tm-save">${t?'Save changes':'Add team'}</button></div></form>`;}
 let picked=null,seq=0;
-async function loadLeaders(reset){const box_=$('tm-leaders');if(!box_)return;const my=++seq;if(reset){box_.innerHTML='';picked=new Set();}const name=$('tm-gus').value.trim();
+function showTags(tags){const box_=$('tm-tags'),inp=$('tm-tag');if(!box_||!inp)return;
+ if(tags.length===1&&!inp.value&&editing===true)inp.value=tags[0];
+ box_.innerHTML=tags.map(t=>`<button type="button" class="tm-tagpick${inp.value===t?' on':''}" data-tag="${esc(t)}">${esc(t)}</button>`).join('');
+ box_.querySelectorAll('button').forEach(b=>b.onclick=()=>{inp.value=inp.value===b.dataset.tag?'':b.dataset.tag;box_.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.tag===inp.value));});}
+async function loadLeaders(reset){const box_=$('tm-leaders');if(!box_)return;const my=++seq;if(reset){box_.innerHTML='';picked=new Set();if($('tm-tags'))$('tm-tags').innerHTML='';}const name=$('tm-gus').value.trim();
  if(picked===null)picked=new Set(editing&&editing!==true?((cfg.teams.find(t=>t.key===editing)||{}).leaders||[]):[]);
  else box_.querySelectorAll('[data-leader]').forEach(i=>i.checked?picked.add(i.dataset.leader):picked.delete(i.dataset.leader));
  if(!name){box_.innerHTML='<em>Pick the GUS scrum team to see its Scrum Lead, Engineering Manager and Architect.</em>';return;}
  box_.innerHTML='<em>Loading leaders from GUS…</em>';
  try{const r=await api('team-leaders',{name,ids:[...picked]});if(my!==seq)return;
   if(!r.team){box_.innerHTML='<em>No active GUS scrum team matches “'+esc(name)+'”.</em>';return;}
+  showTags(r.tags||[]);
   const fresh=!picked.size&&!(editing&&editing!==true);if(fresh)r.people.forEach(p=>{if(p.lead)picked.add(p.id);});
   const key=p=>p.lead||picked.has(p.id)||p.roles.some(x=>/Product Owner|Program Manager/.test(x));
   const chip=p=>`<label class="tm-chip"><input type="checkbox" data-leader="${esc(p.id)}" ${picked.has(p.id)?'checked':''}>${esc(p.name)}${p.roles.length?` <em>${esc(p.roles.join(', '))}</em>`:''}</label>`;

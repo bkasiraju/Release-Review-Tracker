@@ -4,6 +4,10 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r12 (folded)
+
+- Teams dialog: the active GUS product tags of the chosen scrum team are listed under "Default product tag" as buttons to pick (click again to clear); a single tag is pre-filled when adding a team. Loaded with the leaders by the `team-leaders` action.
+
 ### 8.0.0-GA r11 (folded)
 
 - Teams dialog: leaders are now chosen per team from GUS. After you pick the scrum team, its Scrum Lead, Engineering Manager and Architect (team record and member roles) appear as chips and are pre-selected; Product Owner and other members can be added. Selections are saved as GUS user ids and shown in the team's people list. Amit and Jayant are no longer forced onto teams added in the app (built-in teams are unchanged). New `team-leaders` action.
