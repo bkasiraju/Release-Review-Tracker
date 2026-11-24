@@ -7,7 +7,7 @@ Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback base
 ### 8.0.0-GA r16 (folded)
 
 - Release Planner: when a linked planned release's dates change in GUS (e.g. MQ 268 end moved from 28 Feb to 31 Mar) the plan window now follows it on load, and the Leaves, holidays & on-call dialog shows the new working-day total. Engineers whose Total days still equalled the old window's weekdays move to the new total; entered leave, holidays, on-call and deliberately custom totals are never changed. Changing the release or dates by hand does the same.
-- Planner page bar: team selector, "Back to Team Hub" and the ⚙ button now flow in order with even spacing instead of the back button being pinned over the selector; all three share one 34px row, vertically centred, with 10px gaps.
+- Planner page bar: team selector, "Back to Team Hub" and the ⚙ button now flow in order with even spacing instead of the back button being pinned over the selector; all three share one 34px row, vertically centred, with 10px gaps; the ⚙ tile is exactly 34×34 with no outer shadow.
 
 ### 8.0.0-GA r15 (folded)
 
