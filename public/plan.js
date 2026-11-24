@@ -1727,8 +1727,8 @@ function openModal(title,body,opener,wide){
   H.popHost().appendChild(el);
   // Typing in a form field marks the dialog dirty; leaving it by backdrop click, Esc, × or Cancel then asks first. Save/Create buttons call closeModal() directly.
   let dirty=false;el.addEventListener('input',e=>{const t=e.target;if(t&&!/^(checkbox|radio|file)$/.test(t.type||''))dirty=true;});
-  const leave=()=>{if(dirty&&!confirm('You have unsaved changes. Leave without saving?\n\nOK = discard them, Cancel = go back and save.'))return;closeModal();};
-  modal={el,opener,key:e=>{if(e.key==='Escape'){e.stopImmediatePropagation();e.preventDefault();leave();}}};document.addEventListener('keydown',modal.key,true);
+  let asking=false;const leave=async()=>{if(asking)return;if(dirty){asking=true;const ok=await H.confirm({title:'Unsaved changes',message:'You have unsaved changes. Leave without saving?',ok:'Leave',cancel:'Stay',danger:true});asking=false;if(!ok)return;}closeModal();};
+  modal={el,opener,key:e=>{if(e.key==='Escape'){e.stopImmediatePropagation();e.preventDefault();if(!document.querySelector('.hub-confirm-ov'))leave();}}};document.addEventListener('keydown',modal.key,true);
   el.addEventListener('click',e=>{if(e.target===el||e.target.closest('[data-close]'))leave();});
   (el.querySelector('input,button.primary')||el.querySelector('[data-close]')).focus();return el;
 }

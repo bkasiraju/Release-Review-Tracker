@@ -4,6 +4,10 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r31 (folded)
+
+- The unsaved-changes prompt in planner dialogs now uses the in-app confirmation dialog (Stay / Leave) instead of the browser's native popup.
+
 ### 8.0.0-GA r30 (folded)
 
 - Planner dialogs (create/add epic, project, move epic, etc.): after you type in a field, clicking outside the dialog, pressing Esc, × or Cancel asks "You have unsaved changes. Leave without saving?" instead of silently discarding your input.
