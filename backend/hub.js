@@ -281,12 +281,11 @@ async function updateOne(sf, u) {
   return delta;
 }
 // ── Team people (leadership section on the hub home) ─────────────────────────
-const KARTHIK = '005EE00000kbcyIYAQ';
-const AMIT = '005B0000005Lg7WIAS', JAYANT = '005B0000001zx4jIAA', RAM = '005B0000001tCGAIA2', AZEEM = '005B0000003OANyIAO', VENKAT = '005B0000006q4KcIAI', PRAMIT = '005EE00000StHjGYAV', BHANU = '005EE00000YvpWrYAJ';
+const { AMIT, JAYANT, RAM, AZEEM, VENKAT, PRAMIT, KARTHIK, BHANU } = cfg.LEADER_IDS;
 const LEADERS = [AZEEM, JAYANT, RAM, VENKAT, PRAMIT, KARTHIK, BHANU, AMIT]; // CFS leaders: always last, in exactly this order, on every team and list; no visual marking
 const leaderRank = id => { const k = LEADERS.indexOf(id); return k < 0 ? -1 : k; };
-const LEADER_IDS = { AMIT, JAYANT, RAM, AZEEM, VENKAT, PRAMIT, KARTHIK, BHANU };
-const peopleOf = group => { const e = cfg.entryByGroup(group); return e ? e.leaders.map(n => LEADER_IDS[n]).filter(Boolean) : undefined; }; // leadership per team (teams.config.js); any other leader already on a team's roster is moved into the leader block too. Amit and Jayant lead every team.
+const LEADER_IDS = cfg.LEADER_IDS;
+const peopleOf = group => { const e = cfg.entryByGroup(group); return e ? e.leaders.map(n => LEADER_IDS[n] || (cfg.USER_ID.test(n) ? n : null)).filter(Boolean) : undefined; }; // leadership per team (teams.config.js); any other leader already on a team's roster is moved into the leader block too.
 const groupOf = g => { const e = cfg.entryByKey(g); return e ? e.group : null; };
 const teamLike = group => cfg.sqlName(cfg.entryByGroup(group));
 const SLACK_PHOTOS = require('./avatars');
@@ -329,8 +328,9 @@ async function getPeople(sf, slack, group) {
   const rows = (await sf.query(`SELECT Id, Name, Title, Email, SmallPhotoUrl FROM User WHERE IsActive = true AND Id IN (${ids.map(i => `'${q(i)}'`).join(',')})`)).records || [];
   const byId = new Map(rows.map(r => [r.Id, r]));
   const ordered = ids.filter(i => byId.has(i)).map(i => byId.get(i));
-  const rest = ordered.filter(u => leaderRank(u.Id) < 0).sort((a, b) => a.Name.localeCompare(b.Name));
-  const list = [...rest, ...LEADERS.filter(i => byId.has(i)).map(i => byId.get(i))];
+  const own_ = new Set(lead.filter(i => leaderRank(i) < 0)); // leaders picked for this team in the app: after the roster, before the CFS leaders
+  const rest = ordered.filter(u => leaderRank(u.Id) < 0 && !own_.has(u.Id)).sort((a, b) => a.Name.localeCompare(b.Name));
+  const list = [...rest, ...ordered.filter(u => own_.has(u.Id)), ...LEADERS.filter(i => byId.has(i)).map(i => byId.get(i))];
   const people = [];
   for (let k = 0; k < list.length; k += 10)
     people.push(...await Promise.all(list.slice(k, k + 10).map(async u => ({ id: u.Id, name: u.Name, role: u.Title || '', avatar: (await within(slackAvatar(slack, u.Email), 2500)) || u.SmallPhotoUrl || null, alt: u.SmallPhotoUrl || null }))));

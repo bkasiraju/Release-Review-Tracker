@@ -62,7 +62,21 @@ class Service{
   }
   async teamsConfig(){
     await this.applyTeams(true);const cfg=require('./teams.config'),builtIn=new Set(cfg.TEAMS.map(t=>t.key));
-    return {leaders:cfg.LEADER_NAMES,teams:cfg.all().map(t=>({key:t.key,group:t.group,gus:t.gus,short:t.short||'',theme:t.theme||'',tag:t.tag||'',leaders:t.leaders||[],builtIn:builtIn.has(t.key)}))};
+    return {teams:cfg.all().map(t=>({key:t.key,group:t.group,gus:t.gus,short:t.short||'',theme:t.theme||'',tag:t.tag||'',leaders:(t.leaders||[]).map(n=>cfg.LEADER_IDS[n]||n),builtIn:builtIn.has(t.key)}))};
+  }
+  // Leader candidates for a GUS scrum team: Scrum Lead, Engineering Manager, Architect and Product Owner from the team record, plus its members by role.
+  async teamLeaders(sf,b){
+    const cfg=require('./teams.config'),name=String(b.name||'').trim(),like=/%$/.test(name),n=name.replace(/%$/,'');
+    if(!n||!/^[A-Za-z0-9 .&():_\/-]+$/.test(n))throw Error('Pick the GUS scrum team first.');
+    const t=((await sf.query(`SELECT Id, Name, Scrum_Master__c, Scrum_Master__r.Name, Engineering_Manager__c, Engineering_Manager__r.Name, Supporting_Architect__c, Supporting_Architect__r.Name, Product_Owner__c, Product_Owner__r.Name FROM ADM_Scrum_Team__c WHERE Active__c = true AND Name ${like?`LIKE '${n}%'`:`= '${n}'`} ORDER BY Name LIMIT 1`)).records||[])[0];
+    if(!t)return {team:null,people:[]};
+    const by=new Map(),add=(id,nm,role,lead)=>{if(!id||!nm)return;const p=by.get(id)||{id,name:nm,roles:[],lead:false};if(role&&!p.roles.includes(role))p.roles.push(role);p.lead=p.lead||lead;by.set(id,p);};
+    add(t.Scrum_Master__c,t.Scrum_Master__r?.Name,'Scrum Lead',true);add(t.Engineering_Manager__c,t.Engineering_Manager__r?.Name,'Engineering Manager',true);add(t.Supporting_Architect__c,t.Supporting_Architect__r?.Name,'Architect',true);add(t.Product_Owner__c,t.Product_Owner__r?.Name,'Product Owner',false);
+    const mem=(await sf.query(`SELECT Member_Name__c, Member_Name__r.Name, Role__c FROM ADM_Scrum_Team_Member__c WHERE Scrum_Team__c = '${t.Id}' ORDER BY Member_Name__r.Name LIMIT 200`)).records||[];
+    for(const m of mem){const r=String(m.Role__c||'');add(m.Member_Name__c,m.Member_Name__r?.Name,r&&r!=='Developer'&&r!=='Software Engineer'?r:'',/^(Engineering Manager|Architect|Scrum (Master|Lead))/i.test(r));}
+    const want=[...new Set((Array.isArray(b.ids)?b.ids:[]).map(String).filter(i=>cfg.USER_ID.test(i)&&!by.has(i)))];
+    if(want.length)for(const u of (await sf.query(`SELECT Id, Name FROM User WHERE Id IN (${want.map(i=>`'${i}'`).join(',')})`)).records||[])add(u.Id,u.Name,'Current leader',false);
+    return {team:{id:t.Id,name:t.Name},people:[...by.values()]};
   }
   async saveTeam(data){
     if(this.readOnly)throw Error('Sample preview is read-only.');

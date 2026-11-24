@@ -1732,7 +1732,7 @@ function linkSharedProjects(){
   return n;
 }
 async function load(el){
-  const my=++P.seq;clearTimeout(P.timer);P.state='idle';P.plan=null;
+  const my=++P.seq;clearTimeout(P.timer);P.state='idle';P.plan=null;el.classList.add('pl-loading');
   el.querySelector('#pl-sum').innerHTML='<div class="hub-loading" role="status"><span class="executive-spinner" aria-hidden="true"></span> Loading plan…</div>';el.querySelector('#pl-planner').innerHTML='';
   try{
     const id=H.team.Id,[g,refs,members]=await Promise.all([call('plan-get',{teamId:id}),call('plan-refs',{teamId:id}).catch(e=>({releases:[],programs:[],projects:[],sprints:[],warnings:[e.message]})),H.members().catch(()=>[])]);
@@ -1744,6 +1744,7 @@ async function load(el){
     draw();setState('idle');showSaved(g.updatedAt,false);if(linked)queueSave(); // after idle, or the save would be skipped
     fillLeads();fetchWs(true);loadChatCounts();
   }catch(e){if(my===P.seq)el.querySelector('#pl-sum').innerHTML=`<div class="empty-state hub-empty"><h3>Could not load the plan</h3><p>${esc(e.message)}</p></div>`;}
+  finally{if(my===P.seq)el.classList.remove('pl-loading');}
 }
 H.register({id:'plan',label:'Release Planning (Quarterly)',icon:'plan',tone:'green',desc:'Plan projects, epics and effort against team capacity',needsTeam:true,
   stat:()=>({text:'Planned vs available capacity, ABL and BTL'}),

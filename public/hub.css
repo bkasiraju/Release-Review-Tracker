@@ -3572,3 +3572,10 @@ html body .tm-leaders{display:flex;flex-wrap:wrap;gap:6px}html body .tm-chip{dis
 html body .tm-err{color:#b3261e;font-size:12px;min-height:16px}
 html body .tm-actions{display:flex;justify-content:flex-end;gap:8px}
 @media(max-width:640px){html body .tm-grid{grid-template-columns:1fr}}
+
+/* r11: while a team's plan loads, show only the spinner — no empty selectors, dates or planner header flashing in and out */
+html body .pl-loading .pl-dates,html body .pl-loading #pl-fs{visibility:hidden!important}
+html body .pl-loading #pl-fs{display:none!important}
+html body .pl-loading #pl-sum{display:flex;justify-content:center;padding:48px 0}
+
+html body .tm-chip em{font-style:normal;color:#5b6b7c;font-size:11px}html body .tm-leaders>em{color:#5b6b7c;font-size:12px}

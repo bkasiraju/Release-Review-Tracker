@@ -6,7 +6,7 @@
  *   short    optional short form used in release/program names ("<short> - 268") and the UI; defaults to the GUS name without any "(...)" suffix
  *   theme    short form of the generic workstream theme R<release>_<theme>_Workstream; themeBy overrides it for names matching a regex (case-insensitive)
  *   tag      default GUS product tag name for new work items; omit to leave it unset
- *   leaders  leader names (see LEADER_IDS in hub.js); Amit and Jayant lead every team
+ *   leaders  leader names (built-in teams) or GUS user ids (teams added in the app); see LEADER_IDS
  *   excludeMembersOf   key of another team whose GUS members are not shown or counted for this team (leadership stays)
  *   allocLeaders       leaders always included in this team's allocation list
  *   pagerduty          optional { id, name } Slack channel for the PagerDuty digest
@@ -26,6 +26,9 @@ const TEAMS = [
 let EXTRA = [];
 const all = () => [...TEAMS, ...EXTRA];
 const LEADER_NAMES = ['AMIT', 'JAYANT', 'RAM', 'AZEEM', 'VENKAT', 'PRAMIT', 'KARTHIK', 'BHANU'];
+// GUS user ids of the named CFS leaders (built-in teams list leaders by name)
+const LEADER_IDS = { AMIT: '005B0000005Lg7WIAS', JAYANT: '005B0000001zx4jIAA', RAM: '005B0000001tCGAIA2', AZEEM: '005B0000003OANyIAO', VENKAT: '005B0000006q4KcIAI', PRAMIT: '005EE00000StHjGYAV', KARTHIK: '005EE00000kbcyIYAQ', BHANU: '005EE00000YvpWrYAJ' };
+const USER_ID = /^005[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?$/;
 const setExtra = list => { EXTRA = Array.isArray(list) ? list : []; };
 const lit = s => String(s).replace(/'/g, "\\'");
 const isLike = e => /%$/.test(e.gus);
@@ -51,11 +54,12 @@ function cleanEntry(raw, existingKey) {
   // The planner names workstream themes R<release>_<theme>_Workstream, so a team always needs one: default to the short name.
   const theme = str(raw.theme, 12, /^[A-Za-z0-9-]+$/, 'Theme') || (short || '').replace(/[^A-Za-z0-9-]/g, '').slice(0, 12) || e.key.toUpperCase().slice(0, 12); e.theme = theme;
   const tag = str(raw.tag, 80, SAFE, 'Product tag'); if (tag) e.tag = tag;
-  const lead = Array.isArray(raw.leaders) ? raw.leaders.filter(n => LEADER_NAMES.includes(n)) : [];
-  e.leaders = [...new Set(['AMIT', 'JAYANT', ...lead])];
+  // Leaders differ per team: GUS user ids picked from the scrum team's Scrum Lead, Engineering Manager, Architect and members (saved names of the CFS leaders are still accepted).
+  const lead = (Array.isArray(raw.leaders) ? raw.leaders : []).map(n => LEADER_IDS[n] || String(n)).filter(n => USER_ID.test(n));
+  e.leaders = [...new Set(lead)].slice(0, 20);
   const clash = all().find(x => x.key !== existingKey && (x.key === e.key || x.group === e.group || reOf(x).test(gus.replace(/%$/, '')) || reOf(e).test(x.gus.replace(/%$/, ''))));
   if (clash) throw new Error('This overlaps the already configured team "' + clash.group + '". Change the key, display name or GUS team name.');
   return e;
 }
 
-module.exports = { TEAMS, all, setExtra, cleanEntry, LEADER_NAMES, sqlName, reOf, entryFor, entryByKey, entryByGroup, teamFilter, shortOf, themeOf, tagOf };
+module.exports = { TEAMS, all, setExtra, cleanEntry, LEADER_NAMES, LEADER_IDS, USER_ID, sqlName, reOf, entryFor, entryByKey, entryByGroup, teamFilter, shortOf, themeOf, tagOf };

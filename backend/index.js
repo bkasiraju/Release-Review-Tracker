@@ -38,6 +38,7 @@ async function handleRequest(ctx){
       case 'teams-config':payload=await service.teamsConfig();break;
       case 'save-team':payload=await service.saveTeam(b);break;
       case 'delete-team':payload=await service.deleteTeam(b);break;
+      case 'team-leaders':payload=await service.teamLeaders(sf,b);break;
       case 'team-lookup':{const q=String(b.q||'').trim();if(q.length<2||!/^[A-Za-z0-9 .&():_\/-]+$/.test(q))throw Error('Type at least 2 letters of the GUS scrum team name.');payload={teams:((await sf.query(`SELECT Id, Name FROM ADM_Scrum_Team__c WHERE Active__c = true AND Name LIKE '%${q}%' ORDER BY Name LIMIT 20`)).records||[]).map(t=>({id:t.Id,name:t.Name}))};break;}
       case 'save-release':payload=await service.saveRelease(b);break;
       case 'delete-release':payload=await service.deleteRelease(b);break;
