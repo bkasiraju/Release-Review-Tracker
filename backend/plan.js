@@ -627,6 +627,32 @@ async function ownEpic(sf, teamId, id) {
   if (!r) throw new Error('Epic does not belong to this team.');
   return r;
 }
+/** The GUS epic Description as safe HTML for the hover card (SMART goal block removed; plain-text descriptions keep their line breaks). */
+async function epicDescriptionHtml(sf, teamId, id) {
+  planKey(teamId);
+  const gidv = gid(id);
+  if (!gidv) throw new Error('Epic id is required.');
+  const r = ((await sf.query(`SELECT Id, Description__c FROM ADM_Epic__c WHERE Id = '${gidv}' LIMIT 1`)).records || [])[0];
+  let d = String(r && r.Description__c || '').replace(/^\s*<p>\s*SMART Goal:[\s\S]*?<\/p>\s*/i, '').replace(SMART_RE, '');
+  if (!/<\/?[a-z][^>]*>/i.test(d)) d = d.trim() ? '<p>' + d.trim().replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/\n{2,}/g, '</p><p>').replace(/\n/g, '<br>') + '</p>' : '';
+  return { html: richHtml(d, 8000) };
+}
+/** An existing GUS epic of this team brought into a (new) planned release: its Planned Release moves to the chosen one and its Scheduled Build follows
+ * the release number ("MQ 268" -> build "268"); a build left from the earlier release is cleared when the new release has no matching build. */
+async function adoptEpic(sf, teamId, input) {
+  planKey(teamId);
+  const id = gid(input && input.epicId), releaseId = gid(input && input.releaseId);
+  if (!id || !releaseId) throw new Error('Epic and planned release are required.');
+  await ownEpic(sf, teamId, id);
+  const relErr = await releaseProblem(sf, teamId, releaseId);
+  if (relErr) throw new Error(relErr);
+  const rel = ((await sf.query(`SELECT Id, Name FROM ADM_Planned_Release__c WHERE Id = '${releaseId}' LIMIT 1`)).records || [])[0];
+  const num = /(\d+)\s*$/.exec(rel && rel.Name || '');
+  const build = num ? ((await sf.query(`SELECT Id, Name FROM ADM_Build__c WHERE Name = '${num[1]}' LIMIT 1`).catch(() => ({}))).records || [])[0] : null;
+  const res = await sf.update('ADM_Epic__c', id, { Planned_Release__c: releaseId, Scheduled_Build__c: build ? build.Id : null });
+  if (!ok(res)) throw new Error('GUS rejected the planned release change: ' + plain(errText(res)));
+  return { releaseId, releaseName: rel ? rel.Name : '', build: build ? build.Name : '' };
+}
 /** Save (or clear) the SMART goal at the top of a GUS epic's description. */
 async function saveSmartGoal(sf, teamId, gusId, goal) {
   planKey(teamId);
@@ -854,4 +880,4 @@ async function commitRun(sf, store, teamId, confirm, includeBtl, acknowledged) {
   return { results, failed: results.filter(x => !x.ok).length, plan: saved && saved.plan, revision: saved && saved.revision, saveError };
 }
 
-module.exports = { richHtml, teamName, syncWorkstreams, withOutcome, outcomeOf, fiscalQuarter, refreshEpics, saveSmartGoal, generateSmartGoal, withSmartGoal, epicWorkstreams, epicLeads, deleteEpic, deleteWorkstream, programProjects, importV2mom, resolveProgram, teamProgram, getPlan, savePlan, getRefs, commitPlan, createProject, deleteProject, createEpic, listEpics, findEpics, createWorkstream, syncEpics, review, cleanPlan };
+module.exports = { epicDescriptionHtml, adoptEpic, richHtml, teamName, syncWorkstreams, withOutcome, outcomeOf, fiscalQuarter, refreshEpics, saveSmartGoal, generateSmartGoal, withSmartGoal, epicWorkstreams, epicLeads, deleteEpic, deleteWorkstream, programProjects, importV2mom, resolveProgram, teamProgram, getPlan, savePlan, getRefs, commitPlan, createProject, deleteProject, createEpic, listEpics, findEpics, createWorkstream, syncEpics, review, cleanPlan };

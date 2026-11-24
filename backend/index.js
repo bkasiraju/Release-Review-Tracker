@@ -122,6 +122,8 @@ async function handleRequest(ctx){
       case 'plan-find-epics':payload=await planner.findEpics(sf,b.teamId,b.query);break;
       case 'plan-sync-workstreams':payload=await planner.syncWorkstreams(sf,b.teamId,b.items);break;
       case 'plan-create-workstream':payload=await planner.createWorkstream(sf,b.teamId,b.workstream);break;
+      case 'plan-epic-desc':payload=await planner.epicDescriptionHtml(sf,b.teamId,b.id);break;
+      case 'plan-adopt-epic':payload=await planner.adoptEpic(sf,b.teamId,b.epic);break;
       case 'plan-create-epic':payload=await planner.createEpic(sf,b.teamId,b.epic);break;
       case 'plan-epic-workstreams':payload=await planner.epicWorkstreams(sf,b.teamId,b.ids);break;
       case 'plan-epic-leads':payload=await planner.epicLeads(sf,b.teamId,b.ids);break;

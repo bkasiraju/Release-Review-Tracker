@@ -131,3 +131,10 @@ test('epic description keeps formatting tags only and is what is written to GUS'
   const e=plan.cleanPlan({epics:[{id:'e1',projectId:'p',name:'E',description:'<p>Goal <i>x</i></p><img src=x onerror=1>'}],projects:[{id:'p',name:'P'}]}).epics[0];
   assert.equal(e.description,'<p>Goal <i>x</i></p>');
 });
+
+test('adoptEpic moves an own epic to the new release and its matching build; epic description hover is sanitised',async()=>{
+  const calls=[];const sf={async query(q){if(/FROM ADM_Epic__c/.test(q)&&/Team__c/.test(q))return {records:[{Id:'a3Q000000000001AAA'}]};if(/FROM ADM_Planned_Release__c WHERE Id/.test(q))return {records:[{Id:'aBQ000000000268AAA',Name:'MQ 268',Team__c:A}]};if(/FROM ADM_Build__c/.test(q))return {records:[{Id:'a06000000000268AAA',Name:'268'}]};if(/FROM ADM_Epic__c WHERE Id/.test(q))return {records:[{Id:'a3Q000000000001AAA',Description__c:'SMART Goal: g\n\nLine one\nLine a & b'}]};return {records:[]};},async update(o,i,f){calls.push([o,i,f]);return {success:true};}};
+  const r=await plan.adoptEpic(sf,A,{epicId:'a3Q000000000001AAA',releaseId:'aBQ000000000268AAA'});
+  assert.equal(r.build,'268');assert.deepEqual(calls[0][2],{Planned_Release__c:'aBQ000000000268AAA',Scheduled_Build__c:'a06000000000268AAA'});
+  const d=await plan.epicDescriptionHtml(sf,A,'a3Q000000000001AAA');assert.equal(d.html,'<p>Line one<br>Line a &amp; b</p>');
+});

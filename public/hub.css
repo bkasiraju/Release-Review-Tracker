@@ -3681,3 +3681,10 @@ html body .pl-rte-ed{min-height:96px;max-height:260px;overflow:auto;padding:10px
 html body .pl-rte-ed:empty:before{content:attr(data-ph);color:#8696a8}
 html body .pl-rte-ed p{margin:0 0 8px}html body .pl-rte-ed ul,html body .pl-rte-ed ol{margin:0 0 8px 22px;padding:0}
 html body .pl-rte-ed a{color:#0b5cab;text-decoration:underline}
+/* r24: epic icon hover card shows the GUS description */
+html body .pl-tt.pl-tt-desc{max-width:460px}
+html body .pl-dsc-b{margin-top:6px;max-height:280px;overflow:auto;font-size:13px;line-height:1.5;color:#16324a}
+html body .pl-dsc-b p{margin:0 0 6px}html body .pl-dsc-b ul,html body .pl-dsc-b ol{margin:0 0 6px 20px;padding:0}
+html body .pl-dsc-b a{color:#0b5cab;text-decoration:underline}
+html body .pl-dsc-i{margin:6px 0 0;font-size:12px;color:#8a9aab}
+html body .pl-ty[data-tip-desc]{cursor:help}
