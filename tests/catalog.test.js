@@ -138,3 +138,12 @@ test('adoptEpic moves an own epic to the new release and its matching build; epi
   assert.equal(r.build,'268');assert.deepEqual(calls[0][2],{Planned_Release__c:'aBQ000000000268AAA',Scheduled_Build__c:'a06000000000268AAA'});
   const d=await plan.epicDescriptionHtml(sf,A,'a3Q000000000001AAA');assert.equal(d.html,'<p>Line one<br>Line a &amp; b</p>');
 });
+
+test('epicStories lists the stories already on an epic and cleanPlan keeps the story link',async()=>{
+  let q='';const sf={async query(s){q=s;return {records:[{Id:'a07000000000001AAA',Name:'W-1',Subject__c:'WS: Alpha',Status__c:'New',Story_Points__c:3,Details__c:'x (planned 5 days)',Assignee__c:A,Assignee__r:{Name:'Ann'}},{Id:'a07000000000002AAA',Name:'W-2',Subject__c:'Fix it',Status__c:'In Progress',Story_Points__c:2,Details__c:'',Assignee__c:null}]};}};
+  const r=await plan.epicStories(sf,A,'a3Q000000000001AAA');
+  assert.match(q,/Epic__c = 'a3Q000000000001AAA'/);assert.match(q,/NOT IN \('Never', 'Duplicate'\)/);
+  assert.deepEqual(r.stories.map(s=>[s.no,s.name,s.days,s.assigneeName]),[['W-1','Alpha',5,'Ann'],['W-2','Fix it',2,'']]);
+  const w=plan.cleanPlan({epics:[{id:'e1',projectId:'p',name:'E',workstreams:[{id:'w1',name:'Fix it',storyId:'a07000000000002AAA',storyNo:'W-2'}]}],projects:[{id:'p',name:'P'}]}).epics[0].workstreams[0];
+  assert.equal(w.storyId,'a07000000000002AAA');assert.equal(w.storyNo,'W-2');
+});

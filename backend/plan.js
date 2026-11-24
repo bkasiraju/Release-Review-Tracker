@@ -115,7 +115,7 @@ function cleanPlan(input) {
     releaseId: gid(x.releaseId), releaseName: text(x.releaseName, 120), gusId: gid(x.gusId), foreign: x.foreign === true,
     synced: x.synced && typeof x.synced === 'object' && /^[0-9a-f]{24}$/.test(String(x.synced.hash || '')) ? { hash: x.synced.hash, outcome: text(x.synced.outcome, 500), at: text(x.synced.at, 40), ws: Object.fromEntries(Object.entries(x.synced.ws && typeof x.synced.ws === 'object' ? x.synced.ws : {}).filter(([k, v]) => LOCAL.test(k) && /^[0-9a-f]{24}$/.test(String(v))).slice(0, MAX.workstreams)) } : null,
     workstreams: (Array.isArray(x.workstreams) ? x.workstreams : []).slice(0, MAX.workstreams).map((s, j) => ({
-      id: lid(s.id, j, 'w'), gusId: gid(s.gusId), name: text(s.name, 120), status: STATUS.includes(s.status) ? s.status : '', engIds: (Array.isArray(s.engIds) ? s.engIds : []).map(gid).filter(Boolean).slice(0, 12), engNames: (Array.isArray(s.engNames) ? s.engNames : []).slice(0, 12).map(n => text(n, 80)), priority: Number.isFinite(Number(s.priority)) && s.priority !== '' && s.priority != null ? Math.min(Math.max(Math.round(Number(s.priority)), 0), 9999) : null, engId: gid(s.engId), engName: text(s.engName, 80), days: days(s.days), line: s.line === 'ABL' || s.line === 'BTL' ? s.line : '', sprint: text(s.sprint, 60)
+      id: lid(s.id, j, 'w'), gusId: gid(s.gusId), name: text(s.name, 120), status: STATUS.includes(s.status) ? s.status : '', engIds: (Array.isArray(s.engIds) ? s.engIds : []).map(gid).filter(Boolean).slice(0, 12), engNames: (Array.isArray(s.engNames) ? s.engNames : []).slice(0, 12).map(n => text(n, 80)), priority: Number.isFinite(Number(s.priority)) && s.priority !== '' && s.priority != null ? Math.min(Math.max(Math.round(Number(s.priority)), 0), 9999) : null, engId: gid(s.engId), engName: text(s.engName, 80), days: days(s.days), line: s.line === 'ABL' || s.line === 'BTL' ? s.line : '', sprint: text(s.sprint, 60), storyId: gid(s.storyId), storyNo: text(s.storyNo, 20)
     }))
   }));
   const people = {};
@@ -400,6 +400,17 @@ async function epicWorkstreams(sf, teamId, ids) {
     (byEpic[r.Epic__c] = byEpic[r.Epic__c] || []).push({ gusId: r.Id, name: String(r.Subject__c || '').replace(/^WS:\s*/i, '').trim(), assigneeId: r.Assignee__c || '', assigneeName: (r.Assignee__r && r.Assignee__r.Name) || '', days: m ? Number(m[1]) || 0 : 0 });
   }
   return { byEpic };
+}
+// The user stories already filed on an epic in GUS (any title), so an imported epic shows them as workstreams. Read only: they are never renamed or written back.
+async function epicStories(sf, teamId, epicId) {
+  planKey(teamId);
+  const id = gid(epicId);
+  if (!id) throw new Error('Not a GUS epic.');
+  const rows = (await sf.query(`SELECT Id, Name, Subject__c, Status__c, Story_Points__c, Details__c, Assignee__c, Assignee__r.Name FROM ADM_Work__c WHERE Epic__c = '${id}' AND Status__c NOT IN ('Never', 'Duplicate') ORDER BY Name LIMIT 200`)).records || [];
+  return { stories: rows.map(r => {
+    const m = /\(planned ([\d.]+) days\)/.exec(r.Details__c || '');
+    return { id: r.Id, no: r.Name || '', name: String(r.Subject__c || '').replace(/^WS:\s*/i, '').trim(), status: r.Status__c || '', assigneeId: r.Assignee__c || '', assigneeName: (r.Assignee__r && r.Assignee__r.Name) || '', days: m ? Number(m[1]) || 0 : Number(r.Story_Points__c) || 0 };
+  }) };
 }
 // Why a planned release cannot be used for this team, spelled out (which release, which team, what is available); '' when it is fine.
 async function releaseProblem(sf, teamId, releaseId) {
@@ -880,4 +891,4 @@ async function commitRun(sf, store, teamId, confirm, includeBtl, acknowledged) {
   return { results, failed: results.filter(x => !x.ok).length, plan: saved && saved.plan, revision: saved && saved.revision, saveError };
 }
 
-module.exports = { epicDescriptionHtml, adoptEpic, richHtml, teamName, syncWorkstreams, withOutcome, outcomeOf, fiscalQuarter, refreshEpics, saveSmartGoal, generateSmartGoal, withSmartGoal, epicWorkstreams, epicLeads, deleteEpic, deleteWorkstream, programProjects, importV2mom, resolveProgram, teamProgram, getPlan, savePlan, getRefs, commitPlan, createProject, deleteProject, createEpic, listEpics, findEpics, createWorkstream, syncEpics, review, cleanPlan };
+module.exports = { epicDescriptionHtml, adoptEpic, richHtml, teamName, syncWorkstreams, withOutcome, outcomeOf, fiscalQuarter, refreshEpics, saveSmartGoal, generateSmartGoal, withSmartGoal, epicWorkstreams, epicStories, epicLeads, deleteEpic, deleteWorkstream, programProjects, importV2mom, resolveProgram, teamProgram, getPlan, savePlan, getRefs, commitPlan, createProject, deleteProject, createEpic, listEpics, findEpics, createWorkstream, syncEpics, review, cleanPlan };

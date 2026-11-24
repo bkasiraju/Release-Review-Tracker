@@ -298,8 +298,11 @@ function newEpicAt(pid){
         if(tr&&!e.foreign&&tr!==x.releaseId){const a=await call('plan-adopt-epic',{teamId:H.team.Id,epic:{epicId:x.id,releaseId:tr}});e.releaseId=a.releaseId;e.releaseName=a.releaseName;moved=a;}e.priority=x.priority!=null?x.priority:Number(el.querySelector('[data-xp]').value)||0;
         e.owners=x.leadId?[x.leadId]:[];e.ownerNames=x.leadId?[x.leadName]:[];
         // GUS keeps the epic's planned points; carry them as one workstream so the epic total (sum of workstreams) still matches and is never overwritten.
-        e.workstreams=x.points>0?[{id:uid('w'),name:'Planned in GUS',priority:0,engId:'',engName:'',engIds:[],engNames:[],days:x.points,sprint:'',line}].map(w=>(w.priority=e.priority,w)):[];
-        msg=`Added GUS epic “${x.name}” to the table${moved?`, moved to ${moved.releaseName}${moved.build?` (build ${moved.build})`:''} in GUS`:''}. Its workstreams are not imported: add them manually.`;
+        // Stories already on the epic in GUS come in as read-only workstreams (linked by storyId, never written back); without any, the epic's planned points are carried as one placeholder.
+        let stories=[];try{stories=((await call('plan-epic-stories',{teamId:H.team.Id,epicId:x.id})).stories)||[];}catch(_){}
+        if(stories.length)e.workstreams=stories.map(g=>{const m=P.members.find(u=>String(u.id).slice(0,15)===String(g.assigneeId).slice(0,15));return {id:uid('w'),name:g.name,priority:e.priority,engId:m?m.id:'',engName:m?m.name:g.assigneeName,engIds:m?[m.id]:[],engNames:m?[m.name]:(g.assigneeName?[g.assigneeName]:[]),days:g.days,sprint:'',line,storyId:g.id,storyNo:g.no};});
+        else e.workstreams=x.points>0?[{id:uid('w'),name:'Planned in GUS',priority:0,engId:'',engName:'',engIds:[],engNames:[],days:x.points,sprint:'',line}].map(w=>(w.priority=e.priority,w)):[];
+        msg=`Added GUS epic “${x.name}” to the table${moved?`, moved to ${moved.releaseName}${moved.build?` (build ${moved.build})`:''} in GUS`:''}. ${stories.length?`${stories.length} user stor${stories.length===1?'y':'ies'} already on the epic ${stories.length===1?'was':'were'} brought in as workstreams.`:'It has no user stories in GUS yet: add workstreams here.'}`;
       }else{
         const name=el.querySelector('[data-n].hub-inline').value.trim(),releaseId=el.querySelector('[data-r]').value,line=el.querySelector('[data-l]').value,leadId=el.querySelector('[data-o]').value,pri=el.querySelector('[data-pri]').value,leadName=(P.members.find(m=>m.id===leadId)||{}).name||'';
         if(!name){el.querySelector('[data-n]').focus();throw new Error('Enter the epic name.');}
@@ -342,7 +345,7 @@ function newEpicAt(pid){
   nm.oninput=()=>{const L=nm.value.trim().length,over=L>EPIC_NAME_MAX;cnt.textContent=`${L} / ${EPIC_NAME_MAX}`;cnt.classList.toggle('over',over);nm.classList.toggle('bad',over);errEl.textContent=over?`Epic name is ${L} characters; GUS allows at most ${EPIC_NAME_MAX}. Shorten it by ${L-EPIC_NAME_MAX}.`:'';errEl.hidden=!over;};
   const xSel=el.querySelector('[data-xe]'),xInfo=el.querySelector('[data-xi]'),pc=el.querySelector('[data-pcnt]'),okb=el.querySelector('[data-ok]'),note=el.querySelector('.pl-cr-foot .note'),wsr=el.querySelector('[data-wsrows]'),tagBox=el.querySelector('[data-tagbox]'),wsSec=wsr.closest('.pl-cr-s');
   const dis=document.createElement('p');dis.className='pl-cr-disc';dis.setAttribute('role','note');dis.hidden=true;
-  dis.innerHTML='<b>Workstreams are not imported.</b> There is no way to trace the workstreams of an existing GUS epic, so they are not brought into the dashboard. Add them manually below, or later with + on the epic. Only the epic itself, its owner, release and planned points are imported.';
+  dis.innerHTML='<b>User stories come in as workstreams.</b> Stories already filed on the epic in GUS are brought in as read-only workstreams (name, owner, days). They are never renamed or changed in GUS from here. Add more below, or later with + on the epic.';
   xInfo.after(dis);
   const filled=()=>[...wsr.querySelectorAll('[data-wn]')].filter(i=>i.value.trim()).length;
   const sync=()=>{dis.hidden=md!=='pick';const f=filled();tagBox.hidden=!f||!!lastTag;el._gate=md==='new'||f>0;el._sync();el._deny();
@@ -1136,7 +1139,7 @@ function addWsRow(e){
 /** Workstreams with a name that exist only in the plan are created in GUS as "WS: " stories under their epic, in the background. */
 async function syncWs(){
   const pl=P.plan;if(!pl||P.wsBusy)return;
-  const todo=[];pl.epics.forEach(e=>{if(e.gusId&&!e.foreign)e.workstreams.forEach(w=>{if(w.name&&w.name.trim()&&!w.gusId&&w.name!=='Planned in GUS'&&!(document.activeElement&&document.activeElement.closest&&document.activeElement.closest(`tr[data-wr="${w.id}"]`)&&document.activeElement.matches('[data-f="name"]')))todo.push([e,w]);});});
+  const todo=[];pl.epics.forEach(e=>{if(e.gusId&&!e.foreign)e.workstreams.forEach(w=>{if(w.name&&w.name.trim()&&!w.gusId&&!w.storyId&&w.name!=='Planned in GUS'&&!(document.activeElement&&document.activeElement.closest&&document.activeElement.closest(`tr[data-wr="${w.id}"]`)&&document.activeElement.matches('[data-f="name"]')))todo.push([e,w]);});});
   if(!todo.length)return;const tags=(P.refs&&P.refs.tags)||[],key='ri-ws-tag-'+H.team.Id,tagId=defTag(tags,key)||(tags[0]&&tags[0].id)||'';
   if(!tagId){window.toast?.('Workstreams could not be created in GUS: no product tag is available for this team.',true);return;}
   P.wsBusy=true;let ok=0,bad=0;
