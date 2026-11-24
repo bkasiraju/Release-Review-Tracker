@@ -50,9 +50,10 @@ async function loadLeaders(reset){const box_=$('tm-leaders');if(!box_)return;con
  }catch(e){box_.innerHTML='<em>'+esc(e.message||e)+'</em>';}}
 function draw(){
  if(!box){box=document.createElement('div');box.className='tm-overlay';document.body.append(box);document.addEventListener('keydown',onKey);box.addEventListener('mousedown',e=>{if(e.target===box)close();});}
- const rows=cfg.teams.map(t=>`<div class="tm-row"><div><strong>${esc(t.group)}</strong><small>${esc(t.gus.replace(/%$/,''))}${t.short?' · '+esc(t.short):''}</small></div><span class="tm-badge ${t.builtIn?'':'tm-custom'}">${t.builtIn?'Built in':'Added in app'}</span>${t.builtIn?'':`<button type="button" class="button small" data-edit="${esc(t.key)}">Edit</button><button type="button" class="button small danger" data-del="${esc(t.key)}">Remove</button>`}</div>`).join('');
+ const chips=cfg.teams.some(t=>t.builtIn)?`<div class="tm-built"><span>Built-in teams</span>${cfg.teams.filter(t=>t.builtIn).map(t=>`<em class="tm-bchip" title="${esc(t.gus.replace(/%$/,''))}">${esc(t.group.replace(/ Team$/,''))}</em>`).join('')}</div>`:'';
+ const rows=cfg.teams.filter(t=>!t.builtIn).map(t=>`<div class="tm-row"><div><strong>${esc(t.group)}</strong><small>${esc(t.gus.replace(/%$/,''))}${t.short?' · '+esc(t.short):''}</small></div><span class="tm-badge ${t.builtIn?'':'tm-custom'}">${t.builtIn?'Built in':'Added in app'}</span>${t.builtIn?'':`<button type="button" class="button small" data-edit="${esc(t.key)}">Edit</button><button type="button" class="button small danger" data-del="${esc(t.key)}">Remove</button>`}</div>`).join('');
  box.innerHTML=`<div class="tm-dialog" role="dialog" aria-modal="true" aria-label="Teams"><header><h2>Teams</h2><button type="button" class="icon-button" id="tm-x" aria-label="Close">×</button></header>
- <div class="tm-body"><div class="tm-list">${rows}</div>${editing===null?'<button type="button" class="button primary" id="tm-add">＋ Add a team</button>':form(editing===true?null:cfg.teams.find(t=>t.key===editing))}</div></div>`;
+ <div class="tm-body">${chips}${rows?`<div class="tm-list">${rows}</div>`:''}${editing===null?'<button type="button" class="button primary" id="tm-add">＋ Add a team</button>':form(editing===true?null:cfg.teams.find(t=>t.key===editing))}</div></div>`;
  $('tm-x').onclick=close;
  if($('tm-add'))$('tm-add').onclick=()=>{editing=true;picked=null;draw();$('tm-q').focus();};
  box.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>{editing=b.dataset.edit;picked=null;draw();});

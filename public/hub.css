@@ -3659,3 +3659,7 @@ html body .tm-actions{position:sticky;bottom:0;margin:0 -18px;padding:12px 18px;
 html body .tm-actions .button{height:36px;padding:0 18px;border-radius:8px;font-weight:600}
 html body .tm-actions .button.primary{background:#0b5cab!important;border-color:#0b5cab!important;color:#fff!important}
 html body .tm-actions .button.primary:hover{background:#094a8c!important}
+/* r20: built-in teams collapse to chips; only teams added in the app are listed as rows */
+html body .tm-built{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:12px 0 14px}
+html body .tm-built>span{font-size:12px;font-weight:600;color:#33475b;margin-right:4px}
+html body .tm-bchip{font-style:normal;font-size:12px;font-weight:600;padding:4px 11px;border-radius:999px;background:#eef4fa;border:1px solid #d3e2f0;color:#17456b}
