@@ -3583,3 +3583,11 @@ html body .tm-chip em{font-style:normal;color:#5b6b7c;font-size:11px}html body .
 html body .tm-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}html body .tm-tagpick{border:1px solid #c9d3df;border-radius:14px;background:#fff;padding:3px 10px;font-size:12px;cursor:pointer}html body .tm-tagpick.on{background:#e8f1fb;border-color:#0b5cab;color:#0b5cab;font-weight:600}
 
 html body .tm-more{margin:6px 0 10px}html body .tm-more summary{cursor:pointer;font-weight:600}html body .tm-more summary em{font-weight:400;color:#5b6b7c}
+
+/* r14: Back to Hub / Back to Team Hub — solid, high-contrast button with a clear arrow (the pale tint made the white label unreadable) */
+html body .topbar a.back-home,html body a.pl-back{display:inline-flex;align-items:center;gap:7px;height:auto;padding:8px 16px 8px 12px;border-radius:999px;background:#1b5e8a!important;border:1px solid #1b5e8a!important;color:#fff!important;font-size:13px;font-weight:600;letter-spacing:.1px;text-decoration:none;box-shadow:0 1px 2px rgba(16,40,64,.25)!important;transition:background .15s,box-shadow .15s}
+html body .topbar a.back-home *,html body a.pl-back *{color:#fff!important;stroke:#fff!important}
+html body .topbar a.back-home svg,html body a.pl-back svg{width:16px;height:16px;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:transform .15s}
+html body .topbar a.back-home:hover,html body a.pl-back:hover{background:#144a6e!important;border-color:#144a6e!important;box-shadow:0 2px 6px rgba(16,40,64,.3)!important}
+html body .topbar a.back-home:hover svg,html body a.pl-back:hover svg{transform:translateX(-3px)}
+html body .topbar a.back-home:focus-visible,html body a.pl-back:focus-visible{outline:3px solid #9ec3e2;outline-offset:2px}
