@@ -333,7 +333,7 @@ async function getPeople(sf, slack, group) {
   const list = [...rest, ...ordered.filter(u => own_.has(u.Id)), ...LEADERS.filter(i => byId.has(i)).map(i => byId.get(i))];
   const people = [];
   for (let k = 0; k < list.length; k += 10)
-    people.push(...await Promise.all(list.slice(k, k + 10).map(async u => ({ id: u.Id, name: u.Name, role: u.Title || '', avatar: (await within(slackAvatar(slack, u.Email), 2500)) || u.SmallPhotoUrl || null, alt: u.SmallPhotoUrl || null }))));
+    people.push(...await Promise.all(list.slice(k, k + 10).map(async u => ({ id: u.Id, name: u.Name, role: u.Title || '', avatar: (await within(slackAvatar(slack, u.Email), 2500)) || null, alt: null }))));
   return { name, people };
 }
 

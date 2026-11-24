@@ -18,7 +18,7 @@ const parts = segs => (Array.isArray(segs) ? segs : []).map(s => {
   if (ty === 'MarkupBegin' || ty === 'MarkupEnd') return /^(paragraph|li)$/.test(String(s.markupType || '')) && ty === 'MarkupEnd' ? { t: 'text', v: '\n' } : null;
   return { t: 'text', v: s && s.text != null ? String(s.text) : '' };
 }).filter(Boolean);
-const who = a => ({ id: (a && a.id) || '', name: (a && a.displayName || a && a.name) || 'Someone', photo: (a && a.photo && (a.photo.smallPhotoUrl || a.photo.standardEmailPhotoUrl)) || '' });
+const who = a => ({ id: (a && a.id) || '', name: (a && a.displayName || a && a.name) || 'Someone', photo: '' });
 const item = (x, me) => ({ id: x.id, at: x.createdDate || '', by: who(x.actor || x.user), mine: !!me && ((x.actor || x.user || {}).id || '').slice(0, 15) === me, parts: parts(x.body && x.body.messageSegments) });
 
 const canRest = sf => typeof sf.request === 'function';

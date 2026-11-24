@@ -4,6 +4,10 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r18 (folded)
+
+- Fixed console errors (ERR_TOO_MANY_REDIRECTS on gus.lightning.force.com/visualforce/recsession): GUS-hosted profile photos (Chatter comment avatars, People fallback photos) can't load inside the applet, so they are no longer requested. Slack avatars are used where available, otherwise initials.
+
 ### 8.0.0-GA r17 (folded)
 
 - Teams: new "Start without the shared HRP projects" option when adding a team; its planner opens with the shared catalog hidden for that team only (first plan load; other teams unaffected).
