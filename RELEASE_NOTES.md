@@ -4,6 +4,11 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r17 (folded)
+
+- Teams: new "Start without the shared HRP projects" option when adding a team; its planner opens with the shared catalog hidden for that team only (first plan load; other teams unaffected).
+- Release Planner: Import / Export → "Remove shared HRP projects" bulk-hides the shared HRP projects for this team only, after a confirmation with the count. Projects that have epics are kept; nothing is deleted in GUS.
+
 ### 8.0.0-GA r16 (folded)
 
 - Release Planner: when a linked planned release's dates change in GUS (e.g. MQ 268 end moved from 28 Feb to 31 Mar) the plan window now follows it on load, and the Leaves, holidays & on-call dialog shows the new working-day total. Engineers whose Total days still equalled the old window's weekdays move to the new total; entered leave, holidays, on-call and deliberately custom totals are never changed. Changing the release or dates by hand does the same.

@@ -20,3 +20,5 @@ Fields are documented at the top of `backend/teams.config.js`. A trailing `%` in
 1. `node --test tests/teams.config.test.js`
 2. Follow the normal release steps (version bump, release notes, push, tag, `scripts/deploy.py --staging-only`, then `scripts/deploy.py`).
 3. Open the hub, pick the team, and check people, the planner Theme chip (`R<release>_<theme>_Workstream`) and the default product tag.
+
+**Starting without the shared HRP projects:** tick "Start without the shared HRP projects" when adding a team and its planner opens empty (the shared catalog is hidden for that team only, on its first plan load). If a team already has them, Planner → Import / Export → "Remove shared HRP projects" hides them for that team only. Projects that have epics are kept, other teams are untouched and nothing is deleted in GUS.

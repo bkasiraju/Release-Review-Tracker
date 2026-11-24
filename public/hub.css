@@ -3623,3 +3623,5 @@ html body #dashboard-controls button.tm-open,html body .release-toolbar button.t
 html body button.tm-open .cfs-icon{box-sizing:border-box;width:34px!important;height:34px!important;min-width:0;margin:0!important;padding:0;border-radius:9px;box-shadow:inset 0 1px 0 #fff6!important;transform:none!important}
 html body button.tm-open:hover .cfs-icon{transform:none!important;filter:brightness(1.1)}
 html body button.tm-open .cfs-icon svg{width:20px;height:20px}
+html body .tm-form .tm-check{display:flex;align-items:flex-start;gap:8px;margin:10px 0;font-size:13px;color:#17456b!important}
+html body .tm-form .tm-check small{color:#5a6b7b!important}

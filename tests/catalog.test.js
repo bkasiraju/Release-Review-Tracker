@@ -113,3 +113,13 @@ test('cleanPlan keeps added and removed engineers, dropping malformed ids',()=>{
   assert.deepEqual(c.hiddenEng,[ENG]);
   assert.deepEqual(c.extraEng,[{id:A,name:'Added Person'}]);
 });
+
+test('a team onboarded without shared projects starts empty, others keep the catalog; only the first load asks',async()=>{
+  const store=mkStore();
+  const first=(await plan.getPlan(store,A,async()=>true)).plan;
+  assert.equal(first.projects.length,0);assert.equal(first.hiddenProjects.length,24);
+  const other=(await plan.getPlan(store,B,async()=>false)).plan;assert.equal(other.projects.length,24);
+  await plan.savePlan(store,A,first,null);
+  let asked=false;const again=(await plan.getPlan(store,A,async()=>{asked=true;return true;})).plan;
+  assert.equal(asked,false);assert.equal(again.projects.length,0);
+});

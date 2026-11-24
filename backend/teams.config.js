@@ -60,6 +60,7 @@ function cleanEntry(raw, existingKey) {
   const hg = str(raw.hourglass, 24, /^[A-Za-z0-9-]+$/, 'Hourglass team key'); if (hg) e.hourglass = hg;
   const pd = raw.pagerduty || {}, pdId = String(pd.id || '').trim(), pdName = String(pd.name || '').trim();
   if (pdId) { if (!/^[CG][A-Z0-9]{8,14}$/.test(pdId)) throw new Error('Check the PagerDuty Slack channel id (looks like C09ABCDEF12).'); if (pdName && !/^#?[A-Za-z0-9._-]{1,80}$/.test(pdName)) throw new Error('Check the PagerDuty channel name.'); e.pagerduty = { id: pdId, name: pdName || pdId }; }
+  if (raw.noSharedProjects === true) e.noSharedProjects = true; // first plan load starts without the shared HRP project catalog
   const lead = (Array.isArray(raw.leaders) ? raw.leaders : []).map(n => LEADER_IDS[n] || String(n)).filter(n => USER_ID.test(n));
   e.leaders = [...new Set(lead)].slice(0, 20);
   const clash = all().find(x => x.key !== existingKey && (x.key === e.key || x.group === e.group || reOf(x).test(gus.replace(/%$/, '')) || reOf(e).test(x.gus.replace(/%$/, ''))));

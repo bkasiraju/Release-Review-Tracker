@@ -146,9 +146,12 @@ function mergeCatalog(plan, catalog) {
   for (const c of catalog) if (!have.has(c.id) && (!hidden.has(c.id) || used.has(c.id)) && projects.length < MAX.projects) projects.push(teamLess(c));
   return { ...plan, projects };
 }
-async function getPlan(store, teamId) {
+// startEmpty (optional async fn) is asked only when the team has no saved plan yet; true hides every shared catalog project for this team.
+async function getPlan(store, teamId, startEmpty) {
   const [doc, catalog] = await Promise.all([store.get('settings', planKey(teamId)), getCatalog(store).catch(() => [])]);
-  return { plan: mergeCatalog(cleanPlan(doc && doc.plan), catalog), revision: (doc && doc.revision) || null, updatedAt: (doc && doc.updatedAt) || null };
+  const base = cleanPlan(doc && doc.plan);
+  if (!doc && startEmpty && await startEmpty().catch(() => false)) base.hiddenProjects = catalog.map(c => c.id).filter(id => LOCAL.test(id)).slice(0, MAX.projects);
+  return { plan: mergeCatalog(base, catalog), revision: (doc && doc.revision) || null, updatedAt: (doc && doc.updatedAt) || null };
 }
 async function savePlan(store, teamId, plan, expected) {
   const key = planKey(teamId), next = cleanPlan(plan);
@@ -835,4 +838,4 @@ async function commitRun(sf, store, teamId, confirm, includeBtl, acknowledged) {
   return { results, failed: results.filter(x => !x.ok).length, plan: saved && saved.plan, revision: saved && saved.revision, saveError };
 }
 
-module.exports = { syncWorkstreams, withOutcome, outcomeOf, fiscalQuarter, refreshEpics, saveSmartGoal, generateSmartGoal, withSmartGoal, epicWorkstreams, epicLeads, deleteEpic, deleteWorkstream, programProjects, importV2mom, resolveProgram, teamProgram, getPlan, savePlan, getRefs, commitPlan, createProject, deleteProject, createEpic, listEpics, findEpics, createWorkstream, syncEpics, review, cleanPlan };
+module.exports = { teamName, syncWorkstreams, withOutcome, outcomeOf, fiscalQuarter, refreshEpics, saveSmartGoal, generateSmartGoal, withSmartGoal, epicWorkstreams, epicLeads, deleteEpic, deleteWorkstream, programProjects, importV2mom, resolveProgram, teamProgram, getPlan, savePlan, getRefs, commitPlan, createProject, deleteProject, createEpic, listEpics, findEpics, createWorkstream, syncEpics, review, cleanPlan };

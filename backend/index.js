@@ -104,7 +104,7 @@ async function handleRequest(ctx){
       case 'hub-champion-save':payload=await hub.saveChampion(store,b.teamId,b.champion,b.revision);break;
       case 'pref-get':payload=await pref.getPref(sf,store);break;
       case 'pref-set':payload=await pref.setPref(sf,store,b.defaultTeam||null);break;
-      case 'plan-get':payload=await planner.getPlan(store,b.teamId);break;
+      case 'plan-get':payload=await planner.getPlan(store,b.teamId,async()=>{const e=require('./teams.config').entryFor(await planner.teamName(sf,b.teamId));return !!(e&&e.noSharedProjects);});break;
       case 'plan-save':payload=await planner.savePlan(store,b.teamId,b.plan,b.revision);break;
       case 'plan-refs':payload=await planner.getRefs(sf,b.teamId);break;
       case 'plan-commit':payload=await planner.commitPlan(sf,store,b.teamId,b.confirm===true,b.includeBtl===true,b.confirm===true?b.acknowledged===true:undefined);break;
