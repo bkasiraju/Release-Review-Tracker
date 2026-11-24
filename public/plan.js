@@ -50,6 +50,24 @@ function wireDrag(el){
 }
 // "+ Project" / "+ Epic": a sectioned dialog that creates the record in GUS right away (any signed-in user).
 const crField=(label,hint,ctl,cls)=>`<label class="pl-cr-f${cls?' '+cls:''}"><span>${label}${hint?` <small>${hint}</small>`:''}</span>${ctl}</label>`;
+// Keep only formatting tags (no attributes except a safe link); bare top-level text and inline runs are wrapped in <p>, like the GUS rich text field.
+const RICH_OK=new Set(['p','br','b','strong','i','em','u','s','strike','del','ul','ol','li','a','sub','sup','blockquote','h1','h2','h3']),RICH_INLINE=new Set(['b','strong','i','em','u','s','strike','del','a','sub','sup','br']);
+function cleanRich(html){
+  const body=new DOMParser().parseFromString('<body>'+String(html||''),'text/html').body;
+  const walk=n=>{[...n.childNodes].forEach(c=>{
+    if(c.nodeType===3)return;if(c.nodeType!==1){c.remove();return;}
+    let t=c.tagName.toLowerCase();if(/^(script|style|iframe|object|embed|head|title|meta|link)$/.test(t)){c.remove();return;}
+    walk(c);
+    if(t==='div')t='p';
+    if(!RICH_OK.has(t)){c.replaceWith(...c.childNodes);return;}
+    const href=t==='a'?(c.getAttribute('href')||'').trim():'',n2=document.createElement(t);
+    if(t==='a'&&/^(https?:\/\/|mailto:)/i.test(href)){n2.setAttribute('href',href);n2.setAttribute('target','_blank');n2.setAttribute('rel','noopener noreferrer');}
+    n2.append(...c.childNodes);c.replaceWith(n2);});};
+  walk(body);
+  let out='',run='';const flush=()=>{if(run.replace(/<br>|&nbsp;|\s/g,''))out+='<p>'+run+'</p>';run='';};
+  body.childNodes.forEach(c=>{if(c.nodeType===3||RICH_INLINE.has(c.tagName.toLowerCase()))run+=c.nodeType===3?esc(c.textContent):c.outerHTML;else{flush();out+=c.outerHTML;}});flush();
+  out=out.replace(/<(p|li)>\s*<\/\1>/g,'');return out.replace(/<[^>]*>|&nbsp;|\s/g,'')?out.slice(0,30000):'';
+}
 const crSection=(title,body)=>`<section class="pl-cr-s"><h3>${title}</h3><div class="pl-cr-g">${body}</div></section>`;
 const crAuto=rows=>`<div class="pl-cr-auto" aria-label="Set automatically">${rows.map(([k,v])=>`<div title="${esc(k)}: ${esc(v)}"><i>${esc(k)}:</i> ${esc(v)}</div>`).join('')}</div>`;
 /** The theme GUS gets on a workstream story, same rule as the backend: R<release>_<team short>_Workstream (e.g. R268_VC_Workstream). */
@@ -242,6 +260,8 @@ function newEpicAt(pid){
   const lead=P.members.slice().sort((x,y)=>String(x.name).localeCompare(String(y.name))),eng=P.members.filter(isEng).slice().sort((a,b)=>String(a.name).localeCompare(String(b.name)));
   const defR=(pl.window&&rel.some(r=>r.id===pl.window.releaseId)?pl.window.releaseId:'')||(defRel().releaseId&&rel.some(r=>r.id===defRel().releaseId)?defRel().releaseId:'');
   const atl=cls=>crField('ATL/BTL','',`<select class="hub-inline" data-l><option value="ABL" selected>ABL / ATL (above the line)</option><option value="BTL">BTL (below the line)</option></select>`,cls);
+  const rteField=()=>{const b=(c,t,l)=>`<button type="button" class="pl-rte-b" data-cmd="${c}" title="${l}" aria-label="${l}">${t}</button>`;
+    return `<div class="pl-cr-f s12 pl-cr-new"><span>Description <small>saved to the GUS epic Description as formatted here</small></span><div class="pl-rte"><div class="pl-rte-bar" role="toolbar" aria-label="Description formatting">${b('bold','<b>B</b>','Bold')}${b('italic','<i>I</i>','Italic')}${b('underline','<u>U</u>','Underline')}${b('strikeThrough','<s>S</s>','Strikethrough')}<i class="pl-rte-sep"></i>${b('insertUnorderedList','&#8226;&#8801;','Bulleted list')}${b('insertOrderedList','1.&#8801;','Numbered list')}${b('outdent','&#8676;','Decrease indent')}${b('indent','&#8677;','Increase indent')}<i class="pl-rte-sep"></i>${b('link','&#128279;','Insert link')}${b('removeFormat','T<sub>x</sub>','Clear formatting')}</div><div class="pl-rte-ed" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Epic description" data-desc data-ph="Describe the epic: goal, scope and expected outcome…"></div></div></div>`;};
   const wsRow=()=>`<div class="pl-wsr"><input class="hub-inline" type="text" data-wn maxlength="200" placeholder="Workstream name" aria-label="Workstream name" autocomplete="off"><select class="hub-inline" data-we aria-label="Engineer"><option value="">Unassigned</option>${eng.map(m=>opt(m.id,m.name,false)).join('')}</select><input class="hub-inline" type="number" min="0" max="1000" step="0.5" data-wd placeholder="Days" aria-label="Planned days"><button type="button" class="pl-ib" data-wx aria-label="Remove workstream" title="Remove">×</button></div>`;
   const body=
     crSection('Epic',`<div class="pl-cr-seg" role="tablist" aria-label="Epic source"><button type="button" role="tab" data-mode="new">Create new epic</button><button type="button" role="tab" data-mode="pick">Add existing GUS epic</button></div>`+
@@ -253,12 +273,13 @@ function newEpicAt(pid){
       `<span class="pl-cr-pinfo s12 pl-cr-pick" data-xi></span>`+
       crField('Epic name',`<span data-cnt>0 / ${EPIC_NAME_MAX}</span>`,`<textarea class="hub-inline" rows="2" data-n placeholder="Epic name" autocomplete="off"></textarea>`,'s12 pl-cr-new')+
       `<p class="pl-cr-fit s12 pl-cr-new" data-efit role="status"></p>`+
+      rteField()+
       atl('s3 pl-cr-new')+
       crField('Priority','required · P0 highest',`<select class="hub-inline" data-pri required>${priOpts(0)}</select>`,'s3 pl-cr-new')+
       crField('Development lead','required · epic owner',`<select class="hub-inline" data-o><option value="" selected>Select a team member…</option>${lead.map(m=>opt(m.id,m.name,false)).join('')}</select>`,'s3 pl-cr-new')+
       crField('Planned release','',`<select class="hub-inline" data-r>${opt('','— None (set after planning) —',!defR)}${rel.map(r=>opt(r.id,r.name,r.id===defR)).join('')}</select>`,'s3 pl-cr-new'))+
     crSection('Workstreams <small>optional · each is created in GUS as a story under the epic</small>',
-      `<div class="pl-wsbox s12"><div data-wsrows>${wsRow()}</div><div class="pl-wsbar"><button type="button" class="button small" data-wadd>+ Add workstream</button>`+
+      `<div class="pl-wsbox s12"><div data-wsrows></div><div class="pl-wsbar"><button type="button" class="button small" data-wadd>Add Workstreams</button>`+
       `<label class="pl-wstag" data-tagbox hidden>Product tag <small>required by GUS</small><select class="hub-inline" data-t><option value="">Select a tag…</option>${tags.map(t=>opt(t.id,t.name,t.id===lastTag)).join('')}</select></label></div></div>`)+
     `<details class="pl-cr-new pl-cr-more"><summary>Set automatically</summary>${crAuto([['Team',H.team.Name],['Program',prog?prog.name:'—'],['Epic owner','= Development lead']])}</details>`;
   let md='new',xeps=[];const made={epic:null,ws:new Map()};
@@ -283,9 +304,9 @@ function newEpicAt(pid){
         if(!leadId){el.querySelector('[data-o]').focus();throw new Error('Select the development lead.');}
         if(pri===''||!Number.isFinite(Number(pri))){el.querySelector('[data-pri]').focus();throw new Error('Select the epic priority.');}
         detach();
-        const r=await call('plan-create-epic',{teamId:H.team.Id,epic:{name,releaseId,leadId,priority:Number(pri),project:{gusId:pr.gusId,name:pr.name,method:pr.method}}});
+        const r=await call('plan-create-epic',{teamId:H.team.Id,epic:{name,releaseId,leadId,priority:Number(pri),description:cleanRich(el.querySelector('[data-desc]').innerHTML),project:{gusId:pr.gusId,name:pr.name,method:pr.method}}});
         pr.gusId=r.projectGusId||pr.gusId;
-        const rr=rel.find(x=>x.id===releaseId);e=newEpic(pr.id);e.name=name;e.gusId=r.gusId;e.releaseId=rr?rr.id:'';e.releaseName=rr?rr.name:'';e.owners=[leadId];e.ownerNames=[leadName];e.line=line;e.priority=Number(pri);
+        const rr=rel.find(x=>x.id===releaseId);e=newEpic(pr.id);e.name=name;e.gusId=r.gusId;e.releaseId=rr?rr.id:'';e.releaseName=rr?rr.name:'';e.owners=[leadId];e.ownerNames=[leadName];e.line=line;e.priority=Number(pri);e.description=r.description||'';
         if(rows.length)e.workstreams=[];else e.workstreams.forEach(w=>{w.line=line;w.priority=e.priority;});
         msg=r.created?`Created epic “${name}” in GUS.`:`Epic “${name}” already existed in GUS and was linked.`;
       }
@@ -344,9 +365,22 @@ function newEpicAt(pid){
     el.querySelectorAll('.pl-cr-new').forEach(n=>{n.hidden=k!=='new';});el.querySelectorAll('.pl-cr-pick').forEach(n=>{n.hidden=k!=='pick';});
     sync();(k==='pick'?xSel:el.querySelector('[data-n].hub-inline')).focus();};
   el.querySelectorAll('[data-mode]').forEach(b=>{b.onclick=()=>setMode(b.dataset.mode);});
-  el.querySelector('[data-wadd]').onclick=()=>{if(wsr.children.length>=10)return;wsr.insertAdjacentHTML('beforeend',wsRow());wsr.lastElementChild.querySelector('input').focus();};
+  const wadd=el.querySelector('[data-wadd]'),wlabel=()=>{wadd.textContent=wsr.children.length?'+ Add workstream':'Add Workstreams';};
+  wadd.onclick=()=>{if(wsr.children.length>=10)return;wsr.insertAdjacentHTML('beforeend',wsRow());wlabel();wsr.lastElementChild.querySelector('input').focus();sync();};
   wsr.addEventListener('input',sync);
-  wsr.addEventListener('click',ev=>{const x=ev.target.closest('[data-wx]');if(!x)return;if(wsr.children.length>1)x.closest('.pl-wsr').remove();else{x.closest('.pl-wsr').querySelectorAll('input').forEach(i=>{i.value='';});}sync();});
+  wsr.addEventListener('click',ev=>{const x=ev.target.closest('[data-wx]');if(!x)return;x.closest('.pl-wsr').remove();wlabel();sync();});
+  // Description: contenteditable rich text; sanitised to formatting tags only, on paste and on submit.
+  const ed=el.querySelector('[data-desc]');let rng=null;
+  if(ed){
+    const bar=ed.previousElementSibling;
+    bar.addEventListener('mousedown',ev=>{if(ev.target.closest('[data-cmd]'))ev.preventDefault();});
+    bar.addEventListener('click',ev=>{const b=ev.target.closest('[data-cmd]');if(!b)return;ed.focus();
+      if(b.dataset.cmd==='link'){const s=getSelection();if(s.rangeCount)rng=s.getRangeAt(0).cloneRange();const u=(window.prompt('Link URL (https://…)','https://')||'').trim();if(!/^(https?:\/\/|mailto:)/i.test(u))return;ed.focus();const s2=getSelection();if(rng){s2.removeAllRanges();s2.addRange(rng);}
+        if(s2.isCollapsed)document.execCommand('insertHTML',false,`<a href="${esc(u)}">${esc(u)}</a>`);else document.execCommand('createLink',false,u);return;}
+      document.execCommand(b.dataset.cmd,false,null);});
+    ed.addEventListener('paste',ev=>{const cd=ev.clipboardData;if(!cd)return;ev.preventDefault();const h=cd.getData('text/html');document.execCommand('insertHTML',false,h?cleanRich(h):esc(cd.getData('text/plain')).replace(/\n/g,'<br>'));});
+    ed.addEventListener('keydown',ev=>{if((ev.metaKey||ev.ctrlKey)&&!ev.altKey){const k={b:'bold',i:'italic',u:'underline'}[ev.key.toLowerCase()];if(k){ev.preventDefault();document.execCommand(k,false,null);}}});
+  }
   call('plan-gus-epics',{teamId:H.team.Id}).then(r=>{const inPlan=new Set(pl.epics.map(e=>e.gusId).filter(Boolean)),own=(r.epics||[]).filter(g=>!inPlan.has(g.id)&&pr.gusId&&g.projectId===pr.gusId),found=xeps.filter(g=>!own.some(o=>o.id===g.id));xeps=own.concat(found);const had=xSel.value;
     xSel.innerHTML=xeps.length?`<option value="">Select an epic…</option>`+xeps.map(g=>opt(g.id,g.name,false)).join(''):opt('',pr.gusId?'No other epics of this project — use Find above for any GUS epic':'Use Find above to add any GUS epic',true);
     if(found.length)fill(had);

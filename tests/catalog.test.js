@@ -123,3 +123,11 @@ test('a team onboarded without shared projects starts empty, others keep the cat
   let asked=false;const again=(await plan.getPlan(store,A,async()=>{asked=true;return true;})).plan;
   assert.equal(asked,false);assert.equal(again.projects.length,0);
 });
+
+test('epic description keeps formatting tags only and is what is written to GUS',()=>{
+  const h=plan.richHtml('<div onclick=x>Hi <b style=a>there</b><script>alert(1)</script><a href="javascript:x">l</a><a href="https://a.com/x">ok</a></div><ul><li>a</li></ul>');
+  assert.equal(h,'<p>Hi <b>there</b><a>l</a><a href="https://a.com/x" target="_blank" rel="noopener noreferrer">ok</a></p><ul><li>a</li></ul>');
+  assert.equal(plan.richHtml('<p> </p><br>'),'');
+  const e=plan.cleanPlan({epics:[{id:'e1',projectId:'p',name:'E',description:'<p>Goal <i>x</i></p><img src=x onerror=1>'}],projects:[{id:'p',name:'P'}]}).epics[0];
+  assert.equal(e.description,'<p>Goal <i>x</i></p>');
+});

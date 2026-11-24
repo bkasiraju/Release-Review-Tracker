@@ -4,6 +4,20 @@
 const SF_ID = /^[a-zA-Z0-9]{15,18}$/, ISO = /^\d{4}-\d{2}-\d{2}$/, LOCAL = /^[A-Za-z0-9_-]{1,40}$/;
 const MAX = { projects: 300, epics: 300, workstreams: 40, people: 200 };
 const planKey = teamId => { if (!SF_ID.test(String(teamId || ''))) throw new Error('Unknown team'); return 'plan-' + teamId; };
+// Rich text for the GUS epic Description (HTML). Only formatting tags survive; attributes are dropped except a safe link href.
+const RICH_OK = new Set(['p', 'br', 'b', 'strong', 'i', 'em', 'u', 's', 'strike', 'del', 'ul', 'ol', 'li', 'a', 'sub', 'sup', 'blockquote', 'h1', 'h2', 'h3']);
+function richHtml(v, max = 30000) {
+  let s = String(v == null ? '' : v).slice(0, max * 2).replace(/<!--[\s\S]*?-->/g, '').replace(/<(script|style|iframe|object|embed)\b[\s\S]*?<\/\1\s*>/gi, '');
+  s = s.replace(/<(\/?)([a-zA-Z][a-zA-Z0-9]*)\b([^>]*)>/g, (m, close, tag, attrs) => {
+    tag = tag.toLowerCase(); if (tag === 'div') tag = 'p';
+    if (!RICH_OK.has(tag)) return '';
+    if (close) return '</' + tag + '>';
+    if (tag === 'a') { const h = /\bhref\s*=\s*(?:"([^"]*)"|'([^']*)')/i.exec(attrs), u = h ? String(h[1] || h[2] || '').trim() : ''; return /^(https?:\/\/|mailto:)/i.test(u) ? '<a href="' + u.replace(/[<>"]/g, '') + '" target="_blank" rel="noopener noreferrer">' : '<a>'; }
+    return '<' + tag + '>';
+  }).replace(/<(?!\/?(?:p|br|b|strong|i|em|u|s|strike|del|ul|ol|li|a|sub|sup|blockquote|h1|h2|h3)[\s>\/])/gi, '&lt;');
+  s = s.trim().slice(0, max);
+  return s.replace(/<[^>]*>/g, '').replace(/&nbsp;|\s/g, '') ? s : '';
+}
 const text = (v, n) => String(v == null ? '' : v).trim().slice(0, n);
 const wsLine = (e, w) => (e.line === 'BTL' ? 'BTL' : (w.line || e.line));
 const effortOf = (e, includeBtl) => Math.round(e.workstreams.filter(w => includeBtl || wsLine(e, w) === 'ABL').reduce((a, w) => a + w.days, 0) * 100) / 100;
@@ -95,7 +109,7 @@ function cleanPlan(input) {
   const epics = (Array.isArray(p.epics) ? p.epics : []).slice(0, MAX.epics).map((x, i) => ({
     id: lid(x.id, i, 'e'), projectId: lid(x.projectId, 0, ''), name: text(x.name, 255), line: x.line === 'ABL' ? 'ABL' : 'BTL',
     priority: Number.isFinite(Number(x.priority)) && x.priority !== '' && x.priority != null ? Math.min(Math.max(Math.round(Number(x.priority)), 0), 9999) : null,
-    theme: text(x.theme, 80), hrp: text(x.hrp, 80), v2mom: text(x.v2mom, 80), estimate: days(x.estimate), status: STATUS.includes(x.status) ? x.status : '', doc: /^https?:\/\//i.test(String(x.doc || '')) ? text(x.doc, 300) : '', smartGoal: goalText(text(x.smartGoal, 2000)), outcome: text(x.outcome, 500).replace(/\s+/g, ' ').trim(),
+    theme: text(x.theme, 80), hrp: text(x.hrp, 80), v2mom: text(x.v2mom, 80), estimate: days(x.estimate), status: STATUS.includes(x.status) ? x.status : '', doc: /^https?:\/\//i.test(String(x.doc || '')) ? text(x.doc, 300) : '', smartGoal: goalText(text(x.smartGoal, 2000)), description: richHtml(x.description), outcome: text(x.outcome, 500).replace(/\s+/g, ' ').trim(),
     actions: (Array.isArray(x.actions) ? x.actions : []).slice(0, 50).map((a, k) => ({ id: lid(a && a.id, k, 'a'), text: text(a && a.text, 300), ownerId: gid(a && a.ownerId), ownerName: text(a && a.ownerName, 80), eta: /^\d{4}-\d\d-\d\d$/.test(String(a && a.eta || '')) ? a.eta : '', done: !!(a && a.done) })).filter(a => a.text),
     owners: (Array.isArray(x.owners) ? x.owners : []).map(gid).filter(Boolean).slice(0, 12), ownerNames: (Array.isArray(x.ownerNames) ? x.ownerNames : []).slice(0, 12).map(n => text(n, 80)),
     releaseId: gid(x.releaseId), releaseName: text(x.releaseName, 120), gusId: gid(x.gusId), foreign: x.foreign === true,
@@ -411,16 +425,16 @@ async function createEpic(sf, teamId, input) {
   const prio = Number(input && input.priority);
   if (!(input && input.priority !== '' && input.priority != null) || !Number.isFinite(prio) || prio < 0) throw new Error('Select the epic priority.');
   const proj = await ensureProject(sf, teamId, input && input.project);
-  const effort = days(input && input.effort);
+  const effort = days(input && input.effort), desc = richHtml(input && input.description);
   const hit = ((await sf.query(`SELECT Id FROM ADM_Epic__c WHERE Name = '${soql(name)}' AND Team__c = '${teamId}' LIMIT 1`)).records || [])[0];
   if (hit) return { gusId: hit.Id, projectGusId: proj.id, projectCreated: proj.created, created: false };
-  const base = { Name: name, Team__c: teamId, Project__c: proj.id, ...(releaseId ? { Planned_Release__c: releaseId } : {}), Development_Lead__c: leadId, Planned_Story_Points__c: effort, Priority__c: prio };
+  const base = { Name: name, Team__c: teamId, Project__c: proj.id, ...(releaseId ? { Planned_Release__c: releaseId } : {}), Development_Lead__c: leadId, Planned_Story_Points__c: effort, Priority__c: prio, ...(desc ? { Description__c: desc } : {}) };
   // The epic owner is the development lead; if GUS refuses that owner, fall back to the default owner.
   let c = await sf.create('ADM_Epic__c', { ...base, OwnerId: leadId }).catch(e => ({ success: false, errors: [String(e && e.message || e)] }));
   if (!ok(c) || !newId(c)) c = await sf.create('ADM_Epic__c', base);
   if (!ok(c) || !newId(c)) throw new Error('GUS rejected the epic: ' + plain(errText(c)));
   refsCache.delete(teamId);
-  return { gusId: newId(c), projectGusId: proj.id, projectCreated: proj.created, created: true };
+  return { gusId: newId(c), projectGusId: proj.id, projectCreated: proj.created, created: true, description: desc };
 }
 
 // A workstream in GUS is a parent User Story ("WS: <name>") on the epic, so engineers' own stories hang under it via Parent__c.
@@ -695,6 +709,8 @@ async function teamProgram(sf, teamId) {
 
 /** Epic description written to GUS: plan context plus the workstream breakdown, so the GUS epic carries every planned detail. */
 function epicDescription(e, project, includeBtl) {
+  // An epic described by the user keeps exactly that rich text in GUS (after its SMART goal, if any); nothing generated is appended.
+  if (e.description) return ((e.smartGoal ? '<p>' + (/^SMART Goal:/.test(goalText(e.smartGoal)) ? goalText(e.smartGoal) : 'SMART Goal: ' + goalText(e.smartGoal)).replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</p>' : '') + e.description).slice(0, 30000);
   const L = [];
   if (e.smartGoal) L.push(/^SMART Goal:/.test(goalText(e.smartGoal)) ? goalText(e.smartGoal) : 'SMART Goal: ' + goalText(e.smartGoal), '');
   if (project) L.push('Project: ' + (project.name || '') + (project.short ? ' (' + project.short + ')' : ''));
@@ -838,4 +854,4 @@ async function commitRun(sf, store, teamId, confirm, includeBtl, acknowledged) {
   return { results, failed: results.filter(x => !x.ok).length, plan: saved && saved.plan, revision: saved && saved.revision, saveError };
 }
 
-module.exports = { teamName, syncWorkstreams, withOutcome, outcomeOf, fiscalQuarter, refreshEpics, saveSmartGoal, generateSmartGoal, withSmartGoal, epicWorkstreams, epicLeads, deleteEpic, deleteWorkstream, programProjects, importV2mom, resolveProgram, teamProgram, getPlan, savePlan, getRefs, commitPlan, createProject, deleteProject, createEpic, listEpics, findEpics, createWorkstream, syncEpics, review, cleanPlan };
+module.exports = { richHtml, teamName, syncWorkstreams, withOutcome, outcomeOf, fiscalQuarter, refreshEpics, saveSmartGoal, generateSmartGoal, withSmartGoal, epicWorkstreams, epicLeads, deleteEpic, deleteWorkstream, programProjects, importV2mom, resolveProgram, teamProgram, getPlan, savePlan, getRefs, commitPlan, createProject, deleteProject, createEpic, listEpics, findEpics, createWorkstream, syncEpics, review, cleanPlan };

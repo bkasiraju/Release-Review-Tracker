@@ -4,6 +4,11 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r23 (folded)
+
+- Add epic: new rich-text Description (bold, italic, underline, strikethrough, bulleted/numbered lists, indent, links, clear formatting; paste is cleaned). It is sanitised to formatting tags and written to the GUS epic Description as entered; later commits of that epic keep this text instead of regenerating the description.
+- Add epic: Workstreams start collapsed behind an "Add Workstreams" button; clicking it shows the first row, "+ Add workstream" adds more, and rows can all be removed.
+
 ### 8.0.0-GA r22 (folded)
 
 - Epic updates popup: the "Release Review Status: Not required" chip is no longer shown (e.g. for On Track epics); the chip appears only when a review status is set or needed.
