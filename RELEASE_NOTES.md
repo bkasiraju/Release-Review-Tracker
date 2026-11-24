@@ -4,6 +4,10 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r30 (folded)
+
+- Planner dialogs (create/add epic, project, move epic, etc.): after you type in a field, clicking outside the dialog, pressing Esc, × or Cancel asks "You have unsaved changes. Leave without saving?" instead of silently discarding your input.
+
 ### 8.0.0-GA r29 (folded)
 
 - Pull from GUS: when a project's title changes in GUS, the dashboard's short label now follows it (unless it was customised), and a project line no longer shows a doubled code such as "GB M3.4.1 – M3.4.1 - …".
