@@ -4,6 +4,10 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r27 (folded)
+
+- Planner table: the Theme column is wider (190px) so theme values are readable; Epic Name and Workstream take slightly less width so the later columns sit closer to the left.
+
 ### 8.0.0-GA r26 (folded)
 
 - Importing an existing GUS epic now brings in the user stories already on it as workstreams (name, owner, days from the story's planned days or story points), read-only: they are never renamed or written back to GUS, and the "Planned in GUS" placeholder is used only when the epic has no stories.
