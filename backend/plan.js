@@ -547,6 +547,20 @@ async function syncWorkstreams(sf, teamId, items) {
   return { results: out };
 }
 
+/** Re-parent a workstream story under another epic of this team, so a move on the dashboard is a move in GUS too (not a copy). */
+async function moveWorkstream(sf, teamId, input) {
+  planKey(teamId);
+  const id = gid(input && input.gusId), epicId = gid(input && input.epicGusId);
+  if (!id || !epicId) throw new Error('Both the workstream and the target epic must be in GUS.');
+  const w = ((await sf.query(`SELECT Id FROM ADM_Work__c WHERE Id = '${id}' AND Scrum_Team__c = '${teamId}' AND Subject__c LIKE '${WS_PREFIX}%' LIMIT 1`)).records || [])[0];
+  if (!w) throw new Error('Not a workstream story of this team.');
+  const e = ((await sf.query(`SELECT Id FROM ADM_Epic__c WHERE Id = '${epicId}' AND Team__c = '${teamId}' LIMIT 1`)).records || [])[0];
+  if (!e) throw new Error('The target epic does not belong to this team.');
+  const r = await sf.update('ADM_Work__c', id, { Epic__c: epicId });
+  if (r && !ok(r)) throw new Error(plain(errText(r)) || 'GUS rejected the move.');
+  return { gusId: id, epicGusId: epicId };
+}
+
 // The team's epics already in GUS, so they can be added to the plan table instead of retyped.
 async function listEpics(sf, teamId) {
   planKey(teamId);
@@ -899,4 +913,4 @@ async function commitRun(sf, store, teamId, confirm, includeBtl, acknowledged) {
   return { results, failed: results.filter(x => !x.ok).length, plan: saved && saved.plan, revision: saved && saved.revision, saveError };
 }
 
-module.exports = { epicDescriptionHtml, adoptEpic, richHtml, teamName, syncWorkstreams, withOutcome, outcomeOf, fiscalQuarter, refreshEpics, saveSmartGoal, generateSmartGoal, withSmartGoal, epicWorkstreams, epicStories, epicLeads, deleteEpic, deleteWorkstream, programProjects, importV2mom, resolveProgram, teamProgram, getPlan, savePlan, getRefs, commitPlan, createProject, deleteProject, createEpic, listEpics, findEpics, createWorkstream, syncEpics, review, cleanPlan };
+module.exports = { moveWorkstream, epicDescriptionHtml, adoptEpic, richHtml, teamName, syncWorkstreams, withOutcome, outcomeOf, fiscalQuarter, refreshEpics, saveSmartGoal, generateSmartGoal, withSmartGoal, epicWorkstreams, epicStories, epicLeads, deleteEpic, deleteWorkstream, programProjects, importV2mom, resolveProgram, teamProgram, getPlan, savePlan, getRefs, commitPlan, createProject, deleteProject, createEpic, listEpics, findEpics, createWorkstream, syncEpics, review, cleanPlan };

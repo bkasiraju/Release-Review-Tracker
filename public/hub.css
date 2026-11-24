@@ -3692,3 +3692,6 @@ html body .pl-ty[data-tip-desc]{cursor:help}
 html body .pl-grid-wrap .pl-grid th.c-name,html body .pl-grid-wrap .pl-grid td.c-name,html body .pl-grid-wrap .pl-grid th.c-ws,html body .pl-grid-wrap .pl-grid td.c-ws{width:28%!important}
 html body .pl-grid-wrap .pl-grid th.c-theme,html body .pl-grid-wrap .pl-grid td.c-theme{width:190px!important;min-width:190px!important}
 html body[data-hub=plan] .pl-grid td.c-theme input{min-width:170px!important}
+
+/* r33: workstream delete button reads as a delete action */
+html body .pl-grid .pl-ib.pl-rm{color:#b3261e!important}

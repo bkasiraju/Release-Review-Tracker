@@ -147,3 +147,12 @@ test('epicStories lists the stories already on an epic and cleanPlan keeps the s
   const w=plan.cleanPlan({epics:[{id:'e1',projectId:'p',name:'E',workstreams:[{id:'w1',name:'Fix it',storyId:'a07000000000002AAA',storyNo:'W-2'}]}],projects:[{id:'p',name:'P'}]}).epics[0].workstreams[0];
   assert.equal(w.storyId,'a07000000000002AAA');assert.equal(w.storyNo,'W-2');
 });
+
+test('moveWorkstream re-parents the story under another epic of the team and refuses foreign ones',async()=>{
+  const WS='a07B0000000w4ZhIAI',E2='a3Q000000000002AAA',upd=[];
+  const sf={async query(q){if(/FROM ADM_Work__c/.test(q))return {records:[{Id:WS}]};if(/FROM ADM_Epic__c/.test(q))return {records:q.includes(E2)?[{Id:E2}]:[]};return {records:[]};},async update(o,id,f){upd.push([o,id,f]);return {success:true};}};
+  const r=await plan.moveWorkstream(sf,A,{gusId:WS,epicGusId:E2});
+  assert.equal(r.epicGusId,E2);assert.deepEqual(upd,[['ADM_Work__c',WS,{Epic__c:E2}]]);
+  await assert.rejects(()=>plan.moveWorkstream(sf,A,{gusId:WS,epicGusId:'a3Q000000000009AAA'}),/does not belong/);
+  await assert.rejects(()=>plan.moveWorkstream(sf,A,{gusId:'',epicGusId:E2}),/must be in GUS/);
+});
