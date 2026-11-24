@@ -4,6 +4,10 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r35 (folded)
+
+- Planner table: the Theme header is left-aligned again (Priority and Actions stay centred), and Theme now sits right after Epic Name in the default column order and in the column chooser. A column order you saved in your browser is kept.
+
 ### 8.0.0-GA r34 (folded)
 
 - Planner table: the Priority, Theme and Actions column headers are centred.

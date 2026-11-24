@@ -3697,4 +3697,5 @@ html body[data-hub=plan] .pl-grid td.c-theme input{min-width:170px!important}
 html body .pl-grid .pl-ib.pl-rm{color:#b3261e!important}
 
 /* r34: Priority, Theme and Actions column headers are centred */
-html body .pl-grid-wrap .pl-grid thead th.c-priority,html body .pl-grid-wrap .pl-grid thead th.c-theme,html body .pl-grid-wrap .pl-grid thead th.c-actions{text-align:center!important}
+html body .pl-grid-wrap .pl-grid thead th.c-priority,html body .pl-grid-wrap .pl-grid thead th.c-actions{text-align:center!important}
+html body .pl-grid-wrap .pl-grid thead th.c-theme{text-align:left!important}
