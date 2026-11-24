@@ -405,7 +405,7 @@ const IO_ROWS=300;
 const projShort=p=>p.short||shortProj(p.name);
 const EPIC_NAME_MAX=80; // ADM_Epic__c.Name length in GUS
 const PROJECT_NAME_MAX=80; // PPM_Project__c.Name length in GUS
-const projLabel=p=>{const sh=projShort(p),n=p.name||'';return !n||n===sh?sh:n.toLowerCase().startsWith(sh.toLowerCase())?n:sh+' — '+n;};
+const projLabel=p=>{const sh=projShort(p),n=p.name||'',code=sh.replace(/^[A-Za-z]{2,6}\s+(?=[A-Za-z]?\d)/,'');return !n||n===sh?sh:(n.toLowerCase().startsWith(sh.toLowerCase())||n.toLowerCase().startsWith(code.toLowerCase()))?n:sh+' — '+n;};
 function ioLists(){
   const pl=P.plan,eng=P.members.filter(isEng).map(m=>m.name).sort();
   return {methods:[...new Set(pl.projects.map(p=>(p.method||'').trim()).filter(Boolean))].sort(),projects:pl.projects.map(projShort),releases:P.refs.releases.map(r=>r.name),eng,line:['ABL','BTL'],pri:[0,1,2,3,4,5].map(n=>'P'+n),status:STAT};
@@ -1063,7 +1063,7 @@ async function refreshFromGus(btn,auto){
     e.workstreams.filter(x=>x.gusId&&!seen.has(x)&&gws.length).forEach(x=>gone.push({name:(e.name||'(unnamed)')+' › '+(x.name||'workstream')}));}
   const applyIdx=on=>{let n=0;const touched=new Set();
     ch.forEach((c,i)=>{if(!on.has(i))return;const e=c.e,g=c.g,w=c.w,gw=c.gw;n++;
-      if(c.f==='pname')c.p.name=g.name;
+      if(c.f==='pname'){const old=c.p.name||'';if(!c.p.short||c.p.short===shortProj(old))c.p.short=shortProj(g.name);c.p.name=g.name;}
       else if(c.f==='pmethod')c.p.method=g.method||'';
       else if(c.f==='name')e.name=g.name;
       else if(c.f==='release'){e.releaseId=g.releaseId||'';e.releaseName=g.releaseName||'';}
