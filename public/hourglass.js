@@ -17,7 +17,7 @@ const clk=f=>f?` data-flt="${f}" role="button" tabindex="0" aria-pressed="${S.fl
 const tile=(label,val,target,cls,sub,f)=>`<div class="hg-tile ${cls||''}${f?' hg-click':''}${on(f)}"${clk(f)}><div class="hg-tl">${label}</div><div class="hg-tv">${val}</div><div class="hg-ts">${target?'Target '+target:''}${sub?(target?' · ':'')+sub:''}</div></div>`;
 const median=a=>{const v=a.filter(x=>x!=null).sort((x,y)=>x-y);if(!v.length)return null;const m=v.length>>1;return v.length%2?v[m]:(v[m-1]+v[m])/2;};
 
-const teamKey=(tm=H.team)=>!tm||tm.Id==='all'?null:tm.short==='MAPS'?'MAPS':tm.short==='MQ'?'MQ':/vegacache/i.test(tm.Name)?'VegaCache':null;
+const teamKey=(tm=H.team)=>!tm||tm.Id==='all'?null:tm.hourglass&&(!S.data||S.data.teams[tm.hourglass])?tm.hourglass:tm.short==='MAPS'?'MAPS':tm.short==='MQ'?'MQ':/vegacache/i.test(tm.Name)?'VegaCache':null;
 function trend(t,W){W=W||760;
   const pts=[...Object.entries(t.published).map(([s,m])=>({s,m:m.median_h,p:m.p80_h,pub:1})),...Object.entries(t.sprints).map(([s,x])=>({s,m:x.summary.median_h,p:x.summary.p80_h,pub:0}))]
     .filter(p=>p.m!=null).sort((a,b)=>a.s<b.s?-1:1).filter((p,i,a)=>!(p.pub&&a.some(q=>q.s===p.s&&!q.pub)));

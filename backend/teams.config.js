@@ -55,6 +55,11 @@ function cleanEntry(raw, existingKey) {
   const theme = str(raw.theme, 12, /^[A-Za-z0-9-]+$/, 'Theme') || (short || '').replace(/[^A-Za-z0-9-]/g, '').slice(0, 12) || e.key.toUpperCase().slice(0, 12); e.theme = theme;
   const tag = str(raw.tag, 80, SAFE, 'Product tag'); if (tag) e.tag = tag;
   // Leaders differ per team: GUS user ids picked from the scrum team's Scrum Lead, Engineering Manager, Architect and members (saved names of the CFS leaders are still accepted).
+  // Optional per-team extras: Daily Chronicle page, Hourglass data key, PagerDuty Slack channel.
+  const chron = String(raw.chronicle || '').trim(); if (chron) { if (chron.length > 200 || !/^https:\/\/[A-Za-z0-9.-]+\.salesforce\.com\/[A-Za-z0-9._~\/%?=&#-]*$/.test(chron)) throw new Error('Check the Daily Chronicle link (an https://….salesforce.com page).'); e.chronicle = chron; }
+  const hg = str(raw.hourglass, 24, /^[A-Za-z0-9-]+$/, 'Hourglass team key'); if (hg) e.hourglass = hg;
+  const pd = raw.pagerduty || {}, pdId = String(pd.id || '').trim(), pdName = String(pd.name || '').trim();
+  if (pdId) { if (!/^[CG][A-Z0-9]{8,14}$/.test(pdId)) throw new Error('Check the PagerDuty Slack channel id (looks like C09ABCDEF12).'); if (pdName && !/^#?[A-Za-z0-9._-]{1,80}$/.test(pdName)) throw new Error('Check the PagerDuty channel name.'); e.pagerduty = { id: pdId, name: pdName || pdId }; }
   const lead = (Array.isArray(raw.leaders) ? raw.leaders : []).map(n => LEADER_IDS[n] || String(n)).filter(n => USER_ID.test(n));
   e.leaders = [...new Set(lead)].slice(0, 20);
   const clash = all().find(x => x.key !== existingKey && (x.key === e.key || x.group === e.group || reOf(x).test(gus.replace(/%$/, '')) || reOf(e).test(x.gus.replace(/%$/, ''))));

@@ -314,8 +314,8 @@ test('monthly publication orders GUS comments chronologically while preserving o
 test('teams onboarded from the app are validated, saved, layered over the built-in list and removable',async()=>{
  const cfg=require('../backend/teams.config');const {s}=await setup();
  try{
-  const saved=await s.saveTeam({key:'sre',group:'SRE Platform',gus:'SRE Platform',short:'SRE',theme:'SRE',tag:'SRE Tag',leaders:['RAM','NOPE','005B0000009abcdEFG','bad id']});
-  const t=saved.teams.find(x=>x.key==='sre');assert.equal(t.builtIn,false);assert.deepEqual(t.leaders,['005B0000001tCGAIA2','005B0000009abcdEFG']); // leaders are GUS user ids chosen per team; nobody is forced on every team
+  const saved=await s.saveTeam({key:'sre',group:'SRE Platform',gus:'SRE Platform',short:'SRE',theme:'SRE',tag:'SRE Tag',leaders:['RAM','NOPE','005B0000009abcdEFG','bad id'],chronicle:'https://git.soma.salesforce.com/pages/x/y/index.html',hourglass:'SRE',pagerduty:{id:'C09ABCDEF12',name:'#sre-pagerduty'}});
+  const t=saved.teams.find(x=>x.key==='sre');assert.equal(t.builtIn,false);assert.equal(t.pagerduty.id,'C09ABCDEF12');assert.equal(t.hourglass,'SRE');assert.match(t.chronicle,/^https:/);await assert.rejects(()=>s.saveTeam({key:'bad',group:'Bad Team',gus:'Bad Team',chronicle:'http://evil.example.com/x'}),/Chronicle/);await assert.rejects(()=>s.saveTeam({key:'bad2',group:'Bad Two',gus:'Bad Two',pagerduty:{id:'nope'}}),/PagerDuty/);assert.deepEqual(t.leaders,['005B0000001tCGAIA2','005B0000009abcdEFG']); // leaders are GUS user ids chosen per team; nobody is forced on every team
   assert.equal(cfg.shortOf('SRE Platform'),'SRE');assert.match(cfg.teamFilter(),/SRE Platform/);
   await assert.rejects(()=>s.saveTeam({key:'sre',group:'Other',gus:'Other Team'}),/overlaps/);
   await assert.rejects(()=>s.saveTeam({key:'mq2',group:'MQ copy',gus:'Message Queue'}),/overlaps/);

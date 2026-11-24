@@ -62,7 +62,7 @@ class Service{
   }
   async teamsConfig(){
     await this.applyTeams(true);const cfg=require('./teams.config'),builtIn=new Set(cfg.TEAMS.map(t=>t.key));
-    return {teams:cfg.all().map(t=>({key:t.key,group:t.group,gus:t.gus,short:t.short||'',theme:t.theme||'',tag:t.tag||'',leaders:(t.leaders||[]).map(n=>cfg.LEADER_IDS[n]||n),builtIn:builtIn.has(t.key)}))};
+    return {teams:cfg.all().map(t=>({key:t.key,group:t.group,gus:t.gus,short:t.short||'',theme:t.theme||'',tag:t.tag||'',leaders:(t.leaders||[]).map(n=>cfg.LEADER_IDS[n]||n),chronicle:t.chronicle||'',hourglass:t.hourglass||'',pagerduty:t.pagerduty||null,builtIn:builtIn.has(t.key)}))};
   }
   // Leader candidates for a GUS scrum team: Scrum Lead, Engineering Manager, Architect and Product Owner from the team record, plus its members by role.
   async teamLeaders(sf,b){

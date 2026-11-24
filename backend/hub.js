@@ -16,7 +16,7 @@ const SEED_TEAMS = [
 // Which teams exist, their short forms, themes, tags and leaders live in teams.config.js (one entry per team).
 const cfg = require('./teams.config');
 const shortName = cfg.shortOf;
-const withConfig = t => { const e = cfg.entryFor(t.Name); return { ...t, key: e ? e.key : '', theme: cfg.themeOf(t.Name), tag: cfg.tagOf(t.Name) }; };
+const withConfig = t => { const e = cfg.entryFor(t.Name); return { ...t, key: e ? e.key : '', theme: cfg.themeOf(t.Name), tag: cfg.tagOf(t.Name), chronicle: e && e.chronicle || '', hourglass: e && e.hourglass || '' }; };
 
 function requireTeam(teamId) {
   if (!SF_ID.test(String(teamId || ''))) throw new Error('Unknown team');

@@ -1,6 +1,6 @@
 # Adding a team to ReleaseIQ
 
-**From the app (no deploy):** click the ⚙ next to the Team selector → Add a team. Search the GUS scrum team, adjust the display name, short name, theme, product tag and leaders, and save. The team is stored in the shared app store and appears for everyone within about 30 seconds. Teams added this way can be edited or removed there; built-in teams are changed in code as below. Per-team PagerDuty channels and "exclude members of" rules are code-only.
+**From the app (no deploy):** click the ⚙ next to the Team selector → Add a team. Search the GUS scrum team, adjust the display name, short name, theme, product tag and leaders, and save. The team is stored in the shared app store and appears for everyone within about 30 seconds. Teams added this way can be edited or removed there; built-in teams are changed in code as below. Under "More page settings" you can also set the Daily Chronicle page, the Hourglass team key (only for teams in the Hourglass data file) and the PagerDuty Slack channel. "Exclude members of" rules are code-only.
 
 Built-in teams are configured in one place: `backend/teams.config.js`. Add one entry to `TEAMS`; the hub, planner, people lists, theme and tag defaults, @user search and PagerDuty digest all read from it.
 

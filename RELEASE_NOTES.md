@@ -4,6 +4,10 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r13 (folded)
+
+- Teams dialog, "More page settings" (optional): Daily Chronicle page link (enables the rail button), Hourglass team key (only for teams present in the Hourglass data file) and the PagerDuty Slack channel (Trust Champion alerts). Validated server-side; PagerDuty channels now include teams added in the app.
+
 ### 8.0.0-GA r12 (folded)
 
 - Teams dialog: the active GUS product tags of the chosen scrum team are listed under "Default product tag" as buttons to pick (click again to clear); a single tag is pre-filled when adding a team. Loaded with the leaders by the `team-leaders` action.

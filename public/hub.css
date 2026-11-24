@@ -3581,3 +3581,5 @@ html body .pl-loading #pl-sum{display:flex;justify-content:center;padding:48px 0
 html body .tm-chip em{font-style:normal;color:#5b6b7c;font-size:11px}html body .tm-leaders>em{color:#5b6b7c;font-size:12px}
 
 html body .tm-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}html body .tm-tagpick{border:1px solid #c9d3df;border-radius:14px;background:#fff;padding:3px 10px;font-size:12px;cursor:pointer}html body .tm-tagpick.on{background:#e8f1fb;border-color:#0b5cab;color:#0b5cab;font-weight:600}
+
+html body .tm-more{margin:6px 0 10px}html body .tm-more summary{cursor:pointer;font-weight:600}html body .tm-more summary em{font-weight:400;color:#5b6b7c}

@@ -20,7 +20,7 @@ rail.addEventListener('focusout',e=>{if(!rail.contains(e.relatedTarget))hide();}
 const CHRON={MQ:'https://git.soma.salesforce.com/pages/bkasiraju/mq-chronicle/index.html'};
 const chron=rail.querySelector('a[data-label="Daily Chronicle"]');
 if(chron){
-  const sync=()=>{const t=window.Hub&&window.Hub.team,u=t&&CHRON[t.short],nm=t&&t.Id!=='all'?(t.short||t.Name):'';
+  const sync=()=>{const t=window.Hub&&window.Hub.team,u=t&&(t.chronicle||CHRON[t.short]),nm=t&&t.Id!=='all'?(t.short||t.Name):'';
     if(u){chron.setAttribute('href',u);chron.removeAttribute('aria-disabled');chron.removeAttribute('tabindex');chron.title='Daily Chronicle for '+nm+' (opens in a new tab)';chron.setAttribute('aria-label','Daily Chronicle for '+nm+', opens in a new tab');}
     else{chron.removeAttribute('href');chron.setAttribute('aria-disabled','true');chron.tabIndex=-1;chron.title=nm?'Daily Chronicle is not available for '+nm+' yet':'Select a team to open its Daily Chronicle';chron.setAttribute('aria-label',chron.title);}
     chron.classList.toggle('disabled',!u);};

@@ -6,7 +6,7 @@
 const direct = require('./slack-direct');
 const SF_ID = /^[a-zA-Z0-9]{15,18}$/;
 const WORKSPACE = 'https://salesforce.enterprise.slack.com';
-const CHANNELS = require('./teams.config').TEAMS.filter(e => e.pagerduty).map(e => ({ like: require('./teams.config').reOf(e), id: e.pagerduty.id, name: e.pagerduty.name }));
+const channels = () => { const cfg = require('./teams.config'); return cfg.all().filter(e => e.pagerduty).map(e => ({ like: cfg.reOf(e), id: e.pagerduty.id, name: e.pagerduty.name })); }; // built-in and app-added teams
 const DAYS = 45, TTL = 2 * 60e3;
 const cache = new Map();
 
@@ -62,7 +62,7 @@ async function readChannel(sf, slack, ch, oldest) {
 async function channelFor(sf, teamId) {
   if (!SF_ID.test(String(teamId || ''))) throw new Error('Invalid team.');
   const [t] = (await sf.query(`SELECT Id, Name FROM ADM_Scrum_Team__c WHERE Id = '${teamId}' LIMIT 1`)).records || [];
-  return t && CHANNELS.find(c => c.like.test(t.Name)) || null;
+  return t && channels().find(c => c.like.test(t.Name)) || null;
 }
 const nameCache = new Map();
 async function nameOf(slack, id) {
@@ -134,7 +134,7 @@ async function summarize(sf, slack, teamId, ts, fresh) {
 async function getAlerts(sf, slack, teamId, fresh) {
   if (!SF_ID.test(String(teamId || ''))) throw new Error('Invalid team.');
   const [t] = (await sf.query(`SELECT Id, Name FROM ADM_Scrum_Team__c WHERE Id = '${teamId}' LIMIT 1`)).records || [];
-  const ch = t && CHANNELS.find(c => c.like.test(t.Name));
+  const ch = t && channels().find(c => c.like.test(t.Name));
   if (!ch) return { configured: false, alerts: [] };
   const hit = cache.get(ch.id);
   if (!fresh && hit && Date.now() - hit.at < TTL) return hit.data;
