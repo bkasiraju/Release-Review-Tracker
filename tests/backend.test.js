@@ -326,3 +326,17 @@ test('teams onboarded from the app are validated, saved, layered over the built-
   const left=await s.deleteTeam({key:'sre'});assert.equal(left.teams.some(x=>x.key==='sre'),false);assert.equal(cfg.entryFor('SRE Platform'),null);
  }finally{cfg.setExtra([]);}
 });
+
+test('a team onboarded from the app is usable by Release Planner and Release Review lookups',async()=>{
+ const cfg=require('../backend/teams.config'),plan=require('../backend/plan');const {s}=await setup();
+ try{
+  await s.saveTeam({key:'sre',group:'SRE Platform',gus:'SRE Platform',short:'SRE'});
+  assert.equal(cfg.themeOf('SRE Platform'),'SRE');assert.equal(cfg.shortOf('SRE Platform'),'SRE');
+  const queries=[],sf={query:async q=>{queries.push(q);
+   if(/FROM ADM_Scrum_Team__c WHERE Id/.test(q))return {records:[{Name:'SRE Platform'}]};
+   if(/FROM PPM_Program__c WHERE Name = 'SRE - 268'/.test(q))return {records:[{Id:'a3PEE000000AAAA',Name:'SRE - 268'}]};
+   if(/FROM ADM_Planned_Release__c/.test(q))return {records:[{Id:'aBQEE000000BOa5',Name:'SRE 268',Start_Date__c:'2026-12-01',End_Date__c:'2027-02-28'}]};
+   return {records:[]};}};
+  assert.deepEqual(await plan.teamProgram(sf,'a00EE00001IJPZVYA5'),{id:'a3PEE000000AAAA',name:'SRE - 268'});
+ }finally{cfg.setExtra([]);}
+});

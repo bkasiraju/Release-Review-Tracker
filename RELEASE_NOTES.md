@@ -4,6 +4,10 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r10 (folded)
+
+- Teams added from the Teams dialog now always get a workstream theme (defaults to the short name when left blank), so Release Planner can name `R<release>_<theme>_Workstream` themes for them. Tests cover the planner's program lookup and theme for an added team.
+
 ### 8.0.0-GA r9 (folded)
 
 - Every page URL now carries the selected team (`team=<id>` or `team=all`), e.g. `#/plan?full&team=a00B…`. The address updates when the team dropdown changes, and opening, reloading or going back to a link selects that team, so links are team-specific and shareable. A URL without a team falls back to your saved/default team.

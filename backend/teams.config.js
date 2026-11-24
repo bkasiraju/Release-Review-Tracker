@@ -48,7 +48,8 @@ function cleanEntry(raw, existingKey) {
   const group = str(raw.group, 60, SAFE, 'Team display name', true);
   const e = { key: str(raw.key, 31, /^[a-z][a-z0-9-]+$/, 'Team key (lowercase letters, numbers, dashes)', true), group, gus };
   const short = str(raw.short, 12, SAFE, 'Short name'); if (short) e.short = short;
-  const theme = str(raw.theme, 12, /^[A-Za-z0-9-]+$/, 'Theme'); if (theme) e.theme = theme;
+  // The planner names workstream themes R<release>_<theme>_Workstream, so a team always needs one: default to the short name.
+  const theme = str(raw.theme, 12, /^[A-Za-z0-9-]+$/, 'Theme') || (short || '').replace(/[^A-Za-z0-9-]/g, '').slice(0, 12) || e.key.toUpperCase().slice(0, 12); e.theme = theme;
   const tag = str(raw.tag, 80, SAFE, 'Product tag'); if (tag) e.tag = tag;
   const lead = Array.isArray(raw.leaders) ? raw.leaders.filter(n => LEADER_NAMES.includes(n)) : [];
   e.leaders = [...new Set(['AMIT', 'JAYANT', ...lead])];
