@@ -3625,3 +3625,37 @@ html body button.tm-open:hover .cfs-icon{transform:none!important;filter:brightn
 html body button.tm-open .cfs-icon svg{width:20px;height:20px}
 html body .tm-form .tm-check{display:flex;align-items:flex-start;gap:8px;margin:10px 0;font-size:13px;color:#17456b!important}
 html body .tm-form .tm-check small{color:#5a6b7b!important}
+/* r19: Teams dialog polish - compact list, carded form, clear primary action */
+html body .tm-dialog{max-height:calc(100vh - 48px);display:flex;flex-direction:column;overflow:hidden;border-radius:14px;width:min(720px,100%)}
+html body .tm-dialog>header{padding:16px 22px;border-bottom:1px solid #e5eaf0}
+html body .tm-dialog h2{font-size:17px;font-weight:700;color:#17324a}
+html body .tm-dialog h3{margin:0 0 12px;font-size:15px;font-weight:700;color:#17324a}
+html body .tm-body{padding:8px 22px 20px;overflow:auto}
+html body .tm-list{border:1px solid #e5eaf0;border-radius:10px;overflow:hidden;margin:10px 0 14px}
+html body .tm-row{padding:9px 14px;gap:10px;border-bottom:1px solid #edf1f5;background:#fff}
+html body .tm-row:last-child{border-bottom:0}
+html body .tm-row strong{font-size:13.5px;font-weight:600;color:#17324a}
+html body .tm-row small{font-size:12px;color:#6b7b8c}
+html body .tm-badge{font-size:11px;font-weight:600;padding:2px 9px;border-radius:999px;background:#eef2f6;color:#52667a}
+html body .tm-body>.button.primary{margin-top:2px}
+html body .tm-form{margin-top:4px;padding:16px 18px 6px;border:1px solid #e5eaf0;border-top:1px solid #e5eaf0;border-radius:12px;background:#f8fafc}
+html body .tm-grid{gap:2px 16px}
+html body .tm-field{gap:5px;margin-bottom:12px}
+html body .tm-field label,html body .tm-form>.tm-field>label{font-size:12px;font-weight:600;color:#33475b}
+html body .tm-field label em{font-weight:400;color:#7a8a9a;font-style:normal}
+html body .tm-field input{height:36px;border:1px solid #cdd7e2;border-radius:8px;padding:0 11px;background:#fff;box-sizing:border-box;width:100%}
+html body .tm-field input:focus{outline:none;border-color:#1b6fb5;box-shadow:0 0 0 3px rgba(27,111,181,.18)}
+html body .tm-field small,html body .tm-check small{font-size:11.5px;line-height:1.35;color:#6b7b8c;font-weight:400}
+html body .tm-form .tm-check{display:flex;align-items:flex-start;gap:10px;margin:2px 0 12px;padding:10px 12px;border:1px solid #dbe4ee;border-radius:10px;background:#fff;cursor:pointer;font-size:13px}
+html body .tm-form .tm-check input{margin-top:2px;width:16px;height:16px;flex:none}
+html body .tm-form .tm-check span{display:flex;flex-direction:column;gap:2px}
+html body .tm-form .tm-check b{font-weight:600;color:#17324a}
+html body .tm-more{margin:0 0 12px;border:1px solid #dbe4ee;border-radius:10px;background:#fff;padding:0 12px}
+html body .tm-more summary{padding:10px 0;font-size:13px;font-weight:600;color:#17324a;cursor:pointer}
+html body .tm-more[open] summary{border-bottom:1px solid #edf1f5;margin-bottom:12px}
+html body .tm-leaders>em{font-size:12px;color:#6b7b8c}
+html body .tm-err{min-height:0}
+html body .tm-actions{position:sticky;bottom:0;margin:0 -18px;padding:12px 18px;background:#f8fafc;border-top:1px solid #e5eaf0;border-radius:0 0 12px 12px}
+html body .tm-actions .button{height:36px;padding:0 18px;border-radius:8px;font-weight:600}
+html body .tm-actions .button.primary{background:#0b5cab!important;border-color:#0b5cab!important;color:#fff!important}
+html body .tm-actions .button.primary:hover{background:#094a8c!important}

@@ -19,13 +19,13 @@ function form(t){const e=t||{key:'',group:'',gus:'',short:'',theme:'',tag:'',lea
  <div class="tm-field"><label for="tm-key">Team key</label><input id="tm-key" maxlength="31" value="${esc(e.key)}" ${t?'disabled':''}></div>
  <div class="tm-field"><label for="tm-theme">Workstream theme</label><input id="tm-theme" maxlength="12" value="${esc(e.theme)}"></div>
  <div class="tm-field"><label for="tm-tag">Default product tag <em>(optional)</em></label><input id="tm-tag" maxlength="80" value="${esc(e.tag)}"><span id="tm-tags" class="tm-tags"></span><small>Active product tags of the GUS scrum team appear here to pick from.</small></div></div>
-${t?'':'<label class="tm-check"><input type="checkbox" id="tm-nosp"> Start without the shared HRP projects <small>(import this team\'s own projects instead; can also be removed later from the planner)</small></label>'}
+${t?'':'<label class="tm-check"><input type="checkbox" id="tm-nosp"><span><b>Start without the shared HRP projects</b><small>Import this team\'s own projects instead. You can also remove them later from the planner.</small></span></label>'}
  <details class="tm-more" ${(e.chronicle||e.hourglass||e.pagerduty)?'open':''}><summary>More page settings <em>(optional)</em></summary><div class="tm-grid">
  <div class="tm-field"><label for="tm-chron">Daily Chronicle page</label><input id="tm-chron" maxlength="200" placeholder="https://git.soma.salesforce.com/pages/…" value="${esc(e.chronicle)}"><small>Enables the Daily Chronicle button for this team.</small></div>
  <div class="tm-field"><label for="tm-hg">Hourglass team key</label><input id="tm-hg" maxlength="24" value="${esc(e.hourglass)}"><small>Only works when the Hourglass data file already includes this team (today MAPS, MQ, VegaCache).</small></div>
  <div class="tm-field"><label for="tm-pdid">PagerDuty Slack channel id</label><input id="tm-pdid" maxlength="15" placeholder="C09ABCDEF12" value="${esc((e.pagerduty||{}).id)}"><small>Trust Champion alerts are read from this channel; the Slack bot must be a member.</small></div>
  <div class="tm-field"><label for="tm-pdname">PagerDuty channel name</label><input id="tm-pdname" maxlength="80" placeholder="#team-pagerduty" value="${esc((e.pagerduty||{}).name)}"></div></div></details>
- <div class="tm-field"><label>Leaders</label><div id="tm-leaders" class="tm-leaders" aria-live="polite"><em>Pick the GUS scrum team to see its Scrum Lead, Engineering Manager and Architect.</em></div><small>Leaders come from the scrum team in GUS: Scrum Lead, Engineering Manager and Architect are pre-selected. They are shown in the team's people list.</small></div>
+ <div class="tm-field"><label>Leaders</label><div id="tm-leaders" class="tm-leaders" aria-live="polite"><em>Pick the GUS scrum team to see its Scrum Lead, Engineering Manager and Architect.</em></div></div>
  <div id="tm-err" class="tm-err" role="alert"></div>
  <div class="tm-actions"><button type="button" class="button" id="tm-cancel">Cancel</button><button type="submit" class="button primary" id="tm-save">${t?'Save changes':'Add team'}</button></div></form>`;}
 let picked=null,seq=0;
@@ -50,7 +50,7 @@ async function loadLeaders(reset){const box_=$('tm-leaders');if(!box_)return;con
  }catch(e){box_.innerHTML='<em>'+esc(e.message||e)+'</em>';}}
 function draw(){
  if(!box){box=document.createElement('div');box.className='tm-overlay';document.body.append(box);document.addEventListener('keydown',onKey);box.addEventListener('mousedown',e=>{if(e.target===box)close();});}
- const rows=cfg.teams.map(t=>`<div class="tm-row"><div><strong>${esc(t.group)}</strong><small>${esc(t.gus)} · ${esc(t.short||'—')}</small></div><span class="tm-badge ${t.builtIn?'':'tm-custom'}">${t.builtIn?'Built in':'Added in app'}</span>${t.builtIn?'':`<button type="button" class="button small" data-edit="${esc(t.key)}">Edit</button><button type="button" class="button small danger" data-del="${esc(t.key)}">Remove</button>`}</div>`).join('');
+ const rows=cfg.teams.map(t=>`<div class="tm-row"><div><strong>${esc(t.group)}</strong><small>${esc(t.gus.replace(/%$/,''))}${t.short?' · '+esc(t.short):''}</small></div><span class="tm-badge ${t.builtIn?'':'tm-custom'}">${t.builtIn?'Built in':'Added in app'}</span>${t.builtIn?'':`<button type="button" class="button small" data-edit="${esc(t.key)}">Edit</button><button type="button" class="button small danger" data-del="${esc(t.key)}">Remove</button>`}</div>`).join('');
  box.innerHTML=`<div class="tm-dialog" role="dialog" aria-modal="true" aria-label="Teams"><header><h2>Teams</h2><button type="button" class="icon-button" id="tm-x" aria-label="Close">×</button></header>
  <div class="tm-body"><div class="tm-list">${rows}</div>${editing===null?'<button type="button" class="button primary" id="tm-add">＋ Add a team</button>':form(editing===true?null:cfg.teams.find(t=>t.key===editing))}</div></div>`;
  $('tm-x').onclick=close;
