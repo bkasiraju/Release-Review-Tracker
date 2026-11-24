@@ -3610,3 +3610,11 @@ html body .tm-open:focus-visible{outline:3px solid #9ec3e2;outline-offset:2px;bo
 html body #dashboard-controls>#pl-back{position:static!important;right:auto;top:auto;margin:0 0 0 8px;flex:none;white-space:nowrap;align-self:center}
 html body .dashboard-bar:has(>#pl-back)>.hub-team{margin-right:0!important}
 html body #dashboard-controls>#pl-back{order:100}html body #dashboard-controls>.tm-open{order:101}
+/* r16: team selector, Back button and ⚙ share one 34px row, vertically centred, with even 10px gaps */
+html body #dashboard-controls:has(>#pl-back){align-items:center;gap:0}
+html body #dashboard-controls>.hub-team,html body #dashboard-controls>#pl-back,html body #dashboard-controls>.tm-open{align-self:center;margin-top:0;margin-bottom:0}
+html body #dashboard-controls>#pl-back{box-sizing:border-box;height:34px;min-height:34px;padding:0 14px 0 10px!important;margin-left:10px;display:inline-flex;align-items:center}
+html body #dashboard-controls>.tm-open{margin-left:10px;padding:0;height:34px;width:34px;justify-content:center}
+html body .tm-open .cfs-icon{width:34px;height:34px;margin:0;border-radius:9px;flex:none}
+html body .tm-open .cfs-icon svg{width:20px;height:20px}
+html body #dashboard-controls>.hub-team select{height:34px;min-height:34px;box-sizing:border-box}html body .tm-open .cfs-icon{height:34px!important;width:34px!important}
