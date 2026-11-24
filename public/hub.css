@@ -3606,3 +3606,7 @@ html body .dashboard-bar:has(>#pl-back)>.hub-team{margin-right:140px}
 html body .tm-open{width:auto;height:auto;margin:0 0 0 6px;padding:0;border:0;background:transparent;display:inline-flex;align-items:center;flex:none;box-shadow:none}
 html body .tm-open:hover{background:transparent}html body .tm-open:hover .cfs-icon{filter:brightness(1.08);transform:translateY(-1px)}
 html body .tm-open:focus-visible{outline:3px solid #9ec3e2;outline-offset:2px;border-radius:10px}
+/* r16: planner "Back to Team Hub" sits in the bar's normal flow (team selector, back button, ⚙) so nothing can overlap */
+html body #dashboard-controls>#pl-back{position:static!important;right:auto;top:auto;margin:0 0 0 8px;flex:none;white-space:nowrap;align-self:center}
+html body .dashboard-bar:has(>#pl-back)>.hub-team{margin-right:0!important}
+html body #dashboard-controls>#pl-back{order:100}html body #dashboard-controls>.tm-open{order:101}

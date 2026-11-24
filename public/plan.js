@@ -580,10 +580,16 @@ document.addEventListener('click',e=>{const t=e.target;if(!t.closest)return;
   const o=t.closest('.pl-rel-o');if(o){relMenu(false);const sel=document.querySelector('#pl-rel');if(sel){sel.value=o.dataset.relV;pickRel(o.dataset.relV);}return;}
   relMenu(false);});
 document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;const m=document.querySelector('#pl-rel-m');if(m&&!m.hidden){relMenu(false);e.stopImmediatePropagation();}},true);
+/** Move the plan to a new window. Engineers whose Total days still equal the old window's weekdays follow the new window; leave, holidays, on-call and custom totals are never touched. */
+function setWindow(next){const o=P.plan.window,was=o&&o.start&&o.end?workdays(o.start,o.end):null;P.plan.window=next;
+  if(was!=null&&next.start&&next.end&&workdays(next.start,next.end)!==was)for(const p of Object.values(P.plan.people||{}))if(p&&p.total===was)delete p.total;}
+/** A linked planned release can change in GUS (e.g. its end date moves): bring the saved window in line. */
+function syncWindowToRelease(){const w=P.plan.window,r=w.releaseId&&((P.refs&&P.refs.releases)||[]).find(x=>x.id===w.releaseId);
+  if(!r||!r.start||!r.end||(r.start===w.start&&r.end===w.end))return false;setWindow({start:r.start,end:r.end,releaseId:r.id});return true;}
 function pickRel(id){const r=((P.refs&&P.refs.releases)||[]).find(x=>x.id===id);if(!P.plan)return;
   if(!r){P.plan.window.releaseId='';fillRel();queueSave();return;}
   if(!r.start||!r.end){window.toast?.('That planned release has no dates in GUS; enter the dates manually.',true);P.plan.window.releaseId='';fillRel();queueSave();return;}
-  P.plan.window={start:r.start,end:r.end,releaseId:r.id};fillRel();drawSummary();queueSave();}
+  setWindow({start:r.start,end:r.end,releaseId:r.id});fillRel();drawSummary();queueSave();}
 const emptyPlan=()=>{const s=new Date(),e=new Date(Date.now()+91*864e5);return {window:{start:iso(s),end:iso(e)},people:{},projects:[],epics:[],hiddenProjects:[],lastCommit:null};};
 
 // ── Capacity model (pure, recomputed on every edit) ─────────────────────────
@@ -1737,7 +1743,7 @@ async function load(el){
   try{
     const id=H.team.Id,[g,refs,members]=await Promise.all([call('plan-get',{teamId:id}),call('plan-refs',{teamId:id}).catch(e=>({releases:[],programs:[],projects:[],sprints:[],warnings:[e.message]})),H.members().catch(()=>[])]);
     if(my!==P.seq)return;
-    P.noGusSync=false;P.plan=g.plan.window.start?g.plan:{...g.plan,window:emptyPlan().window};setTimeout(snapGus,0);P.rev=g.revision;setBase();P.plan.epics.forEach(deriveLine);P.refs=refs;P.members=members;syncExtraEng();const linked=linkSharedProjects();
+    P.noGusSync=false;P.plan=g.plan.window.start?g.plan:{...g.plan,window:emptyPlan().window};setTimeout(snapGus,0);P.rev=g.revision;setBase();P.plan.epics.forEach(deriveLine);P.refs=refs;P.members=members;syncExtraEng();const linked=(linkSharedProjects()||0)+(syncWindowToRelease()?1:0);
     const w=refs.warnings||[];el.querySelector('#pl-warn').innerHTML=w.length?`<p class="note pl-warn">Some GUS lists did not load (${esc(w.join('; '))}). Pickers may be incomplete.</p>`:'';
     fillRel();syncCommitBtn();
     {const n=document.getElementById('ri-lastgus');if(n)n.textContent=P.plan.lastCommit&&P.plan.lastCommit.at?`Last saved to GUS ${new Date(P.plan.lastCommit.at).toLocaleString()} (${P.plan.lastCommit.created} created, ${P.plan.lastCommit.updated} updated)`:''}
@@ -1759,7 +1765,7 @@ H.register({id:'plan',label:'Release Planning (Quarterly)',icon:'plan',tone:'gre
     P.tab='plan';
     // Review & push to GUS is limited to the plan administrators (also enforced by the backend); disabled until the backend confirms.
         el.oninput=onInput;
-    el.onchange=ev=>{if(ev.target.id==='pl-rel'){pickRel(ev.target.value);return;}if(ev.target.closest('#pl-start,#pl-end')){const s=el.querySelector('#pl-start').value,e=el.querySelector('#pl-end').value;if(P.plan&&P.plan.window.releaseId){P.plan.window.releaseId='';const rs=el.querySelector('#pl-rel');if(rs)rs.value='';}if(s&&e&&s<=e&&P.plan){P.plan.window={start:s,end:e};drawSummary();queueSave();}else if(s&&e&&s>e)window.toast?.('End date must be on or after the start date.',true);return;}onInput(ev);};
+    el.onchange=ev=>{if(ev.target.id==='pl-rel'){pickRel(ev.target.value);return;}if(ev.target.closest('#pl-start,#pl-end')){const s=el.querySelector('#pl-start').value,e=el.querySelector('#pl-end').value;if(P.plan&&P.plan.window.releaseId){P.plan.window.releaseId='';const rs=el.querySelector('#pl-rel');if(rs)rs.value='';}if(s&&e&&s<=e&&P.plan){setWindow({start:s,end:e});drawSummary();queueSave();}else if(s&&e&&s>e)window.toast?.('End date must be on or after the start date.',true);return;}onInput(ev);};
     document.querySelectorAll('#pl-back').forEach(x=>x.remove());
     const bar=document.querySelector('.dashboard-bar');if(bar){const bk=document.createElement('a');bk.href='#/home';bk.id='pl-back';bk.className='pl-back';bk.title='Back to Team Hub — Team Hub for this team';bk.innerHTML='<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M12 4 6 10l6 6M6 10h10"/></svg><span>Back to Team Hub</span>';
       bk.onclick=async ev=>{ev.preventDefault();if(P.state==='dirty'&&!await H.confirm({title:'Unsaved changes',message:'You have unsaved changes. Leave without saving?',ok:'Leave',cancel:'Stay',danger:true}))return;if(P.state==='dirty')P.state='saved';const m=location.pathname.match(/^.*\/applets\/cfs-release-review-tracker\//);if(m){try{(window.top||window).location.assign(m[0]);}catch(_){location.assign(m[0]);}}else H.go('home');};bar.appendChild(bk);}el.onclick=onClick;wireDrag(el);wireColDrag(el);el.querySelector('#pl-import-file').onchange=ev=>{const f=ev.target.files[0];ev.target.value='';if(f)f.arrayBuffer().then(b=>openImport(b,el.querySelector('#pl-import')));};load(el);
