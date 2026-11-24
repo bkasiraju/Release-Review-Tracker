@@ -15,7 +15,7 @@ async function searchUsers(sf, term) {
   const like = t ? ` AND (Name LIKE '%${q(t).replace(/[%_]/g, '\\$&')}%' OR Email LIKE '${q(t).replace(/[%_]/g, '\\$&')}%')` : '';
   const res = await sf.query(
     `SELECT Id, Name, Email, Title FROM User WHERE IsActive = true${like} AND Id IN ` +
-    `(SELECT Member_Name__c FROM ADM_Scrum_Team_Member__c WHERE Scrum_Team__r.Active__c = true AND (${require('./teams.config').TEAMS.map(e => require('./teams.config').sqlName(e, 'Scrum_Team__r.')).join(' OR ')})) ` +
+    `(SELECT Member_Name__c FROM ADM_Scrum_Team_Member__c WHERE Scrum_Team__r.Active__c = true AND (${require('./teams.config').all().map(e => require('./teams.config').sqlName(e, 'Scrum_Team__r.')).join(' OR ')})) ` +
     `ORDER BY Name LIMIT 15`);
   return { users: (res.records || []).map(u => ({ id: u.Id, name: u.Name, email: u.Email || '', title: u.Title || '' })) };
 }

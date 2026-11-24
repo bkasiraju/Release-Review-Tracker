@@ -521,6 +521,8 @@ async function boot(){
   if(H.standalone)setFocus(true);
   H.prefetch(H.team.Id);H.preloadPeople();
 }
+/** Re-read the team list (after a team is added, changed or removed in the Teams dialog) and optionally switch to a team. */
+H.refreshTeams=async selectId=>{H.bust();const r=await call('hub-teams',{});H.teams=r.teams;H.groups=r.groups||null;$('hub-team').innerHTML=[ALL,...H.teams].map(t=>`<option value="${esc(t.Id)}">${esc(t.short||t.Name)}</option>`).join('');H.syncSelects();if(selectId&&(selectId==='all'||H.teams.some(t=>t.Id===selectId)))H.setTeam(selectId);else if(H.team.Id!=='all'&&!H.teams.some(t=>t.Id===H.team.Id))H.setTeam('all');else $('hub-team').value=H.team.Id;H.syncSelects();};
 /** Where body-level popups (dialogs, tooltips, pickers) must attach: in native full screen only the fullscreen element's subtree is drawn. */
 H.popHost=()=>{const f=document.fullscreenElement;return f&&f!==document.documentElement?f:document.body;};
 window.Hub=H;

@@ -3548,3 +3548,27 @@ html body .planned-future{background:#e8f4ff}html body .planned-current{backgrou
 html body #ctl-row{margin:0 0 6px!important}
 html body #overview-panel .overview-group-summary{min-height:22px;padding:0 1px 3px}
 html body .dashboard-bar+#ctl-row+#hub-panel+#overview-panel,html body #overview-panel{margin-top:0}
+
+/* 8.0.0-GA r9: Teams dialog (onboard a team from the UI) */
+html body .tm-open{margin-left:6px;height:32px;width:32px;border:1px solid #c9d3df;border-radius:6px;background:#fff;color:#2b4a63;cursor:pointer;font-size:15px;line-height:1}
+html body .tm-open:hover{background:#eaf5fe}
+html body .tm-overlay{position:fixed;inset:0;z-index:2147483000;background:rgba(10,25,41,.45);display:flex;align-items:flex-start;justify-content:center;padding:6vh 16px;overflow:auto}
+html body .tm-dialog{background:#fff;border-radius:10px;width:min(760px,100%);box-shadow:0 18px 60px rgba(0,0,0,.3)}
+html body .tm-dialog>header{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid #e1e7ee}
+html body .tm-dialog h2{margin:0;font-size:18px}html body .tm-dialog h3{margin:14px 0 8px;font-size:15px}
+html body .tm-body{padding:14px 18px 18px}
+html body .tm-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #eef2f6}
+html body .tm-row>div{flex:1;min-width:0;display:flex;flex-direction:column}html body .tm-row small{color:#5c6b7e}
+html body .tm-badge{font-size:11px;padding:2px 8px;border-radius:10px;background:#eef0f3;color:#44546a}html body .tm-badge.tm-custom{background:#e3f5e8;color:#1b6b3a}
+html body .tm-body>.button.primary{margin-top:12px}
+html body .tm-form{margin-top:14px;padding-top:6px;border-top:2px solid #e1e7ee}
+html body .tm-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px}
+html body .tm-field{display:flex;flex-direction:column;gap:3px;margin-bottom:8px}html body .tm-field label{font-size:12px;font-weight:700;color:#2b3a4a}html body .tm-field small{color:#5c6b7e;font-size:11px}
+html body .tm-field input{height:34px;border:1px solid #c9d3df;border-radius:6px;padding:0 10px;font-size:13px}
+html body .tm-search{position:relative}html body .tm-search input{width:100%}
+html body .tm-hits{display:flex;flex-direction:column;position:absolute;left:0;right:0;top:36px;background:#fff;border:1px solid #c9d3df;border-radius:6px;z-index:2;max-height:220px;overflow:auto}
+html body .tm-hits:empty{display:none}html body .tm-hits button{text-align:left;border:0;background:none;padding:7px 10px;cursor:pointer;font-size:13px}html body .tm-hits button:hover{background:#eaf5fe}html body .tm-hits em{padding:7px 10px;color:#5c6b7e;font-size:12px}
+html body .tm-leaders{display:flex;flex-wrap:wrap;gap:6px}html body .tm-chip{display:inline-flex;align-items:center;gap:5px;border:1px solid #c9d3df;border-radius:14px;padding:3px 10px;font-weight:400!important;font-size:12px!important}
+html body .tm-err{color:#b3261e;font-size:12px;min-height:16px}
+html body .tm-actions{display:flex;justify-content:flex-end;gap:8px}
+@media(max-width:640px){html body .tm-grid{grid-template-columns:1fr}}

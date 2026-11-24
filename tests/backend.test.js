@@ -310,3 +310,19 @@ test('monthly publication orders GUS comments chronologically while preserving o
  const e=await s.saveDraft({epicId:ID,month:'2026-10',value:'Implementation reviewed.',revision:null});
  const out=await s.publishMonth({releaseId:r.id,epicId:ID,month:'2026-10',draftRevision:e.drafts['2026-10'].revision});assert.equal(out.status,'synced');const raw=gus.rows[ID].comments;assert.ok(raw.indexOf('September')<raw.indexOf('October'));assert.ok(raw.indexOf('October')<raw.indexOf('November'));assert.match(raw,/Context stays/);assert.match(raw,/Design ready/);assert.match(raw,/Review ongoing/);assert.match(raw,/Implementation reviewed/);
 });
+
+test('teams onboarded from the app are validated, saved, layered over the built-in list and removable',async()=>{
+ const cfg=require('../backend/teams.config');const {s}=await setup();
+ try{
+  const saved=await s.saveTeam({key:'sre',group:'SRE Platform',gus:'SRE Platform',short:'SRE',theme:'SRE',tag:'SRE Tag',leaders:['RAM','NOPE']});
+  const t=saved.teams.find(x=>x.key==='sre');assert.equal(t.builtIn,false);assert.deepEqual(t.leaders,['AMIT','JAYANT','RAM']);
+  assert.equal(cfg.shortOf('SRE Platform'),'SRE');assert.match(cfg.teamFilter(),/SRE Platform/);
+  await assert.rejects(()=>s.saveTeam({key:'sre',group:'Other',gus:'Other Team'}),/overlaps/);
+  await assert.rejects(()=>s.saveTeam({key:'mq2',group:'MQ copy',gus:'Message Queue'}),/overlaps/);
+  await assert.rejects(()=>s.saveTeam({key:'bad',group:'Bad',gus:"X' OR Name != '"}),/GUS scrum team name/);
+  await assert.rejects(()=>s.saveTeam({originalKey:'mq',key:'mq',group:'x',gus:'Message Queue'}),/Built-in/);
+  const edited=await s.saveTeam({originalKey:'sre',key:'sre',group:'SRE Platform',gus:'SRE Platform',short:'SREP'});assert.equal(edited.teams.find(x=>x.key==='sre').short,'SREP');
+  await assert.rejects(()=>s.deleteTeam({key:'mq'}),/Only teams added/);
+  const left=await s.deleteTeam({key:'sre'});assert.equal(left.teams.some(x=>x.key==='sre'),false);assert.equal(cfg.entryFor('SRE Platform'),null);
+ }finally{cfg.setExtra([]);}
+});

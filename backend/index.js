@@ -20,6 +20,7 @@ async function handleRequest(ctx){
     const {sf,source}=connection(ctx),gus=ctx.gus||new Gus(sf),store=ctx.store||new ContentStore(sf,{shared:true}),service=new Service(store,gus,{shared:store.shared===true,readOnly:ctx.demo===true,googleSheets:ctx.googleSheets||ctx.google?.sheets});
     const action=b.action;
     if(ctx.demo&&!['connection','state','work-items','preview','executive','executive-blurb','executive-plan','list-catalog'].includes(action))throw Error('Sample preview is read-only. Open the GUS Apps deployment to save changes.');
+    try{await service.applyTeams();}catch{/* built-in teams still work */}
     let payload;
     switch(action){
       case 'connection':{
@@ -34,6 +35,10 @@ async function handleRequest(ctx){
       case 'use-planned-release':payload=await service.usePlannedRelease(b);break;
       case 'review-defaults':payload=await service.reviewDefaults();break;
       case 'set-review-default':payload=await service.setReviewDefault(b);break;
+      case 'teams-config':payload=await service.teamsConfig();break;
+      case 'save-team':payload=await service.saveTeam(b);break;
+      case 'delete-team':payload=await service.deleteTeam(b);break;
+      case 'team-lookup':{const q=String(b.q||'').trim();if(q.length<2||!/^[A-Za-z0-9 .&():_\/-]+$/.test(q))throw Error('Type at least 2 letters of the GUS scrum team name.');payload={teams:((await sf.query(`SELECT Id, Name FROM ADM_Scrum_Team__c WHERE Active__c = true AND Name LIKE '%${q}%' ORDER BY Name LIMIT 20`)).records||[]).map(t=>({id:t.Id,name:t.Name}))};break;}
       case 'save-release':payload=await service.saveRelease(b);break;
       case 'delete-release':payload=await service.deleteRelease(b);break;
       case 'save-v2mom-mapping':payload=await service.saveMapping(b);break;

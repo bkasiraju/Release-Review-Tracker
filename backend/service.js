@@ -53,6 +53,32 @@ class Service{
     if(data.releaseId){await this.release(data.releaseId);map[team]=data.releaseId;}else delete map[team];
     await this.store.put('settings','review-defaults',{map},cur?cur.revision:null);return {map};
   }
+  // Teams onboarded from the UI: kept in the shared store and layered over backend/teams.config.js at runtime.
+  async applyTeams(force=false){
+    if(!force&&Date.now()-(Service._teamsAt||0)<30000)return;
+    const cfg=require('./teams.config'),doc=await this.store.get('settings','custom-teams'),list=[];cfg.setExtra([]);
+    for(const raw of Array.isArray(doc?.teams)?doc.teams:[]){try{list.push(cfg.cleanEntry(raw));cfg.setExtra(list);}catch{/* skip an invalid saved team */}}
+    Service._teamsAt=Date.now();
+  }
+  async teamsConfig(){
+    await this.applyTeams(true);const cfg=require('./teams.config'),builtIn=new Set(cfg.TEAMS.map(t=>t.key));
+    return {leaders:cfg.LEADER_NAMES,teams:cfg.all().map(t=>({key:t.key,group:t.group,gus:t.gus,short:t.short||'',theme:t.theme||'',tag:t.tag||'',leaders:t.leaders||[],builtIn:builtIn.has(t.key)}))};
+  }
+  async saveTeam(data){
+    if(this.readOnly)throw Error('Sample preview is read-only.');
+    const cfg=require('./teams.config');await this.applyTeams(true);
+    const original=data.originalKey||null;if(original&&cfg.TEAMS.some(t=>t.key===original))throw Error('Built-in teams are changed in backend/teams.config.js.');
+    const entry=cfg.cleanEntry(data,original);
+    const doc=await this.store.get('settings','custom-teams'),rest=(Array.isArray(doc?.teams)?doc.teams:[]).filter(t=>t.key!==(original||entry.key));
+    if(!original&&(doc?.teams||[]).some(t=>t.key===entry.key))throw Error('A team with this key already exists.');
+    await this.store.put('settings','custom-teams',{teams:[...rest,entry]},doc?doc.revision:null);Service._teamsAt=0;return this.teamsConfig();
+  }
+  async deleteTeam(data){
+    if(this.readOnly)throw Error('Sample preview is read-only.');
+    const doc=await this.store.get('settings','custom-teams'),list=Array.isArray(doc?.teams)?doc.teams:[];
+    if(!list.some(t=>t.key===data.key))throw Error('Only teams added in the app can be removed.');
+    await this.store.put('settings','custom-teams',{teams:list.filter(t=>t.key!==data.key)},doc.revision);Service._teamsAt=0;return this.teamsConfig();
+  }
   async executive(data){
     const id=validId(data.epicId),month=validMonth(data.month),r=await this.release(data.releaseId);if(!r.epicIds.includes(id))throw Error('Epic is not part of this release.');
     const [result,stored]=await Promise.all([this.gus.epics([id],[{field:'Project__r.Name',key:'gus:Project__r.Name'}]),this.store.get('epic',id)]);const row=result.epics[0];if(!row)throw Error('Epic is not visible in GUS.');

@@ -15,7 +15,6 @@ const SEED_TEAMS = [
 ];
 // Which teams exist, their short forms, themes, tags and leaders live in teams.config.js (one entry per team).
 const cfg = require('./teams.config');
-const TEAM_FILTER = cfg.teamFilter();
 const shortName = cfg.shortOf;
 const withConfig = t => { const e = cfg.entryFor(t.Name); return { ...t, key: e ? e.key : '', theme: cfg.themeOf(t.Name), tag: cfg.tagOf(t.Name) }; };
 
@@ -31,7 +30,7 @@ async function userId(sf) {
 
 async function getTeams(sf) {
   let teams = [];
-  try { teams = ((await sf.query(`SELECT Id, Name FROM ADM_Scrum_Team__c WHERE ${TEAM_FILTER} ORDER BY Name`)).records || []).map(t => withConfig({ Id: t.Id, Name: t.Name, short: shortName(t.Name) })); } catch (_) { /* fall back */ }
+  try { teams = ((await sf.query(`SELECT Id, Name FROM ADM_Scrum_Team__c WHERE ${cfg.teamFilter()} ORDER BY Name`)).records || []).map(t => withConfig({ Id: t.Id, Name: t.Name, short: shortName(t.Name) })); } catch (_) { /* fall back */ }
   if (!teams.length) teams = SEED_TEAMS.map(withConfig);
   let primaryTeamId = null;
   try {
@@ -42,7 +41,7 @@ async function getTeams(sf) {
       if (rows.length) primaryTeamId = rows[0].Scrum_Team__c;
     }
   } catch (_) { /* default-selection hint only */ }
-  return { teams, primaryTeamId, groups: cfg.TEAMS.map(e => e.key) };
+  return { teams, primaryTeamId, groups: cfg.all().map(e => e.key) };
 }
 
 async function getMembers(sf, teamId) {
@@ -287,9 +286,9 @@ const AMIT = '005B0000005Lg7WIAS', JAYANT = '005B0000001zx4jIAA', RAM = '005B000
 const LEADERS = [AZEEM, JAYANT, RAM, VENKAT, PRAMIT, KARTHIK, BHANU, AMIT]; // CFS leaders: always last, in exactly this order, on every team and list; no visual marking
 const leaderRank = id => { const k = LEADERS.indexOf(id); return k < 0 ? -1 : k; };
 const LEADER_IDS = { AMIT, JAYANT, RAM, AZEEM, VENKAT, PRAMIT, KARTHIK, BHANU };
-const PEOPLE = Object.fromEntries(cfg.TEAMS.map(e => [e.group, e.leaders.map(n => LEADER_IDS[n]).filter(Boolean)])); // leadership per team (teams.config.js); any other leader already on a team's roster is moved into the leader block too. Amit and Jayant lead every team.
+const peopleOf = group => { const e = cfg.entryByGroup(group); return e ? e.leaders.map(n => LEADER_IDS[n]).filter(Boolean) : undefined; }; // leadership per team (teams.config.js); any other leader already on a team's roster is moved into the leader block too. Amit and Jayant lead every team.
 const groupOf = g => { const e = cfg.entryByKey(g); return e ? e.group : null; };
-const TEAM_LIKE = Object.fromEntries(cfg.TEAMS.map(e => [e.group, cfg.sqlName(e)]));
+const teamLike = group => cfg.sqlName(cfg.entryByGroup(group));
 const SLACK_PHOTOS = require('./avatars');
 const avatarCache = new Map(); // email -> { url, at }; Slack avatars rarely change, so reuse for 6h across requests
 const AVATAR_TTL = 6 * 3600e3;
@@ -316,12 +315,12 @@ const within = (p, ms) => Promise.race([Promise.resolve(p).catch(() => null), ne
 async function getPeople(sf, slack, group) {
   const name = groupOf(group);
   if (!name) return { name: null, people: [] };
-  const lead = PEOPLE[name];
-  const memberRows = (await sf.query(`SELECT Member_Name__c FROM ADM_Scrum_Team_Member__c WHERE Scrum_Team__r.Active__c = true AND Scrum_Team__r.${TEAM_LIKE[name]} LIMIT 200`)).records || [];
+  const lead = peopleOf(name);
+  const memberRows = (await sf.query(`SELECT Member_Name__c FROM ADM_Scrum_Team_Member__c WHERE Scrum_Team__r.Active__c = true AND Scrum_Team__r.${teamLike(name)} LIMIT 200`)).records || [];
   let own = memberRows.map(r => r.Member_Name__c).filter(Boolean);
   const ex = cfg.entryByGroup(name).excludeMembersOf, exe = ex && cfg.entryByKey(ex);
   if (exe) { // anyone already shown under the other team is not repeated here (leadership stays on both)
-    const maps = new Set(((await sf.query(`SELECT Member_Name__c FROM ADM_Scrum_Team_Member__c WHERE Scrum_Team__r.Active__c = true AND Scrum_Team__r.${TEAM_LIKE[exe.group]} LIMIT 200`)).records || []).map(r => r.Member_Name__c));
+    const maps = new Set(((await sf.query(`SELECT Member_Name__c FROM ADM_Scrum_Team_Member__c WHERE Scrum_Team__r.Active__c = true AND Scrum_Team__r.${teamLike(exe.group)} LIMIT 200`)).records || []).map(r => r.Member_Name__c));
     own = own.filter(i => !maps.has(i));
   }
   // Karthik Sethuraman's direct reports are part of the team he is on

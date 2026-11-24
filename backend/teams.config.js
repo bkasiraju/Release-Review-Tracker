@@ -22,17 +22,39 @@ const TEAMS = [
   { key: 'caching', group: 'Caching Services Team', gus: 'Caching Services', theme: 'VC', tag: 'CaaS: Cache As A Service', leaders: ['AMIT', 'JAYANT'] }
 ];
 
+// Teams onboarded from the UI (saved in the shared store) are layered on top of the built-in list at runtime.
+let EXTRA = [];
+const all = () => [...TEAMS, ...EXTRA];
+const LEADER_NAMES = ['AMIT', 'JAYANT', 'RAM', 'AZEEM', 'VENKAT', 'PRAMIT', 'KARTHIK', 'BHANU'];
+const setExtra = list => { EXTRA = Array.isArray(list) ? list : []; };
 const lit = s => String(s).replace(/'/g, "\\'");
 const isLike = e => /%$/.test(e.gus);
 const sqlName = (e, prefix = '') => isLike(e) ? `${prefix}Name LIKE '${lit(e.gus)}'` : `${prefix}Name = '${lit(e.gus)}'`;
 const reOf = e => new RegExp('^' + e.gus.replace(/%$/, '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + (isLike(e) ? '' : '$'), 'i');
-const entryFor = name => TEAMS.find(e => reOf(e).test(String(name || '').trim())) || null;
-const entryByKey = key => TEAMS.find(e => e.key === key) || null;
-const entryByGroup = group => TEAMS.find(e => e.group === group) || null;
+const entryFor = name => all().find(e => reOf(e).test(String(name || '').trim())) || null;
+const entryByKey = key => all().find(e => e.key === key) || null;
+const entryByGroup = group => all().find(e => e.group === group) || null;
 /** SQL condition selecting every configured, active team; prefix is the relationship path, e.g. 'Scrum_Team__r.'. */
-const teamFilter = (prefix = '') => `${prefix}Active__c = true AND (${TEAMS.map(e => sqlName(e, prefix)).join(' OR ')})`;
+const teamFilter = (prefix = '') => `${prefix}Active__c = true AND (${all().map(e => sqlName(e, prefix)).join(' OR ')})`;
 const shortOf = name => { const e = entryFor(name); return (e && e.short) || String(name).replace(/\s*\(.*\)/, ''); };
 const themeOf = name => { const e = entryFor(name); if (!e) return ''; const by = (e.themeBy || []).find(([re]) => new RegExp(re, 'i').test(String(name))); return by ? by[1] : (e.theme || ''); };
 const tagOf = name => (entryFor(name) || {}).tag || '';
 
-module.exports = { TEAMS, sqlName, reOf, entryFor, entryByKey, entryByGroup, teamFilter, shortOf, themeOf, tagOf };
+/** Validate and normalise a team entered in the UI; throws a user-readable error. */
+function cleanEntry(raw, existingKey) {
+  const str = (v, max, re, label, req) => { const t = String(v == null ? '' : v).trim(); if (!t) { if (req) throw new Error(label + ' is required.'); return ''; } if (t.length > max || !re.test(t)) throw new Error('Check ' + label + ' (up to ' + max + ' characters, letters, numbers, spaces and - . & ( ) : only).'); return t; };
+  const SAFE = /^[A-Za-z0-9 .&():_\/-]+$/;
+  const gus = str(raw.gus, 80, /^[A-Za-z0-9 .&():_\/-]+%?$/, 'GUS scrum team name', true);
+  const group = str(raw.group, 60, SAFE, 'Team display name', true);
+  const e = { key: str(raw.key, 31, /^[a-z][a-z0-9-]+$/, 'Team key (lowercase letters, numbers, dashes)', true), group, gus };
+  const short = str(raw.short, 12, SAFE, 'Short name'); if (short) e.short = short;
+  const theme = str(raw.theme, 12, /^[A-Za-z0-9-]+$/, 'Theme'); if (theme) e.theme = theme;
+  const tag = str(raw.tag, 80, SAFE, 'Product tag'); if (tag) e.tag = tag;
+  const lead = Array.isArray(raw.leaders) ? raw.leaders.filter(n => LEADER_NAMES.includes(n)) : [];
+  e.leaders = [...new Set(['AMIT', 'JAYANT', ...lead])];
+  const clash = all().find(x => x.key !== existingKey && (x.key === e.key || x.group === e.group || reOf(x).test(gus.replace(/%$/, '')) || reOf(e).test(x.gus.replace(/%$/, ''))));
+  if (clash) throw new Error('This overlaps the already configured team "' + clash.group + '". Change the key, display name or GUS team name.');
+  return e;
+}
+
+module.exports = { TEAMS, all, setExtra, cleanEntry, LEADER_NAMES, sqlName, reOf, entryFor, entryByKey, entryByGroup, teamFilter, shortOf, themeOf, tagOf };

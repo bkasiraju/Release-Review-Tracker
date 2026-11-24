@@ -8,6 +8,11 @@ Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback base
 
 - Every page URL now carries the selected team (`team=<id>` or `team=all`), e.g. `#/plan?full&team=a00B…`. The address updates when the team dropdown changes, and opening, reloading or going back to a link selects that team, so links are team-specific and shareable. A URL without a team falls back to your saved/default team.
 
+### 8.0.0-GA r9 (folded)
+
+- Teams can be onboarded from the UI: a ⚙ button beside the Team selector opens a Teams dialog. Search an active GUS scrum team, set display name, short name, key, workstream theme, default product tag and leaders, then save. Saved teams live in the shared store, show in the team picker, Release Review (planned releases) and the hub, and can be edited or removed. Built-in teams stay in `backend/teams.config.js`. Teams that overlap an existing team, or that contain unsafe characters, are rejected.
+- Fixed the Columns dialog text that still said Epic Name is required.
+
 ### 8.0.0-GA r8 (folded)
 
 - Epic name is now an optional column: unchecked by default in the Columns dialog and no longer locked, so it can be added to the expanded detail when wanted. Defaults are Project, the review month and the two before it, Path to green and Work complete. Releases with their own saved column choice keep it.
