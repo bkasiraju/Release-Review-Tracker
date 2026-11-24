@@ -5,8 +5,8 @@ const T='a00B0000000w4ZhIAI',REL='a1EEE00000REL0001A',PROG='a1FEE00000PROG001A',
 const mkStore=()=>{const mem={};let n=0;return {shared:true,mem,async get(t,id){return mem[id]||null;},async put(t,id,v,exp){const cur=mem[id];if(exp!==undefined&&(cur?.revision??null)!==exp)throw Error('This record changed. Reload and try again.');mem[id]={...v,revision:'r'+(++n),updatedAt:'now'};return mem[id];}};};
 const draft=()=>({window:{start:'2026-11-16',end:'2027-01-29'},people:{[ENG]:{name:'Ann',leave:3,holiday:2}},
   projects:[{id:'p1',name:'M1: Baseline',programId:PROG,programName:'Program A',theme:'M1'}],
-  epics:[{id:'e1',projectId:'p1',name:'ABL epic',line:'ABL',priority:2,releaseId:REL,releaseName:'MQ 266',workstreams:[{id:'w1',name:'API',engId:ENG,engName:'Ann',days:6.5},{id:'w2',name:'Tests',engId:ENG,engName:'Ann',days:3}]},
-         {id:'e2',projectId:'p1',name:'BTL epic',line:'BTL',workstreams:[{id:'w3',name:'x',days:4}]}]});
+  epics:[{id:'e1',projectId:'p1',name:'ABL epic',theme:'Reliability',line:'ABL',priority:2,releaseId:REL,releaseName:'MQ 266',workstreams:[{id:'w1',name:'API',engId:ENG,engName:'Ann',days:6.5},{id:'w2',name:'Tests',engId:ENG,engName:'Ann',days:3}]},
+         {id:'e2',projectId:'p1',name:'BTL epic',theme:'Reliability',line:'BTL',workstreams:[{id:'w3',name:'x',days:4}]}]});
 const sfMock=(log,opts={})=>({async query(q){log.push(['q',q]);if(/FROM ADM_Planned_Release__c/.test(q))return {records:[{Id:REL}]};if(/FROM ADM_Scrum_Team__c/.test(q))return {records:[{Name:'Message Queue'}]};if(/FROM PPM_Program__c/.test(q))return {records:[{Id:PROG,Name:'MQ - 268'}]};return {records:[]};},
   async create(o,f){log.push(['c',o,f]);if(opts.failEpic&&o==='ADM_Epic__c')return {success:false,errors:['BAD']};return {success:true,id:o==='PPM_Project__c'?'a1PEE00000PRJ0001A':'a0XEE00000EPC0001A'};},
   async update(o,id,f){log.push(['u',o,id,f]);return {success:true};}});
@@ -100,7 +100,7 @@ test('incremental saves send only deltas and never duplicate epics',async()=>{
   g=await plan.getPlan(store,T);p=g.plan;p.epics[0].workstreams[0].days=8;await plan.savePlan(store,T,p,g.revision);
   log.length=0;pre=await plan.commitPlan(sf(),store,T,false);assert.deepEqual(pre.preview.items[0].workstreams.map(w=>w.flag),['changed','unchanged','unchanged']);await plan.commitPlan(sf(),store,T,true);assert.equal(log.filter(x=>x[0]==='u').length,1);assert.equal(log.filter(x=>x[0]==='c').length,0);
   // 6. new epic alongside an unchanged one: only the new epic is created
-  g=await plan.getPlan(store,T);p=g.plan;p.epics.push({id:'e5',projectId:'p1',name:'Second epic',line:'ABL',releaseId:REL,releaseName:'MQ 266',workstreams:[{id:'w5',name:'A',days:2}]});await plan.savePlan(store,T,p,g.revision);
+  g=await plan.getPlan(store,T);p=g.plan;p.epics.push({id:'e5',projectId:'p1',name:'Second epic',theme:'Reliability',line:'ABL',releaseId:REL,releaseName:'MQ 266',workstreams:[{id:'w5',name:'A',days:2}]});await plan.savePlan(store,T,p,g.revision);
   log.length=0;await plan.commitPlan(sf(),store,T,true);assert.deepEqual(writes().map(w=>w[0]+w[1]),['cADM_Epic__c']);
   // 7. a BTL workstream is not part of the ABL save, so adding one is not a delta
   g=await plan.getPlan(store,T);p=g.plan;p.epics[0].workstreams.push({id:'w6',name:'Later',days:5,line:'BTL'});await plan.savePlan(store,T,p,g.revision);

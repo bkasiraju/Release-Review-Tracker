@@ -807,6 +807,7 @@ function review(plan, releaseIds, program, includeBtl, liveSame) {
     else if (!e.releaseId) problems.push('Select a planned release');
     else if (releaseIds && !releaseIds.has(e.releaseId)) problems.push(`Planned release “${e.releaseName || e.releaseId}” is not one of this team’s planned releases`);
     if (!e.foreign && !(effort > 0)) problems.push('Add effort (days) on at least one workstream');
+    if (!e.foreign && !String(e.theme || '').trim()) problems.push('Theme is required');
     const dl = deltaOf(e, project, includeBtl, liveSame && liveSame.has(e.id)), item = { delta: dl.changes, epicId: e.id, name: e.name, project: project ? project.name : '', program: project ? (project.gusId ? project.programName : (program ? program.name : '')) : '', projectAction: project ? (project.gusId ? 'existing' : 'create-or-link') : '', release: e.releaseName, priority: e.priority, effort, action: dl.action, problems, line: e.line, status: e.status, theme: e.theme, hrp: e.hrp, v2mom: e.v2mom, doc: e.doc, owners: e.ownerNames || [], workstreams: e.workstreams.filter(w => includeBtl || wsLine(e, w) === 'ABL').map(w => ({ flag: e.gusId ? dl.wsFlags[w.id] : 'new', name: w.name, eng: (w.engNames && w.engNames.length ? w.engNames : [w.engName].filter(Boolean)).join(', '), days: w.days, status: w.status })), description: epicDescription(e, project, includeBtl) };
     items.push(item);
     if (problems.length) blockers.push({ epicId: e.id, name: e.name || '(unnamed epic)', problems });

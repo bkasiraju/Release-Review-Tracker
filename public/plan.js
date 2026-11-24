@@ -282,7 +282,8 @@ function newEpicAt(pid){
       atl('s3 pl-cr-new')+
       crField('Priority','required · P0 highest',`<select class="hub-inline" data-pri required>${priOpts(0)}</select>`,'s3 pl-cr-new')+
       crField('Development lead','required · epic owner',`<select class="hub-inline" data-o><option value="" selected>Select a team member…</option>${lead.map(m=>opt(m.id,m.name,false)).join('')}</select>`,'s3 pl-cr-new')+
-      crField('Planned release','<span data-rnote></span>',`<select class="hub-inline" data-r>${opt('','— None (set after planning) —',!defR)}${rel.map(r=>opt(r.id,r.name,r.id===defR)).join('')}</select>`,'s3'))+
+      crField('Planned release','<span data-rnote></span>',`<select class="hub-inline" data-r>${opt('','— None (set after planning) —',!defR)}${rel.map(r=>opt(r.id,r.name,r.id===defR)).join('')}</select>`,'s3')+
+      crField('Theme','required',`<input class="hub-inline" type="text" data-th maxlength="80" list="pl-theme-list" placeholder="e.g. Reliability" autocomplete="off" required><datalist id="pl-theme-list">${[...new Set(pl.epics.map(g=>g.theme).filter(Boolean))].sort().map(t=>`<option value="${esc(t)}">`).join('')}</datalist>`,'s6'))+
     crSection('Workstreams <small>optional · each is created in GUS as a story under the epic</small>',
       `<div class="pl-wsbox s12"><div data-wsrows></div><div class="pl-wsbar"><button type="button" class="button small" data-wadd>Add Workstreams</button>`+
       `<label class="pl-wstag" data-tagbox hidden>Product tag <small>required by GUS</small><select class="hub-inline" data-t><option value="">Select a tag…</option>${tags.map(t=>opt(t.id,t.name,t.id===lastTag)).join('')}</select></label></div></div>`)+
@@ -297,11 +298,12 @@ function newEpicAt(pid){
       if(md==='pick'){
         const x=xeps.find(g=>g.id===el.querySelector('[data-xe]').value);if(!x)throw new Error('Pick a GUS epic, or switch to “Create new epic”.');
         if(pl.epics.some(g=>g.gusId===x.id))throw new Error('That epic is already in the table.');
+        const th0=el.querySelector('[data-th]').value.trim();if(!th0){el.querySelector('[data-th]').focus();throw new Error('Enter the theme. It is required for every epic.');}
         const line=el.querySelector('[data-xl]').value;e=newEpic(pr.id);e.name=x.name;e.gusId=x.id;e.imported=true;e.foreign=!!(x.teamId&&String(x.teamId).slice(0,15)!==String(H.team.Id).slice(0,15));e.releaseId=x.releaseId;e.releaseName=x.releaseName;e.line=line;
         // An epic of this team brought into another planned release (e.g. 266 -> 268) is moved there in GUS too, with its Scheduled Build.
         const tr=el.querySelector('[data-r]').value;
         if(tr&&!e.foreign&&tr!==x.releaseId){const a=await call('plan-adopt-epic',{teamId:H.team.Id,epic:{epicId:x.id,releaseId:tr}});e.releaseId=a.releaseId;e.releaseName=a.releaseName;moved=a;}e.priority=x.priority!=null?x.priority:Number(el.querySelector('[data-xp]').value)||0;
-        e.owners=x.leadId?[x.leadId]:[];e.ownerNames=x.leadId?[x.leadName]:[];
+        e.owners=x.leadId?[x.leadId]:[];e.ownerNames=x.leadId?[x.leadName]:[];e.theme=th0;
         // GUS keeps the epic's planned points; carry them as one workstream so the epic total (sum of workstreams) still matches and is never overwritten.
         // Stories already on the epic in GUS come in as read-only workstreams (linked by storyId, never written back); without any, the epic's planned points are carried as one placeholder.
         let stories=[];try{stories=((await call('plan-epic-stories',{teamId:H.team.Id,epicId:x.id})).stories)||[];}catch(_){}
@@ -313,11 +315,12 @@ function newEpicAt(pid){
         if(!name){el.querySelector('[data-n]').focus();throw new Error('Enter the epic name.');}
         if(name.length>EPIC_NAME_MAX){el.querySelector('[data-n]').focus();throw new Error(`Epic name is ${name.length} characters; GUS allows at most ${EPIC_NAME_MAX}. Shorten it by ${name.length-EPIC_NAME_MAX}.`);}
         if(!leadId){el.querySelector('[data-o]').focus();throw new Error('Select the development lead.');}
+        const th1=el.querySelector('[data-th]').value.trim();if(!th1){el.querySelector('[data-th]').focus();throw new Error('Enter the theme. It is required for every epic.');}
         if(pri===''||!Number.isFinite(Number(pri))){el.querySelector('[data-pri]').focus();throw new Error('Select the epic priority.');}
         detach();
         const r=await call('plan-create-epic',{teamId:H.team.Id,epic:{name,releaseId,leadId,priority:Number(pri),description:cleanRich(el.querySelector('[data-desc]').innerHTML),project:{gusId:pr.gusId,name:pr.name,method:pr.method}}});
         pr.gusId=r.projectGusId||pr.gusId;
-        const rr=rel.find(x=>x.id===releaseId);e=newEpic(pr.id);e.name=name;e.gusId=r.gusId;e.releaseId=rr?rr.id:'';e.releaseName=rr?rr.name:'';e.owners=[leadId];e.ownerNames=[leadName];e.line=line;e.priority=Number(pri);e.description=r.description||'';
+        const rr=rel.find(x=>x.id===releaseId);e=newEpic(pr.id);e.name=name;e.gusId=r.gusId;e.releaseId=rr?rr.id:'';e.releaseName=rr?rr.name:'';e.owners=[leadId];e.ownerNames=[leadName];e.line=line;e.priority=Number(pri);e.theme=th1;e.description=r.description||'';
         if(rows.length)e.workstreams=[];else e.workstreams.forEach(w=>{w.line=line;w.priority=e.priority;});
         msg=r.created?`Created epic “${name}” in GUS.`:`Epic “${name}” already existed in GUS and was linked.`;
       }
@@ -344,6 +347,7 @@ function newEpicAt(pid){
   el.querySelector('.nd-modal').classList.add('pl-cr-epic');
   const nm=el.querySelector('textarea[data-n]'),cnt=el.querySelector('[data-cnt]'),errEl=el.querySelector('.pl-cr-err');
   el._ready=()=>{const v=q=>{const x=el.querySelector(q);return x?String(x.value||'').trim():'';};
+    if(!v('[data-th]'))return false;
     if(md==='pick')return !!v('[data-xe]');
     const L=v('textarea[data-n]').length;return L>0&&L<=EPIC_NAME_MAX&&!!v('[data-o]')&&v('[data-pri]')!=='';};
   fitSuggest(nm,EPIC_NAME_MAX,el.querySelector('[data-efit]'),'Epic name');
@@ -1400,7 +1404,7 @@ function drawPlanner(){
           sprint:()=>tdW('sprint',`<input class="hub-inline" type="text" list="pl-sprints" aria-label="Tentative sprint" data-f="sprint" value="${esc(w&&w.sprint)}" maxlength="60" placeholder="Sprint">`),
           release:()=>tdE('release',sel('releaseId',`<option value="">Planned release…</option>${rel.map(r=>opt(r.id,r.name,r.id===e.releaseId)).join('')}${e.releaseId&&!rel.some(r=>r.id===e.releaseId)?opt(e.releaseId,e.releaseName||e.releaseId,true):''}`,'Planned release')),
           line:()=>{const ln=wl(e,w),btn=v=>`<button type="button" class="${ln===v?'on '+v.toLowerCase():''}" data-line="${v}" aria-pressed="${ln===v}">${v}</button>`,h=`<span class="pl-line" role="group" aria-label="ATL/BTL for this ${w?'workstream':'epic'}">${btn('ABL')}${btn('BTL')}</span>`;return w?tdW('line',h):tdE('line',h);},
-          theme:()=>tdE('theme',txt('theme',e.theme,'Theme',80,110)),
+          theme:()=>tdE('theme',txt('theme',e.theme,'Theme (required)',80,110).replace('class="hub-inline"',`class="hub-inline pl-th${e.theme&&e.theme.trim()?'':' pl-need'}" aria-required="true"`)),
           wstatus:()=>tdW('wstatus',sel('status',statOpts(w&&w.status),'Workstream status')),
           doc:()=>tdE('doc',txt('doc',e.doc,'Doc link',300,120)+(docOk(e.doc)?` <a href="${esc(e.doc)}" target="_blank" rel="noopener" aria-label="Open doc">↗</a>`:'')),
           gus:()=>tdE('gus',e.gusId?`<a class="pl-gus" href="${H.GUS}ADM_Epic__c/${esc(e.gusId)}/view" target="_blank" rel="noopener">GUS ↗</a>`:'<em class="pl-draft">Draft</em>'),
@@ -1589,7 +1593,7 @@ function onInput(ev){
     else if(f==='doc')e.doc=/^https?:\/\//i.test(v)||v===''?v:e.doc;
     else if(f==='releaseId'){e.releaseId=v;e.releaseName=(P.refs.releases.find(r=>r.id===v)||{}).name||'';}
     else if(f==='projectId'){e.projectId=v;structural=true;}
-    else e[f]=v;}
+    else{e[f]=v;if(f==='theme')t.classList.toggle('pl-need',!v.trim());}}
   else if(c.p){const p=findP(c.p);if(!p)return;
     if(f==='name'){p.name=v;const hit=P.refs.projects.find(x=>x.name===v);if(hit){p.gusId=hit.id;p.programId=hit.programId;p.programName=hit.programName;structural=true;}else if(p.gusId){p.gusId='';}}
     else p[f]=v;}
