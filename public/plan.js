@@ -1050,6 +1050,7 @@ async function refreshFromGus(btn,auto){
   const gprj=new Map((r.projects||[]).map(x=>[k15(x.id),x]));
   (r.epics||[]).forEach(x=>{if(x.projectId&&!gprj.has(k15(x.projectId)))gprj.set(k15(x.projectId),{id:x.projectId,name:x.projectName,method:x.method});});
   for(const p of gp){const g=gprj.get(k15(p.gusId));if(!g)continue;
+    for(const [k,lb] of [['summary','Project summary'],['health','Project health'],['manager','Project manager'],['ranking','V2MOM priority/ranking']]){const gv=String((g.gf||{})[k]||''),pv=String((p.gf||{})[k]||'');if(g.gf&&gv!==pv)ch.push({who:projLabel(p),p,f:'pgf',k,label:lb,from:pv.slice(0,120)||'—',to:gv.slice(0,120)||'—',g});}
     if(g.name&&g.name!==p.name)ch.push({who:projLabel(p),p,f:'pname',label:'Project title',from:p.name||'—',to:g.name,g});
     if((g.method||'')!==(p.method||'')&&(g.method||p.method))ch.push({who:projLabel(p),p,f:'pmethod',label:'V2MOM method',from:p.method||'—',to:g.method||'—',g});
     if(g.programId&&k15(g.programId)!==k15(p.programId)&&!(g.programName&&g.programName===p.programName))ch.push({who:projLabel(p),p,f:'pprog',label:g.inProgram===false?'Program (outside this team’s program)':'Program',from:p.programName||'—',to:g.programName||'—',g});}
@@ -1060,6 +1061,7 @@ async function refreshFromGus(btn,auto){
      if(hit.length===1){const g=hit[0];ch.push({who:projLabel(p),p,f:'plink',label:'Link to GUS project',from:(p.name||'—')+' (not linked)',to:g.name,g:{...g,name:g.name,method:g.method||'',programId:g.programId,programName:g.programName}});}}}
   for(const e of mine){const g=by.get(e.gusId);if(!g){gone.push(e);continue;}
     const cur=pl.projects.find(p=>p.id===e.projectId),pn=cur?cur.name:'—',rn=e.releaseName||(P.refs&&P.refs.releases.find(x=>x.id===e.releaseId)||{}).name||'—',who=e.name||'(unnamed)';
+    for(const [k,lb] of [['health','Epic health'],['start','Planned start'],['end','Planned end'],['success','Success criteria']]){const gv=String((g.gf||{})[k]||''),ev=String((e.gf||{})[k]||'');if(g.gf&&gv!==ev)ch.push({e,who,f:'egf',k,label:lb,from:ev.slice(0,120)||'—',to:gv.slice(0,120)||'—',g});}
     if(g.name&&g.name!==e.name)ch.push({e,who,f:'name',label:'Epic name',from:e.name||'—',to:g.name,g});
     if(g.projectId&&gusProj(e)!==g.projectId)ch.push({e,who,f:'project',label:'Project',from:pn,to:g.projectName||'—',g});
     if((g.releaseId||'')!==(e.releaseId||''))ch.push({e,who,f:'release',label:'Release',from:rn,to:g.releaseName||'No release',g});
@@ -1074,7 +1076,11 @@ async function refreshFromGus(btn,auto){
     // Imported epics: their GUS user stories are read-only workstreams, compared by story.
     if(!fromPlanner(e)){const gs=(r.stories&&r.stories[e.gusId])||(r.stories&&r.stories[Object.keys(r.stories).find(k=>k15(k)===k15(e.gusId))||''])||[];
       if(gs.length){const seenS=new Set();
-        for(const st of gs){const l=e.workstreams.find(x=>x.storyId&&k15(x.storyId)===k15(st.gusId));
+        const nn=v=>String(v||'').replace(/^WS:\s*/i,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+        for(const st of gs){let l=e.workstreams.find(x=>x.storyId&&k15(x.storyId)===k15(st.gusId))||e.workstreams.find(x=>!seenS.has(x)&&x.gusId&&k15(x.gusId)===k15(st.gusId));
+          // Already on the dashboard without a story link (same story or same name): treat as existing, link it quietly, and only report real differences.
+          if(!l){l=e.workstreams.find(x=>!seenS.has(x)&&!x.storyId&&!x.gusId&&nn(x.name)&&nn(x.name)===nn(st.name));}
+          if(l&&!l.storyId&&!l.gusId)l.storyId=st.gusId;
           if(l){seenS.add(l);const sw=who+' › '+(l.name||st.name),gw={...st,name:st.name,days:st.days,assigneeId:st.assigneeId,assigneeName:st.assigneeName};
             if(st.name&&st.name!==l.name)ch.push({e,w:l,who,f:'wname',label:'Workstream name',from:l.name||'—',to:st.name,gw});
             if(Math.abs((Number(l.days)||0)-st.days)>0.001)ch.push({e,w:l,who:sw,f:'wdays',label:'Workstream days',from:String(l.days||0),to:String(st.days),gw});
@@ -1098,6 +1104,8 @@ async function refreshFromGus(btn,auto){
     ch.forEach((c,i)=>{if(!on.has(i))return;const e=c.e,g=c.g,w=c.w,gw=c.gw;n++;
       if(c.f==='pname'){const old=c.p.name||'';if(!c.p.short||c.p.short===shortProj(old))c.p.short=shortProj(g.name);c.p.name=g.name;}
       else if(c.f==='pmethod')c.p.method=g.method||'';
+      else if(c.f==='pgf')c.p.gf=Object.assign({},c.p.gf,{[c.k]:String((g.gf||{})[c.k]||'')});
+      else if(c.f==='egf')e.gf=Object.assign({},e.gf,{[c.k]:String((g.gf||{})[c.k]||'')});
       else if(c.f==='pprog'){c.p.programId=g.programId||'';c.p.programName=g.programName||'';}
       else if(c.f==='plink'){c.p.gusId=g.id;c.p.programId=g.programId||'';c.p.programName=g.programName||'';if(g.name&&g.name!==c.p.name){if(!c.p.short||c.p.short===shortProj(c.p.name||''))c.p.short=shortProj(g.name);c.p.name=g.name;}if(g.method&&!c.p.method)c.p.method=g.method;}
       else if(c.f==='eowner'){const m=P.members.find(u=>k15(u.id)===k15(g.leadId));const id=m?m.id:g.leadId,nm=m?m.name:g.leadName;const rest=(e.owners||[]).map((o,k)=>({o,n:(e.ownerNames||[])[k]||memName(o)})).filter(x=>k15(x.o)!==k15(id)).slice(1);e.owners=[id,...rest.map(x=>x.o)];e.ownerNames=[nm,...rest.map(x=>x.n)];}
@@ -1126,7 +1134,7 @@ async function refreshFromGus(btn,auto){
   const wv=wsVals;
   const FW={wname:'name',wown:'assigneeId',wdays:'days'},FE={name:'name',release:'releaseId',project:'projectId'};
   const dirOf=c=>{
-    if(c.f==='pname'||c.f==='pmethod'||c.f==='wnew'||c.f==='wlink')return 'pull';
+    if(c.f==='pname'||c.f==='pmethod'||c.f==='pgf'||c.f==='egf'||c.f==='wnew'||c.f==='wlink')return 'pull';
     if(['pprog','plink','eowner','epri','esmart','edesc','wnews'].includes(c.f)||(c.w&&c.w.storyId&&!c.w.gusId)||(c.f==='wdays'&&c.w&&!c.w.gusId))return 'skip';
     if(FE[c.f]&&c.e){let b={};try{b=JSON.parse((P.gsnap&&P.gsnap.get(c.e.gusId))||'{}');}catch(_){}const k=FE[c.f];const cur=k==='projectId'?gusProj(c.e):k==='name'?(c.e.name||''):(c.e.releaseId||'');return 'pull';}
     if(FW[c.f]&&c.w){const k=FW[c.f],b=c.w.gb;if(!b)return 'push';const cur=wv(c.w)[k],gv=k==='name'?c.gw.name:k==='days'?c.gw.days:c.gw.assigneeId;

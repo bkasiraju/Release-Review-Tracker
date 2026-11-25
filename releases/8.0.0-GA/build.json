@@ -3,7 +3,7 @@
   "label": "GOLDEN BUILD",
   "product": "Release Intelligence",
   "artifact": "cfs-release-review-tracker.zip",
-  "sha256": "0a8af6aaef6d47f0318218163aa58bb68ca4aa9e6fdf7af50928f809d363f034",
+  "sha256": "6c39ce2d5dd485a3f1b141eb8e18b16f05202bc23b77d6225f3920b82f68818f",
   "gitTags": [
     "v8.0.0-GA",
     "GOLDEN-BUILD-8.0.0-GA"
@@ -11,7 +11,7 @@
   "productionUrl": "https://gus-apps.internal.salesforce.com/applets/cfs-release-review-tracker/",
   "preferredRollbackTag": "GOLDEN-BUILD-8.0.0-GA",
   "previousBaselineTag": "GOLDEN-BUILD-7.0.0-GA",
-  "revision": "20261125-8.0.0-r40",
+  "revision": "20261125-8.0.0-r41",
   "sourceVersion": "7.0.121-GA + Development Lead in drawers + Review Status highlights",
   "foldPolicy": "Further changes are folded into 8.0.0-GA only; each fold bumps the revision and refreshes this folder. First snapshot: releases/8.0.0-GA-original.",
   "verification": {

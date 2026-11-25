@@ -99,12 +99,14 @@ async function liveInSync(sf, plan, includeBtl) {
   return same;
 }
 
+/** GUS-sourced read-only field values kept beside a linked project/epic/workstream (key -> plain text, as GUS stores them) so Pull from GUS can compare them. */
+const cleanGf = g => Object.fromEntries(Object.entries(g && typeof g === 'object' ? g : {}).filter(([k]) => /^[a-zA-Z]{1,24}$/.test(k)).slice(0, 16).map(([k, v]) => [k, text(v == null ? '' : v, 600)]));
 const STATUS = ['Planned', 'In Progress', 'Completed', 'On Hold'];
 function cleanPlan(input) {
   const p = input && typeof input === 'object' ? input : {};
   const w = p.window || {};
   const projects = (Array.isArray(p.projects) ? p.projects : []).slice(0, MAX.projects).map((x, i) => ({
-    id: lid(x.id, i, 'p'), name: text(x.name, 120), programId: gid(x.programId), programName: text(x.programName, 120), theme: text(x.theme, 80), short: text(x.short, 30), method: text(x.method, 1000), gusId: gid(x.gusId)
+    id: lid(x.id, i, 'p'), name: text(x.name, 120), programId: gid(x.programId), programName: text(x.programName, 120), theme: text(x.theme, 80), short: text(x.short, 30), method: text(x.method, 1000), gusId: gid(x.gusId), gf: cleanGf(x.gf)
   }));
   const epics = (Array.isArray(p.epics) ? p.epics : []).slice(0, MAX.epics).map((x, i) => ({
     id: lid(x.id, i, 'e'), projectId: lid(x.projectId, 0, ''), name: text(x.name, 255), line: x.line === 'ABL' ? 'ABL' : 'BTL',
@@ -112,10 +114,10 @@ function cleanPlan(input) {
     theme: text(x.theme, 80), hrp: text(x.hrp, 80), v2mom: text(x.v2mom, 80), estimate: days(x.estimate), status: STATUS.includes(x.status) ? x.status : '', doc: /^https?:\/\//i.test(String(x.doc || '')) ? text(x.doc, 300) : '', smartGoal: goalText(text(x.smartGoal, 2000)), description: richHtml(x.description), outcome: text(x.outcome, 500).replace(/\s+/g, ' ').trim(),
     actions: (Array.isArray(x.actions) ? x.actions : []).slice(0, 50).map((a, k) => ({ id: lid(a && a.id, k, 'a'), text: text(a && a.text, 300), ownerId: gid(a && a.ownerId), ownerName: text(a && a.ownerName, 80), eta: /^\d{4}-\d\d-\d\d$/.test(String(a && a.eta || '')) ? a.eta : '', done: !!(a && a.done) })).filter(a => a.text),
     owners: (Array.isArray(x.owners) ? x.owners : []).map(gid).filter(Boolean).slice(0, 12), ownerNames: (Array.isArray(x.ownerNames) ? x.ownerNames : []).slice(0, 12).map(n => text(n, 80)),
-    releaseId: gid(x.releaseId), releaseName: text(x.releaseName, 120), gusId: gid(x.gusId), foreign: x.foreign === true,
+    releaseId: gid(x.releaseId), releaseName: text(x.releaseName, 120), gusId: gid(x.gusId), gf: cleanGf(x.gf), foreign: x.foreign === true,
     synced: x.synced && typeof x.synced === 'object' && /^[0-9a-f]{24}$/.test(String(x.synced.hash || '')) ? { hash: x.synced.hash, outcome: text(x.synced.outcome, 500), at: text(x.synced.at, 40), ws: Object.fromEntries(Object.entries(x.synced.ws && typeof x.synced.ws === 'object' ? x.synced.ws : {}).filter(([k, v]) => LOCAL.test(k) && /^[0-9a-f]{24}$/.test(String(v))).slice(0, MAX.workstreams)) } : null,
     workstreams: (Array.isArray(x.workstreams) ? x.workstreams : []).slice(0, MAX.workstreams).map((s, j) => ({
-      id: lid(s.id, j, 'w'), gusId: gid(s.gusId), name: text(s.name, 120), status: STATUS.includes(s.status) ? s.status : '', engIds: (Array.isArray(s.engIds) ? s.engIds : []).map(gid).filter(Boolean).slice(0, 12), engNames: (Array.isArray(s.engNames) ? s.engNames : []).slice(0, 12).map(n => text(n, 80)), priority: Number.isFinite(Number(s.priority)) && s.priority !== '' && s.priority != null ? Math.min(Math.max(Math.round(Number(s.priority)), 0), 9999) : null, engId: gid(s.engId), engName: text(s.engName, 80), days: days(s.days), line: s.line === 'ABL' || s.line === 'BTL' ? s.line : '', sprint: text(s.sprint, 60), storyId: gid(s.storyId), storyNo: text(s.storyNo, 20)
+      id: lid(s.id, j, 'w'), gusId: gid(s.gusId), gf: cleanGf(s.gf), name: text(s.name, 120), status: STATUS.includes(s.status) ? s.status : '', engIds: (Array.isArray(s.engIds) ? s.engIds : []).map(gid).filter(Boolean).slice(0, 12), engNames: (Array.isArray(s.engNames) ? s.engNames : []).slice(0, 12).map(n => text(n, 80)), priority: Number.isFinite(Number(s.priority)) && s.priority !== '' && s.priority != null ? Math.min(Math.max(Math.round(Number(s.priority)), 0), 9999) : null, engId: gid(s.engId), engName: text(s.engName, 80), days: days(s.days), line: s.line === 'ABL' || s.line === 'BTL' ? s.line : '', sprint: text(s.sprint, 60), storyId: gid(s.storyId), storyNo: text(s.storyNo, 20)
     }))
   }));
   const people = {};
@@ -413,7 +415,7 @@ async function epicWorkstreams(sf, teamId, ids) {
   const byEpic = {};
   for (const r of rows.values()) {
     const m = /\(planned ([\d.]+) days\)/.exec(r.Details__c || '');
-    (byEpic[r.Epic__c] = byEpic[r.Epic__c] || []).push({ gusId: r.Id, name: String(r.Subject__c || '').replace(/^WS:\s*/i, '').trim(), assigneeId: r.Assignee__c || '', assigneeName: (r.Assignee__r && r.Assignee__r.Name) || '', days: m ? Number(m[1]) || 0 : 0 });
+    (byEpic[r.Epic__c] = byEpic[r.Epic__c] || []).push({ gusId: r.Id, name: String(r.Subject__c || '').replace(/^WS:\s*/i, '').trim(), assigneeId: r.Assignee__c || '', assigneeName: (r.Assignee__r && r.Assignee__r.Name) || '', gf: { status: r.Status__c || '', points: r.Story_Points__c == null ? '' : String(r.Story_Points__c) }, days: m ? Number(m[1]) || 0 : 0 });
   }
   return { byEpic };
 }
@@ -645,14 +647,14 @@ async function refreshEpics(sf, teamId, ids, projectIds) {
   const plist = [...new Set((Array.isArray(projectIds) ? projectIds : []).map(gid).filter(Boolean))].slice(0, 200);
   const tprog = await teamProgram(sf, teamId);
   const inl = a => a.map(i => `'${i}'`).join(',');
-  const rows = list.length ? (await sf.query(`SELECT ${EPIC_SEL}, Priority__c, Description__c FROM ADM_Epic__c WHERE Id IN (${inl(list)})`)).records || [] : [];
+  const rows = list.length ? (await sf.query(`SELECT ${EPIC_SEL}, Priority__c, Description__c, Health__c, Planned_Start_Date__c, Planned_End_Date__c, Success_Criteria__c FROM ADM_Epic__c WHERE Id IN (${inl(list)})`)).records || [] : [];
   // Linked projects are read on their own too, so a project's title, method and program refresh even when it has no epics.
   // A project that no longer sits in this team's program is reported (inProgram false) and never pulled.
   let projects = [];
   if (plist.length) {
     try {
-      projects = ((await sf.query(`SELECT Id, Name, V2MOM_Method__c, Program__c, Program__r.Name FROM PPM_Project__c WHERE Id IN (${inl(plist)})`)).records || [])
-        .map(r => ({ id: r.Id, name: r.Name || '', method: r.V2MOM_Method__c || '', programId: r.Program__c || '', programName: (r.Program__r && r.Program__r.Name) || '', inProgram: !!tprog && r.Program__c === tprog.id }));
+      projects = ((await sf.query(`SELECT Id, Name, V2MOM_Method__c, Program__c, Program__r.Name, Project_Summary__c, Project_Health__c, Project_Manager__r.Name, V2MOM_Priority_Ranking__c FROM PPM_Project__c WHERE Id IN (${inl(plist)})`)).records || [])
+        .map(r => ({ id: r.Id, name: r.Name || '', method: r.V2MOM_Method__c || '', programId: r.Program__c || '', programName: (r.Program__r && r.Program__r.Name) || '', inProgram: !!tprog && r.Program__c === tprog.id, gf: { summary: plain(r.Project_Summary__c || ''), health: r.Project_Health__c || '', manager: (r.Project_Manager__r && r.Project_Manager__r.Name) || '', ranking: r.V2MOM_Priority_Ranking__c == null ? '' : String(r.V2MOM_Priority_Ranking__c) } }));
     } catch (_) { /* project titles are best effort */ }
   }
   let workstreams = {};
@@ -669,7 +671,7 @@ async function refreshEpics(sf, teamId, ids, projectIds) {
   }
   return { epics: rows.map(r => {
     const d = String(r.Description__c || ''), sm = /^\s*(?:<p>\s*)?SMART Goal:\s*([\s\S]*?)(?:<\/p>|\n[ \t]*\n|$)/i.exec(d);
-    return { ...ownProject(epicRow(r), tprog), priority: r.Priority__c == null ? null : Number(r.Priority__c), points: Number(r.Planned_Story_Points__c) || 0, smartGoal: sm ? goalText(plain(sm[1])) : '', descriptionHtml: richHtml(d.replace(/^\s*<p>\s*SMART Goal:[\s\S]*?<\/p>\s*/i, '').replace(SMART_RE, ''), 30000) };
+    return { ...ownProject(epicRow(r), tprog), priority: r.Priority__c == null ? null : Number(r.Priority__c), points: Number(r.Planned_Story_Points__c) || 0, gf: { health: r.Health__c || '', start: r.Planned_Start_Date__c || '', end: r.Planned_End_Date__c || '', success: plain(r.Success_Criteria__c || '') }, smartGoal: sm ? goalText(plain(sm[1])) : '', descriptionHtml: richHtml(d.replace(/^\s*<p>\s*SMART Goal:[\s\S]*?<\/p>\s*/i, '').replace(SMART_RE, ''), 30000) };
   }), projects, workstreams, stories };
 }
 
