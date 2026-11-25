@@ -4,6 +4,11 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r39 (folded)
+
+- Projects stay inside the team's own program. Epic search and Add existing epic only return this team's epics, and an epic whose project belongs to another program is added without that project. Pull from GUS and refresh never bring in another team's project, and project pickers list only the team's program.
+- New projects are always created in the team's program and used only for that team's epics. A different program name, or an existing project outside the team's program, is refused with a clear message.
+
 ### 8.0.0-GA r38 (folded)
 
 - Theme now sits right before Priority in the default planner column order (Theme was after Epic Name). Browsers with a saved column layout are moved once, so Theme also lands before Priority there; later reordering is kept.

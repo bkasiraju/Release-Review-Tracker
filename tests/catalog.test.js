@@ -72,12 +72,12 @@ test('column search text covers epic and workstream values',()=>{
   assert.match(src,/function colText\(k,e,p\)/);assert.match(src,/data-cf="\$\{k\}"/);
 });
 
-test('findEpics resolves a W-number to its epic, an epic Id, or a name, from any project',async()=>{
+test('findEpics resolves a W-number to its epic, an epic Id, or a name, for this team only and drops other teams\' projects',async()=>{
   const T1='a00B0000000w4ZnIAI',qs=[];
   const row={Id:'a3QEE000002q44n2AA',Name:'Other epic',Team__r:{Name:'Team X'},Project__c:'a1PEE00000OTHER01A',Project__r:{Name:'Other proj'}};
   const sf={async query(q){qs.push(q);if(/FROM ADM_Work__c/.test(q))return {records:[{Epic__c:'a3QEE000002q44n2AA'}]};return {records:[row]};}};
   let r=await plan.findEpics(sf,T1,'W-12345678');
-  assert.equal(r.epics[0].id,'a3QEE000002q44n2AA');assert.equal(r.epics[0].projectName,'Other proj');assert.match(qs.join('\n'),/Name = 'W-12345678'/);
+  assert.equal(r.epics[0].id,'a3QEE000002q44n2AA');assert.equal(r.epics[0].projectName,'');assert.match(qs.join('\n'),/Name = 'W-12345678'/);assert.match(qs.filter(q=>/FROM ADM_Epic__c/.test(q)).join('\n'),new RegExp(`Team__c = '${T1}'`));
   qs.length=0;r=await plan.findEpics(sf,T1,'https://gus.lightning.force.com/lightning/r/ADM_Epic__c/a3QEE000002q44n2AA/view');
   assert.match(qs[0],/Id = 'a3QEE000002q44n2AA'/);
   qs.length=0;await plan.findEpics(sf,T1,"it's 100%");assert.match(qs[0],/Name LIKE '%it\\'s 100\\%%'/);

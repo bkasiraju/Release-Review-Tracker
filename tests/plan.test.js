@@ -7,7 +7,7 @@ const draft=()=>({window:{start:'2026-11-16',end:'2027-01-29'},people:{[ENG]:{na
   projects:[{id:'p1',name:'M1: Baseline',programId:PROG,programName:'Program A',theme:'M1'}],
   epics:[{id:'e1',projectId:'p1',name:'ABL epic',theme:'Reliability',line:'ABL',priority:2,releaseId:REL,releaseName:'MQ 266',workstreams:[{id:'w1',name:'API',engId:ENG,engName:'Ann',days:6.5},{id:'w2',name:'Tests',engId:ENG,engName:'Ann',days:3}]},
          {id:'e2',projectId:'p1',name:'BTL epic',theme:'Reliability',line:'BTL',workstreams:[{id:'w3',name:'x',days:4}]}]});
-const sfMock=(log,opts={})=>({async query(q){log.push(['q',q]);if(/FROM ADM_Planned_Release__c/.test(q))return {records:[{Id:REL}]};if(/FROM ADM_Scrum_Team__c/.test(q))return {records:[{Name:'Message Queue'}]};if(/FROM PPM_Program__c/.test(q))return {records:[{Id:PROG,Name:'MQ - 268'}]};return {records:[]};},
+const sfMock=(log,opts={})=>({async query(q){log.push(['q',q]);if(/FROM ADM_Planned_Release__c/.test(q))return {records:[{Id:REL}]};if(/FROM ADM_Scrum_Team__c/.test(q))return {records:[{Name:'Message Queue'}]};if(/FROM PPM_Program__c/.test(q))return {records:[{Id:PROG,Name:'MQ - 268'}]};if(/FROM PPM_Project__c WHERE Id = 'a1PEE00000PRJ0001A' AND Program__c = '/.test(q)&&q.includes(PROG))return {records:[{Id:'a1PEE00000PRJ0001A'}]};return {records:[]};},
   async create(o,f){log.push(['c',o,f]);if(opts.failEpic&&o==='ADM_Epic__c')return {success:false,errors:['BAD']};return {success:true,id:o==='PPM_Project__c'?'a1PEE00000PRJ0001A':'a0XEE00000EPC0001A'};},
   async update(o,id,f){log.push(['u',o,id,f]);return {success:true};}});
 test('plan is cleaned: bad ids, negative days and oversize text are dropped',()=>{
@@ -117,6 +117,8 @@ test('createProject / createEpic write the mandatory GUS fields and reuse duplic
   assert.equal(e.created,true);
   const f=log.find(x=>x[0]==='c'&&x[1]==='ADM_Epic__c')[2];
   assert.equal(f.Team__c,T);assert.equal(f.Project__c,'a1PEE00000PRJ0001A');assert.equal(f.Planned_Release__c,REL);assert.equal(f.Development_Lead__c,ENG);assert.equal(f.OwnerId,ENG);assert.equal(f.Planned_Story_Points__c,5);
+  await assert.rejects(plan.createEpic(sf,T,{name:'E',leadId:ENG,priority:0,releaseId:REL,project:{gusId:'a1PEE00000OTHER01A'}}),/not in this team's program/);   // another team's project is never used
+  await assert.rejects(plan.createProject(sf,T,{name:'M8: Elsewhere',programName:'Other Team - 268'}),/Only this team's program/);   // new projects are only created in the team's own program
   await assert.rejects(plan.createEpic(sf,T,{name:'E',releaseId:REL,project:{gusId:'a1PEE00000PRJ0001A'}}),/development lead/);
   await assert.rejects(plan.createEpic(sf,T,{name:'E',leadId:ENG,releaseId:REL,project:{gusId:'a1PEE00000PRJ0001A'}}),/priority/);
   await assert.rejects(plan.createEpic(sf,T,{name:'',releaseId:REL,project:{gusId:'a1PEE00000PRJ0001A'}}),/epic name/);
@@ -140,7 +142,7 @@ test('syncEpics moves an epic to a project in the team program only; refreshEpic
       if(/FROM ADM_Scrum_Team__c/.test(q))return {records:[{Name:'Message Queue'}]};
       if(/FROM PPM_Program__c/.test(q))return {records:[{Id:'a1QEE00000PRG0001A',Name:'MQ - 2026 Q4'}]};
       if(/FROM PPM_Project__c/.test(q))return {records:q.includes(PJ)?[{Id:PJ}]:[]};
-      if(/FROM ADM_Epic__c WHERE Id IN/.test(q))return {records:[{Id:EP,Name:'E',Project__c:PJ,Project__r:{Name:'HRP M1'},Planned_Release__c:'',OwnerId:''}]};
+      if(/FROM ADM_Epic__c WHERE Id IN/.test(q))return {records:[{Id:EP,Name:'E',Project__c:PJ,Project__r:{Name:'HRP M1',Program__c:'a1QEE00000PRG0001A'},Planned_Release__c:'',OwnerId:''}]};
       if(/FROM ADM_Epic__c/.test(q))return {records:[{Id:EP}]};
       return {records:[]};},
     async update(o,id,f){upd.push(f);return {success:true};}};
@@ -177,9 +179,15 @@ test('createWorkstream makes a parent User Story with the R<release>_<team>_Work
 });
 
 test('listEpics returns the team epics for the add-existing picker',async()=>{
-  const sf={async query(q){assert.match(q,new RegExp(`Team__c = '${T}'`));return {records:[{Id:'a3QEE000002pXaH2AU',Name:'E1',Project__c:'a1PEE00000PRJ0001A',Project__r:{Name:'M1',V2MOM_Method__c:'meth',Program__c:PROG,Program__r:{Name:'MQ - 268'}},Planned_Release__c:REL,Planned_Release__r:{Name:'MQ 268'},Development_Lead__c:ENG,Development_Lead__r:{Name:'Ann'},Planned_Story_Points__c:12}]};}};
+  const sf={async query(q){if(/FROM ADM_Scrum_Team__c/.test(q))return {records:[{Name:'Message Queue'}]};if(/FROM PPM_Program__c/.test(q))return {records:[{Id:PROG,Name:'MQ - 268'}]};assert.match(q,new RegExp(`Team__c = '${T}'`));return {records:[{Id:'a3QEE000002pXaH2AU',Name:'E1',Project__c:'a1PEE00000PRJ0001A',Project__r:{Name:'M1',V2MOM_Method__c:'meth',Program__c:PROG,Program__r:{Name:'MQ - 268'}},Planned_Release__c:REL,Planned_Release__r:{Name:'MQ 268'},Development_Lead__c:ENG,Development_Lead__r:{Name:'Ann'},Planned_Story_Points__c:12}]};}};
   const r=await plan.listEpics(sf,T);
   assert.deepEqual(r.epics[0],{id:'a3QEE000002pXaH2AU',name:'E1',projectId:'a1PEE00000PRJ0001A',projectName:'M1',method:'meth',programId:PROG,programName:'MQ - 268',releaseId:REL,releaseName:'MQ 268',leadId:ENG,leadName:'Ann',points:12});
+});
+test('epics whose project sits in another team program are listed without that project',async()=>{
+  const row=pg=>({Id:'a3QEE000002pXaH2AU',Name:'E1',Project__c:'a1PEE00000PRJ0009A',Project__r:{Name:'Foreign',Program__c:pg,Program__r:{Name:'X - 268'}},Planned_Release__c:REL,Development_Lead__c:ENG,Planned_Story_Points__c:3});
+  const mk=pg=>({async query(q){if(/FROM ADM_Scrum_Team__c/.test(q))return {records:[{Name:'Message Queue'}]};if(/FROM PPM_Program__c/.test(q))return {records:[{Id:PROG,Name:'MQ - 268'}]};return {records:[row(pg)]};}});
+  let e=(await plan.listEpics(mk('a1QEE00000OTHERPRG'),T)).epics[0];assert.equal(e.projectId,'');assert.equal(e.projectName,'');assert.equal(e.programId,'');assert.equal(e.name,'E1');
+  e=(await plan.listEpics(mk(PROG),T)).epics[0];assert.equal(e.projectId,'a1PEE00000PRJ0009A');
 });
 test('deleteProject only deletes an empty project in the team program',async()=>{
   const PID='a1PEE00000PRJ0001A',del=[];

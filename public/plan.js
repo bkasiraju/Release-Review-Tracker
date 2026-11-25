@@ -271,7 +271,7 @@ function newEpicAt(pid){
   const body=
     crSection('Epic',`<div class="pl-cr-seg" role="tablist" aria-label="Epic source"><button type="button" role="tab" data-mode="new">Create new epic</button><button type="button" role="tab" data-mode="pick">Add existing GUS epic</button></div>`+
       `<div class="pl-cr-pinfo s12"><b>Project</b> ${esc(projLabel(pr))}${pr.method?` · V2MOM: ${esc(pr.method)}`:''}${pr.gusId?'':' · new — created with the epic'}</div>`+
-      crField('Find any GUS epic','<span data-fnote>W-number, epic Id / GUS link, or name</span>',`<span class="pl-cr-find"><input class="hub-inline" type="search" data-fq placeholder="e.g. W-12345678, a3Q… or part of the epic name" autocomplete="off" aria-label="Find a GUS epic"><button type="button" class="button" data-fgo>Search</button></span>`,'s12 pl-cr-pick')+
+      crField('Find a GUS epic of this team','<span data-fnote>W-number, epic Id / GUS link, or name</span>',`<span class="pl-cr-find"><input class="hub-inline" type="search" data-fq placeholder="e.g. W-12345678, a3Q… or part of the epic name" autocomplete="off" aria-label="Find a GUS epic"><button type="button" class="button" data-fgo>Search</button></span>`,'s12 pl-cr-pick')+
       crField('GUS epic','<span data-pcnt>loading…</span>',`<select class="hub-inline" data-xe><option value="">Loading epics from GUS…</option></select>`,'s6 pl-cr-pick')+
       atl('s3 pl-cr-pick').replace('data-l','data-xl')+
       crField('Priority','required',`<select class="hub-inline" data-xp required>${priOpts(0)}</select>`,'s3 pl-cr-pick')+

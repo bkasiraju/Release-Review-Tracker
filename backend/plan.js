@@ -203,7 +203,7 @@ async function loadRefs(sf, teamId) {
   // Projects already in the team's program (not only those with this team's epics), so they can be picked rather than retyped.
   const inProg = teamProg ? await safe('Program projects', sf.query(`SELECT Id, Name, V2MOM_Method__c FROM PPM_Project__c WHERE Program__c = '${teamProg.id}' ORDER BY Name LIMIT 500`)) : [];
   // Only projects tagged to the team's R268 program are offered (projects from other programs or releases are left out).
-  const in268 = r => teamProg ? r.g === teamProg.id : new RegExp(' - ' + PROGRAM_RELEASE + '$').test(r.gn || '');
+  const in268 = r => !!teamProg && r.g === teamProg.id;
   const seen = new Map(used.filter(in268).map(r => [r.p, { id: r.p, name: r.n, programId: r.g || '', programName: r.gn || '' }]));
   for (const r of inProg) seen.set(r.Id, { ...(seen.get(r.Id) || { id: r.Id, name: r.Name, programId: teamProg.id, programName: teamProg.name }), method: r.V2MOM_Method__c || '' });
   return {
@@ -224,6 +224,10 @@ const PROJECT_NAME_MAX = 80; // PPM_Project__c.Name length in GUS
 async function ensureProject(sf, teamId, project, programOverride) {
   const rawName = String((project && project.name) || '').trim(), name = text(project && project.name, 120), method = text(project && project.method, 1000);
   if (project && gid(project.gusId)) {
+    const tp = programOverride || await teamProgram(sf, teamId);
+    if (!tp) throw new Error('This team has no GUS program for the planning release, so its projects cannot be used. Ask a plan administrator.');
+    const inP = ((await sf.query(`SELECT Id FROM PPM_Project__c WHERE Id = '${gid(project.gusId)}' AND Program__c = '${tp.id}' LIMIT 1`)).records || [])[0];
+    if (!inP) throw new Error(`That project is not in this team's program (${tp.name}), so it was not used.`);
     if (method) { try { await sf.update('PPM_Project__c', gid(project.gusId), { V2MOM_Method__c: method }); } catch (_) { /* method is best effort on an existing project */ } }
     return { id: gid(project.gusId), created: false };
   }
@@ -246,7 +250,11 @@ async function ensureProject(sf, teamId, project, programOverride) {
 async function resolveProgram(sf, teamId, name) {
   planKey(teamId);
   const n = String(name || '').trim();
-  if (!n) return teamProgram(sf, teamId);
+  const own = await teamProgram(sf, teamId);
+  if (!n) return own;
+  // Projects are only listed and created in this team's own program; another team's program is never read or written.
+  if (own && own.name.toLowerCase() === n.toLowerCase()) return own;
+  if (own) throw new Error(`Only this team's program (${own.name}) can be used. Projects of other teams' programs are not imported or created here.`);
   const rows = (await sf.query(`SELECT Id, Name FROM PPM_Program__c WHERE Name = '${soql(n)}' LIMIT 5`)).records || [];
   const hit = rows.find(r => r.Name.toLowerCase() === n.toLowerCase()) || rows[0];
   return hit ? { id: hit.Id, name: hit.Name } : null;
@@ -565,7 +573,8 @@ async function moveWorkstream(sf, teamId, input) {
 async function listEpics(sf, teamId) {
   planKey(teamId);
   const rows = (await sf.query(`SELECT Id, Name, Project__c, Project__r.Name, Project__r.V2MOM_Method__c, Project__r.Program__c, Project__r.Program__r.Name, Planned_Release__c, Planned_Release__r.Name, Development_Lead__c, Development_Lead__r.Name, OwnerId, Owner.Name, Planned_Story_Points__c FROM ADM_Epic__c WHERE Team__c = '${teamId}' AND (NOT Name LIKE '\_\_%') ORDER BY Name LIMIT 1000`)).records || [];
-  return { epics: rows.map(r => ({ id: r.Id, name: r.Name, projectId: r.Project__c || '', projectName: (r.Project__r && r.Project__r.Name) || '', method: (r.Project__r && r.Project__r.V2MOM_Method__c) || '', programId: (r.Project__r && r.Project__r.Program__c) || '', programName: (r.Project__r && r.Project__r.Program__r && r.Project__r.Program__r.Name) || '', releaseId: r.Planned_Release__c || '', releaseName: (r.Planned_Release__r && r.Planned_Release__r.Name) || '', ...leadOf(r), points: Number(r.Planned_Story_Points__c) || 0 })) };
+  const tprog = await teamProgram(sf, teamId);
+  return { epics: rows.map(r => ownProject({ id: r.Id, name: r.Name, projectId: r.Project__c || '', projectName: (r.Project__r && r.Project__r.Name) || '', method: (r.Project__r && r.Project__r.V2MOM_Method__c) || '', programId: (r.Project__r && r.Project__r.Program__c) || '', programName: (r.Project__r && r.Project__r.Program__r && r.Project__r.Program__r.Name) || '', releaseId: r.Planned_Release__c || '', releaseName: (r.Planned_Release__r && r.Planned_Release__r.Name) || '', ...leadOf(r), points: Number(r.Planned_Story_Points__c) || 0 }, tprog)) };
 }
 
 // The epic's owner as the planner shows it: the development lead, or the GUS record owner when no lead is set (queues are ignored).
@@ -573,8 +582,10 @@ function leadOf(r) { return leadOfImpl(r); }
 const leadOfImpl = r => r.Development_Lead__c ? { leadId: r.Development_Lead__c, leadName: (r.Development_Lead__r && r.Development_Lead__r.Name) || '' }
   : /^005/.test(String(r.OwnerId || '')) ? { leadId: r.OwnerId, leadName: (r.Owner && r.Owner.Name) || '' } : { leadId: '', leadName: '' };
 const EPIC_SEL = 'Id, Name, Team__c, Team__r.Name, Project__c, Project__r.Name, Project__r.V2MOM_Method__c, Project__r.Program__c, Project__r.Program__r.Name, Planned_Release__c, Planned_Release__r.Name, Development_Lead__c, Development_Lead__r.Name, OwnerId, Owner.Name, Planned_Story_Points__c';
+// An epic's project is only carried over when it sits in the team's own program; another team's project is never imported.
+const ownProject = (row, prog) => prog && row.programId === prog.id ? row : { ...row, projectId: '', projectName: '', method: '', programId: '', programName: '' };
 const epicRow = r => ({ id: r.Id, name: r.Name, teamId: r.Team__c || '', teamName: (r.Team__r && r.Team__r.Name) || '', projectId: r.Project__c || '', projectName: (r.Project__r && r.Project__r.Name) || '', method: (r.Project__r && r.Project__r.V2MOM_Method__c) || '', programId: (r.Project__r && r.Project__r.Program__c) || '', programName: (r.Project__r && r.Project__r.Program__r && r.Project__r.Program__r.Name) || '', releaseId: r.Planned_Release__c || '', releaseName: (r.Planned_Release__r && r.Planned_Release__r.Name) || '', ...leadOf(r), points: Number(r.Planned_Story_Points__c) || 0 });
-/** Find any GUS epic (any team or project) by a work item W-number (its epic), an epic record Id or a GUS link, or part of the epic name, so it can be tagged into a project. */
+/** Find one of this team's GUS epics by a work item W-number (its epic), an epic record Id or a GUS link, or part of the epic name, so it can be tagged into a project. */
 async function findEpics(sf, teamId, query) {
   planKey(teamId);
   const q = text(query, 200);
@@ -588,8 +599,9 @@ async function findEpics(sf, teamId, query) {
     if (!wi.Epic__c) return { epics: [], note: `W-${w[1]} is not linked to an epic.` };
     where = `Id = '${gid(wi.Epic__c)}'`; note = `Epic of W-${w[1]}`;
   } else where = `Name LIKE '%${soql(q).replace(/[%_]/g, '\\$&')}%'`;
-  const rows = (await sf.query(`SELECT ${EPIC_SEL} FROM ADM_Epic__c WHERE ${where} ORDER BY Name LIMIT 25`)).records || [];
-  return { epics: rows.map(epicRow), note };
+  const [rows, tprog] = await Promise.all([sf.query(`SELECT ${EPIC_SEL} FROM ADM_Epic__c WHERE (${where}) AND Team__c = '${teamId}' ORDER BY Name LIMIT 25`).then(r => r.records || []), teamProgram(sf, teamId)]);
+  if (!rows.length && !note) note = "No epic of this team matches. Epics of other teams are not imported.";
+  return { epics: rows.map(r => ownProject(epicRow(r), tprog)), note };
 }
 
 // Write edits made in the plan grid through to epics that already exist in GUS (name, development lead = owner, planned release, effort).
@@ -631,18 +643,19 @@ async function refreshEpics(sf, teamId, ids, projectIds) {
   planKey(teamId);
   const list = [...new Set((Array.isArray(ids) ? ids : []).map(gid).filter(Boolean))].slice(0, 200);
   const plist = [...new Set((Array.isArray(projectIds) ? projectIds : []).map(gid).filter(Boolean))].slice(0, 200);
+  const tprog = await teamProgram(sf, teamId);
   const rows = list.length ? (await sf.query(`SELECT ${EPIC_SEL} FROM ADM_Epic__c WHERE Id IN (${list.map(i => `'${i}'`).join(',')})`)).records || [] : [];
   // Linked projects are read on their own too, so a project's title and method refresh even when it has no epics.
   let projects = [];
   if (plist.length) {
     try {
-      projects = ((await sf.query(`SELECT Id, Name, V2MOM_Method__c FROM PPM_Project__c WHERE Id IN (${plist.map(i => `'${i}'`).join(',')})`)).records || [])
+      projects = ((await sf.query(`SELECT Id, Name, V2MOM_Method__c FROM PPM_Project__c WHERE Id IN (${plist.map(i => `'${i}'`).join(',')}) AND Program__c = '${tprog ? tprog.id : ''}'`)).records || [])
         .map(r => ({ id: r.Id, name: r.Name || '', method: r.V2MOM_Method__c || '' }));
     } catch (_) { /* project titles are best effort */ }
   }
   let workstreams = {};
   if (list.length) { try { workstreams = (await epicWorkstreams(sf, teamId, list)).byEpic; } catch (_) { /* workstreams are best effort */ } }
-  return { epics: rows.map(epicRow), projects, workstreams };
+  return { epics: rows.map(r => ownProject(epicRow(r), tprog)), projects, workstreams };
 }
 
 // ── SMART goal ──────────────────────────────────────────────────────────────
