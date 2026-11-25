@@ -4,6 +4,11 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r38 (folded)
+
+- Theme now sits right before Priority in the default planner column order (Theme was after Epic Name). Browsers with a saved column layout are moved once, so Theme also lands before Priority there; later reordering is kept.
+- Epic Name column narrowed (28% to 21%) and Workstream widened (28% to 35%) so workstream names have more room (r37).
+
 ### 8.0.0-GA r36 (folded)
 
 - Theme is now required on every epic: a required Theme field in Add epic (both "Create new epic" and "Add existing GUS epic", with suggestions from themes already used), a red "Theme (required)" cell in the planner table for epics without one, and "Theme is required" as a blocker when saving to GUS (epics of other teams excepted). The Theme cell stays editable on each row and auto-saves with the plan as before; auto-save itself is never blocked.
