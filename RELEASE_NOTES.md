@@ -4,6 +4,10 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r42 (folded)
+
+- The Pull from GUS list has inline filters under the column headers (item, field, dashboard value, GUS value), Select all / Unselect all that act on the rows currently shown (full or filtered view), a header tick box, a shown/ticked counter and an Apply count.
+
 ### 8.0.0-GA r41 (folded)
 
 - Pull from GUS now reads and compares the real GUS fields: project summary, health, manager and V2MOM priority/ranking (PPM_Project__c); epic health, planned start/end and success criteria (ADM_Epic__c); and story status and points (ADM_Work__c). Values are stored as plain text, length-limited, and only changed values are listed.

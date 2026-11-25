@@ -3707,3 +3707,8 @@ html body .pl-grid input.pl-need::placeholder{color:#ba0517;opacity:.8}
 /* r37: narrower Epic Name, wider Workstream */
 html body .pl-grid-wrap .pl-grid th.c-name,html body .pl-grid-wrap .pl-grid td.c-name{width:21%!important}
 html body .pl-grid-wrap .pl-grid th.c-ws,html body .pl-grid-wrap .pl-grid td.c-ws{width:35%!important}
+
+html body .pl-rf-bar{display:flex;gap:8px;align-items:center;margin:6px 0!important}
+html body .pl-rf th{padding:2px 4px!important}
+html body .pl-rf input,html body .pl-rf select{width:100%!important;font-size:12px!important;padding:2px 4px!important}
+html body .pl-rps-m tbody tr[hidden]{display:none!important}
