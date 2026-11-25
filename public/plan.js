@@ -1056,6 +1056,10 @@ async function refreshFromGus(btn,auto){
     if(g.name&&g.name!==p.name)ch.push({who:projLabel(p),p,f:'pname',label:'Project title',from:p.name||'—',to:g.name,g});
     if((g.method||'')!==(p.method||'')&&(g.method||p.method))ch.push({who:projLabel(p),p,f:'pmethod',label:'V2MOM method',from:p.method||'—',to:g.method||'—',g});
     if(g.programId&&k15(g.programId)!==k15(p.programId)&&!(g.programName&&g.programName===p.programName))ch.push({who:projLabel(p),p,f:g.inProgram===false?'pmove':'pprog',label:g.inProgram===false?'Move project to this team’s program (edits GUS)':'Program',from:p.programName||'—',to:g.programName||'—',g});}
+  // Projects the team's epics use that sit in another program: link the epic's dashboard project and move it into the team's program (only on tick).
+  for(const fp of (r.foreignProjects||[])){if(pl.projects.some(p=>p.gusId&&k15(p.gusId)===k15(fp.id)))continue;
+    const ids=new Set((fp.epicIds||[]).map(k15)),ep=pl.epics.filter(e=>e.gusId&&ids.has(k15(e.gusId))),p=ep.map(e=>pl.projects.find(x=>x.id===e.projectId)).find(x=>x&&!x.gusId);
+    if(p)ch.push({who:projLabel(p),p,f:'pmove',label:'Link to GUS project and move it to this team’s program (edits GUS)',from:(p.name||'—')+' (not linked)',to:fp.name+' · '+(fp.programName||'other program'),g:fp});}
   // Dashboard projects not linked to GUS yet: link them to the team-program project with the same name (or the only one that starts with it), so they get the GUS title and mapping.
   {const nz=v=>String(v||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim(),taken=new Set(pl.projects.filter(p=>p.gusId).map(p=>k15(p.gusId))),refs=((P.refs&&P.refs.projects)||[]).filter(x=>!taken.has(k15(x.id)));
    for(const p of pl.projects){if(p.gusId)continue;const ks=[nz(p.name),nz(p.short)].filter(Boolean);if(!ks.length)continue;
@@ -1178,7 +1182,7 @@ async function refreshFromGus(btn,auto){
    rows.forEach(r=>{r.querySelector('[data-rc]').addEventListener('change',upd);});upd();}
   ap.onclick=async()=>{const on=new Set([...el.querySelectorAll('[data-rc]:checked')].map(x=>+x.dataset.rc)),fails=[];let moved=0;
     for(const i of [...on]){const c=ch[i];if(c.f!=='pmove')continue;on.delete(i);
-      try{const m=await call('plan-move-project',{teamId:H.team.Id,project:{gusId:c.p.gusId}});c.p.programId=m.programId||'';c.p.programName=m.programName||'';moved++;}catch(err){fails.push(err.message);}}
+      try{const m=await call('plan-move-project',{teamId:H.team.Id,project:{gusId:(c.g&&c.g.id)||c.p.gusId}});c.p.gusId=(c.g&&c.g.id)||c.p.gusId;c.p.programId=m.programId||'';c.p.programName=m.programName||'';if(c.g&&c.g.name&&c.g.name!==c.p.name){if(!c.p.short||c.p.short===shortProj(c.p.name||''))c.p.short=shortProj(c.g.name);c.p.name=c.g.name;}if(c.g&&c.g.method&&!c.p.method)c.p.method=c.g.method;moved++;}catch(err){fails.push(err.message);}}
     const n=applyIdx(on)+moved;closeModal();if(fails.length)window.toast?.(fails.join(' '),true);
     if(n){draw();queueSave();window.toast?.(`Applied ${n} change${n>1?'s':''} from GUS.`,false);}};
 }

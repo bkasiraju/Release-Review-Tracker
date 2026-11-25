@@ -686,10 +686,18 @@ async function refreshEpics(sf, teamId, ids, projectIds) {
       }
     } catch (_) { /* stories are best effort */ }
   }
+  // Projects these epics use that sit outside the team's program: reported so the dashboard can offer to link them and move them into the team's program.
+  const foreign = new Map();
+  for (const r of rows) {
+    if (!r.Project__c || (tprog && r.Project__r && r.Project__r.Program__c === tprog.id)) continue;
+    const f = foreign.get(r.Project__c) || { id: r.Project__c, name: (r.Project__r && r.Project__r.Name) || '', method: (r.Project__r && r.Project__r.V2MOM_Method__c) || '', programId: (r.Project__r && r.Project__r.Program__c) || '', programName: (r.Project__r && r.Project__r.Program__r && r.Project__r.Program__r.Name) || '', inProgram: false, epicIds: [] };
+    f.epicIds.push(r.Id); foreign.set(r.Project__c, f);
+  }
+  const foreignProjects = [...foreign.values()];
   return { epics: rows.map(r => {
     const d = String(r.Description__c || ''), sm = /^\s*(?:<p>\s*)?SMART Goal:\s*([\s\S]*?)(?:<\/p>|\n[ \t]*\n|$)/i.exec(d);
     return { ...ownProject(epicRow(r), tprog), priority: r.Priority__c == null ? null : Number(r.Priority__c), points: Number(r.Planned_Story_Points__c) || 0, gf: { health: r.Health__c || '', start: r.Planned_Start_Date__c || '', end: r.Planned_End_Date__c || '', success: plain(r.Success_Criteria__c || '') }, smartGoal: sm ? goalText(plain(sm[1])) : '', descriptionHtml: richHtml(d.replace(/^\s*<p>\s*SMART Goal:[\s\S]*?<\/p>\s*/i, '').replace(SMART_RE, ''), 30000) };
-  }), projects, workstreams, stories };
+  }), projects, foreignProjects, workstreams, stories };
 }
 
 // ── SMART goal ──────────────────────────────────────────────────────────────

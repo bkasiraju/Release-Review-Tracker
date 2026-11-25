@@ -4,6 +4,10 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r45 (folded)
+
+- Pull from GUS finds projects that the team's dashboard epics use in GUS but that sit in another program, and offers (per project, on tick only) to link the epic's dashboard project to it and move it into the team's program. Refused if another team's epics use it.
+
 ### 8.0.0-GA r44 (folded)
 
 - A dashboard project that sits outside the team's GUS program is offered in Pull as "Move project to this team's program (edits GUS)"; applying it sets the project's Program in GUS to the team program. Refused when another team's epics also use the project, and never done automatically.
