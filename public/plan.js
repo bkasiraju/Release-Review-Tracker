@@ -1099,7 +1099,15 @@ async function refreshFromGus(btn,auto){
       else{const own=e.workstreams.find(x=>!x.gusId&&x.name&&x.name.trim().toLowerCase()===String(w.name).toLowerCase());
         if(own){seen.add(own);ch.push({e,w:own,who,f:'wlink',label:'Workstream',from:own.name+' (not linked)',to:w.name+' (link to GUS)',gw:w});}
         else ch.push({e,who,f:'wnew',label:'New workstream',from:'—',to:w.name,gw:w});}}
-    e.workstreams.filter(x=>x.gusId&&!seen.has(x)&&gws.length).forEach(x=>gone.push({name:(e.name||'(unnamed)')+' › '+(x.name||'workstream')}));}
+    e.workstreams.filter(x=>x.gusId&&!seen.has(x)&&gws.length).forEach(x=>gone.push({name:(e.name||'(unnamed)')+' › '+(x.name||'workstream')}));
+    // User stories filed directly in GUS on this epic are workstreams too (the "WS:" title prefix only marks the ones created from the dashboard): same delta rules.
+    {const nn=v=>String(v||'').replace(/^WS:\s*/i,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim(),inWs=new Set(gws.map(w=>k15(w.gusId))),seenU=new Set();
+     const gs=(r.stories&&(r.stories[e.gusId]||r.stories[Object.keys(r.stories).find(k=>k15(k)===k15(e.gusId))||'']))||[];
+     for(const st of gs){if(inWs.has(k15(st.gusId)))continue;
+       let l=e.workstreams.find(x=>!seenU.has(x)&&((x.storyId&&k15(x.storyId)===k15(st.gusId))||(x.gusId&&k15(x.gusId)===k15(st.gusId))))||e.workstreams.find(x=>!seenU.has(x)&&!seen.has(x)&&!x.storyId&&!x.gusId&&nn(x.name)&&nn(x.name)===nn(st.name));
+       if(l){seenU.add(l);if(!l.storyId&&!l.gusId)l.storyId=st.gusId;
+         if(l.storyId&&!l.gusId&&Math.abs((Number(l.days)||0)-st.days)>0.001)ch.push({e,w:l,who:who+' › '+(l.name||st.name),f:'wdays',label:'Workstream days',from:String(l.days||0),to:String(st.days),gw:{...st,days:st.days}});}
+       else ch.push({e,who,f:'wnews',label:'New workstream (GUS user story)',from:'—',to:st.name,gw:st});}}}
   const applyIdx=on=>{let n=0;const touched=new Set();
     ch.forEach((c,i)=>{if(!on.has(i))return;const e=c.e,g=c.g,w=c.w,gw=c.gw;n++;
       if(c.f==='pname'){const old=c.p.name||'';if(!c.p.short||c.p.short===shortProj(old))c.p.short=shortProj(g.name);c.p.name=g.name;}
