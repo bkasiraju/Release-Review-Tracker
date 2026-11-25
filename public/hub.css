@@ -3712,3 +3712,6 @@ html body .pl-rf-bar{display:flex;gap:8px;align-items:center;margin:6px 0!import
 html body .pl-rf th{padding:2px 4px!important}
 html body .pl-rf input,html body .pl-rf select{width:100%!important;font-size:12px!important;padding:2px 4px!important}
 html body .pl-rps-m tbody tr[hidden]{display:none!important}
+
+html body .pl-rf th{position:static!important;top:auto!important;background:#fff!important;display:table-cell!important;height:auto!important;min-width:110px}
+html body .pl-rf input[type=search],html body .pl-rf select{display:block!important;box-sizing:border-box!important;width:100%!important;min-width:90px}

@@ -1041,18 +1041,20 @@ const sameJson=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 /** Pull the current GUS state of the plan's linked projects (title, method), epics (name, project, release) and workstreams (name, owner, days, new ones), show what differs, and apply only what the user ticks. GUS is the source of truth. */
 /** GUS story status -> dashboard workstream status. */
 const gStat=v=>{v=String(v||'').toLowerCase();return /^(closed|completed?|fixed|done|resolved)/.test(v)?'Completed':/^(in progress|ready for review|in review|pending release|qa in progress)/.test(v)?'In Progress':/^(waiting|on hold|blocked)/.test(v)?'On Hold':v?'Planned':'';};
+/** GUS-only read fields (health, summary, dates...) are mirrored straight onto the dashboard record: nothing to review, nothing edited on the dashboard. Returns true when something changed. */
+const mirrorGf=(o,gf)=>{let d=false;const nv=Object.assign({},o.gf);for(const k of Object.keys(gf)){const v=String(gf[k]==null?'':gf[k]);if(nv[k]!==v){nv[k]=v;d=true;}}if(d)o.gf=nv;return d;};
 async function refreshFromGus(btn,auto){
   const pl=P.plan;if(!pl)return;const mine=pl.epics.filter(e=>e.gusId),gp=pl.projects.filter(p=>p.gusId);
   if(!mine.length&&!gp.length){if(!auto)window.toast?.('No projects or epics on the dashboard are linked to GUS yet.',false);return;}
   if(btn){btn.disabled=true;btn.dataset.t=btn.textContent;btn.textContent='Checking GUS…';}
   let r;try{r=await call('plan-refresh-epics',{teamId:H.team.Id,ids:mine.map(e=>e.gusId),projectIds:gp.map(p=>p.gusId)});}catch(err){if(!auto)window.toast?.('Could not read GUS: '+err.message,true);return;}finally{if(btn){btn.disabled=false;btn.textContent=btn.dataset.t;}}
   const by=new Map((r.epics||[]).map(x=>[x.id,x])),gone=[],k15=v=>String(v||'').slice(0,15);
-  let ch=[];
+  let ch=[],gfDirty=false;
   // Project titles and methods (also for projects that have no epics yet).
   const gprj=new Map((r.projects||[]).map(x=>[k15(x.id),x]));
   (r.epics||[]).forEach(x=>{if(x.projectId&&!gprj.has(k15(x.projectId)))gprj.set(k15(x.projectId),{id:x.projectId,name:x.projectName,method:x.method});});
   for(const p of gp){const g=gprj.get(k15(p.gusId));if(!g)continue;
-    for(const [k,lb] of [['summary','Project summary'],['health','Project health'],['manager','Project manager'],['ranking','V2MOM priority/ranking']]){const gv=String((g.gf||{})[k]||''),pv=String((p.gf||{})[k]||'');if(g.gf&&gv!==pv)ch.push({who:projLabel(p),p,f:'pgf',k,label:lb,from:pv.slice(0,120)||'—',to:gv.slice(0,120)||'—',g});}
+    if(g.gf&&mirrorGf(p,g.gf))gfDirty=true;
     if(g.name&&g.name!==p.name)ch.push({who:projLabel(p),p,f:'pname',label:'Project title',from:p.name||'—',to:g.name,g});
     if((g.method||'')!==(p.method||'')&&(g.method||p.method))ch.push({who:projLabel(p),p,f:'pmethod',label:'V2MOM method',from:p.method||'—',to:g.method||'—',g});
     if(g.programId&&k15(g.programId)!==k15(p.programId)&&!(g.programName&&g.programName===p.programName))ch.push({who:projLabel(p),p,f:g.inProgram===false?'pmove':'pprog',label:g.inProgram===false?'Move project to this team’s program (edits GUS)':'Program',from:p.programName||'—',to:g.programName||'—',g});}
@@ -1067,7 +1069,7 @@ async function refreshFromGus(btn,auto){
      if(hit.length===1){const g=hit[0];ch.push({who:projLabel(p),p,f:'plink',label:'Link to GUS project',from:(p.name||'—')+' (not linked)',to:g.name,g:{...g,name:g.name,method:g.method||'',programId:g.programId,programName:g.programName}});}}}
   for(const e of mine){const g=by.get(e.gusId);if(!g){gone.push(e);continue;}
     const cur=pl.projects.find(p=>p.id===e.projectId),pn=cur?cur.name:'—',rn=e.releaseName||(P.refs&&P.refs.releases.find(x=>x.id===e.releaseId)||{}).name||'—',who=e.name||'(unnamed)';
-    for(const [k,lb] of [['health','Epic health'],['start','Planned start'],['end','Planned end'],['success','Success criteria']]){const gv=String((g.gf||{})[k]||''),ev=String((e.gf||{})[k]||'');if(g.gf&&gv!==ev)ch.push({e,who,f:'egf',k,label:lb,from:ev.slice(0,120)||'—',to:gv.slice(0,120)||'—',g});}
+    if(g.gf&&mirrorGf(e,g.gf))gfDirty=true;
     if(g.name&&g.name!==e.name)ch.push({e,who,f:'name',label:'Epic name',from:e.name||'—',to:g.name,g});
     if(g.projectId&&gusProj(e)!==g.projectId)ch.push({e,who,f:'project',label:'Project',from:pn,to:g.projectName||'—',g});
     if((g.releaseId||'')!==(e.releaseId||''))ch.push({e,who,f:'release',label:'Release',from:rn,to:g.releaseName||'No release',g});
@@ -1119,6 +1121,7 @@ async function refreshFromGus(btn,auto){
            const lo=wsNames(l).join(', ')||'—';if(st.assigneeName&&st.assigneeName!==lo&&!wsEngs(l).some(id=>k15(id)===k15(st.assigneeId)))ch.push({e,w:l,who:sw,f:'wown',label:'Workstream owner',from:lo,to:st.assigneeName,gw});
            const gst=gStat(st.status);if(gst&&gst!==(l.status||''))ch.push({e,w:l,who:sw,f:'wstat',label:'Workstream status',from:l.status||'—',to:gst+' ('+st.status+')',gw:{...st,mapped:gst}});}}
        else ch.push({e,who,f:'wnews',label:'New workstream (GUS user story)',from:'—',to:st.name,gw:st});}}}
+  if(gfDirty)queueSave();
   const applyIdx=on=>{let n=0;const touched=new Set();
     ch.forEach((c,i)=>{if(!on.has(i))return;const e=c.e,g=c.g,w=c.w,gw=c.gw;n++;
       if(c.f==='pname'){const old=c.p.name||'';if(!c.p.short||c.p.short===shortProj(old))c.p.short=shortProj(g.name);c.p.name=g.name;}
@@ -1155,7 +1158,8 @@ async function refreshFromGus(btn,auto){
   const FW={wname:'name',wown:'assigneeId',wdays:'days'},FE={name:'name',release:'releaseId',project:'projectId'};
   const dirOf=c=>{
     if(c.f==='pname'||c.f==='pmethod'||c.f==='pgf'||c.f==='egf'||c.f==='wnew'||c.f==='wlink')return 'pull';
-    if(['pprog','pmove','plink','eowner','epri','esmart','edesc','wnews'].includes(c.f)||(c.w&&c.w.storyId&&!c.w.gusId)||(c.f==='wdays'&&c.w&&!c.w.gusId))return 'skip';
+    if(c.f==='pmove')return 'skip'; // edits GUS: only on an explicit tick
+    if(['pprog','plink','eowner','epri','esmart','edesc','wnews','wstat'].includes(c.f)||(c.w&&c.w.storyId&&!c.w.gusId)||(c.f==='wdays'&&c.w&&!c.w.gusId))return 'pull';
     if(FE[c.f]&&c.e){let b={};try{b=JSON.parse((P.gsnap&&P.gsnap.get(c.e.gusId))||'{}');}catch(_){}const k=FE[c.f];const cur=k==='projectId'?gusProj(c.e):k==='name'?(c.e.name||''):(c.e.releaseId||'');return 'pull';}
     if(FW[c.f]&&c.w){const k=FW[c.f],b=c.w.gb;if(!b)return 'push';const cur=wv(c.w)[k],gv=k==='name'?c.gw.name:k==='days'?c.gw.days:c.gw.assigneeId;
       if(cur===b[k]||(k==='assigneeId'&&String(cur).slice(0,15)===String(b[k]).slice(0,15)))return 'pull';if(gv===b[k]||(k==='assigneeId'&&String(gv).slice(0,15)===String(b[k]).slice(0,15)))return 'push';return 'pull';}
