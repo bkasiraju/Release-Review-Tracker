@@ -1046,6 +1046,20 @@ const mirrorGf=(o,gf)=>{let d=false;const nv=Object.assign({},o.gf);for(const k 
 /** Three-way rule for automatic pulls: a field is pulled only when GUS changed since the dashboard last saw it (baseline b<key> in gf) AND the dashboard value is still that baseline. Dashboard edits, pending or saved, are never overwritten. */
 const flat0=v=>String(v||'').replace(/^\s*SMART Goal:\s*/i,'').replace(/\s+/g,' ').trim();
 const txt0=h=>{const d=document.createElement('div');d.innerHTML=String(h||'');return (d.textContent||'').replace(/\s+/g,' ').trim();};
+/** What Pull from GUS can sync, per entity. `on` marks the critical fields proposed by default; the rest are offered but unticked. */
+const SYNC_DEF={
+  p:{label:'Project',fields:[['pname','Title',1],['pmethod','V2MOM method',1],['pprog','Program',1],['pmove','Move into this team’s program (edits GUS)',1],['plink','Link an unlinked project to its GUS project',1]]},
+  e:{label:'Epic',fields:[['name','Name',1],['project','Project',1],['release','Planned release',1],['eowner','Owner (development lead)',1],['epri','Priority',1],['esmart','SMART goal',0],['edesc','Description',0]]},
+  w:{label:'Workstreams (user stories)',fields:[['wname','Name',1],['wdays','Days / points',1],['wown','Owner',1],['wnew','New or linked workstreams',1],['wstat','Status',0]]}};
+const SYNC_ALIAS={wnews:'wnew',wlink:'wnew'};
+const syncSet=()=>{const saved=P.plan&&P.plan.syncFields,out=new Set();for(const k of Object.keys(SYNC_DEF))for(const [f,,on] of SYNC_DEF[k].fields)if(saved?(saved[k]||[]).includes(f):on)out.add(f);return out;};
+function syncFieldsDialog(btn){
+  const cur=syncSet(),sec=(k,open)=>{const d=SYNC_DEF[k];const rows=d.fields.map(([f,l])=>`<label class="pgs-f"><input type="checkbox" data-sf="${k}:${f}"${cur.has(f)?' checked':''}> ${esc(l)}</label>`).join('');
+    return k==='w'?`<details class="pgs-sec"${open?' open':''}><summary><b>${esc(d.label)}</b> <span class="note">collapsed — expand to choose</span></summary><div class="pgs-grid">${rows}</div></details>`:`<div class="pgs-sec"><b>${esc(d.label)}</b><div class="pgs-grid">${rows}</div></div>`;};
+  const el=openModal('Pull from GUS — what to sync',`<p class="note">Only items already on the dashboard are checked, and only fields that changed in GUS are brought over. Critical fields are proposed; tick more if needed.</p>${sec('p')}${sec('e')}${sec('w')}<div class="nd-actions"><button type="button" class="button" data-close>Cancel</button><button type="button" class="button primary" data-sfgo>Continue</button></div>`,btn);
+  el.querySelector('[data-sfgo]').onclick=()=>{const o={p:[],e:[],w:[]};el.querySelectorAll('[data-sf]:checked').forEach(x=>{const [k,f]=x.dataset.sf.split(':');o[k].push(f);});
+    const prev=JSON.stringify(P.plan.syncFields||null);P.plan.syncFields=o;if(JSON.stringify(o)!==prev)queueSave();closeModal();refreshFromGus(btn,false);};
+}
 async function refreshFromGus(btn,auto){
   const pl=P.plan;if(!pl)return;const mine=pl.epics.filter(e=>e.gusId),gp=pl.projects.filter(p=>p.gusId);
   if(!mine.length&&!gp.length){if(!auto)window.toast?.('No projects or epics on the dashboard are linked to GUS yet.',false);return;}
@@ -1167,6 +1181,7 @@ async function refreshFromGus(btn,auto){
       if(isStory)Object.assign(B,{wname:[c.w,'name',()=>c.w.name,()=>c.gw.name],wdays:[c.w,'days',()=>String(c.w.days||0),()=>String(c.gw.days)],wown:[c.w,'owner',()=>wsFirst(c.w),()=>K(c.gw.assigneeId)],wstat:[c.w,'status',()=>c.w.status||'',()=>gStat(c.gw.status)]});
       const b=B[c.f];if(!b||(['wname','wdays','wown','wstat'].includes(c.f)&&!isStory))return null;return {base:b[0]&&b[0].gf?b[0].gf['b'+b[1]]:undefined,dash:b[2](),gus:b[3]()};};
   // Only fields whose GUS value changed since the dashboard last saw them are reported; a first sighting or an unchanged GUS value is not a GUS change.
+  {const want=syncSet();ch=ch.filter(c=>want.has(SYNC_ALIAS[c.f]||c.f));}
   ch=ch.filter(c=>{const x=bl(c);return !x||(x.base!==undefined&&x.base!==x.gus);});
   const dirOf=c=>{
     if(c.f==='pname'||c.f==='pmethod'||c.f==='pgf'||c.f==='egf'||c.f==='wnew'||c.f==='wlink')return 'pull';
@@ -1727,7 +1742,7 @@ function onClick(ev){
   if(t.closest('#pl-rm-hrp')){rmHrpDlg(t.closest('#pl-rm-hrp'));return;}
   if(t.closest('[data-wsnote-x]')){try{localStorage.setItem('pl-wsnote-x','1');}catch(_){}P.el.querySelector('#pl-wsnote')?.remove();return;}
   if(t.closest('#pl-fetchws')){fetchWs(false);return;}
-  if(t.closest('#pl-refresh-gus')){refreshFromGus(t.closest('#pl-refresh-gus'));return;}
+  if(t.closest('#pl-refresh-gus')){syncFieldsDialog(t.closest('#pl-refresh-gus'));return;}
   if(t.closest('[data-cm]')){const b=t.closest('[data-cm]');if(!b.disabled)commentsPop(b.dataset.cm,b.closest('.pl-cmw'));return;}
   if(t.closest('[data-ac]')){const b=t.closest('[data-ac]');actionPop(b.dataset.ac,b.closest('.pl-acw'));return;}
   if(t.closest('#pl-actlog'))return openActionLog(null,t.closest('#pl-actlog'));

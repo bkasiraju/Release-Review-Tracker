@@ -131,7 +131,10 @@ function cleanPlan(input) {
   // Engineers this team removed from its roster view / added from other CFS teams (the GUS roster itself is untouched)
   const hiddenEng = [...new Set((Array.isArray(p.hiddenEng) ? p.hiddenEng : []).map(gid).filter(Boolean))].slice(0, MAX.people);
   const extraEng = [...new Map((Array.isArray(p.extraEng) ? p.extraEng : []).filter(v => v && gid(v.id)).map(v => [gid(v.id), { id: gid(v.id), name: text(v.name, 80) }])).values()].slice(0, MAX.people);
-  return { window: { start: ISO.test(w.start) ? w.start : '', end: ISO.test(w.end) ? w.end : '', releaseId: gid(w.releaseId) }, people, projects, epics, hiddenProjects, hiddenEng, extraEng, lastCommit: last };
+  // Which fields Pull from GUS syncs, per entity (project / epic / workstream); absent = the critical defaults chosen in the dashboard.
+  const sfIn = p.syncFields && typeof p.syncFields === 'object' ? p.syncFields : null;
+  const syncFields = sfIn ? Object.fromEntries(['p', 'e', 'w'].map(k => [k, (Array.isArray(sfIn[k]) ? sfIn[k] : []).filter(v => /^[a-z]{2,8}$/.test(String(v))).slice(0, 16).map(String)])) : undefined;
+  return { window: { start: ISO.test(w.start) ? w.start : '', end: ISO.test(w.end) ? w.end : '', releaseId: gid(w.releaseId) }, people, projects, epics, hiddenProjects, hiddenEng, extraEng, lastCommit: last, ...(syncFields ? { syncFields } : {}) };
 }
 
 // Programs are per team and release, named "<Team> - <release>" in GUS

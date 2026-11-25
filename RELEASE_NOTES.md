@@ -4,6 +4,10 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r49 (folded)
+
+- Pull from GUS first asks what to sync: Project and Epic are shown with their critical fields ticked (project title, method, program/move, link; epic name, project, release, owner, priority); Workstreams are collapsed (name, days, owner, new/linked ticked; status optional). SMART goal and description are offered unticked. The choice is saved with the team's plan and also drives the automatic sync.
+
 ### 8.0.0-GA r48 (folded)
 
 - Pull from GUS only lists (and the automatic sync only applies) fields whose GUS value changed since the dashboard last saw them. Differences that already existed (for example story status, owner or days on imported user stories) are recorded as the starting point and no longer listed.

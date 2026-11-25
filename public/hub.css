@@ -3721,3 +3721,7 @@ html body .pgf-t td{overflow-wrap:anywhere!important;word-break:break-word!impor
 html body .pgf-t tr.pgf-row th{position:sticky!important;top:36px!important;background:#fff!important;padding:6px 8px!important;text-transform:none!important;vertical-align:middle!important;z-index:1}
 html body .pgf-t tr.pgf-row input,html body .pgf-t tr.pgf-row select{display:block!important;box-sizing:border-box!important;width:100%!important;min-width:0!important;max-width:100%!important;height:30px!important;font-size:12px!important;padding:0 8px!important;border:1px solid #cfd9e3!important;border-radius:6px!important;background:#fff!important}
 html body .pgf-t th,html body .pgf-t td{padding-left:8px!important;padding-right:8px!important}
+html body .pgs-sec{margin:10px 0!important;padding:10px 12px!important;border:1px solid #e0e7ff;border-radius:10px;background:#fbfcff}
+html body .pgs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:6px 14px;margin-top:8px}
+html body .pgs-f{display:flex;gap:8px;align-items:center;font-size:13px}
+html body .pgs-sec summary{cursor:pointer}
