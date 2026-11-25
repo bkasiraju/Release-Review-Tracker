@@ -670,12 +670,21 @@ async function refreshEpics(sf, teamId, ids, projectIds) {
   const rows = list.length ? (await sf.query(`SELECT ${EPIC_SEL}, Priority__c, Description__c, Health__c, Planned_Start_Date__c, Planned_End_Date__c, Success_Criteria__c FROM ADM_Epic__c WHERE Id IN (${inl(list)})`)).records || [] : [];
   // Linked projects are read on their own too, so a project's title, method and program refresh even when it has no epics.
   // A project that no longer sits in this team's program is reported (inProgram false) and never pulled.
-  let projects = [];
+  let projects = [], projectsError = '';
   if (plist.length) {
     try {
-      projects = ((await sf.query(`SELECT Id, Name, V2MOM_Method__c, Program__c, Program__r.Name, Project_Summary__c, Project_Health__c, Project_Manager__r.Name, V2MOM_Priority_Ranking__c FROM PPM_Project__c WHERE Id IN (${inl(plist)})`)).records || [])
-        .map(r => ({ id: r.Id, name: r.Name || '', method: r.V2MOM_Method__c || '', programId: r.Program__c || '', programName: (r.Program__r && r.Program__r.Name) || '', inProgram: !!tprog && r.Program__c === tprog.id, gf: { summary: plain(r.Project_Summary__c || ''), health: r.Project_Health__c || '', manager: (r.Project_Manager__r && r.Project_Manager__r.Name) || '', ranking: r.V2MOM_Priority_Ranking__c == null ? '' : String(r.V2MOM_Priority_Ranking__c) } }));
-    } catch (_) { /* project titles are best effort */ }
+      projects = ((await sf.query(`SELECT Id, Name, V2MOM_Method__c, Program__c, Program__r.Name FROM PPM_Project__c WHERE Id IN (${inl(plist)})`)).records || [])
+        .map(r => ({ id: r.Id, name: r.Name || '', method: r.V2MOM_Method__c || '', programId: r.Program__c || '', programName: (r.Program__r && r.Program__r.Name) || '', inProgram: !!tprog && r.Program__c === tprog.id }));
+    } catch (e) { projectsError = String(e && e.message || e).slice(0, 200); }
+    // Read-only GUS fields come in a second query so a field the user cannot read never hides the title/method/program.
+    if (projects.length) {
+      try {
+        const by = new Map(projects.map(x => [x.id, x]));
+        for (const r of (await sf.query(`SELECT Id, Project_Summary__c, Project_Health__c, Project_Manager__r.Name, V2MOM_Priority_Ranking__c FROM PPM_Project__c WHERE Id IN (${inl(plist)})`)).records || []) {
+          const x = by.get(r.Id); if (x) x.gf = { summary: plain(r.Project_Summary__c || ''), health: r.Project_Health__c || '', manager: (r.Project_Manager__r && r.Project_Manager__r.Name) || '', ranking: r.V2MOM_Priority_Ranking__c == null ? '' : String(r.V2MOM_Priority_Ranking__c) };
+        }
+      } catch (_) { /* extra project fields are best effort */ }
+    }
   }
   let workstreams = {};
   if (list.length) { try { workstreams = (await epicWorkstreams(sf, teamId, list)).byEpic; } catch (_) { /* workstreams are best effort */ } }
@@ -700,7 +709,7 @@ async function refreshEpics(sf, teamId, ids, projectIds) {
   return { epics: rows.map(r => {
     const d = String(r.Description__c || ''), sm = /^\s*(?:<p>\s*)?SMART Goal:\s*([\s\S]*?)(?:<\/p>|\n[ \t]*\n|$)/i.exec(d);
     return { ...ownProject(epicRow(r), tprog), priority: r.Priority__c == null ? null : Number(r.Priority__c), points: Number(r.Planned_Story_Points__c) || 0, gf: { health: r.Health__c || '', start: r.Planned_Start_Date__c || '', end: r.Planned_End_Date__c || '', success: plain(r.Success_Criteria__c || '') }, smartGoal: sm ? goalText(plain(sm[1])) : '', descriptionHtml: richHtml(d.replace(/^\s*<p>\s*SMART Goal:[\s\S]*?<\/p>\s*/i, '').replace(SMART_RE, ''), 30000) };
-  }), projects, foreignProjects, workstreams, stories };
+  }), projects, projectsError, foreignProjects, workstreams, stories };
 }
 
 // ── SMART goal ──────────────────────────────────────────────────────────────

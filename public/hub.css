@@ -3736,3 +3736,6 @@ html body .pl-gs-dot.ok{background:#16a34a}html body .pl-gs-dot.err{background:#
 html body .pl-gs-dot.run{background:#2563eb;animation:plgs 1s ease-in-out infinite}
 @keyframes plgs{0%,100%{opacity:.25}50%{opacity:1}}
 @media(prefers-reduced-motion:reduce){html body .pl-gs-dot.run{animation:none}}
+
+html body .topbar-right .pl-gs{margin:0 12px 0 0}
+html body .topbar-right .pl-gs:empty{display:none}

@@ -4,6 +4,12 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r53 (folded)
+
+- Pull from GUS now always picks up a rename of a linked project (for example GCP Migration → GCP). The dashboard shows linked project titles as read-only, so a baseline recorded after the rename can no longer hide it.
+- The GUS project read is split in two, so an unreadable extra field can no longer hide a project's title, method and program; a failed read is now reported in the Pull dialog.
+- The "Synced from GUS" status moved to the top header, before the Team dropdown.
+
 ### 8.0.0-GA r52 (folded)
 
 - When Pull from GUS finds nothing to apply, a "What was checked" section lists every dashboard project with its GUS link, the name GUS returns and its program, so a project that is not linked or not returned by GUS is visible.
