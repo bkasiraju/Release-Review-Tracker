@@ -1159,17 +1159,20 @@ async function refreshFromGus(btn,auto){
   // Automatic two-way sync: GUS changes flow to the dashboard when the dashboard side is untouched, dashboard edits flow to GUS when GUS is untouched; true conflicts are left for the Pull dialog.
   const wv=wsVals;
   const FW={wname:'name',wown:'assigneeId',wdays:'days'},FE={name:'name',release:'releaseId',project:'projectId'};
-  const dirOf=c=>{
-    if(c.f==='pname'||c.f==='pmethod'||c.f==='pgf'||c.f==='egf'||c.f==='wnew'||c.f==='wlink')return 'pull';
-    if(c.f==='pmove')return 'skip'; // edits GUS: only on an explicit tick
-    if(['plink','wnews','wnew','wlink'].includes(c.f))return 'pull';
-    {const K=k15,wsFirst=w=>K((w.engIds&&w.engIds[0])||w.engId||''),isStory=c.w&&c.w.storyId&&!c.w.gusId,
+  const bl=c=>{const K=k15,wsFirst=w=>K((w.engIds&&w.engIds[0])||w.engId||''),isStory=c.w&&c.w.storyId&&!c.w.gusId,
       B={pname:[c.p,'name',()=>c.p.name,()=>c.g.name],pmethod:[c.p,'method',()=>c.p.method,()=>c.g.method],pprog:[c.p,'program',()=>K(c.p.programId),()=>K(c.g.programId)],
          name:[c.e,'name',()=>c.e.name,()=>c.g.name],project:[c.e,'project',()=>K(gusProj(c.e)),()=>K(c.g.projectId)],release:[c.e,'release',()=>c.e.releaseId,()=>c.g.releaseId],
          eowner:[c.e,'lead',()=>K((c.e.owners||[])[0]),()=>K(c.g.leadId)],epri:[c.e,'priority',()=>String(c.e.priority==null?'':c.e.priority),()=>String(c.g.priority)],
          esmart:[c.e,'smart',()=>flat0(c.e.smartGoal),()=>flat0(c.g.smartGoal)],edesc:[c.e,'desc',()=>txt0(c.e.description).slice(0,300),()=>txt0(c.g.descriptionHtml).slice(0,300)]};
       if(isStory)Object.assign(B,{wname:[c.w,'name',()=>c.w.name,()=>c.gw.name],wdays:[c.w,'days',()=>String(c.w.days||0),()=>String(c.gw.days)],wown:[c.w,'owner',()=>wsFirst(c.w),()=>K(c.gw.assigneeId)],wstat:[c.w,'status',()=>c.w.status||'',()=>gStat(c.gw.status)]});
-      const b=B[c.f];if(b&&(!['wname','wdays','wown','wstat'].includes(c.f)||isStory)){const base=b[0]&&b[0].gf?b[0].gf['b'+b[1]]:undefined;return base!==undefined&&base!==b[3]()&&base===b[2]()?'pull':'skip';}}
+      const b=B[c.f];if(!b||(['wname','wdays','wown','wstat'].includes(c.f)&&!isStory))return null;return {base:b[0]&&b[0].gf?b[0].gf['b'+b[1]]:undefined,dash:b[2](),gus:b[3]()};};
+  // Only fields whose GUS value changed since the dashboard last saw them are reported; a first sighting or an unchanged GUS value is not a GUS change.
+  ch=ch.filter(c=>{const x=bl(c);return !x||(x.base!==undefined&&x.base!==x.gus);});
+  const dirOf=c=>{
+    if(c.f==='pname'||c.f==='pmethod'||c.f==='pgf'||c.f==='egf'||c.f==='wnew'||c.f==='wlink')return 'pull';
+    if(c.f==='pmove')return 'skip'; // edits GUS: only on an explicit tick
+    if(['plink','wnews','wnew','wlink'].includes(c.f))return 'pull';
+    {const x=bl(c);if(x)return x.base!==undefined&&x.base!==x.gus&&x.base===x.dash?'pull':'skip';}
     if(c.w&&c.w.storyId&&!c.w.gusId)return 'skip';
     if(c.f==='wdays'&&c.w&&!c.w.gusId)return 'skip';
     if(FE[c.f]&&c.e){let b={};try{b=JSON.parse((P.gsnap&&P.gsnap.get(c.e.gusId))||'{}');}catch(_){}const k=FE[c.f];const cur=k==='projectId'?gusProj(c.e):k==='name'?(c.e.name||''):(c.e.releaseId||'');return 'pull';}
