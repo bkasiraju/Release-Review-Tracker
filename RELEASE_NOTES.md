@@ -4,6 +4,11 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r51 (folded)
+
+- A visible sync indicator next to Pull from GUS shows "Syncing from GUS…", the last sync time and how many items were updated, or a failure.
+- Fix: a GUS rename of a project (for example "GCP Migration" to "GCP") was missed when it happened before the dashboard had a baseline for it. Project title/method and epic name/project/release differences are now pulled even on first sight; other fields still start from a quiet baseline.
+
 ### 8.0.0-GA r50 (folded)
 
 - The "what to sync" screen is tidied: two aligned columns, checkbox then label on the left, a plain collapsed Workstreams section.
