@@ -3703,3 +3703,6 @@ html body .pl-grid-wrap .pl-grid thead th.c-theme{text-align:left!important}
 /* r36: theme is required on every epic */
 html body .pl-grid input.pl-need{border-color:#ba0517!important;background:#fff6f6!important}
 html body .pl-grid input.pl-need::placeholder{color:#ba0517;opacity:.8}
+
+/* r37: narrower Epic Name, wider Workstream */
+html body .pl-grid-wrap .pl-grid th.c-name,html body .pl-grid-wrap .pl-grid td.c-name{width:21
