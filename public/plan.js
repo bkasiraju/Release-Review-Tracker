@@ -1054,8 +1054,8 @@ const SYNC_DEF={
 const SYNC_ALIAS={wnews:'wnew',wlink:'wnew'};
 const syncSet=()=>{const saved=P.plan&&P.plan.syncFields,out=new Set();for(const k of Object.keys(SYNC_DEF))for(const [f,,on] of SYNC_DEF[k].fields)if(saved?(saved[k]||[]).includes(f):on)out.add(f);return out;};
 function syncFieldsDialog(btn){
-  const cur=syncSet(),sec=(k,open)=>{const d=SYNC_DEF[k];const rows=d.fields.map(([f,l])=>`<label class="pgs-f"><input type="checkbox" data-sf="${k}:${f}"${cur.has(f)?' checked':''}> ${esc(l)}</label>`).join('');
-    return k==='w'?`<details class="pgs-sec"${open?' open':''}><summary><b>${esc(d.label)}</b> <span class="note">collapsed — expand to choose</span></summary><div class="pgs-grid">${rows}</div></details>`:`<div class="pgs-sec"><b>${esc(d.label)}</b><div class="pgs-grid">${rows}</div></div>`;};
+  const cur=syncSet(),sec=(k,open)=>{const d=SYNC_DEF[k];const rows=d.fields.map(([f,l])=>`<label class="pgs-f"><input type="checkbox" data-sf="${k}:${f}"${cur.has(f)?' checked':''}><span>${esc(l)}</span></label>`).join('');
+    return k==='w'?`<details class="pgs-sec"${open?' open':''}><summary>${esc(d.label)} <small>(collapsed — expand to choose)</small></summary><div class="pgs-grid">${rows}</div></details>`:`<div class="pgs-sec"><h4>${esc(d.label)}</h4><div class="pgs-grid">${rows}</div></div>`;};
   const el=openModal('Pull from GUS — what to sync',`<p class="note">Only items already on the dashboard are checked, and only fields that changed in GUS are brought over. Critical fields are proposed; tick more if needed.</p>${sec('p')}${sec('e')}${sec('w')}<div class="nd-actions"><button type="button" class="button" data-close>Cancel</button><button type="button" class="button primary" data-sfgo>Continue</button></div>`,btn);
   el.querySelector('[data-sfgo]').onclick=()=>{const o={p:[],e:[],w:[]};el.querySelectorAll('[data-sf]:checked').forEach(x=>{const [k,f]=x.dataset.sf.split(':');o[k].push(f);});
     const prev=JSON.stringify(P.plan.syncFields||null);P.plan.syncFields=o;if(JSON.stringify(o)!==prev)queueSave();closeModal();refreshFromGus(btn,false);};
