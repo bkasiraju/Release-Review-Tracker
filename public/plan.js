@@ -1043,13 +1043,16 @@ const sameJson=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 const gStat=v=>{v=String(v||'').toLowerCase();return /^(closed|completed?|fixed|done|resolved)/.test(v)?'Completed':/^(in progress|ready for review|in review|pending release|qa in progress)/.test(v)?'In Progress':/^(waiting|on hold|blocked)/.test(v)?'On Hold':v?'Planned':'';};
 /** GUS-only read fields (health, summary, dates...) are mirrored straight onto the dashboard record: nothing to review, nothing edited on the dashboard. Returns true when something changed. */
 const mirrorGf=(o,gf)=>{let d=false;const nv=Object.assign({},o.gf);for(const k of Object.keys(gf)){const v=String(gf[k]==null?'':gf[k]);if(nv[k]!==v){nv[k]=v;d=true;}}if(d)o.gf=nv;return d;};
+/** Three-way rule for automatic pulls: a field is pulled only when GUS changed since the dashboard last saw it (baseline b<key> in gf) AND the dashboard value is still that baseline. Dashboard edits, pending or saved, are never overwritten. */
+const flat0=v=>String(v||'').replace(/^\s*SMART Goal:\s*/i,'').replace(/\s+/g,' ').trim();
+const txt0=h=>{const d=document.createElement('div');d.innerHTML=String(h||'');return (d.textContent||'').replace(/\s+/g,' ').trim();};
 async function refreshFromGus(btn,auto){
   const pl=P.plan;if(!pl)return;const mine=pl.epics.filter(e=>e.gusId),gp=pl.projects.filter(p=>p.gusId);
   if(!mine.length&&!gp.length){if(!auto)window.toast?.('No projects or epics on the dashboard are linked to GUS yet.',false);return;}
   if(btn){btn.disabled=true;btn.dataset.t=btn.textContent;btn.textContent='Checking GUS…';}
   let r;try{r=await call('plan-refresh-epics',{teamId:H.team.Id,ids:mine.map(e=>e.gusId),projectIds:gp.map(p=>p.gusId)});}catch(err){if(!auto)window.toast?.('Could not read GUS: '+err.message,true);return;}finally{if(btn){btn.disabled=false;btn.textContent=btn.dataset.t;}}
   const by=new Map((r.epics||[]).map(x=>[x.id,x])),gone=[],k15=v=>String(v||'').slice(0,15);
-  let ch=[],gfDirty=false;
+  let ch=[],gfDirty=false;const bq=[];const wb=(l,st)=>mirrorGf(l,{bname:st.name||'',bdays:String(st.days||0),bowner:k15(st.assigneeId),bstatus:gStat(st.status)});
   // Project titles and methods (also for projects that have no epics yet).
   const gprj=new Map((r.projects||[]).map(x=>[k15(x.id),x]));
   (r.epics||[]).forEach(x=>{if(x.projectId&&!gprj.has(k15(x.projectId)))gprj.set(k15(x.projectId),{id:x.projectId,name:x.projectName,method:x.method});});
@@ -1089,7 +1092,7 @@ async function refreshFromGus(btn,auto){
           // Already on the dashboard without a story link (same story or same name): treat as existing, link it quietly, and only report real differences.
           if(!l){l=e.workstreams.find(x=>!seenS.has(x)&&!x.storyId&&!x.gusId&&nn(x.name)&&nn(x.name)===nn(st.name));}
           if(l&&!l.storyId&&!l.gusId)l.storyId=st.gusId;
-          if(l){seenS.add(l);const sw=who+' › '+(l.name||st.name),gw={...st,name:st.name,days:st.days,assigneeId:st.assigneeId,assigneeName:st.assigneeName};
+          if(l){seenS.add(l);bq.push(()=>wb(l,st));const sw=who+' › '+(l.name||st.name),gw={...st,name:st.name,days:st.days,assigneeId:st.assigneeId,assigneeName:st.assigneeName};
             if(st.name&&st.name!==l.name)ch.push({e,w:l,who,f:'wname',label:'Workstream name',from:l.name||'—',to:st.name,gw});
             if(Math.abs((Number(l.days)||0)-st.days)>0.001)ch.push({e,w:l,who:sw,f:'wdays',label:'Workstream days',from:String(l.days||0),to:String(st.days),gw});
             const lo=wsNames(l).join(', ')||'—';if(st.assigneeName&&st.assigneeName!==lo&&!wsEngs(l).some(id=>k15(id)===k15(st.assigneeId)))ch.push({e,w:l,who:sw,f:'wown',label:'Workstream owner',from:lo,to:st.assigneeName,gw});
@@ -1114,7 +1117,7 @@ async function refreshFromGus(btn,auto){
      const gs=(r.stories&&(r.stories[e.gusId]||r.stories[Object.keys(r.stories).find(k=>k15(k)===k15(e.gusId))||'']))||[];
      for(const st of gs){if(inWs.has(k15(st.gusId)))continue;
        let l=e.workstreams.find(x=>!seenU.has(x)&&((x.storyId&&k15(x.storyId)===k15(st.gusId))||(x.gusId&&k15(x.gusId)===k15(st.gusId))))||e.workstreams.find(x=>!seenU.has(x)&&!seen.has(x)&&!x.storyId&&!x.gusId&&nn(x.name)&&nn(x.name)===nn(st.name));
-       if(l){seenU.add(l);if(!l.storyId&&!l.gusId)l.storyId=st.gusId;
+       if(l){seenU.add(l);bq.push(()=>wb(l,st));if(!l.storyId&&!l.gusId)l.storyId=st.gusId;
          if(l.storyId&&!l.gusId){const sw=who+' › '+(l.name||st.name),gw={...st};
            if(st.name&&st.name!==l.name)ch.push({e,w:l,who,f:'wname',label:'Workstream name',from:l.name||'—',to:st.name,gw});
            if(Math.abs((Number(l.days)||0)-st.days)>0.001)ch.push({e,w:l,who:sw,f:'wdays',label:'Workstream days',from:String(l.days||0),to:String(st.days),gw});
@@ -1159,21 +1162,36 @@ async function refreshFromGus(btn,auto){
   const dirOf=c=>{
     if(c.f==='pname'||c.f==='pmethod'||c.f==='pgf'||c.f==='egf'||c.f==='wnew'||c.f==='wlink')return 'pull';
     if(c.f==='pmove')return 'skip'; // edits GUS: only on an explicit tick
-    if(['pprog','plink','eowner','epri','esmart','edesc','wnews','wstat'].includes(c.f)||(c.w&&c.w.storyId&&!c.w.gusId)||(c.f==='wdays'&&c.w&&!c.w.gusId))return 'pull';
+    if(['plink','wnews','wnew','wlink'].includes(c.f))return 'pull';
+    {const K=k15,wsFirst=w=>K((w.engIds&&w.engIds[0])||w.engId||''),isStory=c.w&&c.w.storyId&&!c.w.gusId,
+      B={pname:[c.p,'name',()=>c.p.name,()=>c.g.name],pmethod:[c.p,'method',()=>c.p.method,()=>c.g.method],pprog:[c.p,'program',()=>K(c.p.programId),()=>K(c.g.programId)],
+         name:[c.e,'name',()=>c.e.name,()=>c.g.name],project:[c.e,'project',()=>K(gusProj(c.e)),()=>K(c.g.projectId)],release:[c.e,'release',()=>c.e.releaseId,()=>c.g.releaseId],
+         eowner:[c.e,'lead',()=>K((c.e.owners||[])[0]),()=>K(c.g.leadId)],epri:[c.e,'priority',()=>String(c.e.priority==null?'':c.e.priority),()=>String(c.g.priority)],
+         esmart:[c.e,'smart',()=>flat0(c.e.smartGoal),()=>flat0(c.g.smartGoal)],edesc:[c.e,'desc',()=>txt0(c.e.description).slice(0,300),()=>txt0(c.g.descriptionHtml).slice(0,300)]};
+      if(isStory)Object.assign(B,{wname:[c.w,'name',()=>c.w.name,()=>c.gw.name],wdays:[c.w,'days',()=>String(c.w.days||0),()=>String(c.gw.days)],wown:[c.w,'owner',()=>wsFirst(c.w),()=>K(c.gw.assigneeId)],wstat:[c.w,'status',()=>c.w.status||'',()=>gStat(c.gw.status)]});
+      const b=B[c.f];if(b&&(!['wname','wdays','wown','wstat'].includes(c.f)||isStory)){const base=b[0]&&b[0].gf?b[0].gf['b'+b[1]]:undefined;return base!==undefined&&base!==b[3]()&&base===b[2]()?'pull':'skip';}}
+    if(c.w&&c.w.storyId&&!c.w.gusId)return 'skip';
+    if(c.f==='wdays'&&c.w&&!c.w.gusId)return 'skip';
     if(FE[c.f]&&c.e){let b={};try{b=JSON.parse((P.gsnap&&P.gsnap.get(c.e.gusId))||'{}');}catch(_){}const k=FE[c.f];const cur=k==='projectId'?gusProj(c.e):k==='name'?(c.e.name||''):(c.e.releaseId||'');return 'pull';}
     if(FW[c.f]&&c.w){const k=FW[c.f],b=c.w.gb;if(!b)return 'push';const cur=wv(c.w)[k],gv=k==='name'?c.gw.name:k==='days'?c.gw.days:c.gw.assigneeId;
       if(cur===b[k]||(k==='assigneeId'&&String(cur).slice(0,15)===String(b[k]).slice(0,15)))return 'pull';if(gv===b[k]||(k==='assigneeId'&&String(gv).slice(0,15)===String(b[k]).slice(0,15)))return 'push';return 'pull';}
     return 'skip';};
+  const rebase=()=>{let d=false;
+    for(const p of gp){const g=gprj.get(k15(p.gusId));if(g&&mirrorGf(p,{bname:g.name||'',bmethod:g.method||'',bprogram:k15(g.programId)}))d=true;}
+    for(const e of mine){const g=by.get(e.gusId);if(g&&mirrorGf(e,{bname:g.name||'',bproject:k15(g.projectId),brelease:g.releaseId||'',blead:k15(g.leadId),bpriority:String(g.priority==null?'':g.priority),bsmart:flat0(g.smartGoal),bdesc:txt0(g.descriptionHtml).slice(0,300)}))d=true;}
+    bq.forEach(f=>{if(f())d=true;});if(d)queueSave();};
   if(auto){
     const pull=new Set(),push=[];ch.forEach((c,i)=>{const d=dirOf(c);if(d==='pull')pull.add(i);else if(d==='push'&&c.f in FW)push.push(c);});
     const n=pull.size?applyIdx(pull):0;
+    rebase();
     // Workstreams in agreement (or just reconciled) get a fresh baseline so later edits on either side are recognised.
     const pushed=await pushWsEdits(push.map(c=>c.w));
     pl.epics.forEach(e=>e.workstreams.forEach(w=>{if(w.gusId&&!(ch.some(c=>c.w===w)&&!(pull.has(ch.findIndex(c=>c.w===w))||push.some(c=>c.w===w))))w.gb=wv(w);}));
     if(n||pushed||push.length){draw();queueSave();if(n)window.toast?.(`Updated ${n} item${n>1?'s':''} from GUS.`,false);}
     else if(pl.epics.some(e=>e.workstreams.some(w=>w.gusId&&!sameJson(w.gb,wv(w))))){queueSave();}
     return;}
-  const body=ch.length?`<p class="note">GUS differs from the dashboard for ${ch.length} item(s). Untick anything you want to keep as it is on the dashboard.</p><div class="pl-rf-bar"><button type="button" class="button" data-rsel="1">Select all</button> <button type="button" class="button" data-rsel="0">Unselect all</button> <span class="note" data-rcount></span></div><div class="pl-mo-scroll"><table class="pl-rps-t pl-rps-m"><thead><tr><th><input type="checkbox" data-rall checked aria-label="Select or unselect all shown"></th><th>Item</th><th>Field</th><th>Dashboard</th><th>GUS</th></tr><tr class="pl-rf"><th></th><th><input type="search" data-rfc="1" placeholder="Filter item" aria-label="Filter item"></th><th><select data-rfc="2" aria-label="Filter field"><option value="">All fields</option>${[...new Set(ch.map(c=>c.label))].sort().map(l=>`<option>${esc(l)}</option>`).join('')}</select></th><th><input type="search" data-rfc="3" placeholder="Filter dashboard" aria-label="Filter dashboard value"></th><th><input type="search" data-rfc="4" placeholder="Filter GUS" aria-label="Filter GUS value"></th></tr></thead><tbody>${ch.map((c,i)=>`<tr><td><input type="checkbox" data-rc="${i}" checked aria-label="Apply ${esc(c.label)} change"></td><td class="pl-mo-n">${esc(c.who)}</td><td>${c.label}</td><td>${esc(c.from)}</td><td><b>${esc(c.to)}</b></td></tr>`).join('')}</tbody></table></div>`:`<p class="pl-iss-ok">The dashboard matches GUS for ${gp.length} project(s) and ${mine.length} epic(s), with their workstreams. Nothing to apply.</p>`;
+  rebase();
+  const body=ch.length?`<p class="note">GUS differs from the dashboard for ${ch.length} item(s). Untick anything you want to keep as it is on the dashboard.</p><div class="pgf-bar"><button type="button" class="button" data-rsel="1">Select all</button> <button type="button" class="button" data-rsel="0">Unselect all</button> <span class="note" data-rcount></span></div><div class="pl-mo-scroll"><table class="pl-rps-t pl-rps-m pgf-t"><thead><tr><th><input type="checkbox" data-rall checked aria-label="Select or unselect all shown"></th><th>Item</th><th>Field</th><th>Dashboard</th><th>GUS</th></tr><tr class="pgf-row"><th></th><th><input type="search" data-rfc="1" placeholder="Filter item" aria-label="Filter item"></th><th><select data-rfc="2" aria-label="Filter field"><option value="">All fields</option>${[...new Set(ch.map(c=>c.label))].sort().map(l=>`<option>${esc(l)}</option>`).join('')}</select></th><th><input type="search" data-rfc="3" placeholder="Filter dashboard" aria-label="Filter dashboard value"></th><th><input type="search" data-rfc="4" placeholder="Filter GUS" aria-label="Filter GUS value"></th></tr></thead><tbody>${ch.map((c,i)=>`<tr><td><input type="checkbox" data-rc="${i}" checked aria-label="Apply ${esc(c.label)} change"></td><td class="pl-mo-n">${esc(c.who)}</td><td>${c.label}</td><td>${esc(c.from)}</td><td><b>${esc(c.to)}</b></td></tr>`).join('')}</tbody></table></div>`:`<p class="pl-iss-ok">The dashboard matches GUS for ${gp.length} project(s) and ${mine.length} epic(s), with their workstreams. Nothing to apply.</p>`;
   const el=openModal('Pull from GUS',body+(gone.length?`<p class="note">${gone.length} item(s) were not found in GUS and are unchanged: ${esc(gone.map(e=>e.name||'(unnamed)').join(', '))}.</p>`:'')+`<div class="nd-actions"><button type="button" class="button" data-close>${ch.length?'Cancel':'Close'}</button>${ch.length?'<button type="button" class="button primary" data-rapply>Apply selected</button>':''}</div>`,btn,true);
   const ap=el.querySelector('[data-rapply]');if(!ap)return;
   {const rows=[...el.querySelectorAll('tbody tr')],cnt=el.querySelector('[data-rcount]'),all=el.querySelector('[data-rall]'),vis=()=>rows.filter(r=>!r.hidden);

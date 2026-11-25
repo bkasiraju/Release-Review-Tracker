@@ -4,6 +4,11 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r47 (folded)
+
+- Automatic GUS-to-dashboard sync never overwrites a dashboard edit. A field is pulled only when GUS changed since the dashboard last saw it (a stored baseline per field) and the dashboard value still equals that baseline; if the dashboard value changed (pending or saved), or both sides changed, it is left alone and only listed in the manual Pull dialog.
+- Pull dialog columns line up: the filter row sits under each column header with fixed column widths (the filter classes had collided with the summary filter bar styles, which is also fixed).
+
 ### 8.0.0-GA r46 (folded)
 
 - Pull from GUS is quiet: GUS-only fields (project summary/health/manager/ranking, epic health/dates/success criteria) are copied onto the dashboard silently instead of being listed (the first pull used to list 203 of them). The automatic GUS-to-dashboard sync now also applies project program/link, epic owner, priority, SMART goal, description, new user stories and story status, so GUS changes reflect on the dashboard like dashboard edits reach GUS. Only moving a project to the team program (which edits GUS) still needs a tick. Filter row in the Pull list no longer overlaps.

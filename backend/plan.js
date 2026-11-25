@@ -100,7 +100,7 @@ async function liveInSync(sf, plan, includeBtl) {
 }
 
 /** GUS-sourced read-only field values kept beside a linked project/epic/workstream (key -> plain text, as GUS stores them) so Pull from GUS can compare them. */
-const cleanGf = g => Object.fromEntries(Object.entries(g && typeof g === 'object' ? g : {}).filter(([k]) => /^[a-zA-Z]{1,24}$/.test(k)).slice(0, 16).map(([k, v]) => [k, text(v == null ? '' : v, 600)]));
+const cleanGf = g => Object.fromEntries(Object.entries(g && typeof g === 'object' ? g : {}).filter(([k]) => /^[a-zA-Z]{1,24}$/.test(k)).slice(0, 28).map(([k, v]) => [k, text(v == null ? '' : v, 600)]));
 const STATUS = ['Planned', 'In Progress', 'Completed', 'On Hold'];
 function cleanPlan(input) {
   const p = input && typeof input === 'object' ? input : {};
