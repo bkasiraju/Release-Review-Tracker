@@ -323,6 +323,23 @@ async function createProject(sf, teamId, input) {
   return { gusId: r.id, created: r.created, programId: program ? program.id : '', programName: program ? program.name : '' };
 }
 /** Deletes a project (measure) in GUS. Guarded: it must sit in this team's program and have no epics left in GUS, so shared work is never lost. */
+/** Move a project that this team uses into the team's own program (edits Program__c in GUS). Refused when another team's epics also use the project. */
+async function moveProject(sf, teamId, input) {
+  planKey(teamId);
+  const id = gid(input && input.gusId);
+  if (!id) throw new Error('This project is not in GUS.');
+  const program = await teamProgram(sf, teamId);
+  if (!program) throw new Error('This team has no GUS program for the planning release.');
+  const hit = ((await sf.query(`SELECT Id, Name, Program__c FROM PPM_Project__c WHERE Id = '${id}' LIMIT 1`)).records || [])[0];
+  if (!hit) throw new Error('That project was not found in GUS.');
+  if (hit.Program__c === program.id) return { moved: false, gusId: id, name: hit.Name, programId: program.id, programName: program.name };
+  const other = ((await sf.query(`SELECT Id FROM ADM_Epic__c WHERE Project__c = '${id}' AND Team__c != '${teamId}' LIMIT 1`)).records || [])[0];
+  if (other) throw new Error(`“${hit.Name}” is also used by another team's epics, so it was not moved. Split it per team in GUS first.`);
+  const res = await sf.update('PPM_Project__c', id, { Program__c: program.id });
+  if (res && !ok(res)) throw new Error('GUS rejected the program change: ' + (plain(errText(res)) || 'unknown error'));
+  refsCache.delete(teamId);
+  return { moved: true, gusId: id, name: hit.Name, programId: program.id, programName: program.name };
+}
 async function deleteProject(sf, teamId, input, store) {
   planKey(teamId);
   const id = gid(input && input.gusId);
@@ -944,4 +961,4 @@ async function commitRun(sf, store, teamId, confirm, includeBtl, acknowledged) {
   return { results, failed: results.filter(x => !x.ok).length, plan: saved && saved.plan, revision: saved && saved.revision, saveError };
 }
 
-module.exports = { moveWorkstream, epicDescriptionHtml, adoptEpic, richHtml, teamName, syncWorkstreams, withOutcome, outcomeOf, fiscalQuarter, refreshEpics, saveSmartGoal, generateSmartGoal, withSmartGoal, epicWorkstreams, epicStories, epicLeads, deleteEpic, deleteWorkstream, programProjects, importV2mom, resolveProgram, teamProgram, getPlan, savePlan, getRefs, commitPlan, createProject, deleteProject, createEpic, listEpics, findEpics, createWorkstream, syncEpics, review, cleanPlan };
+module.exports = { moveProject, moveWorkstream, epicDescriptionHtml, adoptEpic, richHtml, teamName, syncWorkstreams, withOutcome, outcomeOf, fiscalQuarter, refreshEpics, saveSmartGoal, generateSmartGoal, withSmartGoal, epicWorkstreams, epicStories, epicLeads, deleteEpic, deleteWorkstream, programProjects, importV2mom, resolveProgram, teamProgram, getPlan, savePlan, getRefs, commitPlan, createProject, deleteProject, createEpic, listEpics, findEpics, createWorkstream, syncEpics, review, cleanPlan };

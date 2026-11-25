@@ -1039,6 +1039,8 @@ async function syncWsEdits(){
   if(list.length&&await pushWsEdits(list))queueSave();}
 const sameJson=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 /** Pull the current GUS state of the plan's linked projects (title, method), epics (name, project, release) and workstreams (name, owner, days, new ones), show what differs, and apply only what the user ticks. GUS is the source of truth. */
+/** GUS story status -> dashboard workstream status. */
+const gStat=v=>{v=String(v||'').toLowerCase();return /^(closed|completed?|fixed|done|resolved)/.test(v)?'Completed':/^(in progress|ready for review|in review|pending release|qa in progress)/.test(v)?'In Progress':/^(waiting|on hold|blocked)/.test(v)?'On Hold':v?'Planned':'';};
 async function refreshFromGus(btn,auto){
   const pl=P.plan;if(!pl)return;const mine=pl.epics.filter(e=>e.gusId),gp=pl.projects.filter(p=>p.gusId);
   if(!mine.length&&!gp.length){if(!auto)window.toast?.('No projects or epics on the dashboard are linked to GUS yet.',false);return;}
@@ -1053,7 +1055,7 @@ async function refreshFromGus(btn,auto){
     for(const [k,lb] of [['summary','Project summary'],['health','Project health'],['manager','Project manager'],['ranking','V2MOM priority/ranking']]){const gv=String((g.gf||{})[k]||''),pv=String((p.gf||{})[k]||'');if(g.gf&&gv!==pv)ch.push({who:projLabel(p),p,f:'pgf',k,label:lb,from:pv.slice(0,120)||'—',to:gv.slice(0,120)||'—',g});}
     if(g.name&&g.name!==p.name)ch.push({who:projLabel(p),p,f:'pname',label:'Project title',from:p.name||'—',to:g.name,g});
     if((g.method||'')!==(p.method||'')&&(g.method||p.method))ch.push({who:projLabel(p),p,f:'pmethod',label:'V2MOM method',from:p.method||'—',to:g.method||'—',g});
-    if(g.programId&&k15(g.programId)!==k15(p.programId)&&!(g.programName&&g.programName===p.programName))ch.push({who:projLabel(p),p,f:'pprog',label:g.inProgram===false?'Program (outside this team’s program)':'Program',from:p.programName||'—',to:g.programName||'—',g});}
+    if(g.programId&&k15(g.programId)!==k15(p.programId)&&!(g.programName&&g.programName===p.programName))ch.push({who:projLabel(p),p,f:g.inProgram===false?'pmove':'pprog',label:g.inProgram===false?'Move project to this team’s program (edits GUS)':'Program',from:p.programName||'—',to:g.programName||'—',g});}
   // Dashboard projects not linked to GUS yet: link them to the team-program project with the same name (or the only one that starts with it), so they get the GUS title and mapping.
   {const nz=v=>String(v||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim(),taken=new Set(pl.projects.filter(p=>p.gusId).map(p=>k15(p.gusId))),refs=((P.refs&&P.refs.projects)||[]).filter(x=>!taken.has(k15(x.id)));
    for(const p of pl.projects){if(p.gusId)continue;const ks=[nz(p.name),nz(p.short)].filter(Boolean);if(!ks.length)continue;
@@ -1084,7 +1086,8 @@ async function refreshFromGus(btn,auto){
           if(l){seenS.add(l);const sw=who+' › '+(l.name||st.name),gw={...st,name:st.name,days:st.days,assigneeId:st.assigneeId,assigneeName:st.assigneeName};
             if(st.name&&st.name!==l.name)ch.push({e,w:l,who,f:'wname',label:'Workstream name',from:l.name||'—',to:st.name,gw});
             if(Math.abs((Number(l.days)||0)-st.days)>0.001)ch.push({e,w:l,who:sw,f:'wdays',label:'Workstream days',from:String(l.days||0),to:String(st.days),gw});
-            const lo=wsNames(l).join(', ')||'—';if(st.assigneeName&&st.assigneeName!==lo&&!wsEngs(l).some(id=>k15(id)===k15(st.assigneeId)))ch.push({e,w:l,who:sw,f:'wown',label:'Workstream owner',from:lo,to:st.assigneeName,gw});}
+            const lo=wsNames(l).join(', ')||'—';if(st.assigneeName&&st.assigneeName!==lo&&!wsEngs(l).some(id=>k15(id)===k15(st.assigneeId)))ch.push({e,w:l,who:sw,f:'wown',label:'Workstream owner',from:lo,to:st.assigneeName,gw});
+            {const gst=gStat(st.status);if(gst&&gst!==(l.status||''))ch.push({e,w:l,who:sw,f:'wstat',label:'Workstream status',from:l.status||'—',to:gst+' ('+st.status+')',gw:{...st,mapped:gst}});}}
           else ch.push({e,who,f:'wnews',label:'New workstream (GUS story)',from:'—',to:st.name,gw:st});}
         e.workstreams.filter(x=>x.storyId&&!seenS.has(x)).forEach(x=>gone.push({name:(e.name||'(unnamed)')+' › '+(x.name||'workstream')}));}
       continue;}
@@ -1106,12 +1109,17 @@ async function refreshFromGus(btn,auto){
      for(const st of gs){if(inWs.has(k15(st.gusId)))continue;
        let l=e.workstreams.find(x=>!seenU.has(x)&&((x.storyId&&k15(x.storyId)===k15(st.gusId))||(x.gusId&&k15(x.gusId)===k15(st.gusId))))||e.workstreams.find(x=>!seenU.has(x)&&!seen.has(x)&&!x.storyId&&!x.gusId&&nn(x.name)&&nn(x.name)===nn(st.name));
        if(l){seenU.add(l);if(!l.storyId&&!l.gusId)l.storyId=st.gusId;
-         if(l.storyId&&!l.gusId&&Math.abs((Number(l.days)||0)-st.days)>0.001)ch.push({e,w:l,who:who+' › '+(l.name||st.name),f:'wdays',label:'Workstream days',from:String(l.days||0),to:String(st.days),gw:{...st,days:st.days}});}
+         if(l.storyId&&!l.gusId){const sw=who+' › '+(l.name||st.name),gw={...st};
+           if(st.name&&st.name!==l.name)ch.push({e,w:l,who,f:'wname',label:'Workstream name',from:l.name||'—',to:st.name,gw});
+           if(Math.abs((Number(l.days)||0)-st.days)>0.001)ch.push({e,w:l,who:sw,f:'wdays',label:'Workstream days',from:String(l.days||0),to:String(st.days),gw});
+           const lo=wsNames(l).join(', ')||'—';if(st.assigneeName&&st.assigneeName!==lo&&!wsEngs(l).some(id=>k15(id)===k15(st.assigneeId)))ch.push({e,w:l,who:sw,f:'wown',label:'Workstream owner',from:lo,to:st.assigneeName,gw});
+           const gst=gStat(st.status);if(gst&&gst!==(l.status||''))ch.push({e,w:l,who:sw,f:'wstat',label:'Workstream status',from:l.status||'—',to:gst+' ('+st.status+')',gw:{...st,mapped:gst}});}}
        else ch.push({e,who,f:'wnews',label:'New workstream (GUS user story)',from:'—',to:st.name,gw:st});}}}
   const applyIdx=on=>{let n=0;const touched=new Set();
     ch.forEach((c,i)=>{if(!on.has(i))return;const e=c.e,g=c.g,w=c.w,gw=c.gw;n++;
       if(c.f==='pname'){const old=c.p.name||'';if(!c.p.short||c.p.short===shortProj(old))c.p.short=shortProj(g.name);c.p.name=g.name;}
       else if(c.f==='pmethod')c.p.method=g.method||'';
+      else if(c.f==='wstat')c.w.status=gw.mapped;
       else if(c.f==='pgf')c.p.gf=Object.assign({},c.p.gf,{[c.k]:String((g.gf||{})[c.k]||'')});
       else if(c.f==='egf')e.gf=Object.assign({},e.gf,{[c.k]:String((g.gf||{})[c.k]||'')});
       else if(c.f==='pprog'){c.p.programId=g.programId||'';c.p.programName=g.programName||'';}
@@ -1143,7 +1151,7 @@ async function refreshFromGus(btn,auto){
   const FW={wname:'name',wown:'assigneeId',wdays:'days'},FE={name:'name',release:'releaseId',project:'projectId'};
   const dirOf=c=>{
     if(c.f==='pname'||c.f==='pmethod'||c.f==='pgf'||c.f==='egf'||c.f==='wnew'||c.f==='wlink')return 'pull';
-    if(['pprog','plink','eowner','epri','esmart','edesc','wnews'].includes(c.f)||(c.w&&c.w.storyId&&!c.w.gusId)||(c.f==='wdays'&&c.w&&!c.w.gusId))return 'skip';
+    if(['pprog','pmove','plink','eowner','epri','esmart','edesc','wnews'].includes(c.f)||(c.w&&c.w.storyId&&!c.w.gusId)||(c.f==='wdays'&&c.w&&!c.w.gusId))return 'skip';
     if(FE[c.f]&&c.e){let b={};try{b=JSON.parse((P.gsnap&&P.gsnap.get(c.e.gusId))||'{}');}catch(_){}const k=FE[c.f];const cur=k==='projectId'?gusProj(c.e):k==='name'?(c.e.name||''):(c.e.releaseId||'');return 'pull';}
     if(FW[c.f]&&c.w){const k=FW[c.f],b=c.w.gb;if(!b)return 'push';const cur=wv(c.w)[k],gv=k==='name'?c.gw.name:k==='days'?c.gw.days:c.gw.assigneeId;
       if(cur===b[k]||(k==='assigneeId'&&String(cur).slice(0,15)===String(b[k]).slice(0,15)))return 'pull';if(gv===b[k]||(k==='assigneeId'&&String(gv).slice(0,15)===String(b[k]).slice(0,15)))return 'push';return 'pull';}
@@ -1168,7 +1176,11 @@ async function refreshFromGus(btn,auto){
    el.querySelectorAll('[data-rsel]').forEach(b=>{b.onclick=()=>setVis(b.dataset.rsel==='1');});
    if(all)all.onchange=()=>setVis(all.checked);
    rows.forEach(r=>{r.querySelector('[data-rc]').addEventListener('change',upd);});upd();}
-  ap.onclick=()=>{const n=applyIdx(new Set([...el.querySelectorAll('[data-rc]:checked')].map(x=>+x.dataset.rc)));closeModal();if(n){draw();queueSave();window.toast?.(`Applied ${n} change${n>1?'s':''} from GUS.`,false);}};
+  ap.onclick=async()=>{const on=new Set([...el.querySelectorAll('[data-rc]:checked')].map(x=>+x.dataset.rc)),fails=[];let moved=0;
+    for(const i of [...on]){const c=ch[i];if(c.f!=='pmove')continue;on.delete(i);
+      try{const m=await call('plan-move-project',{teamId:H.team.Id,project:{gusId:c.p.gusId}});c.p.programId=m.programId||'';c.p.programName=m.programName||'';moved++;}catch(err){fails.push(err.message);}}
+    const n=applyIdx(on)+moved;closeModal();if(fails.length)window.toast?.(fails.join(' '),true);
+    if(n){draw();queueSave();window.toast?.(`Applied ${n} change${n>1?'s':''} from GUS.`,false);}};
 }
 async function syncGus(){
   if(!P.plan||P.noGusSync)return;if(!P.gsnap)snapGus();

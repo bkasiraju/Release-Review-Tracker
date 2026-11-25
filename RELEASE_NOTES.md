@@ -4,6 +4,11 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r44 (folded)
+
+- A dashboard project that sits outside the team's GUS program is offered in Pull as "Move project to this team's program (edits GUS)"; applying it sets the project's Program in GUS to the team program. Refused when another team's epics also use the project, and never done automatically.
+- User stories without the "WS:" prefix now also compare name, owner and status (GUS status mapped to Planned / In Progress / Completed / On Hold), besides days.
+
 ### 8.0.0-GA r43 (folded)
 
 - Workstreams and GUS user stories are the same thing on an epic. The "WS:" title prefix only marks the ones created from the dashboard; user stories filed directly in GUS on an epic are compared by the same delta rules (matched by story link, GUS id or name, linked quietly, only new or changed ones listed) for dashboard-created epics as well as imported ones.
