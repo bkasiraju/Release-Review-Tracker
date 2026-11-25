@@ -644,18 +644,33 @@ async function refreshEpics(sf, teamId, ids, projectIds) {
   const list = [...new Set((Array.isArray(ids) ? ids : []).map(gid).filter(Boolean))].slice(0, 200);
   const plist = [...new Set((Array.isArray(projectIds) ? projectIds : []).map(gid).filter(Boolean))].slice(0, 200);
   const tprog = await teamProgram(sf, teamId);
-  const rows = list.length ? (await sf.query(`SELECT ${EPIC_SEL} FROM ADM_Epic__c WHERE Id IN (${list.map(i => `'${i}'`).join(',')})`)).records || [] : [];
-  // Linked projects are read on their own too, so a project's title and method refresh even when it has no epics.
+  const inl = a => a.map(i => `'${i}'`).join(',');
+  const rows = list.length ? (await sf.query(`SELECT ${EPIC_SEL}, Priority__c, Description__c FROM ADM_Epic__c WHERE Id IN (${inl(list)})`)).records || [] : [];
+  // Linked projects are read on their own too, so a project's title, method and program refresh even when it has no epics.
+  // A project that no longer sits in this team's program is reported (inProgram false) and never pulled.
   let projects = [];
   if (plist.length) {
     try {
-      projects = ((await sf.query(`SELECT Id, Name, V2MOM_Method__c FROM PPM_Project__c WHERE Id IN (${plist.map(i => `'${i}'`).join(',')}) AND Program__c = '${tprog ? tprog.id : ''}'`)).records || [])
-        .map(r => ({ id: r.Id, name: r.Name || '', method: r.V2MOM_Method__c || '' }));
+      projects = ((await sf.query(`SELECT Id, Name, V2MOM_Method__c, Program__c, Program__r.Name FROM PPM_Project__c WHERE Id IN (${inl(plist)})`)).records || [])
+        .map(r => ({ id: r.Id, name: r.Name || '', method: r.V2MOM_Method__c || '', programId: r.Program__c || '', programName: (r.Program__r && r.Program__r.Name) || '', inProgram: !!tprog && r.Program__c === tprog.id }));
     } catch (_) { /* project titles are best effort */ }
   }
   let workstreams = {};
   if (list.length) { try { workstreams = (await epicWorkstreams(sf, teamId, list)).byEpic; } catch (_) { /* workstreams are best effort */ } }
-  return { epics: rows.map(r => ownProject(epicRow(r), tprog)), projects, workstreams };
+  // Every other story filed on the epics (imported epics show these as read-only workstreams).
+  const stories = {};
+  if (list.length) {
+    try {
+      for (const r of (await sf.query(`SELECT Id, Name, Subject__c, Epic__c, Status__c, Story_Points__c, Details__c, Assignee__c, Assignee__r.Name FROM ADM_Work__c WHERE Epic__c IN (${inl(list)}) AND Status__c NOT IN ('Never', 'Duplicate') ORDER BY Name LIMIT 2000`)).records || []) {
+        const m = /\(planned ([\d.]+) days\)/.exec(r.Details__c || '');
+        (stories[r.Epic__c] = stories[r.Epic__c] || []).push({ gusId: r.Id, no: r.Name || '', name: String(r.Subject__c || '').replace(/^WS:\s*/i, '').trim(), status: r.Status__c || '', assigneeId: r.Assignee__c || '', assigneeName: (r.Assignee__r && r.Assignee__r.Name) || '', days: m ? Number(m[1]) || 0 : Number(r.Story_Points__c) || 0 });
+      }
+    } catch (_) { /* stories are best effort */ }
+  }
+  return { epics: rows.map(r => {
+    const d = String(r.Description__c || ''), sm = /^\s*(?:<p>\s*)?SMART Goal:\s*([\s\S]*?)(?:<\/p>|\n[ \t]*\n|$)/i.exec(d);
+    return { ...ownProject(epicRow(r), tprog), priority: r.Priority__c == null ? null : Number(r.Priority__c), points: Number(r.Planned_Story_Points__c) || 0, smartGoal: sm ? goalText(plain(sm[1])) : '', descriptionHtml: richHtml(d.replace(/^\s*<p>\s*SMART Goal:[\s\S]*?<\/p>\s*/i, '').replace(SMART_RE, ''), 30000) };
+  }), projects, workstreams, stories };
 }
 
 // ── SMART goal ──────────────────────────────────────────────────────────────

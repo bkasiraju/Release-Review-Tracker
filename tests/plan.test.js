@@ -151,6 +151,20 @@ test('syncEpics moves an epic to a project in the team program only; refreshEpic
   const g=await plan.refreshEpics(sf,T,[EP,'junk']);assert.equal(g.epics[0].projectId,PJ);assert.equal(g.epics[0].projectName,'HRP M1');
 });
 
+test('refreshEpics returns project title/program, epic priority/points/SMART goal/description and every story, even for a project outside the team program',async()=>{
+  const EP='a0XEE00000EPC0001A',PJ='a1PEE00000PRJ0001A',log=[];
+  const sf={async query(q){log.push(q);
+      if(/FROM ADM_Scrum_Team__c/.test(q))return {records:[{Name:'Message Queue'}]};
+      if(/FROM PPM_Program__c/.test(q))return {records:[{Id:'a1QEE00000PRG0001A',Name:'MQ - 268'}]};
+      if(/FROM PPM_Project__c/.test(q))return {records:[{Id:PJ,Name:'GCP Migration',V2MOM_Method__c:'M',Program__c:'a1QEE00000OTHER01A',Program__r:{Name:'Other - 268'}}]};
+      if(/FROM ADM_Epic__c WHERE Id IN/.test(q))return {records:[{Id:EP,Name:'E',Project__c:PJ,Project__r:{Name:'GCP Migration',Program__c:'a1QEE00000PRG0001A',Program__r:{Name:'MQ - 268'}},Planned_Story_Points__c:9,Priority__c:2,Description__c:'<p>SMART Goal: Ship it</p><p>Body text</p>',Development_Lead__c:'005EE00000LEAD01AA',Development_Lead__r:{Name:'Ann'}}]};
+      if(/FROM ADM_Work__c WHERE Epic__c IN/.test(q)&&!/WS: /.test(q))return {records:[{Id:'a07EE00000STORY1AAA',Name:'W-1',Subject__c:'Do it',Epic__c:EP,Status__c:'In Progress',Story_Points__c:3,Details__c:'',Assignee__c:'005EE00000ENG001AAA',Assignee__r:{Name:'Bob'}}]};
+      return {records:[]};}};
+  const r=await plan.refreshEpics(sf,T,[EP],[PJ]);
+  assert.equal(r.projects[0].name,'GCP Migration');assert.equal(r.projects[0].programName,'Other - 268');assert.equal(r.projects[0].inProgram,false);
+  const e=r.epics[0];assert.equal(e.priority,2);assert.equal(e.points,9);assert.equal(e.smartGoal,'Ship it');assert.match(e.descriptionHtml,/Body text/);assert.equal(e.leadName,'Ann');
+  assert.equal(r.stories[EP][0].name,'Do it');assert.equal(r.stories[EP][0].days,3);assert.equal(r.stories[EP][0].assigneeName,'Bob');
+});
 test('createWorkstream makes a parent User Story with the R<release>_<team>_Workstream theme, idempotently',async()=>{
   const EP='a0XEE00000EPC0001A',TAG='a1TEE00000TAG0001A',log=[],themes=new Map(),assigned=new Set();let nid=0,work=null;
   const sf={async query(q){log.push(['q',q]);

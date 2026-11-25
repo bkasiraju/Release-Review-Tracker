@@ -4,6 +4,11 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r40 (folded)
+
+- Pull from GUS compares much more. Projects: title, V2MOM method and program; dashboard projects not yet linked are matched to the team's GUS project by name and linked (the GCP vs GCP Migration case). Epics: name, project, release, owner (development lead), priority, SMART goal, description (when written on the dashboard) and the estimate of an epic that only has the placeholder. Workstreams: name, owner and days, new and removed ones, now also for imported epics (compared by GUS story). Everything is listed for you to tick; nothing is applied silently, and applying saves to the shared plan.
+- A linked project whose GUS record sits outside the team's program no longer makes Pull report that everything matches: its title and method still refresh, and the program difference is listed.
+
 ### 8.0.0-GA r39 (folded)
 
 - Projects stay inside the team's own program. Epic search and Add existing epic only return this team's epics, and an epic whose project belongs to another program is added without that project. Pull from GUS and refresh never bring in another team's project, and project pickers list only the team's program.
