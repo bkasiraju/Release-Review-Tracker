@@ -3706,3 +3706,6 @@ html body .pl-grid input.pl-need::placeholder{color:#ba0517;opacity:.8}
 
 /* r37: narrower Epic Name, wider Workstream */
 html body .pl-grid-wrap .pl-grid th.c-name,html body .pl-grid-wrap .pl-grid td.c-name{width:21
+/* r37: narrower Epic Name, wider Workstream */
+html body .pl-grid-wrap .pl-grid th.c-name,html body .pl-grid-wrap .pl-grid td.c-name{width:21%!important}
+html body .pl-grid-wrap .pl-grid th.c-ws,html body .pl-grid-wrap .pl-grid td.c-ws{width:35%!important}
