@@ -236,7 +236,7 @@
  }
  const FK=['health','owner','theme'],fval=(e,k)=>k==='health'?(e.health||'No status'):k==='owner'?(e.owner||'Unassigned'):(e.theme||'No theme');
  function filterActive(){const f=state&&state.flt;return !!f&&FK.some(k=>f[k]);}
- function view(){const f=state.flt||{};if(!filterActive())return state;const ep=state.epics.filter(e=>FK.every(k=>!f[k]||fval(e,k)===f[k]));return Object.assign({},state,{epics:ep.length?ep:state.epics});}
+ function view(){const f=state.flt||{};if(!filterActive())return state;const ep=state.epics.filter(e=>FK.every(k=>!f[k]||fval(e,k)===f[k]));if(!ep.length){state.flt={health:'',owner:'',theme:''};return state;}return Object.assign({},state,{epics:ep});}
  function setFilter(k,v){const f=state.flt=Object.assign({health:'',owner:'',theme:''},state.flt,{[k]:v});
   if(filterActive()&&!state.epics.some(e=>FK.every(x=>!f[x]||fval(e,x)===f[x]))){f[k]='';}
   cur=0;paint();}
@@ -269,7 +269,7 @@
    else if(b.dataset.mode){state.mode=b.dataset.mode;paint();}});
   d.addEventListener('input',e=>{const t=e.target;if(t.dataset.note!=null){(state.notes||(state.notes={}))[t.dataset.note]=t.value;changed();}else if(t.dataset.ask!=null){state.asks[Number(t.dataset.ask)][t.dataset.k]=t.value;changed();}});
   d.addEventListener('change',e=>{const t=e.target;if(t.dataset.f){setFilter(t.dataset.f,t.value);return;}if(t.dataset.ask!=null&&t.dataset.k==='type'){paint();}});
-  onKey=e=>{if(e.key==='Escape'&&filterActive()){e.preventDefault();e.stopImmediatePropagation();clearFilters();return;}if(e.target&&(/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)||(e.target.closest&&e.target.closest('.dk-share'))))return;const k=e.key;
+  onKey=e=>{if(e.key==='Escape'&&filterActive()){e.preventDefault();e.stopImmediatePropagation();clearFilters();return;}if(e.target&&(/INPUT|TEXTAREA|SELECT|BUTTON/.test(e.target.tagName)||(e.target.closest&&e.target.closest('.dk-share')))){if(e.key==='Escape'&&e.target.closest&&e.target.closest('#dk')){e.stopImmediatePropagation();if(e.target.closest('.dk-share')){const sh=e.target.closest('.dk-share');sh.remove();}else if(e.target.blur)e.target.blur();}return;}const k=e.key;
    if(['ArrowRight','PageDown',' ','Enter'].includes(k)){e.preventDefault();e.stopImmediatePropagation();go(cur+1);}
    else if(['ArrowLeft','PageUp','Backspace'].includes(k)){e.preventDefault();e.stopImmediatePropagation();go(cur-1);}
    else if(k==='Home')go(0);else if(k==='End')go(slides.length-1);
@@ -314,6 +314,7 @@
  }
  /** Saves the deck as one self-contained HTML file: the same template, with this data filled in. It opens offline with no ReleaseIQ session. */
  async function download(data,opts){
+  if(data&&data.flt){data=Object.assign({},data);delete data.flt;}
   let src='';try{src=SRC?await (await fetch(SRC)).text():'';}catch(_){}
   if(!src)throw new Error('The presentation template could not be loaded.');
   const d=Object.assign({mode:'planning'},data,opts||{},{edit:false,onChange:undefined,prevOverflow:undefined}),json=JSON.stringify(d).replace(/</g,'\\u003c');
