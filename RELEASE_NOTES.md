@@ -4,6 +4,11 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r78 (folded)
+
+- Planner release list now includes the most recent past release for every team (e.g. 266 beside 268), not only upcoming ones.
+- Release deck title no longer reads "0 workstreams" for a release that was not planned in this tool: it says workstreams are not tracked in GUS and that the days are epic estimates.
+
 ### 8.0.0-GA r77 (folded)
 
 - Audit log: plan saves now say exactly what changed, with old → new values (e.g. `Epic “X”: priority P1 → P0`, `Workstream “Y”: days 2 → 5`), and what was added or removed (projects, epics, workstreams, planning window). A save that changes nothing is no longer recorded; autosaves within ten minutes merge into one event that lists every change. Events recorded before this release keep their old wording.

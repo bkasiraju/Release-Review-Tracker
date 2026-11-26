@@ -838,14 +838,22 @@ const releasePrefix = n => String(n || '').replace(/\s*-?\s*\d+\s*$/, '').trim()
 // (e.g. MQ 268 sits on the MAPS team), so match by name across teams as well as the team's own list. Teams with no
 // name match (Caching Services) fall back to their own list.
 async function teamReleases(sf, teamId, futureOnly) {
-  const when = futureOnly ? ' AND (End_Date__c >= TODAY OR End_Date__c = null)' : '';
+  // "Upcoming" also keeps the one release that ended most recently, so the planner can still show last release (e.g. 266 next to 268) for every team.
+  const when = futureOnly ? ' AND (End_Date__c >= LAST_N_DAYS:200 OR End_Date__c = null)' : '';
+  const keep = list => {
+    if (!futureOnly) return list;
+    const today = new Date().toISOString().slice(0, 10), past = list.filter(r => r.End_Date__c && r.End_Date__c < today);
+    const last = past.sort((a, b) => String(b.End_Date__c).localeCompare(String(a.End_Date__c)))[0];
+    return list.filter(r => !r.End_Date__c || r.End_Date__c >= today || r === last);
+  };
+  const order = (a, b) => String(a.Start_Date__c || '').localeCompare(String(b.Start_Date__c || '')) || String(a.Name).localeCompare(String(b.Name));
   // The team lookup and the team's own releases do not depend on each other, so they run together.
   const [short, ownRes] = await Promise.all([teamShort(sf, teamId).catch(() => null), sf.query(`SELECT Id, Name, Start_Date__c, End_Date__c FROM ADM_Planned_Release__c WHERE Team__c = '${teamId}'${when} ORDER BY Start_Date__c, Name LIMIT 100`)]);
   const own = ownRes.records || [];
-  if (!short) return own;
+  if (!short) return keep(own).sort(order);
   const byName = ((await sf.query(`SELECT Id, Name, Start_Date__c, End_Date__c FROM ADM_Planned_Release__c WHERE Name LIKE '${soql(short)} %'${when} ORDER BY Start_Date__c, Name LIMIT 100`).catch(() => ({}))).records || []);
   const seen = new Set(), names = new Set(), mine = [...own, ...byName].filter(r => !seen.has(r.Id) && seen.add(r.Id) && releasePrefix(r.Name) === short.toLowerCase() && !names.has(r.Name) && names.add(r.Name));
-  return mine.length ? mine : own;
+  return keep(mine.length ? mine : own).sort(order);
 }
 
 async function teamProgram(sf, teamId) {

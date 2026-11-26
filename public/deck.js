@@ -132,7 +132,7 @@
   }
   if(!e.progress){add(e.start&&e.end,'Planned dates set','No planned start / end dates');add(e.goal,'SMART goal / description set','No SMART goal or description');}
   add(e.project,'Linked to a project','No project');
-  if(!live.length){if(!e.progress)add(false,'','No workstreams yet');}
+  if(!live.length){if(!e.progress)add(false,'','No workstreams tracked in GUS for this epic');}
   else{
    add(live.every(w=>w.assignee),'Every workstream has an owner',`${live.filter(w=>!w.assignee).length} of ${live.length} workstreams have no owner`);
    add(live.every(w=>w.days),'Effort estimated per workstream',`${live.filter(w=>!w.days).length} of ${live.length} workstreams have no estimate`);
@@ -148,7 +148,7 @@
   const header=(t,c)=>`<div class="slide-header"><h2>${esc(t)}</h2><span class="crumb">${esc(c)}</span></div>`;
   const hbars=rows=>{const max=Math.max(1,...rows.map(r=>r[1]));return rows.map(([n,v,x,c])=>`<div class="hbar"><div class="nm" title="${esc(n)}">${c?`<span class="dot" style="background:${c}"></span>`:''}${esc(n)}</div><div class="track"><div class="fill" style="width:${(v/max*100).toFixed(1)}%;${c?`background:${c}`:''}"></div></div><div class="val"><b>${v}</b> d · ${x}</div></div>`).join('');};
   const group=(f,top)=>{const m={};E.forEach(e=>{const k=f(e)||'—';(m[k]=m[k]||{d:0,n:0}).d+=e.points||0;m[k].n++;});return Object.entries(m).sort((a,b)=>b[1].d-a[1].d).slice(0,top).map(([k,v])=>[k,Math.round(v.d*10)/10,v.n]);};
-  const title=()=>`<section class="slide title-slide"><div class="inner"><div class="kicker">${esc(D.team)} · ${mode==='review'?'Monthly review':'Release planning'}</div><h1>${esc(D.release)}<br>${mode==='review'?'Epic status review':'Epic review'}</h1><div class="sub">${E.length} epics · ${all.length} workstreams · ${Math.round(totalPts)} planned days</div><div class="meta">${D.start?`<div><b>Window</b>${fmt(D.start)} – ${fmt(D.end)}</div>`:''}<div><b>Data as of</b>${fmt(D.asOf)}</div><div><b>Source</b>GUS epics and user stories</div></div></div></section>`;
+  const title=()=>`<section class="slide title-slide"><div class="inner"><div class="kicker">${esc(D.team)} · ${mode==='review'?'Monthly review':'Release planning'}</div><h1>${esc(D.release)}<br>${mode==='review'?'Epic status review':'Epic review'}</h1><div class="sub">${E.length} epic${E.length===1?'':'s'} · ${all.length?`${all.length} workstream${all.length===1?'':'s'}`:'workstreams not tracked in GUS'} · ${Math.round(totalPts)} planned days${all.length||!E.length?'':' (epic estimates)'}</div><div class="meta">${D.start?`<div><b>Window</b>${fmt(D.start)} – ${fmt(D.end)}</div>`:''}<div><b>Data as of</b>${fmt(D.asOf)}</div><div><b>Source</b>GUS epics and user stories</div></div></div></section>`;
   const glance=()=>{const c=t=>E.filter(e=>tone(e.health)===t).length,started=E.filter(e=>all.length&&e.workItems.some(w=>isDone(w.status)||isWip(w.status))).length,dn=all.filter(w=>isDone(w.status)).length;
    return `<section class="slide"><div class="accent-bar"></div>${header('At a Glance',D.release)}<div class="slide-body"><div class="kpis">
     <div class="kpi"><div class="v">${E.length}</div><div class="l">Epics</div></div>
