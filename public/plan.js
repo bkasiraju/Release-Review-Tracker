@@ -1784,6 +1784,7 @@ function onClick(ev){
   if(t.closest('[data-oc]')){const b=t.closest('[data-oc]');outcomePop(b.dataset.oc,b.closest('.pl-ocw'));return;}
   if(t.closest('[data-sg]')){const b=t.closest('[data-sg]');smartGoalPop(b.dataset.sg,b.closest('.pl-sgw'),b.hasAttribute('data-sg-edit'));return;}
   if(t.closest('[data-move-epic]')){moveEpicDlg(c.e,t.closest('[data-move-epic]'));return;}
+  if(t.closest('#pl-backlog')){openBacklog(t.closest('#pl-backlog'));return;}
   if(t.closest('#pl-import')){P.el.querySelector('#pl-import-file').click();return;}
   if(t.closest('#pl-add-proj')){newProjectAt(t.closest('#pl-add-proj'));return;}
   const mb=t.closest('.ms .cs-btn');if(mb){openMsPop(mb,c);return;}
@@ -1891,6 +1892,68 @@ function openModal(title,body,opener,wide){
   el.addEventListener('click',e=>{if(e.target===el||e.target.closest('[data-close]'))leave();});
   (el.querySelector('input,button.primary')||el.querySelector('[data-close]')).focus();return el;
 }
+// TD & CARR import: same dialog pattern as Add epic. Items come from the team's open list, pasted W-/TD- ids or a GUS report; the
+// chosen ones are created as workstream stories under an epic, so they are planned in that epic's release.
+async function openBacklog(opener){
+  const pl=P.plan;if(!pl)return;
+  const epics=pl.epics.filter(e=>e.gusId&&!e.foreign),tags=(P.refs&&P.refs.tags)||[],id=H.team.Id,tagKey='ri-ws-tag-'+id;
+  if(!epics.length){window.toast?.('Add at least one epic that exists in GUS first; items are pulled into an epic.',true);return;}
+  const S={md:'team',lists:{team:null,ids:null,report:null},sel:new Map(),q:'',kind:'',note:{},tags:[]};
+  const cur=()=>S.lists[S.md]||[];
+  const body=crSection('Items to import',`<div class="pl-cr-seg" role="tablist" aria-label="Item source"><button type="button" role="tab" data-mode="team">Team’s open items</button><button type="button" role="tab" data-mode="ids">W-ID / TD list</button><button type="button" role="tab" data-mode="report">GUS report</button></div>`+
+      crField('Find in the list','<span data-lcnt></span>','<input class="hub-inline" type="search" data-bq placeholder="Filter by id, title, owner or status" autocomplete="off" aria-label="Filter items">','s12 pl-bl-team')+
+      crField('W-numbers or TD numbers','one per line or comma separated; max 200','<span class="pl-cr-find"><textarea class="hub-inline" rows="3" data-bids placeholder="W-12345678&#10;TD-0350171" aria-label="W-IDs and TD numbers"></textarea><button type="button" class="button" data-bgo="ids">Find</button></span>','s12 pl-bl-ids')+
+      crField('GUS report link or id','tabular report with a Work ID or TD column, up to 500 rows','<span class="pl-cr-find"><input class="hub-inline" type="text" data-brep placeholder="https://…/lightning/r/Report/00O…/view" autocomplete="off" aria-label="GUS report link"><button type="button" class="button" data-bgo="report">Load</button></span>','s12 pl-bl-report')+
+      '<p class="pl-cr-pinfo s12" data-bmsg role="status"></p><div class="pl-bl-list s12" data-blist></div>')+
+    crSection('Pull into',crField('Epic','its planned release is the release the items are planned in',`<select class="hub-inline" data-bep>${epics.map(e=>`<option value="${esc(e.gusId)}">${esc(e.name||'Untitled epic')}${e.releaseName?' — '+esc(e.releaseName):''}</option>`).join('')}</select>`,'s9')+
+      crField('Product tag','required by GUS; used when the item has no tag of this team',`<select class="hub-inline" data-btag><option value="">Select a tag…</option>${tags.map(t=>opt(t.id,t.name,t.id===defTag(tags,tagKey))).join('')}</select>`,'s3'));
+  const el=crDialog('Import TD & CARR items','Pick open CARR and TD items, or bring them in by W-ID or from a GUS report, and pull them into an epic as workstreams. Nothing is written to GUS until you confirm.',body,'Pull into epic',async(el,fail,detach)=>{
+    const items=[...S.sel.values()];if(!items.length)throw new Error('Select at least one item.');
+    const epicGusId=el.querySelector('[data-bep]').value,tagId=el.querySelector('[data-btag]').value;
+    if(!tagId){el.querySelector('[data-btag]').focus();throw new Error('Select a product tag. GUS requires one on every story.');}
+    try{localStorage.setItem(tagKey,tagId);}catch(_){}
+    detach();
+    const r=await call('plan-backlog-assign',{teamId:id,assign:{epicGusId,tagId,items:items.map(x=>({id:x.id,kind:x.kind}))}});
+    const okN=r.results.filter(x=>x.ok).length,bad=r.results.filter(x=>!x.ok);
+    if(!okN)throw new Error(bad[0]?bad[0].error:'Nothing was pulled in.');
+    closeModal();window.toast?.(`${okN} item${okN===1?'':'s'} pulled in as workstreams.${bad.length?' '+bad.length+' failed: '+bad[0].error:''}`,bad.length>0);
+    fetchWs(false);
+  });
+  const $=s=>el.querySelector(s),msg=t=>{$('[data-bmsg]').textContent=t||'';};
+  const shown=()=>{const q=S.q.toLowerCase();return cur().filter(x=>!q||(x.key+' '+x.title+' '+x.owner+' '+x.status+' '+x.tag).toLowerCase().includes(q));};
+  const drawList=()=>{
+    const all=cur(),list=shown(),box=$('[data-blist]');
+    $('[data-lcnt]').textContent=all.length?`${list.length} of ${all.length}`:'';
+    if(!all.length){box.innerHTML=S.lists[S.md]?'<p class="note">No items.</p>':'';}
+    else box.innerHTML=`<table class="nofit nosort nopage"><thead><tr><th><input type="checkbox" data-ball aria-label="Select all shown" ${list.some(x=>!x.workstream)&&list.filter(x=>!x.workstream).every(x=>S.sel.has(x.id))?'checked':''}></th><th>Item</th><th>Subject / deliverable</th><th>Status</th><th>Owner / team</th><th>Sprint / build</th><th>Already</th></tr></thead><tbody>${list.map(x=>`<tr><td><input type="checkbox" data-bi="${esc(x.id)}" ${S.sel.has(x.id)?'checked':''} ${x.workstream?'disabled':''} aria-label="Select ${esc(x.key)}"></td><td><b>${esc(x.key)}</b><small>${x.kind==='td'?'TD':'Work'}</small></td><td>${esc(x.title)}</td><td>${esc(x.status)}</td><td>${esc(x.owner)}</td><td>${esc(x.sprint)}</td><td>${x.workstream?'Workstream in '+esc(x.workstream):x.epic?'In epic '+esc(x.epic):''}</td></tr>`).join('')}</tbody></table>`;
+    const n=S.sel.size,ok=$('[data-ok]');ok.dataset.label=n?`Pull ${n} item${n===1?'':'s'} into epic`:'Pull into epic';if(!ok.disabled)ok.textContent=ok.dataset.label;
+    el._sync();
+  };
+  el._ready=()=>S.sel.size>0;
+  const setMode=k=>{S.md=k;S.q='';$('[data-bq]').value='';
+    el.querySelectorAll('[data-mode]').forEach(b=>{const on=b.dataset.mode===k;b.classList.toggle('on',on);b.setAttribute('aria-selected',String(on));});
+    el.querySelectorAll('.pl-bl-team,.pl-bl-ids,.pl-bl-report').forEach(f=>{f.hidden=!f.classList.contains('pl-bl-'+k);});
+    msg(S.note[k]||'');drawList();if(k==='team'&&!S.lists.team)loadTeam();};
+  const take=(k,r,label)=>{S.lists[k]=r.items;const miss=(r.missing||[]).length;
+    S.note[k]=`${label}${miss?` · not found or not yours (${miss}): ${r.missing.slice(0,8).join(', ')}${miss>8?'…':''}`:''}${r.truncated?' · only the first 500 rows were read':''}`;
+    if(S.md===k)msg(S.note[k]);drawList();};
+  async function loadTeam(){msg('Loading open items from GUS…');
+    try{const r=await call('plan-backlog',{teamId:id});if(id!==H.team.Id||!el.isConnected)return;S.lists.team=[...r.carr,...r.td];S.tags=r.tags||[];
+      S.note.team=`${r.carr.length} open CARR and ${r.td.length} TDs for ${H.team.Name}`;if(S.md==='team')msg(S.note.team);drawList();}
+    catch(e){msg('Could not load the team’s items: '+e.message);}}
+  el.addEventListener('click',async e=>{
+    const mb=e.target.closest('[data-mode]');if(mb){setMode(mb.dataset.mode);return;}
+    const g=e.target.closest('[data-bgo]');if(!g)return;const k=g.dataset.bgo;g.disabled=true;msg(k==='ids'?'Looking the items up…':'Running the report…');
+    try{if(k==='ids'){const r=await call('plan-backlog-resolve',{teamId:id,text:$('[data-bids]').value});take('ids',r,`${r.items.length} found`);}
+      else{const r=await call('plan-backlog-report',{teamId:id,report:$('[data-brep]').value});take('report',r,`${r.items.length} item${r.items.length===1?'':'s'} from “${r.report||'report'}”`);}}
+    catch(err){msg(err.message);}finally{g.disabled=false;}
+  });
+  el.addEventListener('change',e=>{
+    if(e.target.matches('[data-ball]')){shown().filter(x=>!x.workstream).forEach(x=>e.target.checked?S.sel.set(x.id,x):S.sel.delete(x.id));drawList();return;}
+    const c=e.target.closest('[data-bi]');if(!c)return;const x=cur().find(i=>i.id===c.dataset.bi);if(!x)return;c.checked?S.sel.set(x.id,x):S.sel.delete(x.id);drawList();});
+  el.addEventListener('input',e=>{if(e.target.matches('[data-bq]')){S.q=e.target.value;drawList();}});
+  setMode('team');
+}
 function openLeaves(){
   const m=P.members.filter(isEng),wd=workdays(P.plan.window.start,P.plan.window.end);
   const el=openModal('Leaves, holidays & on-call',`<p class="note">Days off for each engineer inside the planning window (${esc(P.plan.window.start)} → ${esc(P.plan.window.end)}, ${wd} working days). On-call is the effort each engineer spends on rotation (not available for planned work). Total days default to the weekdays in the window and can be edited per engineer. Available days = total − leave − holidays − on-call.</p>
@@ -1984,7 +2047,7 @@ H.register({id:'plan',label:'Release Planning (Quarterly)',icon:'plan',tone:'gre
     <div id="pl-warn"></div>
     <div class="pl-tabs" role="tablist" aria-label="Release planning views"><button type="button" role="tab" data-tab="plan" class="on" aria-selected="true"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="4" width="14" height="12" rx="2"/><path d="M3 8.5h14M8 8.5V16"/></svg>Release Planner</button><button type="button" role="tab" data-tab="rps" aria-selected="false"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 16V9M10 16V4M16 16v-5"/></svg>Planned Release Summary</button></div>
     <div id="pl-main"><div id="pl-sum"></div>
-    <section id="pl-fs" class="pl-fs"><div class="pl-hdr"><div class="pl-planner-h"><h3>${icon('plan','green')} V2MOM Measures &amp; Epics Plan</h3><span class="pl-planner-btns"><button type="button" class="button" id="pl-fs-btn" aria-pressed="false" title="Show Projects &amp; epics full screen">Full screen</button><span class="pl-dm"><button type="button" class="button" data-dm-toggle aria-haspopup="menu" aria-expanded="false">Import / Export ▾</button><span class="pl-dm-list" role="menu" hidden><button type="button" role="menuitem" data-v2mom-open title="Import V2MOM measures from a sheet as GUS projects for this team"><b>V2MOM Import</b><small>Create projects from a V2MOM sheet, link or HTML</small></button><button type="button" role="menuitem" id="pl-import" title="Import plan rows from the exported template"><b>Import plan from file</b><small>Excel template (.xlsx)</small></button><button type="button" role="menuitem" id="pl-export" title="Download an Excel template with the current plan, column headers and dropdown lists"><b>Export template</b><small>Current plan with column headers and lists</small></button><button type="button" role="menuitem" id="pl-rm-hrp" title="Hide the shared HRP projects on this team's dashboard only"><b>Remove shared HRP projects</b><small>This team only; projects with epics are kept</small></button></span></span><input type="file" id="pl-import-file" accept=".xlsx" hidden></span></div><div id="pl-tools" class="pl-tools"></div></div><div id="pl-planner"></div></section></div><div id="pl-rps" hidden></div>`;
+    <section id="pl-fs" class="pl-fs"><div class="pl-hdr"><div class="pl-planner-h"><h3>${icon('plan','green')} V2MOM Measures &amp; Epics Plan</h3><span class="pl-planner-btns"><button type="button" class="button" id="pl-fs-btn" aria-pressed="false" title="Show Projects &amp; epics full screen">Full screen</button><span class="pl-dm"><button type="button" class="button" data-dm-toggle aria-haspopup="menu" aria-expanded="false">Import / Export ▾</button><span class="pl-dm-list" role="menu" hidden><button type="button" role="menuitem" data-v2mom-open title="Import V2MOM measures from a sheet as GUS projects for this team"><b>V2MOM Import</b><small>Create projects from a V2MOM sheet, link or HTML</small></button><button type="button" role="menuitem" id="pl-backlog" title="Pick open TD and CARR items and pull them into an epic as workstreams"><b>TD &amp; CARR backlog</b><small>Pull open items into an epic as workstreams</small></button><button type="button" role="menuitem" id="pl-import" title="Import plan rows from the exported template"><b>Import plan from file</b><small>Excel template (.xlsx)</small></button><button type="button" role="menuitem" id="pl-export" title="Download an Excel template with the current plan, column headers and dropdown lists"><b>Export template</b><small>Current plan with column headers and lists</small></button><button type="button" role="menuitem" id="pl-rm-hrp" title="Hide the shared HRP projects on this team's dashboard only"><b>Remove shared HRP projects</b><small>This team only; projects with epics are kept</small></button></span></span><input type="file" id="pl-import-file" accept=".xlsx" hidden></span></div><div id="pl-tools" class="pl-tools"></div></div><div id="pl-planner"></div></section></div><div id="pl-rps" hidden></div>`;
     {const hd=el.querySelector('.executive-heading'),tb=el.querySelector('.pl-tabs'),ac=hd&&hd.querySelector('.heading-actions');if(hd&&tb&&ac){tb.title='Plan projects, epics and workstreams for '+H.team.Name+'. Effort is in days; epics above the line (ABL) are saved to GUS when you confirm.';tb.appendChild(ac);hd.remove();}}
     P.tab='plan';
     // Review & push to GUS is limited to the plan administrators (also enforced by the backend); disabled until the backend confirms.

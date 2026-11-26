@@ -131,6 +131,10 @@ async function handleRequest(ctx){
       case 'plan-epic-workstreams':payload=await planner.epicWorkstreams(sf,b.teamId,b.ids);break;
       case 'plan-epic-leads':payload=await planner.epicLeads(sf,b.teamId,b.ids);break;
       case 'plan-delete-epic':payload=await planner.deleteEpic(sf,b.teamId,b.epic);break;
+      case 'plan-backlog':payload=await planner.listBacklog(sf,b.teamId);break;
+      case 'plan-backlog-resolve':payload=await planner.resolveItems(sf,b.teamId,b);break;
+      case 'plan-backlog-report':payload=await planner.reportItems(sf,b.teamId,b.report);break;
+      case 'plan-backlog-assign':payload=await planner.assignBacklog(sf,b.teamId,b.assign);break;
       case 'plan-move-workstream':payload=await planner.moveWorkstream(sf,b.teamId,b.workstream);break;
       case 'plan-delete-workstream':payload=await planner.deleteWorkstream(sf,b.teamId,b.workstream);break;
       case 'plan-move-project':payload=await planner.moveProject(sf,b.teamId,b.project);break;

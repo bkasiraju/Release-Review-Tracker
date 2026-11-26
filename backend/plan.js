@@ -540,7 +540,8 @@ async function createWorkstream(sf, teamId, input) {
   if (!workId) {
     const rt = ((await sf.query(`SELECT Id FROM RecordType WHERE SobjectType = 'ADM_Work__c' AND Name = 'User Story' AND IsActive = true LIMIT 1`)).records || [])[0];
     if (!rt) throw new Error('Could not find the User Story record type in GUS.');
-    const f = { Subject__c: subject, Epic__c: epicId, Scrum_Team__c: teamId, RecordTypeId: rt.Id, Product_Tag__c: tagId, Details__c: wsDetails(epic.Name, name, days(input && input.days)), ...(assigneeId ? { Assignee__c: assigneeId } : {}) };
+    const extra = text(input && input.details, 1500), details = extra.length >= 20 ? (wsDetails(epic.Name, name, days(input && input.days)).slice(0, 480) + '\n\n' + extra) : wsDetails(epic.Name, name, days(input && input.days));
+    const f = { Subject__c: subject, Epic__c: epicId, Scrum_Team__c: teamId, RecordTypeId: rt.Id, Product_Tag__c: tagId, Details__c: details, ...(assigneeId ? { Assignee__c: assigneeId } : {}) };
     const c = await sf.create('ADM_Work__c', f);
     if (!ok(c) || !newId(c)) throw new Error('GUS rejected the workstream story: ' + plain(errText(c)));
     workId = newId(c); created = true;
@@ -987,4 +988,108 @@ async function commitRun(sf, store, teamId, confirm, includeBtl, acknowledged) {
   return { results, failed: results.filter(x => !x.ok).length, plan: saved && saved.plan, revision: saved && saved.revision, saveError };
 }
 
-module.exports = { moveProject, moveWorkstream, epicDescriptionHtml, adoptEpic, richHtml, teamName, syncWorkstreams, withOutcome, outcomeOf, fiscalQuarter, refreshEpics, saveSmartGoal, generateSmartGoal, withSmartGoal, epicWorkstreams, epicStories, epicLeads, deleteEpic, deleteWorkstream, programProjects, importV2mom, resolveProgram, teamProgram, getPlan, savePlan, getRefs, commitPlan, createProject, deleteProject, createEpic, listEpics, findEpics, createWorkstream, syncEpics, review, cleanPlan };
+// ── Backlog: TD and CARR items that can be imported as workstreams under an epic ──────────────────────────
+const CARR_OPEN = ['New', 'Acknowledged', 'Triaged', 'In Progress'], TD_CLOSED = ['Completed', 'Cancelled', 'Rejected', 'Closed', 'Never'];
+const SRC_TOKEN = /\b(W-\d{5,}|TD-\d{3,})\b/i;
+const quoteList = a => a.map(s => `'${soql(s)}'`).join(',');
+const WORK_SEL = 'Id, Name, Subject__c, Status__c, Assignee__r.Name, Product_Tag__c, Product_Tag__r.Name, Epic__r.Name, Sprint__r.Name, LastModifiedDate';
+const TD_SEL = 'Id, Name, Dependency_Status__c, Deliverable__c, Deliver_By__c, Target_Build__r.Name, Dependent_Team__r.Name, Provider_Team__r.Name, Provider_User_Story__r.Name';
+/** Story subjects "WS: <W-/TD- id> <title>" tell which source items are already carried by a workstream of this team. */
+async function takenSources(sf, teamId) {
+  const ws = (await sf.query(`SELECT Id, Subject__c, Epic__r.Name FROM ADM_Work__c WHERE Scrum_Team__c = '${teamId}' AND Subject__c LIKE '${WS_PREFIX}%' AND Status__c != 'Never' LIMIT 2000`)).records || [];
+  const taken = new Map();
+  for (const w of ws) { const m = String(w.Subject__c || '').match(SRC_TOKEN); if (m) taken.set(m[1].toUpperCase(), (w.Epic__r && w.Epic__r.Name) || 'an epic'); }
+  return n => taken.get(String(n).toUpperCase()) || '';
+}
+const carrItem = (w, inWs) => ({ kind: 'carr', id: w.Id, key: w.Name, title: w.Subject__c || '', status: w.Status__c || '', owner: (w.Assignee__r && w.Assignee__r.Name) || '', tag: (w.Product_Tag__r && w.Product_Tag__r.Name) || '', sprint: (w.Sprint__r && w.Sprint__r.Name) || '', epic: (w.Epic__r && w.Epic__r.Name) || '', updated: w.LastModifiedDate || '', workstream: inWs(w.Name) });
+const tdItem = (t, inWs) => ({ kind: 'td', id: t.Id, key: t.Name, title: t.Deliverable__c || t.Name, status: t.Dependency_Status__c || '', owner: (t.Dependent_Team__r && t.Dependent_Team__r.Name) || '', tag: '', sprint: (t.Target_Build__r && t.Target_Build__r.Name) || '', due: t.Deliver_By__c || '', story: (t.Provider_User_Story__r && t.Provider_User_Story__r.Name) || '', workstream: inWs(t.Name) });
+const teamTags = async (sf, teamId) => ((await sf.query(`SELECT Id, Name FROM ADM_Product_Tag__c WHERE Team__c = '${teamId}' AND Active__c = true ORDER BY Name LIMIT 200`)).records || []).map(t => ({ id: t.Id, name: t.Name }));
+/** Open CARR (PRB work items on the team's product tags) and TDs the team provides, each flagged when a workstream already carries it. */
+async function listBacklog(sf, teamId) {
+  planKey(teamId);
+  const [carr, tds, inWs, tags] = await Promise.all([
+    sf.query(`SELECT ${WORK_SEL} FROM ADM_Work__c WHERE Product_Tag__c IN (SELECT Id FROM ADM_Product_Tag__c WHERE Team__c = '${teamId}' AND Active__c = true) AND Subject__c LIKE '%PRB%' AND Status__c IN (${quoteList(CARR_OPEN)}) ORDER BY LastModifiedDate DESC LIMIT 300`).then(r => r.records || []),
+    sf.query(`SELECT ${TD_SEL} FROM ADM_Team_Dependency__c WHERE Provider_Team__c = '${teamId}' AND Dependency_Status__c NOT IN (${quoteList(TD_CLOSED)}) ORDER BY Deliver_By__c ASC NULLS LAST LIMIT 300`).then(r => r.records || []),
+    takenSources(sf, teamId), teamTags(sf, teamId)
+  ]);
+  return { carr: carr.map(w => carrItem(w, inWs)), td: tds.map(t => tdItem(t, inWs)), tags };
+}
+/** Look items up by W-/TD- number or record Id, any team's work item, and TDs the team is part of. Returns what was not found. */
+async function lookupItems(sf, teamId, refs) {
+  const names = [...new Set(refs.names.map(x => x.toUpperCase()))].slice(0, 200), ids = [...new Set(refs.ids.map(gid).filter(Boolean))].slice(0, 500);
+  const works = names.filter(n => /^W-/.test(n)), tdN = names.filter(n => /^TD-/.test(n));
+  const where = (nm, hasIds) => [nm.length ? `Name IN (${quoteList(nm)})` : '', hasIds ? `Id IN (${quoteList(ids)})` : ''].filter(Boolean).join(' OR ');
+  const mine = `(Dependent_Team__c = '${teamId}' OR Provider_Team__c = '${teamId}')`;
+  const [wr, tr, inWs] = await Promise.all([
+    works.length || ids.length ? sf.query(`SELECT ${WORK_SEL} FROM ADM_Work__c WHERE ${where(works, ids.length)} LIMIT 500`).then(r => r.records || []).catch(() => []) : [],
+    tdN.length || ids.length ? sf.query(`SELECT ${TD_SEL} FROM ADM_Team_Dependency__c WHERE (${where(tdN, ids.length)}) AND ${mine} LIMIT 500`).then(r => r.records || []).catch(() => []) : [],
+    takenSources(sf, teamId)
+  ]);
+  const items = [...wr.map(w => carrItem(w, inWs)), ...tr.map(t => tdItem(t, inWs))];
+  const found = new Set(items.map(i => i.key.toUpperCase()));
+  return { items, missing: names.filter(n => !found.has(n)) };
+}
+const REPORT_ID = /\b(00O[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?)\b/;
+/** Import a GUS report's rows (Work ID or TD column) as items; the report itself is only read. */
+async function reportItems(sf, teamId, input) {
+  planKey(teamId);
+  const m = String(input || '').match(REPORT_ID);
+  if (!m) throw new Error('Paste the GUS report link (…/Report/00O…/view) or its 00O… id.');
+  if (typeof sf.request !== 'function') throw new Error('GUS Apps does not expose Salesforce request(): paste W-IDs instead.');
+  let rep;
+  try { rep = await sf.request({ method: 'GET', url: `/services/data/v62.0/analytics/reports/${m[1]}?includeDetails=true` }); }
+  catch (e) { throw new Error('Could not run that report: ' + plain(e && e.message || e).slice(0, 200)); }
+  if (typeof rep === 'string') { try { rep = JSON.parse(rep); } catch (_) { throw new Error('GUS returned an unreadable report.'); } }
+  const md = rep && rep.reportMetadata, cols = (md && md.detailColumns) || [];
+  const info = (rep && rep.reportExtendedMetadata && rep.reportExtendedMetadata.detailColumnInfo) || {};
+  const idx = cols.findIndex(c => c === 'CUST_NAME' || /\.Name$/.test((info[c] || {}).entityColumnName || ''));
+  if (!md || md.reportFormat !== 'TABULAR' || idx < 0) throw new Error('Use a tabular report that includes the Work ID or TD column.');
+  const rows = ((rep.factMap && rep.factMap['T!T'] && rep.factMap['T!T'].rows) || []);
+  const entity = String((info[cols[idx]] || {}).entityColumnName || '');
+  if (!/ADM_Work__c|ADM_Team_Dependency__c/.test(entity)) throw new Error('This report is not on GUS Work or Team Dependency records.');
+  const refs = { names: [], ids: [] };
+  for (const r of rows.slice(0, 500)) { const c = (r.dataCells || [])[idx] || {}; const v = gid(c.value); if (v) refs.ids.push(v); else if (c.label) refs.names.push(String(c.label)); }
+  const out = await lookupItems(sf, teamId, refs);
+  return { ...out, report: text(md.name, 120), total: rows.length, truncated: rep.allData === false || rows.length > 500 };
+}
+/** Items for the import dialog: the pasted W-/TD- ids. */
+async function resolveItems(sf, teamId, input) {
+  planKey(teamId);
+  const raw = String(input && input.text || '').slice(0, 20000);
+  const names = [...raw.matchAll(/\b(?:W|TD)-\d{3,}\b/gi)].map(x => x[0]), ids = [...raw.matchAll(/\b[a-zA-Z0-9]{15}(?:[a-zA-Z0-9]{3})?\b/g)].map(x => x[0]).filter(x => /^a[0-9A-Za-z]/.test(x) && /\d/.test(x));
+  if (!names.length && !ids.length) throw new Error('Enter W-numbers (W-12345678) or TD numbers (TD-0350171), one per line or separated by commas.');
+  return lookupItems(sf, teamId, { names, ids });
+}
+/** Pull the chosen CARR/TD items into one epic as workstreams ("WS: <id> <title>"); the epic's planned release is what ties them to the release. Safe to repeat. */
+async function assignBacklog(sf, teamId, input) {
+  planKey(teamId);
+  const epicGusId = gid(input && input.epicGusId), tagId = gid(input && input.tagId), items = Array.isArray(input && input.items) ? input.items.slice(0, 25) : [];
+  if (!epicGusId) throw new Error('Choose the epic to pull the items into.');
+  if (!items.length) throw new Error('Select at least one item.');
+  const out = [], ownTags = new Set((await teamTags(sf, teamId)).map(t => t.id.slice(0, 15)));
+  for (const it of items) {
+    const id = gid(it && it.id), kind = it && it.kind === 'td' ? 'td' : 'carr';
+    try {
+      if (!id) throw new Error('Invalid item.');
+      let key, title, assigneeId = '', itemTag = '', note;
+      if (kind === 'carr') {
+        const w = ((await sf.query(`SELECT Id, Name, Subject__c, Status__c, Assignee__c, Product_Tag__c FROM ADM_Work__c WHERE Id = '${id}' LIMIT 1`)).records || [])[0];
+        if (!w) throw new Error('Work item not found.');
+        key = w.Name; title = w.Subject__c || ''; assigneeId = w.Assignee__c || '';
+        if (w.Product_Tag__c && ownTags.has(w.Product_Tag__c.slice(0, 15))) itemTag = w.Product_Tag__c;
+        note = `Imported from work item ${key} (${w.Status__c || 'status unknown'}): ${title}`;
+      } else {
+        const t = ((await sf.query(`SELECT Id, Name, Deliverable__c, Deliver_By__c, Dependency_Status__c, Dependent_Team__r.Name FROM ADM_Team_Dependency__c WHERE Id = '${id}' AND (Provider_Team__c = '${teamId}' OR Dependent_Team__c = '${teamId}') LIMIT 1`)).records || [])[0];
+        if (!t) throw new Error('Not a dependency of this team.');
+        key = t.Name; title = t.Deliverable__c || t.Name;
+        note = `Imported from team dependency ${key} for ${(t.Dependent_Team__r && t.Dependent_Team__r.Name) || 'another team'} (${t.Dependency_Status__c || 'status unknown'}${t.Deliver_By__c ? ', deliver by ' + t.Deliver_By__c : ''}): ${title}`;
+      }
+      const name = text(`${key} ${title}`, 190);
+      const r = await createWorkstream(sf, teamId, { epicGusId, name, assigneeId, tagId: itemTag || tagId, details: note });
+      out.push({ id, kind, key, ok: true, gusId: r.gusId, created: r.created, warnings: r.warnings || [] });
+    } catch (e) { out.push({ id, kind, key: '', ok: false, error: plain(e && e.message || e).slice(0, 300) }); }
+  }
+  return { results: out };
+}
+
+module.exports = { listBacklog, resolveItems, reportItems, assignBacklog, moveProject, moveWorkstream, epicDescriptionHtml, adoptEpic, richHtml, teamName, syncWorkstreams, withOutcome, outcomeOf, fiscalQuarter, refreshEpics, saveSmartGoal, generateSmartGoal, withSmartGoal, epicWorkstreams, epicStories, epicLeads, deleteEpic, deleteWorkstream, programProjects, importV2mom, resolveProgram, teamProgram, getPlan, savePlan, getRefs, commitPlan, createProject, deleteProject, createEpic, listEpics, findEpics, createWorkstream, syncEpics, review, cleanPlan };

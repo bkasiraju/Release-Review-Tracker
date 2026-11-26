@@ -3793,3 +3793,13 @@ html body .topbar-right .pl-gs:empty{display:none}
 .au-det{margin:4px 0 0;padding-left:16px;color:#5b6b7a;font-size:12px}
 .au-none{padding:24px;text-align:center;color:#5b6b7a}
 .au-card,.au-tile{min-width:0;box-sizing:border-box}
+
+/* TD & CARR backlog picker (Release Planning) */
+.pl-bl-bar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:10px}.pl-bl-bar input{min-width:260px}
+.pl-bl-list{max-height:52vh;overflow:auto;border:1px solid #e6ecf1;border-radius:10px}
+.pl-bl-list table{width:100%;border-collapse:collapse;font-size:13px}.pl-bl-list th{position:sticky;top:0;background:#f6f9fb;text-align:left;padding:7px 9px;font-size:11px;text-transform:uppercase;color:#5b6b7a}
+.pl-bl-list th::after{content:none!important}.pl-bl-list td{padding:7px 9px;border-top:1px solid #eef2f5;vertical-align:top}
+.pl-bl-go{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin:12px 0 4px}.pl-bl-go label{display:flex;flex-direction:column;gap:3px;font-size:11px;font-weight:700;color:#5b6b7a}
+.pl-bl-go select{max-width:420px;font-weight:400}
+
+.pl-cr .pl-bl-list{max-height:40vh;overflow:auto;border:1px solid #e6ecf1;border-radius:10px}.pl-cr .pl-bl-list:empty{display:none}.pl-bl-list td small{display:block;color:#6b7c8c;font-size:10px}.pl-cr [hidden]{display:none!important}

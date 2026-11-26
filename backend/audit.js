@@ -29,6 +29,7 @@ const RULES={
   'plan-adopt-epic':{area:'Epics & workstreams',say:b=>'Adopted epic'+q(nm(b.epic))},
   'plan-delete-epic':{area:'Epics & workstreams',say:b=>'Deleted epic'+q(nm(b.epic))},
   'plan-create-workstream':{area:'Epics & workstreams',say:b=>'Created workstream'+q(nm(b.workstream))},
+  'plan-backlog-assign':{area:'Epics & workstreams',say:(b,p)=>{const r=(p&&p.results||[]).filter(x=>x.ok).length;return `Pulled ${r} TD/CARR item(s) into an epic as workstreams`;}},
   'plan-move-workstream':{area:'Epics & workstreams',say:b=>'Moved workstream'+q(nm(b.workstream))},
   'plan-delete-workstream':{area:'Epics & workstreams',say:b=>'Deleted workstream'+q(nm(b.workstream))},
   'gus-update':{area:'GUS records',say:b=>{const u=Array.isArray(b.updates)?b.updates:[];const f=u[0]||{};return u.length>1?`Updated ${u.length} GUS records`:'Updated GUS record'+q(text(f.id,20));},
