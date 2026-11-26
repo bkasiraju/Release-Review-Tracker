@@ -287,23 +287,44 @@
   const cols=[['Accomplishments',sm.accomplishments],['In progress',sm.inProgress],['Learnings',sm.learnings],['Plan forward · '+AI_REL,sm.planForward]].filter(c=>c[1]&&c[1].length);
   el.innerHTML=`<div class="aiu-grid" style="grid-template-columns:repeat(${Math.min(2,cols.length)},minmax(0,1fr))">${cols.map(([h,l])=>`<div class="aiu-c"><h4>${esc(h)}</h4><ul>${l.map(li).join('')}</ul></div>`).join('')}</div><div class="aiu-meta"><span>AI summary${r.at?' · '+esc(fmt(r.at)):''}. Accomplishments need a done work item or an engineer statement; no PR or deployment data is used.</span>${state.api&&aiAvailable()?'<button type="button" data-aiu-re>Refresh</button>':''}</div>`;
  }
- const aiBusy=new Set();
- async function aiLoad(e,el,force){
+ const aiBusy=new Map();
+ /** The saved summary for an epic when its evidence is unchanged, else a new one (shared cache first). Returns null when nothing can be produced here. */
+ async function aiResolve(e,force,say){
   const fp=fpOf(e),id=e.gusId||'',cache=state.aiu||(state.aiu={});
-  if(!force&&cache[e.id]&&cache[e.id].fp===fp)return aiRender(el,cache[e.id],e);
-  if(aiBusy.has(e.id))return;aiBusy.add(e.id);
+  if(!force&&cache[e.id]&&cache[e.id].fp===fp)return cache[e.id];
+  if(aiBusy.has(e.id))return aiBusy.get(e.id);
+  const run=(async()=>{
+   if(!force&&state.api&&id){say&&say('Checking for a saved summary…');try{const r=await state.api('epic-summary-get',{epicId:id,fingerprint:fp});if(r&&r.summary)return cache[e.id]={fp,summary:r.summary,at:r.generatedAt};}catch(_){/* generate instead */}}
+   if(!state.api||!aiAvailable())return null;
+   say&&say('Summarising the updates and work items…');
+   const ev=aiEvidence(e),out=await window.AppletAI.complete('release-summary',{message:'Summarise this epic for the executive review.\n\n'+ev,systemPromptOverride:AI_SYSTEM}),summary=aiParse(out,e,ev);
+   cache[e.id]={fp,summary,at:new Date().toISOString()};
+   if(id){try{await state.api('epic-summary-save',{epicId:id,fingerprint:fp,summary});}catch(_){/* kept for this session */}}
+   return cache[e.id];
+  })();
+  aiBusy.set(e.id,run);try{return await run;}finally{aiBusy.delete(e.id);}
+ }
+ async function aiLoad(e,el,force){
   const msg=(t,retry)=>{el.innerHTML=`<div class="aiu-msg">${esc(t)}${retry?'<button type="button" data-aiu-re>Try again</button>':''}</div>`;};
   try{
-   if(!force&&state.api&&id){msg('Checking for a saved summary…');try{const r=await state.api('epic-summary-get',{epicId:id,fingerprint:fp});if(r&&r.summary){cache[e.id]={fp,summary:r.summary,at:r.generatedAt};return aiRender(el,cache[e.id],e);}}catch(_){/* generate instead */}}
-   if(!state.api||!aiAvailable())return msg(state.api?'AI is unavailable right now, so no summary could be generated.':'No AI summary was saved for this epic. Open this review in ReleaseIQ to generate one.',!!state.api);
-   msg('Summarising the updates and work items…');
-   const ev=aiEvidence(e),out=await window.AppletAI.complete('release-summary',{message:'Summarise this epic for the executive review.\n\n'+ev,systemPromptOverride:AI_SYSTEM}),summary=aiParse(out,e,ev),at=new Date().toISOString();
-   cache[e.id]={fp,summary,at};
-   if(id){try{await state.api('epic-summary-save',{epicId:id,fingerprint:fp,summary});}catch(_){/* kept for this session */}}
-   aiRender(el,cache[e.id],e);
+   const r=await aiResolve(e,force,msg);
+   if(r)return aiRender(el,r,e);
+   msg(state.api?'AI is unavailable right now, so no summary could be generated.':'No AI summary was saved for this epic. Open this review in ReleaseIQ to generate one.',!!state.api);
   }catch(x){msg((x&&x.message||'The summary could not be generated.').slice(0,160),true);}
-  finally{aiBusy.delete(e.id);}
  }
+ /** Opening the presentation prepares every epic's AI summary in the background, one after the other: saved ones load at once, only epics whose updates or work items changed are regenerated. */
+ let aiRun=0;
+ async function aiBackground(){
+  const my=++aiRun;if(!state||!state.api||!aiAvailable())return;
+  for(const e of state.epics.slice()){
+   if(my!==aiRun||!document.getElementById('dk'))return;
+   if(!(e.comments||(e.workItems||[]).length))continue;
+   try{await aiResolve(e,false);}catch(_){/* shown with a retry when the tab is opened */}
+   const el=document.querySelector(`#dk [data-uwrap="${CSS_ESC(e.id)}"] [data-upanel=ai]`);
+   if(el&&!el.hidden&&el.dataset.ready&&state.aiu&&state.aiu[e.id]&&state.aiu[e.id].fp===fpOf(e))aiRender(el,state.aiu[e.id],e);
+  }
+ }
+ const CSS_ESC=v=>String(v).replace(/["\\]/g,'\\$&');
  /** Tab clicks on the epic slides. The AI panel keeps the height of the GUS updates so nothing below it moves. */
  function wireTabs(st){
   st.addEventListener('click',ev=>{
@@ -326,7 +347,7 @@
    if(nd&&nd.epics){const keep={mode:state.mode,edit:state.edit,notes:state.notes,asks:state.asks,api:state.api,refresh:state.refresh,onChange:state.onChange,standalone:state.standalone,prevOverflow:state.prevOverflow};
     const n=nd.epics.length,was=state.epics.length;
     Object.assign(state,nd,keep,{asOf:new Date().toISOString().slice(0,10)});
-    paint();
+    paint();aiBackground();
     if(note)note.textContent='Updated '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+(n!==was?` · ${n} epics`:'');}
    else if(note)note.textContent='Nothing to update';}
   catch(x){if(note)note.textContent='Refresh failed: '+((x&&x.message)||'try again').slice(0,80);}
@@ -351,7 +372,7 @@
   st.querySelectorAll('[data-goto]').forEach(r=>r.addEventListener('click',()=>go(Number(r.dataset.goto))));
   document.querySelectorAll('#dk [data-mode]').forEach(x=>x.classList.toggle('on',x.dataset.mode===(state.mode==='review'?'review':'planning')));
   syncFilterUi();slides.forEach(s=>s.style.transition='none');fit();go(cur);requestAnimationFrame(()=>requestAnimationFrame(()=>slides.forEach(s=>s.style.transition='')));}
- function close(){const d=document.getElementById('dk');if(d)d.remove();const s=document.getElementById('dk-css');if(s)s.remove();
+ function close(){aiRun++;const d=document.getElementById('dk');if(d)d.remove();const s=document.getElementById('dk-css');if(s)s.remove();
   removeEventListener('keydown',onKey,true);removeEventListener('resize',onResize);if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});document.body.style.overflow=state&&state.prevOverflow||'';}
  /** Tells the host (planner or review page) that notes or asks changed so it can save them. */
  function changed(){if(typeof state.onChange==='function')state.onChange({notes:state.notes||{},asks:(state.asks||[]).filter(a=>String(a.q).trim())});}
@@ -373,7 +394,7 @@
    else if(k==='Home')go(0);else if(k==='End')go(slides.length-1);
    else if(k==='Escape'){if(!document.fullscreenElement&&!state.standalone){e.preventDefault();e.stopImmediatePropagation();close();}}
    else if(k.toLowerCase()==='f')d.requestFullscreen&&(document.fullscreenElement?document.exitFullscreen():d.requestFullscreen());};
-  onResize=fit;addEventListener('keydown',onKey,true);addEventListener('resize',onResize);paint();
+  onResize=fit;addEventListener('keydown',onKey,true);addEventListener('resize',onResize);paint();aiBackground();
  }
  /** Plain-text Slack summary of the deck: health counts, one line per epic, and the asks. */
  function summaryText(D){

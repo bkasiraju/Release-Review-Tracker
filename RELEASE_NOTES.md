@@ -4,6 +4,10 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r84 (folded)
+
+- Opening the presentation now prepares every epic's AI Summarised Updates in the background, one epic after another: summaries already in the shared cache load at once, and only epics whose engineer updates or work items changed are regenerated (also after the in-deck Refresh). The tab shows the result instantly; if the epic is still being prepared it waits for that run instead of starting another.
+
 ### 8.0.0-GA r83 (folded)
 
 - AI Summarised Updates are now extractive: every substantive word of a line must come from its own backing evidence (the quoted engineer text or the backing work item subjects), and outcome words (upgraded, resolved, enabled, faster, eliminated, released …) can never be added by the AI. Lines that interpret rather than restate are dropped. Hover a line to see the engineer text it rests on. Earlier saved summaries regenerate once.
