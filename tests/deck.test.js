@@ -42,3 +42,13 @@ test('deck: every epic is reachable from the paginated index and jump targets ar
   assert.match(h,/data-goto="4"/);assert.match(h,/data-goto="22"/);assert.match(h,/Epics \(2 of 2\)/);
   assert.equal((h.match(/<section class="slide/g)||[]).length,2+2+19+1);
 });
+test('deck: monthly comments split into Outcome and the two latest review months',()=>{
+  const t='------\nOctober Update:\nOutcome/Progress: A\nBlockers: x\n------\nNovember Update:\nOutcome/Progress: B <i>\n\nSeptember 2026 Update:\nold';
+  const u=globalThis.EpicDeck.parseUpdates(t,'2026-11-26');
+  assert.deepEqual(u.months.map(m=>m.label),['November 2026','October 2026','September 2026']);
+  assert.equal(u.outcome,'B <i>');
+  assert.equal(globalThis.EpicDeck.parseUpdates('Outcome: Ship it\n\nNovember Update:\nx','2026-11-26').outcome,'Ship it');
+  const e=[{id:'1',name:'E',health:'',owner:'',points:1,comments:t,progress:{pct:1,done:0,wip:0,total:1,unit:'points'},workItems:[]}];
+  const h=build({team:'T',release:'R',asOf:'2026-11-26',gusUrl:'https://g/',mode:'review',epics:e}).html;
+  assert.match(h,/November 2026 review/);assert.match(h,/\+ 1 earlier monthly update/);assert.ok(!h.includes('B <i>'),'escaped');
+});
