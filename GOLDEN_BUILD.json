@@ -1,7 +1,7 @@
 {
   "version": "8.0.0-GA",
   "label": "GOLDEN BUILD",
-  "revision": "20261126-8.0.0-r80",
+  "revision": "20261126-8.0.0-r81",
   "manifest": "releases/8.0.0-GA/build.json",
   "preferredRollbackTag": "GOLDEN-BUILD-8.0.0-GA",
   "immutable": false,

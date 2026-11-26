@@ -55,6 +55,8 @@
 #dk .goal.missing{color:var(--amber);border-left-color:var(--amber);font-style:italic}
 #dk .outcome{border:1px solid var(--line);border-left:6px solid var(--blue);border-radius:8px;background:#f6f9fc;padding:10px 16px;margin:6px 0 10px}#dk .outcome .o-l{font-size:11px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted)}#dk .outcome .o-t{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;font-size:17px;font-weight:700;line-height:1.35;color:var(--ink);margin-top:2px}
 #dk .months{display:grid;gap:12px;align-items:stretch}#dk .month{border:1px solid var(--line);border-radius:8px;padding:10px 14px;min-width:0}#dk .month .m-more{font-size:11px;font-weight:700;margin-top:6px}#dk .month .m-l{font-size:11px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--blue);margin-bottom:6px}#dk .month .m-t{line-height:1.4;color:#222;overflow-wrap:anywhere}#dk .month .lbl{color:var(--navy)}
+#dk .utabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:10px 0 8px}#dk .utab{all:unset;box-sizing:border-box;cursor:pointer;font-size:12px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);padding:6px 12px;border-bottom:3px solid transparent;margin-bottom:-1px}#dk .utab:hover{color:var(--navy)}#dk .utab.on{color:var(--navy);border-bottom-color:var(--blue)}#dk .utab:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+#dk .upanel[hidden]{display:none}#dk .aiu{overflow:auto}#dk .aiu-grid{display:grid;gap:12px;align-items:stretch}#dk .aiu-c{border:1px solid var(--line);border-radius:8px;padding:10px 14px;min-width:0}#dk .aiu-c h4{font-size:11px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--blue);margin-bottom:6px}#dk .aiu-c ul{padding-left:16px;font-size:13.5px;line-height:1.4;color:#222}#dk .aiu-c li{margin-bottom:4px;overflow-wrap:anywhere}#dk .aiu-meta{display:flex;gap:10px;align-items:center;font-size:11px;color:var(--muted);margin-top:8px}#dk .aiu-meta button{all:unset;cursor:pointer;color:var(--blue);font-weight:700}#dk .aiu-meta button:focus-visible{outline:2px solid var(--blue);outline-offset:2px}#dk .aiu-msg{font-size:13px;color:var(--muted);padding:10px 0}#dk .aiu-msg button{all:unset;cursor:pointer;color:var(--blue);font-weight:700;margin-left:8px}
 #dk .section-label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1.2px;margin:10px 0 6px}
 #dk table.ws{width:100%!important;min-width:0!important;border-collapse:collapse;font-size:13px;table-layout:fixed}#dk table.ws td:nth-child(2){white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #dk table.ws.wrap td:nth-child(2){white-space:normal;line-height:1.3;overflow:hidden;max-height:2.6em}#dk table.ws.wrap td:nth-child(2) span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
@@ -165,8 +167,10 @@
   const fmtBody=t=>esc(t).replace(/^([ \t]*)(Outcome\s*\/\s*Progress|Outcome|Progress|Blockers?|Risks?|Next steps?|Next|Dependencies|Asks?|Path to green)\s*:/gim,'$1<b class="lbl">$2:</b>').replace(/\n/g,'<br>');
   const updatesHtml=(U,col,lk)=>{const hd=U.head&&U.head!==U.outcome?{label:'Status update',text:U.head}:null,shown=[...(hd?[hd]:[]),...U.months.slice(0,2)],n=shown.reduce((a,m)=>a+m.text.length,0)+(U.outcome||'').length,sz=n>1000?12.5:n>600?13.5:15,cont=lk?`<a href="${esc(lk)}" target="_blank" rel="noopener">Continues in the epic comments in GUS ↗</a>`:'Continues in the epic comments in GUS';
    return (U.outcome?`<div class="outcome" style="border-left-color:${col}"><div class="o-l">Outcome</div><div class="o-t">${esc(U.outcome)}</div></div>`:'')+(shown.length?`<div class="months" style="font-size:${sz}px;grid-template-columns:repeat(${shown.length},minmax(0,1fr))">${shown.map(m=>`<div class="month"><div class="m-l">${esc(m.label)}${m===hd?'':' review'}</div><div class="m-t" data-fit>${fmtBody(m.text)}</div><div class="m-more" hidden>${cont}</div></div>`).join('')}</div>${U.months.length>2?`<p class="more">+ ${U.months.length-2} earlier monthly update${U.months.length-2>1?'s':''} in GUS</p>`:''}`:'');};
+  const PLAN_REL='268';
+  const updateTabs=(e,gus)=>`<div data-uwrap="${esc(e.id)}"><div class="utabs" role="tablist" aria-label="Epic updates"><button type="button" class="utab on" role="tab" aria-selected="true" data-utab="gus">GUS Updates</button><button type="button" class="utab" role="tab" aria-selected="false" data-utab="ai">AI Summarised Updates</button></div><div class="upanel" role="tabpanel" data-upanel="gus">${gus}</div><div class="upanel aiu" role="tabpanel" data-upanel="ai" hidden></div></div>`;
   const epic=(e,i)=>{const col=tcol(e.theme),live=e.workItems.filter(w=>!isNever(w.status)),pg=e.progress,n=pg?(pg.total||1):(live.length||1),dn=pg?pg.done:live.filter(w=>isDone(w.status)).length,wp=pg?pg.wip:live.filter(w=>!isDone(w.status)&&isWip(w.status)).length,pct=pg&&pg.pct!=null?Math.round(pg.pct):Math.round(dn/n*100),unit=pg?pg.unit:'workstreams',tot=pg?pg.total:live.length,maxD=Math.max(1,...e.workItems.map(w=>w.days||0)),days=sum(e.workItems,w=>w.days);
-   const U=mode==='review'&&e.comments?parseUpdates(e.comments,D.asOf):null,text=(U?updatesHtml(U,col,link('ADM_Epic__c',e.gusId)):e.comments?`<div class="section-label">Status update</div><div class="goal" style="border-left-color:${col}">${esc(e.comments)}</div>`:'')+(e.pathToGreen?`<div class="section-label">Path to green</div><div class="goal" style="border-left-color:var(--amber)">${esc(e.pathToGreen)}</div>`:''),shown=[...e.workItems].sort((a,b)=>isDone(a.status)-isDone(b.status)).slice(0,8),rows=shown.map(w=>`<tr><td class="wi">${w.url?`<a href="${esc(w.url)}" target="_blank" rel="noopener">${esc(w.id)}</a>`:esc(w.id)}</td><td title="${esc(w.subject)}"><span>${esc(w.subject)}</span></td><td class="who" title="${esc(w.assignee)}">${esc(w.assignee||'—')}</td><td class="eff">${w.days?`<span class="effbar" style="width:${Math.round(w.days/maxD*50)}px;background:${col}"></span>${w.days}d`:'<span style="color:var(--grey)">—</span>'}</td><td class="st">${esc(w.status||'—')}</td></tr>`).join('')||`<tr><td colspan="5" style="color:var(--amber)">No workstreams yet</td></tr>`;
+   const U=mode==='review'&&e.comments?parseUpdates(e.comments,D.asOf):null,gusPane=U?updatesHtml(U,col,link('ADM_Epic__c',e.gusId)):e.comments?`<div class="goal" style="border-left-color:${col}">${esc(e.comments)}</div>`:'<div class="aiu-msg">No status updates are recorded in GUS for this epic.</div>',text=((e.comments||e.workItems.length)?updateTabs(e,gusPane):'')+(e.pathToGreen?`<div class="section-label">Path to green</div><div class="goal" style="border-left-color:var(--amber)">${esc(e.pathToGreen)}</div>`:''),shown=[...e.workItems].sort((a,b)=>isDone(a.status)-isDone(b.status)).slice(0,8),rows=shown.map(w=>`<tr><td class="wi">${w.url?`<a href="${esc(w.url)}" target="_blank" rel="noopener">${esc(w.id)}</a>`:esc(w.id)}</td><td title="${esc(w.subject)}"><span>${esc(w.subject)}</span></td><td class="who" title="${esc(w.assignee)}">${esc(w.assignee||'—')}</td><td class="eff">${w.days?`<span class="effbar" style="width:${Math.round(w.days/maxD*50)}px;background:${col}"></span>${w.days}d`:'<span style="color:var(--grey)">—</span>'}</td><td class="st">${esc(w.status||'—')}</td></tr>`).join('')||`<tr><td colspan="5" style="color:var(--amber)">No workstreams yet</td></tr>`;
    const flags=flagsFor(e,mode,D.asOf).map(f=>`<li class="${f.ok?'good':'bad'}${f.crit?' crit':''}">${esc(f.text)}</li>`).join('');
    return `<section class="slide"><div class="accent-bar" style="background:${col}"></div>${header(`Epic ${i+1} of ${E.length}`,e.theme||'')}<div class="slide-body"><div class="epic-grid"${U?' style="grid-template-columns:1.9fr 1fr"':''}><div style="min-width:0">
     <div class="epic-title">${esc(e.name)}</div><div class="epic-meta">${badge(e.health)}${e.priority!=null&&e.priority!==''?`<span class="pill">P${esc(e.priority)}</span>`:''}${e.line?`<span class="pill">${esc(e.line)}</span>`:''}<span>· Owner <b style="color:var(--ink)">${esc(e.owner||'Unassigned')}</b></span></div>
@@ -205,7 +209,7 @@
    const more=box.parentElement.querySelector('.m-more');if(more)more.hidden=true;});
   const cards=[...sl.querySelectorAll('.months,.outcome')];if(!cards.length)return;
   // everything that follows the update cards in the column keeps its space
-  const col=cards[0].parentElement,after=cards.length?[...col.children].filter(c=>c.offsetTop>cards[cards.length-1].offsetTop).reduce((n,c)=>n+c.offsetHeight+12,0):0;
+  const anchor=cards[0].closest('[data-uwrap]')||cards[cards.length-1],col=anchor.parentElement,after=[...col.children].filter(c=>c.offsetTop>anchor.offsetTop).reduce((n,c)=>n+c.offsetHeight+12,0);
   const room=limit-after;
   sl.querySelectorAll('.months').forEach(m=>{
    const t=[...m.querySelectorAll('[data-fit]')];if(!t.length)return;
@@ -216,6 +220,61 @@
    let n=Math.max(3,Math.floor(Math.max(...t.map(b=>b.scrollHeight))/lh));
    for(;n>3;n--){t.forEach(b=>b.style.webkitLineClamp=n);if(fits())break;}
    t.forEach(b=>{b.style.webkitLineClamp=n;const cut=b.scrollHeight>b.clientHeight+1;b.parentElement.querySelector('.m-more').hidden=!cut;if(!cut){b.style.display='';b.style.webkitLineClamp='';}});
+  });
+ }
+
+ /** AI Summarised Updates: executive bullets built from the engineer updates and the epic's work items. Generated once, saved
+  *  to the shared cache under a fingerprint of that evidence, and regenerated only when the evidence changes. */
+ const AI_VERSION='aiu1',AI_REL='268';
+ const fpOf=e=>{const t=JSON.stringify([AI_VERSION,AI_REL,e.name,e.health,e.goal,e.comments,e.pathToGreen,(e.workItems||[]).map(w=>[w.id,w.subject,w.status,w.days,w.assignee])]);let a=0x811c9dc5,b=5381;for(let i=0;i<t.length;i++){const c=t.charCodeAt(i);a=Math.imul(a^c,16777619)>>>0;b=(Math.imul(b,33)+c)>>>0;}return a.toString(36).padStart(7,'0')+b.toString(36).padStart(7,'0');};
+ const aiAvailable=()=>{try{return typeof window.AppletAI?.complete==='function'&&window.AppletAI.isAvailable()===true;}catch(_){return false;}};
+ const AI_SYSTEM='You write executive epic updates for a senior engineering review. Use ONLY the evidence supplied. Never invent progress, dates, numbers or completion; closed or ready-for-review is not released; goals are not achievements. Return ONLY JSON: {"accomplishments":[],"learnings":[],"planForward":[]}. Each item is one crisp line of at most 18 words, executive level, third person, no work item ids, no names of individual engineers. accomplishments: up to 4 delivered outcomes. learnings: up to 3 lessons, risks or blockers that were actually reported. planForward: up to 3 items only if the evidence explicitly plans work for release '+AI_REL+'; otherwise an empty array. Use an empty array whenever the evidence does not support a section.';
+ function aiEvidence(e){
+  const w=(e.workItems||[]).slice(0,40).map(x=>`- ${x.subject||''} | ${x.status||'?'}${x.days?' | '+x.days+'d':''}`).join('\n');
+  return `EPIC: ${e.name||''}\nHEALTH: ${e.health||'n/a'}\nGOAL: ${String(e.goal||'n/a').slice(0,600)}\nENGINEER UPDATES (GUS epic comments):\n${plainTxt(e.comments||'').slice(0,6000)||'none'}\nPATH TO GREEN: ${plainTxt(e.pathToGreen||'')||'none'}\nWORK ITEMS UNDER THE EPIC (${(e.workItems||[]).length}):\n${w||'none'}`;
+ }
+ function aiParse(out,evidence){
+  const raw=String(out&&(out.text||out.answer||out.message)||out||'').trim().replace(/^```(?:json)?\s*/i,'').replace(/\s*```$/,'');
+  let v;try{v=JSON.parse(raw);}catch(_){const m=/\{[\s\S]*\}/.exec(raw);try{v=m&&JSON.parse(m[0]);}catch(__){}}
+  if(!v||typeof v!=='object')throw Error('The AI response could not be read.');
+  const known=new Set(evidence.match(/\d+(?:[.,]\d+)*/g)||[]),cap={accomplishments:4,learnings:3,planForward:3},o={};let n=0;
+  for(const k of Object.keys(cap)){o[k]=(Array.isArray(v[k])?v[k]:[]).map(x=>String(x||'').replace(/^[\s\-*•]+/,'').replace(/\s+/g,' ').trim()).filter(x=>x&&x.split(/\s+/).length<=30&&!(x.match(/\d+(?:[.,]\d+)*/g)||[]).some(t=>!known.has(t)&&t!==AI_REL)).slice(0,cap[k]);n+=o[k].length;}
+  if(!n)throw Error('No executive-level updates could be drawn from the evidence.');
+  return o;
+ }
+ function aiRender(el,r,e){
+  const cols=[['Accomplishments',r.summary.accomplishments],['Learnings',r.summary.learnings],['Plan forward · '+AI_REL,r.summary.planForward]].filter(c=>c[1]&&c[1].length);
+  el.innerHTML=`<div class="aiu-grid" style="grid-template-columns:repeat(${cols.length},minmax(0,1fr))">${cols.map(([h,l])=>`<div class="aiu-c"><h4>${esc(h)}</h4><ul>${l.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`).join('')}</div><div class="aiu-meta"><span>AI summary${r.at?' · '+esc(fmt(r.at)):''}. Built from engineer updates and work items; review before sharing.</span>${state.api&&aiAvailable()?'<button type="button" data-aiu-re>Refresh</button>':''}</div>`;
+ }
+ const aiBusy=new Set();
+ async function aiLoad(e,el,force){
+  const fp=fpOf(e),id=e.gusId||'',cache=state.aiu||(state.aiu={});
+  if(!force&&cache[e.id]&&cache[e.id].fp===fp)return aiRender(el,cache[e.id],e);
+  if(aiBusy.has(e.id))return;aiBusy.add(e.id);
+  const msg=(t,retry)=>{el.innerHTML=`<div class="aiu-msg">${esc(t)}${retry?'<button type="button" data-aiu-re>Try again</button>':''}</div>`;};
+  try{
+   if(!force&&state.api&&id){msg('Checking for a saved summary…');try{const r=await state.api('epic-summary-get',{epicId:id,fingerprint:fp});if(r&&r.summary){cache[e.id]={fp,summary:r.summary,at:r.generatedAt};return aiRender(el,cache[e.id],e);}}catch(_){/* generate instead */}}
+   if(!state.api||!aiAvailable())return msg(state.api?'AI is unavailable right now, so no summary could be generated.':'No AI summary was saved for this epic. Open this review in ReleaseIQ to generate one.',!!state.api);
+   msg('Summarising the updates and work items…');
+   const ev=aiEvidence(e),out=await window.AppletAI.complete('release-summary',{message:'Summarise this epic for the executive review.\n\n'+ev,systemPromptOverride:AI_SYSTEM}),summary=aiParse(out,ev),at=new Date().toISOString();
+   cache[e.id]={fp,summary,at};
+   if(id){try{await state.api('epic-summary-save',{epicId:id,fingerprint:fp,summary});}catch(_){/* kept for this session */}}
+   aiRender(el,cache[e.id],e);
+  }catch(x){msg((x&&x.message||'The summary could not be generated.').slice(0,160),true);}
+  finally{aiBusy.delete(e.id);}
+ }
+ /** Tab clicks on the epic slides. The AI panel keeps the height of the GUS updates so nothing below it moves. */
+ function wireTabs(st){
+  st.addEventListener('click',ev=>{
+   const t=ev.target.closest('[data-utab]'),re=ev.target.closest('[data-aiu-re]'),w=ev.target.closest('[data-uwrap]');if(!w)return;
+   const e=state.epics.find(x=>String(x.id)===w.dataset.uwrap);if(!e)return;
+   const ai=w.querySelector('[data-upanel=ai]'),gus=w.querySelector('[data-upanel=gus]');
+   if(re)return aiLoad(e,ai,true);
+   if(!t)return;const which=t.dataset.utab;
+   if(which==='ai'&&ai.hidden){const h=gus.offsetHeight;ai.style.minHeight=Math.max(150,h)+'px';ai.style.maxHeight=Math.max(150,h)+'px';}
+   w.querySelectorAll('[data-utab]').forEach(b=>{const on=b.dataset.utab===which;b.classList.toggle('on',on);b.setAttribute('aria-selected',String(on));});
+   gus.hidden=which!=='gus';ai.hidden=which!=='ai';
+   if(which==='ai'&&!ai.dataset.ready){ai.dataset.ready='1';aiLoad(e,ai,false);}
   });
  }
  /** Re-reads the latest data through the host (state.refresh) and redraws in place: same slide, same view, and your notes and asks are kept. */
@@ -260,7 +319,7 @@
   const st=document.createElement('style');st.id='dk-css';st.textContent=CSS;document.head.appendChild(st);
   const d=document.createElement('div');d.id='dk';d.setAttribute('data-nocf','');d.setAttribute('role','dialog');d.setAttribute('aria-label','Epic review presentation');
   d.innerHTML=(state.standalone?'':'')+'<div class="dk-prog" id="dk-prog"></div><div class="dk-stage"></div><div class="dk-flt" id="dk-flt" hidden></div><div class="dk-bar"><button type="button" data-a="prev" title="Previous (←)" aria-label="Previous slide">◀</button><span id="dk-count"></span><button type="button" data-a="next" title="Next (→)" aria-label="Next slide">▶</button><button type="button" data-a="home" title="Go to the first slide (Home)">⌂ Home</button><button type="button" data-a="index" title="Go to the epic list">☰ Epics</button><button type="button" data-a="filter" id="dk-fbtn" title="Show only some epics: by status, owner or theme" aria-expanded="false">⏷ Filter<span class="cnt" id="dk-fcnt" hidden></span></button><button type="button" data-a="clearf" id="dk-fclr" title="Clear all filters (Esc)" hidden>✕ Clear filters</button><button type="button" data-mode="planning" title="Planning view">Planning</button><button type="button" data-mode="review" title="Monthly review view: progress and risks">Monthly review</button>'+(state.standalone?'':'<button type="button" data-a="edit" title="Add presenter notes and asks">Edit notes</button>')+'<button type="button" data-a="print" title="Print or save as PDF">Print</button>'+(state.standalone?'':'<button type="button" data-a="save" title="Download this deck as an HTML file">Download</button>')+(!state.standalone&&state.refresh?'<button type="button" data-a="refresh" title="Re-read the latest data from GUS">Refresh</button><span id="dk-rf" class="dk-rf" role="status"></span>':'')+(!state.standalone&&state.api?'<button type="button" data-a="share" title="Post a summary to Slack (you pick the channel)">Share to Slack</button>':'')+'<button type="button" data-a="full" title="Fullscreen (F)" aria-label="Fullscreen">⛶</button>'+(state.standalone?'':'<button type="button" data-a="close" title="Close (Esc)" aria-label="Close presentation">✕</button>')+'</div>';
-  document.body.appendChild(d);document.body.style.overflow='hidden';cur=0;
+  document.body.appendChild(d);document.body.style.overflow='hidden';cur=0;wireTabs(d.querySelector('.dk-stage'));
   d.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const a=b.dataset.a;
    if(a==='home')go(0);else if(a==='index')go(2);else if(a==='filter')toggleFilter();else if(a==='clearf')clearFilters();else if(a==='prev')go(cur-1);else if(a==='next')go(cur+1);else if(a==='close')close();else if(a==='edit'){state.edit=!state.edit;b.classList.toggle('on',state.edit);paint();}else if(a==='print')print();else if(a==='share')share();else if(a==='refresh')refresh(b);else if(b.dataset.askAdd){state.asks.push({type:'Ask',q:'',d:'',who:''});changed();paint();}else if(b.dataset.askDel!=null){state.asks.splice(Number(b.dataset.askDel),1);changed();paint();}else if(a==='save'){b.disabled=true;download(state).catch(err=>alert(err.message)).finally(()=>b.disabled=false);}
    else if(a==='full')document.fullscreenElement?document.exitFullscreen():d.requestFullscreen&&d.requestFullscreen();
@@ -315,7 +374,7 @@
   if(data&&data.flt){data=Object.assign({},data);delete data.flt;}
   let src='';try{src=SRC?await (await fetch(SRC)).text():'';}catch(_){}
   if(!src)throw new Error('The presentation template could not be loaded.');
-  const d=Object.assign({mode:'planning'},data,opts||{},{edit:false,onChange:undefined,prevOverflow:undefined}),json=JSON.stringify(d).replace(/</g,'\\u003c');
+  const d=Object.assign({mode:'planning'},data,opts||{},{aiu:(state&&state.aiu)||(data&&data.aiu)||{}},{edit:false,onChange:undefined,prevOverflow:undefined}),json=JSON.stringify(d).replace(/</g,'\\u003c');
   const html='<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+esc(d.team+' — '+d.release+' epic review')+'</title></head><body style="margin:0;background:#1b1f24"><script>'+src.replace(/<\/script/gi,'<\\/script')+'<\/script><script>EpicDeck.open('+json+',{standalone:true});<\/script></body></html>';
   const name=(d.team+'-'+d.release+'-'+(d.mode==='review'?'monthly-review':'epic-review')).replace(/[^A-Za-z0-9]+/g,'-').replace(/^-|-$/g,'').toLowerCase()+'.html';
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([html],{type:'text/html'}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);return name;

@@ -4,6 +4,11 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r81 (folded)
+
+- Presentation: the epic status update is now two tabs, "GUS Updates" (the raw engineer updates, unchanged) and "AI Summarised Updates" (Accomplishments, Learnings, Plan forward for 268 when the evidence plans it). The summary is built from the epic updates, goal, path to green and the work items under the epic; each line is short, numbers not found in the evidence are dropped.
+- Generated on first opening of the tab, saved to the shared cache (`epic-summary-get` / `epic-summary-save`) under a fingerprint of the evidence, and regenerated only when updates or work items change (or on Refresh).
+
 ### 8.0.0-GA r80 (folded)
 
 - Import dialog: Product tag moved into a collapsed "Additional details" section with an Assignee note; imported workstreams are now assigned to the person importing, not the source item's owner.
