@@ -194,7 +194,7 @@
    else if(b.dataset.mode){state.mode=b.dataset.mode;paint();}});
   d.addEventListener('input',e=>{const t=e.target;if(t.dataset.note!=null){(state.notes||(state.notes={}))[t.dataset.note]=t.value;changed();}else if(t.dataset.ask!=null){state.asks[Number(t.dataset.ask)][t.dataset.k]=t.value;changed();}});
   d.addEventListener('change',e=>{const t=e.target;if(t.dataset.ask!=null&&t.dataset.k==='type'){paint();}});
-  onKey=e=>{if(e.target&&/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))return;const k=e.key;
+  onKey=e=>{if(e.target&&(/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)||(e.target.closest&&e.target.closest('.dk-share'))))return;const k=e.key;
    if(['ArrowRight','PageDown',' ','Enter'].includes(k)){e.preventDefault();e.stopPropagation();go(cur+1);}
    else if(['ArrowLeft','PageUp','Backspace'].includes(k)){e.preventDefault();e.stopPropagation();go(cur-1);}
    else if(k==='Home')go(0);else if(k==='End')go(slides.length-1);
