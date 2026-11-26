@@ -249,6 +249,14 @@
   if(miss.some(w=>CLAIMSTEM.test(w)))return false;
   return t.length>0&&miss.length/t.length<=0.35;
  }
+ /** Whatever the AI lines could not confirm is filled from GUS itself, so an epic with finished work never shows an empty Accomplishments. */
+ function aiMerge(e,s){
+  let f=null;try{f=aiFallback(e);}catch(_){/* nothing recorded in GUS either */}
+  if(!s){if(!f)throw Error('No engineer update or work item status gives enough to summarise yet.');return f;}
+  if(f&&!s.accomplishments.length&&f.accomplishments.length){s.accomplishments=f.accomplishments;s.note=f.note;}
+  if(f&&!s.inProgress.length&&f.inProgress.length){s.inProgress=f.inProgress;s.note=f.note;}
+  return s;
+ }
  /** Used when nothing the AI wrote can be confirmed: only what GUS itself records (done and active work items), worded as the subject says. */
  function aiFallback(e){
   const subj=w=>String(w.subject||'').replace(/^WS:\s*/i,'').replace(/\s+/g,' ').trim().slice(0,150),wi=(e.workItems||[]).filter(w=>!isNever(w.status));
@@ -313,7 +321,7 @@
    if(!force&&state.api&&id&&!aiPre){try{const r=await state.api('epic-summary-get',{epicId:id,fingerprint:fp});if(r&&r.summary)return cache[e.id]={fp,summary:r.summary,at:r.generatedAt};}catch(_){/* generate instead */}}
    if(!state.api||!aiAvailable())return null;
    say&&say('Summarising the updates and work items…');
-   const ev=aiEvidence(e),out=await window.AppletAI.complete('release-summary',{message:'Summarise this epic for the executive review.\n\n'+ev,systemPromptOverride:AI_SYSTEM}),summary=(()=>{try{return aiParse(out,e,ev);}catch(_){return aiFallback(e);}})();
+   const ev=aiEvidence(e),out=await window.AppletAI.complete('release-summary',{message:'Summarise this epic for the executive review.\n\n'+ev,systemPromptOverride:AI_SYSTEM}),summary=aiMerge(e,(()=>{try{return aiParse(out,e,ev);}catch(_){return null;}})());
    cache[e.id]={fp,summary,at:new Date().toISOString()};
    if(id){try{await state.api('epic-summary-save',{epicId:id,fingerprint:fp,summary});}catch(_){/* kept for this session */}}
    return cache[e.id];
@@ -458,5 +466,5 @@
   const name=(d.team+'-'+d.release+'-'+(d.mode==='review'?'monthly-review':'epic-review')).replace(/[^A-Za-z0-9]+/g,'-').replace(/^-|-$/g,'').toLowerCase()+'.html';
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([html],{type:'text/html'}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);return name;
  }
- root.EpicDeck={open,close,download,build,flagsFor,summaryText,parseUpdates,aiParse,aiFallback};
+ root.EpicDeck={open,close,download,build,flagsFor,summaryText,parseUpdates,aiParse,aiFallback,aiMerge};
 })(typeof window!=='undefined'?window:globalThis);

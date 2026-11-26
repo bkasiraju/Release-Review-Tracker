@@ -35,3 +35,10 @@ test('fallback lists only done and active work items as the work item subjects, 
   assert.ok(r.note);
   assert.throws(()=>aiFallback({workItems:[{id:'W-9',subject:'x',status:'New'}]}));
 });
+
+test('merge fills empty Accomplishments from done work items but keeps AI lines that were confirmed',()=>{
+  const {aiMerge}=ctx.EpicDeck||ctx.window.EpicDeck;
+  const s=aiMerge(e,{accomplishments:[],inProgress:[],learnings:[{text:'L',quote:'',refs:[]}],planForward:[]});
+  assert.equal(s.accomplishments.length,1);assert.equal(s.learnings.length,1);assert.ok(s.note);
+  assert.equal(aiMerge(e,{accomplishments:[{text:'A'}],inProgress:[{text:'B'}],learnings:[],planForward:[]}).accomplishments[0].text,'A');
+});
