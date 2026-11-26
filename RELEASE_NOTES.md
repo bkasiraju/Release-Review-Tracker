@@ -4,6 +4,11 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r86 (folded)
+
+- The presentation's AI summaries are prepared before anyone clicks Present: as soon as the review page has its epics (and after each reload), saved summaries are fetched from the shared cache and only changed epics are generated, three at a time. Present then opens with everything ready; reopening the deck in the same session reuses the results.
+- Overview "Epics by owner" now shows each owner's epics split by status (On track, Watch, Blocked, Not started) as a coloured stacked bar with counts, plus an all-epics status split above the list.
+
 ### 8.0.0-GA r85 (folded)
 
 - AI Summarised Updates are now built in two layers. The base needs no AI and shows instantly: progress facts ("28 of 28 points done · 12 of 12 work items done"), done and in-progress work items by subject with W-ID links, and the newest engineer update as written. AI then condenses on top (grouping related work items, taking cited engineer lines, adding Learnings and Plan forward) and only replaces a base section where it confirmed something. AI is called only for epics that have engineer updates, which also cuts tokens; epics without them use the base alone. The AI word check is slightly looser (rephrasing allowed; added outcome words such as upgraded/resolved/deployed still rejected). Earlier saved results regenerate once (aiu5).

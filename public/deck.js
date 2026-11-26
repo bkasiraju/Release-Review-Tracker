@@ -37,9 +37,9 @@
 #dk .panels{display:grid;grid-template-columns:1fr 1fr;gap:24px}
 #dk .panel{border:1px solid var(--line);border-radius:8px;padding:16px 20px}
 #dk .panel h3{font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px}
-#dk .hbar{display:grid;grid-template-columns:190px 1fr 80px;align-items:center;gap:10px;height:30px;font-size:13px}
+#dk .hbar{display:grid;grid-template-columns:170px 1fr 230px;align-items:center;gap:10px;min-height:34px;font-size:13px}
 #dk .hbar .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#dk .hbar .track{height:14px;background:#f3f5f7;border-radius:3px}#dk .hbar .fill{height:100%;border-radius:3px;background:var(--blue)}
+#dk .hbar .track{height:14px;background:#f3f5f7;border-radius:3px}#dk .hbar .track{display:flex;overflow:hidden}#dk .hbar .fill{height:100%;border-radius:0;background:var(--blue)}#dk .hbar.st-split{height:auto}#dk .hbar .val small{display:flex;flex-wrap:wrap;gap:2px 8px;justify-content:flex-end;font-size:11px}#dk .st{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}#dk .st i{width:8px;height:8px;border-radius:50%;display:inline-block}#dk .hsplit{display:flex;flex-wrap:wrap;gap:4px 14px;align-items:center;font-size:12px;color:var(--muted);margin:0 0 8px}#dk .hsplit b{color:var(--ink)}
 #dk .hbar .val{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}#dk .hbar .val b{color:var(--ink)}
 #dk table.idx{width:100%!important;min-width:0!important;max-width:100%!important;border-collapse:collapse;font-size:13px;table-layout:fixed}
 #dk table.idx th{text-align:left;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;padding:0 8px 6px;border-bottom:2px solid var(--line)}
@@ -158,7 +158,10 @@
     <div class="kpi a"><div class="v">${c('a')}</div><div class="l">Watch / at risk</div></div>
     <div class="kpi r"><div class="v">${c('r')}</div><div class="l">Blocked</div></div>
     <div class="kpi n"><div class="v">${mode==='review'?`${dn}<small> / ${all.length}</small>`:started+'<small> / '+E.length+'</small>'}</div><div class="l">${mode==='review'?'Workstreams done':'Epics started'}</div></div></div>
-    <div class="panels"><div class="panel"><h3>Epics by owner</h3>${(()=>{const m={};E.forEach(e=>{const k=e.owner||'Unassigned';m[k]=(m[k]||0)+1;});const rows=Object.entries(m).sort((x,y)=>y[1]-x[1]).slice(0,7),max=Math.max(1,...rows.map(r=>r[1]));return rows.map(([n,v])=>`<div class="hbar"><div class="nm" title="${esc(n)}">${esc(n)}</div><div class="track"><div class="fill" style="width:${(v/max*100).toFixed(1)}%"></div></div><div class="val"><b>${v}</b> epic${v===1?'':'s'}</div></div>`).join('');})()}</div></div></div>${footer()}</section>`;};
+    <div class="panels"><div class="panel"><h3>Epics by owner</h3>${(()=>{const ST=[['g','On track'],['a','Watch'],['r','Blocked'],['','Not started']],m={},tot={};E.forEach(e=>{const k=e.owner||'Unassigned',t=tone(e.health);(m[k]=m[k]||{n:0})[t]=(m[k][t]||0)+1;m[k].n++;tot[t]=(tot[t]||0)+1;});
+   const split=o=>ST.filter(([t])=>o[t]).map(([t,l])=>`<span class="st"><i style="background:${TONE_COLOR[t]}"></i>${o[t]} ${l}</span>`).join('');
+   const rows=Object.entries(m).sort((x,y)=>y[1].n-x[1].n).slice(0,7),max=Math.max(1,...rows.map(r=>r[1].n));
+   return `<div class="hsplit"><b>All ${E.length} epics</b>${split(tot)}</div>`+rows.map(([n,o])=>`<div class="hbar"><div class="nm" title="${esc(n)}">${esc(n)}</div><div class="track">${ST.filter(([t])=>o[t]).map(([t,l])=>`<div class="fill" title="${o[t]} ${l}" style="width:${(o[t]/max*100).toFixed(1)}%;background:${TONE_COLOR[t]}"></div>`).join('')}</div><div class="val"><b>${o.n}</b> epic${o.n===1?'':'s'}<small>${split(o)}</small></div></div>`).join('');})()}</div></div></div>${footer()}</section>`;};
   const PER=15,PAGES=Math.max(1,Math.ceil(E.length/PER)),index=pg=>`<section class="slide"><div class="accent-bar"></div>${header(PAGES>1?`Epics (${pg+1} of ${PAGES})`:'Epics',(mode==='review'?'Status · ':'Agenda · ')+'click to jump')}<div class="slide-body" style="padding-top:16px;overflow:hidden"><table class="idx nofit nosort nopage"><colgroup><col style="width:36px"><col><col style="width:170px"><col style="width:170px"><col style="width:56px"><col style="width:56px"><col style="width:130px"></colgroup><thead><tr><th class="num">#</th><th>Epic</th><th>Theme</th><th>Owner</th><th class="num">Days</th><th class="num">Done</th><th>Health</th></tr></thead><tbody>${E.slice(pg*PER,pg*PER+PER).map((e0,i0)=>{const e=e0,i=pg*PER+i0;const live=e.workItems.filter(w=>!isNever(w.status));return `<tr class="click" data-goto="${2+PAGES+i}"><td class="num">${i+1}</td><td><span class="dot" style="background:${tcol(e.theme)}"></span>${esc(e.name)}</td><td>${esc(e.theme||'—')}</td><td>${esc(e.owner||'—')}</td><td class="num">${Math.round(e.points*10)/10}</td><td class="num">${live.filter(w=>isDone(w.status)).length}/${live.length}</td><td>${badge(e.health)}</td></tr>`;}).join('')}</tbody></table></div>${footer()}</section>`;
   const notes=D.notes||(D.notes={}),asks=D.asks||(D.asks=[]);
   const noteCard=e=>D.edit?`<div class="card"><div class="section-label" style="margin-top:0">Presenter note</div><textarea class="note-e" data-note="${esc(e.id)}" maxlength="1200" placeholder="Update, decision or context to share on this epic">${esc(notes[e.id]||'')}</textarea></div>`:notes[e.id]?`<div class="card"><div class="section-label" style="margin-top:0">Note</div><div class="note-t">${esc(notes[e.id])}</div></div>`:'';
@@ -319,6 +322,7 @@
   el.innerHTML=(sm.facts?`<div class="aiu-facts">${esc(sm.facts)}</div>`:'')+`<div class="aiu-grid" style="grid-template-columns:repeat(${Math.min(2,cols.length)},minmax(0,1fr))">${cols.map(([h,l])=>`<div class="aiu-c"><h4>${esc(h)}</h4><ul>${l.map(li).join('')}</ul></div>`).join('')}</div><div class="aiu-meta"><span>${esc(r&&r.summary&&sm.ai?'Built from GUS work items and engineer updates; AI condensed'+(r.at?' · '+fmt(r.at):'')+'. No PR or deployment data is used.':(r&&r.pending?'AI is condensing this in the background.':'Built from GUS work items and engineer updates only; no PR or deployment data is used.'))}</span>${state.api&&aiAvailable()&&e.comments?'<button type="button" data-aiu-re>Refresh</button>':''}</div>`;
  }
  /** One quick request fetches every saved summary, so epics already in the shared cache show at once and nothing is regenerated. */
+ const AIU={};/* kept for the whole session so reopening the deck never regenerates */
  let aiPre=null;
  function aiPrefetch(){
   const cache=state.aiu||(state.aiu={});
@@ -357,13 +361,20 @@
  let aiRun=0;
  async function aiBackground(){
   const my=++aiRun;if(!state||!state.api)return;aiPrefetch();if(aiPre)await aiPre;if(!aiAvailable())return;
-  for(const e of state.epics.slice()){
-   if(my!==aiRun||!document.getElementById('dk'))return;
-   if(!e.comments)continue;
-   try{await aiResolve(e,false);}catch(_){/* shown with a retry when the tab is opened */}
+  const queue=state.epics.filter(e=>e.comments);
+  const worker=async()=>{for(let e;(e=queue.shift());){
+   if(my!==aiRun||(!state.headless&&!document.getElementById('dk')))return;
+   try{await aiResolve(e,false);}catch(_){/* base summary stays; Refresh retries */}
    const el=document.querySelector(`#dk [data-uwrap="${CSS_ESC(e.id)}"] [data-upanel=ai]`);
    if(el&&!el.hidden&&el.dataset.ready&&state.aiu&&state.aiu[e.id]&&state.aiu[e.id].fp===fpOf(e))aiRender(el,state.aiu[e.id],e);
-  }
+  }};
+  await Promise.all([worker(),worker(),worker()]);
+ }
+ /** Called by the host as soon as its epics are loaded, before anyone clicks Present: saved summaries are fetched and changed epics generated, so the deck opens complete. */
+ function prepare(data,api){
+  if(document.getElementById('dk')||!data||!api||!(data.epics||[]).length)return;
+  state=Object.assign({mode:'review',asOf:new Date().toISOString().slice(0,10)},data,{api,aiu:AIU,headless:true});
+  return aiBackground();
  }
  const CSS_ESC=v=>String(v).replace(/["\\]/g,'\\$&');
  /** Tab clicks on the epic slides. The AI panel keeps the height of the GUS updates so nothing below it moves. */
@@ -422,7 +433,7 @@
   const st=document.createElement('style');st.id='dk-css';st.textContent=CSS;document.head.appendChild(st);
   const d=document.createElement('div');d.id='dk';d.setAttribute('data-nocf','');d.setAttribute('role','dialog');d.setAttribute('aria-label','Epic review presentation');
   d.innerHTML=(state.standalone?'':'')+'<div class="dk-prog" id="dk-prog"></div><div class="dk-stage"></div><div class="dk-flt" id="dk-flt" hidden></div><div class="dk-bar"><button type="button" data-a="prev" title="Previous (←)" aria-label="Previous slide">◀</button><span id="dk-count"></span><button type="button" data-a="next" title="Next (→)" aria-label="Next slide">▶</button><button type="button" data-a="home" title="Go to the first slide (Home)">⌂ Home</button><button type="button" data-a="index" title="Go to the epic list">☰ Epics</button><button type="button" data-a="filter" id="dk-fbtn" title="Show only some epics: by status, owner or theme" aria-expanded="false">⏷ Filter<span class="cnt" id="dk-fcnt" hidden></span></button><button type="button" data-a="clearf" id="dk-fclr" title="Clear all filters (Esc)" hidden>✕ Clear filters</button><button type="button" data-mode="planning" title="Planning view">Planning</button><button type="button" data-mode="review" title="Monthly review view: progress and risks">Monthly review</button>'+(state.standalone?'':'<button type="button" data-a="edit" title="Add presenter notes and asks">Edit notes</button>')+'<button type="button" data-a="print" title="Print or save as PDF">Print</button>'+(state.standalone?'':'<button type="button" data-a="save" title="Download this deck as an HTML file">Download</button>')+(!state.standalone&&state.refresh?'<button type="button" data-a="refresh" title="Re-read the latest data from GUS">Refresh</button><span id="dk-rf" class="dk-rf" role="status"></span>':'')+(!state.standalone&&state.api?'<button type="button" data-a="share" title="Post a summary to Slack (you pick the channel)">Share to Slack</button>':'')+'<button type="button" data-a="full" title="Fullscreen (F)" aria-label="Fullscreen">⛶</button>'+(state.standalone?'':'<button type="button" data-a="close" title="Close (Esc)" aria-label="Close presentation">✕</button>')+'</div>';
-  document.body.appendChild(d);document.body.style.overflow='hidden';cur=0;wireTabs(d.querySelector('.dk-stage'));
+  state.aiu=AIU;document.body.appendChild(d);document.body.style.overflow='hidden';cur=0;wireTabs(d.querySelector('.dk-stage'));
   d.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const a=b.dataset.a;
    if(a==='home')go(0);else if(a==='index')go(2);else if(a==='filter')toggleFilter();else if(a==='clearf')clearFilters();else if(a==='prev')go(cur-1);else if(a==='next')go(cur+1);else if(a==='close')close();else if(a==='edit'){state.edit=!state.edit;b.classList.toggle('on',state.edit);paint();}else if(a==='print')print();else if(a==='share')share();else if(a==='refresh')refresh(b);else if(b.dataset.askAdd){state.asks.push({type:'Ask',q:'',d:'',who:''});changed();paint();}else if(b.dataset.askDel!=null){state.asks.splice(Number(b.dataset.askDel),1);changed();paint();}else if(a==='save'){b.disabled=true;download(state).catch(err=>alert(err.message)).finally(()=>b.disabled=false);}
    else if(a==='full')document.fullscreenElement?document.exitFullscreen():d.requestFullscreen&&d.requestFullscreen();
@@ -482,5 +493,5 @@
   const name=(d.team+'-'+d.release+'-'+(d.mode==='review'?'monthly-review':'epic-review')).replace(/[^A-Za-z0-9]+/g,'-').replace(/^-|-$/g,'').toLowerCase()+'.html';
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([html],{type:'text/html'}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);return name;
  }
- root.EpicDeck={open,close,download,build,flagsFor,summaryText,parseUpdates,aiParse,aiFallback,aiMerge,aiBase,aiView};
+ root.EpicDeck={open,close,download,build,flagsFor,summaryText,parseUpdates,aiParse,aiFallback,aiMerge,aiBase,aiView,prepare};
 })(typeof window!=='undefined'?window:globalThis);

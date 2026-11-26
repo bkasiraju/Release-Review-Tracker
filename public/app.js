@@ -452,6 +452,10 @@ function sourcePanel(){const r=release(),conn=state.connection,links=String(r?.i
 document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));$('footer-source').onclick=sourcePanel;
 $('full-updates').onclick=()=>{state.fullUpdates=!state.fullUpdates;renderTable();};$('manage-button').onclick=releaseManager;$('rail-executive').onclick=()=>setView('executive');$('rail-sprint').onclick=()=>setView('sprint');$('rail-sources').onclick=sourcePanel;$('new-release').onclick=()=>manage(true);$('home-button').onclick=()=>{closeDrawer();setView('overview');window.scrollTo({top:0,behavior:'smooth'});};
 /** Monthly review deck: the shared template (deck.js) filled with the epics currently shown in the table. */
+let deckPrep=0;
+/** Warms the presentation's AI summaries once epics are loaded (saved ones are reused; only changed epics are generated). */
+function prepareDeck(){clearTimeout(deckPrep);deckPrep=setTimeout(()=>{try{if(state.demo||!release()||!window.EpicDeck||!EpicDeck.prepare)return;const d=reviewDeckData();if(d.epics.length)EpicDeck.prepare(d,(a,b)=>api(a,b||{}));}catch(_){/* best effort */}},2500);}
+const reloadRaw=reload;reload=async function(...a){const r=await reloadRaw.apply(this,a);prepareDeck();return r;};
 function reviewDeckData(){
   const rows=visibleRows(),num=v=>Number(v)||0,r=release()||{};
   const key='cfsDeck:'+((window.Hub&&Hub.team&&Hub.team.Id)||'')+':'+(r.id||''),saved=(()=>{try{return JSON.parse(localStorage.getItem(key)||'{}');}catch(_){return {};}})();
