@@ -311,7 +311,7 @@
  function aiView(e,sm){
   const b=aiBase(e);if(!sm)return {...b,ai:false};
   const has=k=>sm[k]&&sm[k].length;
-  return {facts:b.facts,accomplishments:has('accomplishments')?sm.accomplishments:b.accomplishments,inProgress:has('inProgress')?sm.inProgress:b.inProgress,engineer:b.engineer,engineerLabel:b.engineerLabel,learnings:sm.learnings||[],planForward:sm.planForward||[],ai:true,note:has('accomplishments')||has('inProgress')?'':sm.note};
+  return {facts:b.facts,accomplishments:has('accomplishments')?sm.accomplishments:b.accomplishments,inProgress:has('inProgress')?sm.inProgress:b.inProgress,engineer:has('accomplishments')||has('inProgress')||has('learnings')||has('planForward')?[]:b.engineer,engineerLabel:b.engineerLabel,learnings:sm.learnings||[],planForward:sm.planForward||[],ai:true,note:has('accomplishments')||has('inProgress')?'':sm.note};
  }
  function aiRender(el,r,e){
   const sm=aiView(e,r&&r.summary),wis=new Map((e.workItems||[]).map(w=>[String(w.id),w]));

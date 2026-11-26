@@ -52,4 +52,5 @@ test('base summary needs no AI: facts, done and active work items, newest engine
   assert.equal(b.engineer.length,2);
   const v=aiView(e3,{accomplishments:[],inProgress:[{text:'AI line'}],learnings:[{text:'L'}],planForward:[]});
   assert.equal(v.accomplishments[0].text,'Slot design');assert.equal(v.inProgress[0].text,'AI line');assert.equal(v.learnings.length,1);
+  assert.equal(v.engineer.length,0);assert.equal(aiView(e3,{accomplishments:[],inProgress:[],learnings:[],planForward:[]}).engineer.length,2);
 });

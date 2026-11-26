@@ -4,6 +4,10 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r87 (folded)
+
+- The "Latest engineer update" column in AI Summarised Updates now shows only while no AI summary is available for the epic; once the AI summary exists it is hidden, as it repeated the same content.
+
 ### 8.0.0-GA r86 (folded)
 
 - The presentation's AI summaries are prepared before anyone clicks Present: as soon as the review page has its epics (and after each reload), saved summaries are fetched from the shared cache and only changed epics are generated, three at a time. Present then opens with everything ready; reopening the deck in the same session reuses the results.
