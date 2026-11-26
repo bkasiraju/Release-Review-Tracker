@@ -227,12 +227,12 @@
 
  /** AI Summarised Updates: executive bullets built from the engineer updates and the epic's work items. Generated once, saved
   *  to the shared cache under a fingerprint of that evidence, and regenerated only when the evidence changes. */
- const AI_VERSION='aiu6',AI_REL='268';
+ const AI_VERSION='aiu7',AI_REL='268';
  const fpOf=e=>{const t=JSON.stringify([AI_VERSION,AI_REL,e.name,e.health,e.goal,e.comments,e.pathToGreen,(e.workItems||[]).map(w=>[w.id,w.subject,w.status,w.days,w.assignee])]);let a=0x811c9dc5,b=5381;for(let i=0;i<t.length;i++){const c=t.charCodeAt(i);a=Math.imul(a^c,16777619)>>>0;b=(Math.imul(b,33)+c)>>>0;}return a.toString(36).padStart(7,'0')+b.toString(36).padStart(7,'0');};
  const aiAvailable=()=>{try{return typeof window.AppletAI?.complete==='function'&&window.AppletAI.isAvailable()===true;}catch(_){return false;}};
  const doneWi=w=>isDone(w.status)&&!isNever(w.status);
  const AI_SYSTEM='You write executive epic updates for a senior engineering review and must never overstate. Use ONLY the evidence supplied (work items with their GUS status, and the engineer updates). The evidence has NO pull request or deployment data, so nothing counts as deployed, released, rolled out, live, in production or upgraded unless an engineer update says so in words you quote. A work item counts as delivered only when its status is DONE. In Progress, New, Ready for Review, Waiting, Triaged or Acknowledged are NOT delivered. Goals and plans are not achievements. '+
-  'Write an INFERRED executive synthesis, not a copy of the updates. headline is ONE sentence of at most 30 words that gives the overall verdict a leader needs: the health and how far the work is (use the points/work item counts supplied), what remains, and the single biggest risk or next step. Then: read all monthly engineer updates together with the work item statuses and describe the overall picture and how it moved over the months (for example what was finished since the earlier update, what is still open, what changed in scope or risk). Merge repeated points into one line, drop detail, and use plain executive wording. You may combine facts from several updates and work items, but every fact must come from the evidence; never add outcomes, causes, benefits or numbers the evidence does not state, and never state anything as deployed, released, rolled out, live or upgraded unless an engineer update says exactly that. '+
+  'Write an INFERRED executive synthesis, not a copy of the updates. headline is ONE sentence of at most 30 words that gives the overall verdict a leader needs: the health and how far the work is (use the points/work item counts supplied), what remains, and the single biggest risk or next step. Then organise it as planned versus achieved versus gaps. planned: the outcome this epic set out to deliver (from the goal or the Outcome the engineers state), at most 2 lines. accomplishments: what has actually been achieved against that plan. inProgress and learnings together are the GAPS: inProgress is planned work not yet complete (open work items, partial results), learnings is the risks, blockers or dependencies that explain why the gap exists. Then: read all monthly engineer updates together with the work item statuses and describe the overall picture and how it moved over the months (for example what was finished since the earlier update, what is still open, what changed in scope or risk). Merge repeated points into one line, drop detail, and use plain executive wording. You may combine facts from several updates and work items, but every fact must come from the evidence; never add outcomes, causes, benefits or numbers the evidence does not state, and never state anything as deployed, released, rolled out, live or upgraded unless an engineer update says exactly that. '+
   'Group related work items into one crisp line (cite all of them in workItems) rather than listing each; text is one third-person line of at most 22 words, no engineer names. workItems lists the supplied work item numbers that back the line. quote is a short exact phrase copied from the engineer updates that backs the line (empty if none). '+
   'accomplishments: only outcomes backed by a DONE work item, or by an engineer update that states the outcome is complete (quote it); if you use words like deployed, released, rolled out, live or upgraded, the quote must contain that word. inProgress: work under way or waiting, worded with verbs such as working on, in progress, awaiting; never with completed/delivered/deployed. learnings: lessons, risks or blockers actually reported (quote required). planForward: only what the evidence explicitly plans for release '+AI_REL+' or next; otherwise []. Use [] for any section the evidence does not support. At most 4, 3, 3, 3 items.';
  function aiEvidence(e){
@@ -273,7 +273,7 @@
   let v;try{v=JSON.parse(raw);}catch(_){const m=/\{[\s\S]*\}/.exec(raw);try{v=m&&JSON.parse(m[0]);}catch(__){}}
   if(!v||typeof v!=='object')throw Error('The AI response could not be read.');
   const wis=new Map((e.workItems||[]).map(w=>[String(w.id),w])),comments=norm(plainTxt(e.comments||'')+' '+plainTxt(e.pathToGreen||'')),known=new Set(evidence.match(/\d+(?:[.,]\d+)*/g)||[]),ctoks=new Set(toks(comments));
-  const cap={accomplishments:4,inProgress:3,learnings:3,planForward:3},o={};let n=0;
+  const cap={planned:2,accomplishments:4,inProgress:3,learnings:3,planForward:3},o={};let n=0;
   const item=x=>typeof x==='string'?{text:x}:x&&typeof x==='object'?x:{};
   for(const k of Object.keys(cap)){
    o[k]=(Array.isArray(v[k])?v[k]:[]).map(item).map(x=>{
@@ -286,6 +286,8 @@
      const stated=quoted&&DONEWORD.test(quote)&&!NEG.test(quote);
      if(!doneIds.length&&!stated)return null;
      if(CLAIM.test(text)&&!(quoted&&CLAIM.test(quote)&&!NEG.test(quote)))return null;
+    }else if(k==='planned'){
+     if(!quoted){const have=new Set(toks((e.goal||'')+' '+comments)),t=toks(text);if(!t.length||t.filter(w=>!have.has(w)).length/t.length>0.5)return null;}
     }else if(k==='inProgress'){
      if(DONEWORD.test(text)||(!ids.length&&!quoted))return null;
     }else{
@@ -307,13 +309,15 @@
   const facts=[pg&&pg.total?`${pg.done} of ${pg.total} points done`:'',live.length?`${done.length} of ${live.length} work items done`:'',wip.length?`${wip.length} in progress`:''].filter(Boolean).join(' · ');
   const acc=done.slice(0,4).map(line);if(done.length>4)acc.push({text:`+${done.length-4} more done work items`,quote:'',refs:[]});
   const m=parseUpdates(e.comments||'',state&&state.asOf).months[0],eng=m?m.text.split('\n').map(l=>l.replace(/^[\s\-–—•*·]+/,'').trim()).filter(l=>l.length>=15).slice(0,3).map(l=>({text:l.slice(0,170),quote:'',refs:[]})):[];
-  return {facts,accomplishments:acc,inProgress:wip.slice(0,3).map(line),engineer:eng,engineerLabel:m?m.label:'',learnings:[],planForward:[]};
+  const gl=String(e.goal||'').replace(/\s+/g,' ').trim(),om=parseUpdates(e.comments||'',state&&state.asOf).outcome,pl=(gl?[{text:gl.length>200?gl.slice(0,197)+'…':gl,quote:'',refs:[]}]:[]);
+  const left=[];if(pg&&pg.total>pg.done)left.push({text:`${pg.total-pg.done} of ${pg.total} points not yet done`,quote:'',refs:[]});
+  return {facts,planned:pl,gapsBase:left,accomplishments:acc,inProgress:wip.slice(0,3).map(line),engineer:eng,engineerLabel:m?m.label:'',learnings:[],planForward:[]};
  }
  /** Base first, with the AI lines laid over it only where the AI confirmed something. */
  function aiView(e,sm){
   const b=aiBase(e);if(!sm)return {...b,ai:false};
   const has=k=>sm[k]&&sm[k].length;
-  return {facts:b.facts,headline:sm.headline||'',accomplishments:has('accomplishments')?sm.accomplishments:b.accomplishments,inProgress:has('inProgress')?sm.inProgress:b.inProgress,engineer:has('accomplishments')||has('inProgress')||has('learnings')||has('planForward')?[]:b.engineer,engineerLabel:b.engineerLabel,learnings:sm.learnings||[],planForward:sm.planForward||[],ai:true,note:has('accomplishments')||has('inProgress')?'':sm.note};
+  return {facts:b.facts,headline:sm.headline||'',planned:has('planned')?sm.planned:b.planned,gapsBase:b.gapsBase,accomplishments:has('accomplishments')?sm.accomplishments:b.accomplishments,inProgress:has('inProgress')?sm.inProgress:b.inProgress,engineer:has('accomplishments')||has('inProgress')||has('learnings')||has('planForward')||has('planned')?[]:b.engineer,engineerLabel:b.engineerLabel,learnings:sm.learnings||[],planForward:sm.planForward||[],ai:true,note:has('accomplishments')||has('inProgress')?'':sm.note};
  }
  /** The summary takes the room it needs; when it would run past the slide footer its text is scaled down in steps, and only then scrolls. */
  function aiFit(el){
@@ -326,7 +330,8 @@
   const sm=aiView(e,r&&r.summary),wis=new Map((e.workItems||[]).map(w=>[String(w.id),w]));
   const ref=x=>{const w=wis.get(String(x));return w&&w.url?`<a href="${esc(w.url)}" target="_blank" rel="noopener">${esc(x)}</a>`:esc(x);};
   const li=x=>{const it=typeof x==='string'?{text:x,refs:[]}:x;return `<li${it.quote?` title="${esc('Engineer update: “'+it.quote+'”')}"`:''}>${esc(it.text)}${(it.refs||[]).filter(r=>r!=='engineer update').length?` <span class="aiu-ref">${it.refs.filter(r=>r!=='engineer update').map(ref).join(', ')}</span>`:''}</li>`;};
-  const cols=[['Accomplishments',sm.accomplishments],['In progress',sm.inProgress],['Latest engineer update'+(sm.engineerLabel?' · '+sm.engineerLabel:''),sm.engineer],['Learnings',sm.learnings],['Plan forward · '+AI_REL,sm.planForward]].filter(c=>c[1]&&c[1].length);
+  const gaps=[...(sm.inProgress||[]),...(sm.learnings||[])].slice(0,5),gapList=gaps.length?gaps:(sm.gapsBase||[]);
+  const cols=[['Planned outcome',sm.planned],['Achieved',sm.accomplishments],['Gaps',gapList],['Latest engineer update'+(sm.engineerLabel?' · '+sm.engineerLabel:''),sm.engineer],['Next · '+AI_REL,sm.planForward]].filter(c=>c[1]&&c[1].length);
   if(!cols.length)return el.innerHTML='<div class="aiu-msg">Nothing is recorded in GUS for this epic yet.</div>';
   el.innerHTML=(sm.headline?`<div class="aiu-head">${esc(sm.headline)}</div>`:'')+(sm.facts?`<div class="aiu-facts">${esc(sm.facts)}</div>`:'')+`<div class="aiu-grid" style="grid-template-columns:repeat(auto-fit,minmax(${cols.length>1?280:420}px,1fr))">${cols.map(([h,l])=>`<div class="aiu-c"><h4>${esc(h)}</h4><ul>${l.map(li).join('')}</ul></div>`).join('')}</div><div class="aiu-meta"><span>${esc(r&&r.summary&&sm.ai?'Built from GUS work items and engineer updates; AI condensed'+(r.at?' · '+fmt(r.at):'')+'. No PR or deployment data is used.':(r&&r.pending?'AI is condensing this in the background.':'Built from GUS work items and engineer updates only; no PR or deployment data is used.'))}</span>${state.api&&aiAvailable()&&e.comments?'<button type="button" data-aiu-re>Refresh</button>':''}</div>`;aiFit(el);
  }

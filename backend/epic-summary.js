@@ -13,6 +13,7 @@ function clean(s){
   if(!s||typeof s!=='object')throw Error('Summary is missing.');
   const out={};let n=0;
   for(const k of Object.keys(LIMITS)){out[k]=(Array.isArray(s[k])?s[k]:[]).map(item).filter(x=>x.text).slice(0,LIMITS[k]);n+=out[k].length;}
+  if(Array.isArray(s.planned)){const pl=s.planned.map(item).filter(x=>x.text).slice(0,2);if(pl.length){out.planned=pl;n+=pl.length;}}
   const hl=line(s.headline);if(hl){out.headline=hl;n++;}
   if(!n)throw Error('Summary is empty.');
   if(s.note)out.note=line(s.note);

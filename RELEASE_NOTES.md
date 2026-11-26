@@ -4,6 +4,10 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r90 (folded)
+
+- AI Summarised Updates are organised as planned versus achieved versus gaps: **Planned outcome** (the epic goal / stated outcome), **Achieved** (done work items and outcomes engineers state), **Gaps** (work still open, risks and blockers behind them; the points not yet done when nothing else is known), then **Next** for the following release. The headline still gives the one-line verdict. The no-AI base fills Planned from the goal and Gaps from open work items and points left. Earlier saved results regenerate once (aiu7).
+
 ### 8.0.0-GA r89 (folded)
 
 - AI Summarised Updates no longer use a fixed-height box that cut text off: the panel takes the height its content needs and the columns flow to the width available (one to four columns). If the content would run past the slide footer, its text is scaled down in small steps and only then scrolls.
