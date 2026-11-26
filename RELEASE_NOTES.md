@@ -4,6 +4,10 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r83 (folded)
+
+- AI Summarised Updates are now extractive: every substantive word of a line must come from its own backing evidence (the quoted engineer text or the backing work item subjects), and outcome words (upgraded, resolved, enabled, faster, eliminated, released …) can never be added by the AI. Lines that interpret rather than restate are dropped. Hover a line to see the engineer text it rests on. Earlier saved summaries regenerate once.
+
 ### 8.0.0-GA r82 (folded)
 
 - AI Summarised Updates are evidence-gated. An accomplishment is shown only when it cites a DONE work item or an engineer update that states completion (quoted); words like deployed, released, live, upgraded additionally need that quote. Anything not done goes under "In progress" with non-completion wording. Learnings need a quoted engineer statement. Every line shows its backing work items (linked) or "engineer update"; lines the data does not back are dropped, and if nothing is confirmed no summary is shown. PR and deployment data is not available to the app, so it is never assumed. Earlier saved summaries regenerate once.

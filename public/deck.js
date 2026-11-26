@@ -225,12 +225,12 @@
 
  /** AI Summarised Updates: executive bullets built from the engineer updates and the epic's work items. Generated once, saved
   *  to the shared cache under a fingerprint of that evidence, and regenerated only when the evidence changes. */
- const AI_VERSION='aiu2',AI_REL='268';
+ const AI_VERSION='aiu3',AI_REL='268';
  const fpOf=e=>{const t=JSON.stringify([AI_VERSION,AI_REL,e.name,e.health,e.goal,e.comments,e.pathToGreen,(e.workItems||[]).map(w=>[w.id,w.subject,w.status,w.days,w.assignee])]);let a=0x811c9dc5,b=5381;for(let i=0;i<t.length;i++){const c=t.charCodeAt(i);a=Math.imul(a^c,16777619)>>>0;b=(Math.imul(b,33)+c)>>>0;}return a.toString(36).padStart(7,'0')+b.toString(36).padStart(7,'0');};
  const aiAvailable=()=>{try{return typeof window.AppletAI?.complete==='function'&&window.AppletAI.isAvailable()===true;}catch(_){return false;}};
  const doneWi=w=>isDone(w.status)&&!isNever(w.status);
  const AI_SYSTEM='You write executive epic updates for a senior engineering review and must never overstate. Use ONLY the evidence supplied (work items with their GUS status, and the engineer updates). The evidence has NO pull request or deployment data, so nothing counts as deployed, released, rolled out, live, in production or upgraded unless an engineer update says so in words you quote. A work item counts as delivered only when its status is DONE. In Progress, New, Ready for Review, Waiting, Triaged or Acknowledged are NOT delivered. Goals and plans are not achievements. '+
-  'Return ONLY JSON: {"accomplishments":[{"text":"","workItems":["W-1"],"quote":""}],"inProgress":[...same shape],"learnings":[{"text":"","quote":""}],"planForward":[{"text":"","workItems":[],"quote":""}]}. '+
+  'Do NOT infer, interpret or add benefit: restate only what the evidence says, reusing the engineer\'s own verbs and nouns (for example write "Deployed 10.1.1-sfdc.1 across the internal fleet" only if the update says so). Never add outcomes, causes or purposes the text does not state (for example do not add "resolving a regression", "enabling faster releases" or "upgraded from X to Y" unless the update says exactly that). Evaluating, validating, implementing and developing are not the same as upgrading, completing or releasing. Return ONLY JSON: {"accomplishments":[{"text":"","workItems":["W-1"],"quote":""}],"inProgress":[...same shape],"learnings":[{"text":"","quote":""}],"planForward":[{"text":"","workItems":[],"quote":""}]}. '+
   'text is one crisp third-person line of at most 18 words, no engineer names. workItems lists the supplied work item numbers that back the line. quote is a short exact phrase copied from the engineer updates that backs the line (empty if none). '+
   'accomplishments: only outcomes backed by a DONE work item, or by an engineer update that states the outcome is complete (quote it); if you use words like deployed, released, rolled out, live or upgraded, the quote must contain that word. inProgress: work under way or waiting, worded with verbs such as working on, in progress, awaiting; never with completed/delivered/deployed. learnings: lessons, risks or blockers actually reported (quote required). planForward: only what the evidence explicitly plans for release '+AI_REL+' or next; otherwise []. Use [] for any section the evidence does not support. At most 4, 3, 3, 3 items.';
  function aiEvidence(e){
@@ -239,6 +239,17 @@
  }
  const NEG=/\b(not|no|yet|pending|awaiting|await|planned|plan|will|to be|should|expected|blocked|waiting|in progress|ongoing|wip|partial|partially|started|starting)\b/i,DONEWORD=/\b(complete[d]?|delivered|shipped|released|deployed|rolled out|merged|closed|resolved|enabled|finished|live|upgraded|achieved|signed off)\b/i,CLAIM=/\b(deploy(?:ed|ing)?|released?|rolled out|rollout|live|in production|production|upgraded?|fleet|ga)\b/i;
  const norm=t=>String(t||'').toLowerCase().replace(/[^a-z0-9.%]+/g,' ').trim();
+
+ const STOP=new Set('that this with from into have been were will also across they their them than then when which while about after before during over under more most only such each both other some any all and the for are was has had its our not but can may per via using used use within without between'.split(' '));
+ const stem=w=>w.replace(/(ing|ed|es|s|d)$/,'');
+ const toks=t=>(String(t||'').toLowerCase().match(/[a-z][a-z0-9.\-]{3,}|\d+(?:\.\d+)+/g)||[]).filter(w=>!STOP.has(w)).map(stem);
+ const CLAIMSTEM=/^(upgrad|resolv|fix|improv|eliminat|enabl|deploy|releas|complet|achiev|reduc|faster|optimi|regress|automat|expand|deliver|ship|roll|fleet|product|live|stabil|harden|secur|complian)/;
+ /** Every substantive word of a line must come from its own evidence (quote, backing work item subjects); outcome words never may be added. */
+ function supported(text,support){
+  const have=new Set(toks(support)),t=toks(text),miss=t.filter(w=>!have.has(w));
+  if(miss.some(w=>CLAIMSTEM.test(w)))return false;
+  return t.length>0&&miss.length/t.length<=0.2;
+ }
  /** Keeps only lines the data backs up; every kept line carries its references (work items and/or an engineer-update quote). */
  function aiParse(out,e,evidence){
   const raw=String(out&&(out.text||out.answer||out.message)||out||'').trim().replace(/^```(?:json)?\s*/i,'').replace(/\s*```$/,'');
@@ -253,6 +264,7 @@
     if(!text||text.split(/\s+/).length>30)return null;
     if((text.match(/\d+(?:[.,]\d+)*/g)||[]).some(t=>!known.has(t)&&t!==AI_REL))return null;
     const doneIds=ids.filter(i=>doneWi(wis.get(i)));
+    if(!supported(text,(quoted?quote:'')+' '+ids.map(i=>wis.get(i).subject).join(' ')+(doneIds.length?' completed delivered closed':'')))return null;
     if(k==='accomplishments'){
      const stated=quoted&&DONEWORD.test(quote)&&!NEG.test(quote);
      if(!doneIds.length&&!stated)return null;
@@ -263,7 +275,7 @@
      if(!ids.length&&!quoted)return null;
      if(k==='learnings'&&!quoted)return null;
     }
-    return {text:text.slice(0,200),refs:[...ids.map(i=>i),...(quoted&&!ids.length?['engineer update']:[])].slice(0,4)};
+    return {text:text.slice(0,200),quote:quoted?quote.slice(0,200):'',refs:[...ids.map(i=>i),...(quoted&&!ids.length?['engineer update']:[])].slice(0,4)};
    }).filter(Boolean).slice(0,cap[k]);n+=o[k].length;}
   if(!n)throw Error('Nothing could be confirmed from the work items and updates, so no summary is shown.');
   return o;
@@ -271,7 +283,7 @@
  function aiRender(el,r,e){
   const sm=r.summary,wis=new Map((e.workItems||[]).map(w=>[String(w.id),w]));
   const ref=x=>{const w=wis.get(String(x));return w&&w.url?`<a href="${esc(w.url)}" target="_blank" rel="noopener">${esc(x)}</a>`:esc(x);};
-  const li=x=>{const it=typeof x==='string'?{text:x,refs:[]}:x;return `<li>${esc(it.text)}${(it.refs||[]).length?` <span class="aiu-ref">${it.refs.map(ref).join(', ')}</span>`:''}</li>`;};
+  const li=x=>{const it=typeof x==='string'?{text:x,refs:[]}:x;return `<li${it.quote?` title="${esc('Engineer update: “'+it.quote+'”')}"`:''}>${esc(it.text)}${(it.refs||[]).length?` <span class="aiu-ref">${it.refs.map(ref).join(', ')}</span>`:''}</li>`;};
   const cols=[['Accomplishments',sm.accomplishments],['In progress',sm.inProgress],['Learnings',sm.learnings],['Plan forward · '+AI_REL,sm.planForward]].filter(c=>c[1]&&c[1].length);
   el.innerHTML=`<div class="aiu-grid" style="grid-template-columns:repeat(${Math.min(2,cols.length)},minmax(0,1fr))">${cols.map(([h,l])=>`<div class="aiu-c"><h4>${esc(h)}</h4><ul>${l.map(li).join('')}</ul></div>`).join('')}</div><div class="aiu-meta"><span>AI summary${r.at?' · '+esc(fmt(r.at)):''}. Accomplishments need a done work item or an engineer statement; no PR or deployment data is used.</span>${state.api&&aiAvailable()?'<button type="button" data-aiu-re>Refresh</button>':''}</div>`;
  }
