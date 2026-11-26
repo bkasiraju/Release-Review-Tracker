@@ -7,10 +7,11 @@ test('saves and returns a summary only for the same fingerprint',async()=>{
   const s=svc();
   assert.equal((await es.get(s,{epicId:EP,fingerprint:'abc12345'})).summary,null);
   await es.save(s,{epicId:EP,fingerprint:'abc12345',summary:{accomplishments:['Shipped X'],learnings:[],planForward:['Do Y'],extra:['no']}});
-  const r=await es.get(s,{epicId:EP,fingerprint:'abc12345'});assert.deepEqual(r.summary,{accomplishments:['Shipped X'],learnings:[],planForward:['Do Y']});
+  const r=await es.get(s,{epicId:EP,fingerprint:'abc12345'});assert.deepEqual(r.summary,{accomplishments:[{text:'Shipped X',refs:[]}],inProgress:[],learnings:[],planForward:[{text:'Do Y',refs:[]}]});
   assert.equal((await es.get(s,{epicId:EP,fingerprint:'def67890'})).summary,null);
   await es.save(s,{epicId:EP,fingerprint:'def67890',summary:{accomplishments:['New'],learnings:[],planForward:[]}});
-  assert.equal((await es.get(s,{epicId:EP,fingerprint:'def67890'})).summary.accomplishments[0],'New');
+  assert.equal((await es.get(s,{epicId:EP,fingerprint:'def67890'})).summary.accomplishments[0].text,'New');
+  assert.deepEqual(es.clean({accomplishments:[{text:'A',refs:['W-1','<b>x']}]}).accomplishments[0].refs,['W-1','bx']);
 });
 test('rejects bad ids, fingerprints and empty summaries; caps list sizes',async()=>{
   const s=svc();

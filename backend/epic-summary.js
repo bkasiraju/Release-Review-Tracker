@@ -3,13 +3,16 @@
  *  The browser generates the text (GUS Apps AI SDK) and saves it here under a fingerprint of the evidence it was built from;
  *  the same fingerprint later returns the saved text, a changed one means "regenerate". */
 const SF_ID=/^[a-zA-Z0-9]{15,18}$/,FP=/^[a-z0-9]{8,40}$/;
-const LIMITS={accomplishments:4,learnings:3,planForward:3};
+const LIMITS={accomplishments:4,inProgress:3,learnings:3,planForward:3};
 const line=v=>String(v==null?'':v).replace(/[\u0000-\u001f\u007f]/g,' ').replace(/\s+/g,' ').trim().slice(0,200);
+const ref=v=>String(v==null?'':v).replace(/[^A-Za-z0-9 -]/g,'').trim().slice(0,24);
+/** A line is plain text or {text, refs} where refs are the work item numbers (or "engineer update") that back it. */
+const item=v=>typeof v==='string'?{text:line(v),refs:[]}:{text:line(v&&v.text),refs:(Array.isArray(v&&v.refs)?v.refs:[]).map(ref).filter(Boolean).slice(0,4)};
 const key=id=>'eas-'+String(id).slice(0,15);
 function clean(s){
   if(!s||typeof s!=='object')throw Error('Summary is missing.');
   const out={};let n=0;
-  for(const k of Object.keys(LIMITS)){out[k]=(Array.isArray(s[k])?s[k]:[]).map(line).filter(Boolean).slice(0,LIMITS[k]);n+=out[k].length;}
+  for(const k of Object.keys(LIMITS)){out[k]=(Array.isArray(s[k])?s[k]:[]).map(item).filter(x=>x.text).slice(0,LIMITS[k]);n+=out[k].length;}
   if(!n)throw Error('Summary is empty.');
   return out;
 }

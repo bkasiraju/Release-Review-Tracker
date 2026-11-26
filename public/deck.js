@@ -56,7 +56,7 @@
 #dk .outcome{border:1px solid var(--line);border-left:6px solid var(--blue);border-radius:8px;background:#f6f9fc;padding:10px 16px;margin:6px 0 10px}#dk .outcome .o-l{font-size:11px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted)}#dk .outcome .o-t{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;font-size:17px;font-weight:700;line-height:1.35;color:var(--ink);margin-top:2px}
 #dk .months{display:grid;gap:12px;align-items:stretch}#dk .month{border:1px solid var(--line);border-radius:8px;padding:10px 14px;min-width:0}#dk .month .m-more{font-size:11px;font-weight:700;margin-top:6px}#dk .month .m-l{font-size:11px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--blue);margin-bottom:6px}#dk .month .m-t{line-height:1.4;color:#222;overflow-wrap:anywhere}#dk .month .lbl{color:var(--navy)}
 #dk .utabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:10px 0 8px}#dk .utab{all:unset;box-sizing:border-box;cursor:pointer;font-size:12px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);padding:6px 12px;border-bottom:3px solid transparent;margin-bottom:-1px}#dk .utab:hover{color:var(--navy)}#dk .utab.on{color:var(--navy);border-bottom-color:var(--blue)}#dk .utab:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
-#dk .upanel[hidden]{display:none}#dk .aiu{overflow:auto}#dk .aiu-grid{display:grid;gap:12px;align-items:stretch}#dk .aiu-c{border:1px solid var(--line);border-radius:8px;padding:10px 14px;min-width:0}#dk .aiu-c h4{font-size:11px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--blue);margin-bottom:6px}#dk .aiu-c ul{padding-left:16px;font-size:13.5px;line-height:1.4;color:#222}#dk .aiu-c li{margin-bottom:4px;overflow-wrap:anywhere}#dk .aiu-meta{display:flex;gap:10px;align-items:center;font-size:11px;color:var(--muted);margin-top:8px}#dk .aiu-meta button{all:unset;cursor:pointer;color:var(--blue);font-weight:700}#dk .aiu-meta button:focus-visible{outline:2px solid var(--blue);outline-offset:2px}#dk .aiu-msg{font-size:13px;color:var(--muted);padding:10px 0}#dk .aiu-msg button{all:unset;cursor:pointer;color:var(--blue);font-weight:700;margin-left:8px}
+#dk .upanel[hidden]{display:none}#dk .aiu{overflow:auto}#dk .aiu-grid{display:grid;gap:12px;align-items:stretch}#dk .aiu-c{border:1px solid var(--line);border-radius:8px;padding:10px 14px;min-width:0}#dk .aiu-c h4{font-size:11px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--blue);margin-bottom:6px}#dk .aiu-c ul{padding-left:16px;font-size:13.5px;line-height:1.4;color:#222}#dk .aiu-c li{margin-bottom:4px;overflow-wrap:anywhere}#dk .aiu-ref{font-size:11px;color:var(--muted);white-space:nowrap}#dk .aiu-ref a{color:var(--blue)}#dk .aiu-meta{display:flex;gap:10px;align-items:center;font-size:11px;color:var(--muted);margin-top:8px}#dk .aiu-meta button{all:unset;cursor:pointer;color:var(--blue);font-weight:700}#dk .aiu-meta button:focus-visible{outline:2px solid var(--blue);outline-offset:2px}#dk .aiu-msg{font-size:13px;color:var(--muted);padding:10px 0}#dk .aiu-msg button{all:unset;cursor:pointer;color:var(--blue);font-weight:700;margin-left:8px}
 #dk .section-label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1.2px;margin:10px 0 6px}
 #dk table.ws{width:100%!important;min-width:0!important;border-collapse:collapse;font-size:13px;table-layout:fixed}#dk table.ws td:nth-child(2){white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #dk table.ws.wrap td:nth-child(2){white-space:normal;line-height:1.3;overflow:hidden;max-height:2.6em}#dk table.ws.wrap td:nth-child(2) span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
@@ -225,26 +225,55 @@
 
  /** AI Summarised Updates: executive bullets built from the engineer updates and the epic's work items. Generated once, saved
   *  to the shared cache under a fingerprint of that evidence, and regenerated only when the evidence changes. */
- const AI_VERSION='aiu1',AI_REL='268';
+ const AI_VERSION='aiu2',AI_REL='268';
  const fpOf=e=>{const t=JSON.stringify([AI_VERSION,AI_REL,e.name,e.health,e.goal,e.comments,e.pathToGreen,(e.workItems||[]).map(w=>[w.id,w.subject,w.status,w.days,w.assignee])]);let a=0x811c9dc5,b=5381;for(let i=0;i<t.length;i++){const c=t.charCodeAt(i);a=Math.imul(a^c,16777619)>>>0;b=(Math.imul(b,33)+c)>>>0;}return a.toString(36).padStart(7,'0')+b.toString(36).padStart(7,'0');};
  const aiAvailable=()=>{try{return typeof window.AppletAI?.complete==='function'&&window.AppletAI.isAvailable()===true;}catch(_){return false;}};
- const AI_SYSTEM='You write executive epic updates for a senior engineering review. Use ONLY the evidence supplied. Never invent progress, dates, numbers or completion; closed or ready-for-review is not released; goals are not achievements. Return ONLY JSON: {"accomplishments":[],"learnings":[],"planForward":[]}. Each item is one crisp line of at most 18 words, executive level, third person, no work item ids, no names of individual engineers. accomplishments: up to 4 delivered outcomes. learnings: up to 3 lessons, risks or blockers that were actually reported. planForward: up to 3 items only if the evidence explicitly plans work for release '+AI_REL+'; otherwise an empty array. Use an empty array whenever the evidence does not support a section.';
+ const doneWi=w=>isDone(w.status)&&!isNever(w.status);
+ const AI_SYSTEM='You write executive epic updates for a senior engineering review and must never overstate. Use ONLY the evidence supplied (work items with their GUS status, and the engineer updates). The evidence has NO pull request or deployment data, so nothing counts as deployed, released, rolled out, live, in production or upgraded unless an engineer update says so in words you quote. A work item counts as delivered only when its status is DONE. In Progress, New, Ready for Review, Waiting, Triaged or Acknowledged are NOT delivered. Goals and plans are not achievements. '+
+  'Return ONLY JSON: {"accomplishments":[{"text":"","workItems":["W-1"],"quote":""}],"inProgress":[...same shape],"learnings":[{"text":"","quote":""}],"planForward":[{"text":"","workItems":[],"quote":""}]}. '+
+  'text is one crisp third-person line of at most 18 words, no engineer names. workItems lists the supplied work item numbers that back the line. quote is a short exact phrase copied from the engineer updates that backs the line (empty if none). '+
+  'accomplishments: only outcomes backed by a DONE work item, or by an engineer update that states the outcome is complete (quote it); if you use words like deployed, released, rolled out, live or upgraded, the quote must contain that word. inProgress: work under way or waiting, worded with verbs such as working on, in progress, awaiting; never with completed/delivered/deployed. learnings: lessons, risks or blockers actually reported (quote required). planForward: only what the evidence explicitly plans for release '+AI_REL+' or next; otherwise []. Use [] for any section the evidence does not support. At most 4, 3, 3, 3 items.';
  function aiEvidence(e){
-  const w=(e.workItems||[]).slice(0,40).map(x=>`- ${x.subject||''} | ${x.status||'?'}${x.days?' | '+x.days+'d':''}`).join('\n');
-  return `EPIC: ${e.name||''}\nHEALTH: ${e.health||'n/a'}\nGOAL: ${String(e.goal||'n/a').slice(0,600)}\nENGINEER UPDATES (GUS epic comments):\n${plainTxt(e.comments||'').slice(0,6000)||'none'}\nPATH TO GREEN: ${plainTxt(e.pathToGreen||'')||'none'}\nWORK ITEMS UNDER THE EPIC (${(e.workItems||[]).length}):\n${w||'none'}`;
+  const w=(e.workItems||[]).slice(0,40).map(x=>`- ${x.id} | ${x.subject||''} | ${x.status||'?'} | ${isNever(x.status)?'CANCELLED':doneWi(x)?'DONE':'NOT DONE'}`).join('\n');
+  return `EPIC: ${e.name||''}\nHEALTH: ${e.health||'n/a'}\nGOAL: ${String(e.goal||'n/a').slice(0,600)}\nENGINEER UPDATES (GUS epic comments):\n${plainTxt(e.comments||'').slice(0,6000)||'none'}\nPATH TO GREEN: ${plainTxt(e.pathToGreen||'')||'none'}\nWORK ITEMS UNDER THE EPIC (${(e.workItems||[]).length}; no PR or deployment data is available):\n${w||'none'}`;
  }
- function aiParse(out,evidence){
+ const NEG=/\b(not|no|yet|pending|awaiting|await|planned|plan|will|to be|should|expected|blocked|waiting|in progress|ongoing|wip|partial|partially|started|starting)\b/i,DONEWORD=/\b(complete[d]?|delivered|shipped|released|deployed|rolled out|merged|closed|resolved|enabled|finished|live|upgraded|achieved|signed off)\b/i,CLAIM=/\b(deploy(?:ed|ing)?|released?|rolled out|rollout|live|in production|production|upgraded?|fleet|ga)\b/i;
+ const norm=t=>String(t||'').toLowerCase().replace(/[^a-z0-9.%]+/g,' ').trim();
+ /** Keeps only lines the data backs up; every kept line carries its references (work items and/or an engineer-update quote). */
+ function aiParse(out,e,evidence){
   const raw=String(out&&(out.text||out.answer||out.message)||out||'').trim().replace(/^```(?:json)?\s*/i,'').replace(/\s*```$/,'');
   let v;try{v=JSON.parse(raw);}catch(_){const m=/\{[\s\S]*\}/.exec(raw);try{v=m&&JSON.parse(m[0]);}catch(__){}}
   if(!v||typeof v!=='object')throw Error('The AI response could not be read.');
-  const known=new Set(evidence.match(/\d+(?:[.,]\d+)*/g)||[]),cap={accomplishments:4,learnings:3,planForward:3},o={};let n=0;
-  for(const k of Object.keys(cap)){o[k]=(Array.isArray(v[k])?v[k]:[]).map(x=>String(x||'').replace(/^[\s\-*•]+/,'').replace(/\s+/g,' ').trim()).filter(x=>x&&x.split(/\s+/).length<=30&&!(x.match(/\d+(?:[.,]\d+)*/g)||[]).some(t=>!known.has(t)&&t!==AI_REL)).slice(0,cap[k]);n+=o[k].length;}
-  if(!n)throw Error('No executive-level updates could be drawn from the evidence.');
+  const wis=new Map((e.workItems||[]).map(w=>[String(w.id),w])),comments=norm(plainTxt(e.comments||'')+' '+plainTxt(e.pathToGreen||'')),known=new Set(evidence.match(/\d+(?:[.,]\d+)*/g)||[]);
+  const cap={accomplishments:4,inProgress:3,learnings:3,planForward:3},o={};let n=0;
+  const item=x=>typeof x==='string'?{text:x}:x&&typeof x==='object'?x:{};
+  for(const k of Object.keys(cap)){
+   o[k]=(Array.isArray(v[k])?v[k]:[]).map(item).map(x=>{
+    const text=String(x.text||'').replace(/^[\s\-*•]+/,'').replace(/\s+/g,' ').trim(),ids=[...new Set((Array.isArray(x.workItems)?x.workItems:[]).map(String).filter(i=>wis.has(i)))],quote=String(x.quote||'').trim(),qn=norm(quote),quoted=qn.length>=12&&comments.includes(qn);
+    if(!text||text.split(/\s+/).length>30)return null;
+    if((text.match(/\d+(?:[.,]\d+)*/g)||[]).some(t=>!known.has(t)&&t!==AI_REL))return null;
+    const doneIds=ids.filter(i=>doneWi(wis.get(i)));
+    if(k==='accomplishments'){
+     const stated=quoted&&DONEWORD.test(quote)&&!NEG.test(quote);
+     if(!doneIds.length&&!stated)return null;
+     if(CLAIM.test(text)&&!(quoted&&CLAIM.test(quote)&&!NEG.test(quote)))return null;
+    }else if(k==='inProgress'){
+     if(DONEWORD.test(text)||(!ids.length&&!quoted))return null;
+    }else{
+     if(!ids.length&&!quoted)return null;
+     if(k==='learnings'&&!quoted)return null;
+    }
+    return {text:text.slice(0,200),refs:[...ids.map(i=>i),...(quoted&&!ids.length?['engineer update']:[])].slice(0,4)};
+   }).filter(Boolean).slice(0,cap[k]);n+=o[k].length;}
+  if(!n)throw Error('Nothing could be confirmed from the work items and updates, so no summary is shown.');
   return o;
  }
  function aiRender(el,r,e){
-  const cols=[['Accomplishments',r.summary.accomplishments],['Learnings',r.summary.learnings],['Plan forward · '+AI_REL,r.summary.planForward]].filter(c=>c[1]&&c[1].length);
-  el.innerHTML=`<div class="aiu-grid" style="grid-template-columns:repeat(${cols.length},minmax(0,1fr))">${cols.map(([h,l])=>`<div class="aiu-c"><h4>${esc(h)}</h4><ul>${l.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`).join('')}</div><div class="aiu-meta"><span>AI summary${r.at?' · '+esc(fmt(r.at)):''}. Built from engineer updates and work items; review before sharing.</span>${state.api&&aiAvailable()?'<button type="button" data-aiu-re>Refresh</button>':''}</div>`;
+  const sm=r.summary,wis=new Map((e.workItems||[]).map(w=>[String(w.id),w]));
+  const ref=x=>{const w=wis.get(String(x));return w&&w.url?`<a href="${esc(w.url)}" target="_blank" rel="noopener">${esc(x)}</a>`:esc(x);};
+  const li=x=>{const it=typeof x==='string'?{text:x,refs:[]}:x;return `<li>${esc(it.text)}${(it.refs||[]).length?` <span class="aiu-ref">${it.refs.map(ref).join(', ')}</span>`:''}</li>`;};
+  const cols=[['Accomplishments',sm.accomplishments],['In progress',sm.inProgress],['Learnings',sm.learnings],['Plan forward · '+AI_REL,sm.planForward]].filter(c=>c[1]&&c[1].length);
+  el.innerHTML=`<div class="aiu-grid" style="grid-template-columns:repeat(${Math.min(2,cols.length)},minmax(0,1fr))">${cols.map(([h,l])=>`<div class="aiu-c"><h4>${esc(h)}</h4><ul>${l.map(li).join('')}</ul></div>`).join('')}</div><div class="aiu-meta"><span>AI summary${r.at?' · '+esc(fmt(r.at)):''}. Accomplishments need a done work item or an engineer statement; no PR or deployment data is used.</span>${state.api&&aiAvailable()?'<button type="button" data-aiu-re>Refresh</button>':''}</div>`;
  }
  const aiBusy=new Set();
  async function aiLoad(e,el,force){
@@ -256,7 +285,7 @@
    if(!force&&state.api&&id){msg('Checking for a saved summary…');try{const r=await state.api('epic-summary-get',{epicId:id,fingerprint:fp});if(r&&r.summary){cache[e.id]={fp,summary:r.summary,at:r.generatedAt};return aiRender(el,cache[e.id],e);}}catch(_){/* generate instead */}}
    if(!state.api||!aiAvailable())return msg(state.api?'AI is unavailable right now, so no summary could be generated.':'No AI summary was saved for this epic. Open this review in ReleaseIQ to generate one.',!!state.api);
    msg('Summarising the updates and work items…');
-   const ev=aiEvidence(e),out=await window.AppletAI.complete('release-summary',{message:'Summarise this epic for the executive review.\n\n'+ev,systemPromptOverride:AI_SYSTEM}),summary=aiParse(out,ev),at=new Date().toISOString();
+   const ev=aiEvidence(e),out=await window.AppletAI.complete('release-summary',{message:'Summarise this epic for the executive review.\n\n'+ev,systemPromptOverride:AI_SYSTEM}),summary=aiParse(out,e,ev),at=new Date().toISOString();
    cache[e.id]={fp,summary,at};
    if(id){try{await state.api('epic-summary-save',{epicId:id,fingerprint:fp,summary});}catch(_){/* kept for this session */}}
    aiRender(el,cache[e.id],e);
@@ -379,5 +408,5 @@
   const name=(d.team+'-'+d.release+'-'+(d.mode==='review'?'monthly-review':'epic-review')).replace(/[^A-Za-z0-9]+/g,'-').replace(/^-|-$/g,'').toLowerCase()+'.html';
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([html],{type:'text/html'}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);return name;
  }
- root.EpicDeck={open,close,download,build,flagsFor,summaryText,parseUpdates};
+ root.EpicDeck={open,close,download,build,flagsFor,summaryText,parseUpdates,aiParse};
 })(typeof window!=='undefined'?window:globalThis);
