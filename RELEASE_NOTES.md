@@ -4,6 +4,11 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r89 (folded)
+
+- AI Summarised Updates no longer use a fixed-height box that cut text off: the panel takes the height its content needs and the columns flow to the width available (one to four columns). If the content would run past the slide footer, its text is scaled down in small steps and only then scrolls.
+- Left and right arrow keys now move between slides while the AI Summarised Updates tab (or its Refresh link) has focus; they previously did nothing after clicking the tab.
+
 ### 8.0.0-GA r88 (folded)
 
 - AI Summarised Updates are now an inferred executive synthesis, not a restatement of the engineer text: a one-sentence headline (health, how far the work is, what remains, biggest risk or next step) sits above the lines, and the AI is told to read all monthly updates and work item statuses together, merge repeated points and describe how the work moved. Every number and outcome word is still checked against the evidence (nothing may be stated as deployed, released or upgraded unless an engineer said so). The "engineer update" tag on each line is removed; work item numbers still link. The word check no longer trips on trailing punctuation. Earlier saved results regenerate once (aiu6).
