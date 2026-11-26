@@ -42,3 +42,14 @@ test('merge fills empty Accomplishments from done work items but keeps AI lines 
   assert.equal(s.accomplishments.length,1);assert.equal(s.learnings.length,1);assert.ok(s.note);
   assert.equal(aiMerge(e,{accomplishments:[{text:'A'}],inProgress:[{text:'B'}],learnings:[],planForward:[]}).accomplishments[0].text,'A');
 });
+
+test('base summary needs no AI: facts, done and active work items, newest engineer update; AI lines only override when confirmed',()=>{
+  const {aiBase,aiView}=ctx.EpicDeck||ctx.window.EpicDeck;
+  const e3={comments:'November Update:\nOutcome: Dynamic slot allocation is in design review.\nNext: finalise the allocation algorithm.',workItems:[{id:'W-1',subject:'WS: Slot design',status:'Closed'},{id:'W-2',subject:'Allocator',status:'In Progress'},{id:'W-3',subject:'x',status:'Never'}],progress:{done:3,total:5}};
+  const b=aiBase(e3);
+  assert.equal(b.facts,'3 of 5 points done · 1 of 2 work items done · 1 in progress');
+  assert.equal(b.accomplishments[0].text,'Slot design');assert.equal(b.inProgress[0].refs[0],'W-2');
+  assert.equal(b.engineer.length,2);
+  const v=aiView(e3,{accomplishments:[],inProgress:[{text:'AI line'}],learnings:[{text:'L'}],planForward:[]});
+  assert.equal(v.accomplishments[0].text,'Slot design');assert.equal(v.inProgress[0].text,'AI line');assert.equal(v.learnings.length,1);
+});

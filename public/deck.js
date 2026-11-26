@@ -56,7 +56,7 @@
 #dk .outcome{border:1px solid var(--line);border-left:6px solid var(--blue);border-radius:8px;background:#f6f9fc;padding:10px 16px;margin:6px 0 10px}#dk .outcome .o-l{font-size:11px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted)}#dk .outcome .o-t{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;font-size:17px;font-weight:700;line-height:1.35;color:var(--ink);margin-top:2px}
 #dk .months{display:grid;gap:12px;align-items:stretch}#dk .month{border:1px solid var(--line);border-radius:8px;padding:10px 14px;min-width:0}#dk .month .m-more{font-size:11px;font-weight:700;margin-top:6px}#dk .month .m-l{font-size:11px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--blue);margin-bottom:6px}#dk .month .m-t{line-height:1.4;color:#222;overflow-wrap:anywhere}#dk .month .lbl{color:var(--navy)}
 #dk .utabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:10px 0 8px}#dk .utab{all:unset;box-sizing:border-box;cursor:pointer;font-size:12px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);padding:6px 12px;border-bottom:3px solid transparent;margin-bottom:-1px}#dk .utab:hover{color:var(--navy)}#dk .utab.on{color:var(--navy);border-bottom-color:var(--blue)}#dk .utab:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
-#dk .upanel[hidden]{display:none}#dk .aiu{overflow:auto}#dk .aiu-grid{display:grid;gap:12px;align-items:stretch}#dk .aiu-c{border:1px solid var(--line);border-radius:8px;padding:10px 14px;min-width:0}#dk .aiu-c h4{font-size:11px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--blue);margin-bottom:6px}#dk .aiu-c ul{padding-left:16px;font-size:13.5px;line-height:1.4;color:#222}#dk .aiu-c li{margin-bottom:4px;overflow-wrap:anywhere}#dk .aiu-ref{font-size:11px;color:var(--muted);white-space:nowrap}#dk .aiu-ref a{color:var(--blue)}#dk .aiu-meta{display:flex;gap:10px;align-items:center;font-size:11px;color:var(--muted);margin-top:8px}#dk .aiu-meta button{all:unset;cursor:pointer;color:var(--blue);font-weight:700}#dk .aiu-meta button:focus-visible{outline:2px solid var(--blue);outline-offset:2px}#dk .aiu-msg{font-size:13px;color:var(--muted);padding:10px 0}#dk .aiu-msg button{all:unset;cursor:pointer;color:var(--blue);font-weight:700;margin-left:8px}
+#dk .upanel[hidden]{display:none}#dk .aiu{overflow:auto}#dk .aiu-facts{font-weight:600;margin:0 0 8px}#dk .aiu-grid{display:grid;gap:12px;align-items:stretch}#dk .aiu-c{border:1px solid var(--line);border-radius:8px;padding:10px 14px;min-width:0}#dk .aiu-c h4{font-size:11px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--blue);margin-bottom:6px}#dk .aiu-c ul{padding-left:16px;font-size:13.5px;line-height:1.4;color:#222}#dk .aiu-c li{margin-bottom:4px;overflow-wrap:anywhere}#dk .aiu-ref{font-size:11px;color:var(--muted);white-space:nowrap}#dk .aiu-ref a{color:var(--blue)}#dk .aiu-meta{display:flex;gap:10px;align-items:center;font-size:11px;color:var(--muted);margin-top:8px}#dk .aiu-meta button{all:unset;cursor:pointer;color:var(--blue);font-weight:700}#dk .aiu-meta button:focus-visible{outline:2px solid var(--blue);outline-offset:2px}#dk .aiu-msg{font-size:13px;color:var(--muted);padding:10px 0}#dk .aiu-msg button{all:unset;cursor:pointer;color:var(--blue);font-weight:700;margin-left:8px}
 #dk .section-label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1.2px;margin:10px 0 6px}
 #dk table.ws{width:100%!important;min-width:0!important;border-collapse:collapse;font-size:13px;table-layout:fixed}#dk table.ws td:nth-child(2){white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #dk table.ws.wrap td:nth-child(2){white-space:normal;line-height:1.3;overflow:hidden;max-height:2.6em}#dk table.ws.wrap td:nth-child(2) span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
@@ -224,13 +224,13 @@
 
  /** AI Summarised Updates: executive bullets built from the engineer updates and the epic's work items. Generated once, saved
   *  to the shared cache under a fingerprint of that evidence, and regenerated only when the evidence changes. */
- const AI_VERSION='aiu4',AI_REL='268';
+ const AI_VERSION='aiu5',AI_REL='268';
  const fpOf=e=>{const t=JSON.stringify([AI_VERSION,AI_REL,e.name,e.health,e.goal,e.comments,e.pathToGreen,(e.workItems||[]).map(w=>[w.id,w.subject,w.status,w.days,w.assignee])]);let a=0x811c9dc5,b=5381;for(let i=0;i<t.length;i++){const c=t.charCodeAt(i);a=Math.imul(a^c,16777619)>>>0;b=(Math.imul(b,33)+c)>>>0;}return a.toString(36).padStart(7,'0')+b.toString(36).padStart(7,'0');};
  const aiAvailable=()=>{try{return typeof window.AppletAI?.complete==='function'&&window.AppletAI.isAvailable()===true;}catch(_){return false;}};
  const doneWi=w=>isDone(w.status)&&!isNever(w.status);
  const AI_SYSTEM='You write executive epic updates for a senior engineering review and must never overstate. Use ONLY the evidence supplied (work items with their GUS status, and the engineer updates). The evidence has NO pull request or deployment data, so nothing counts as deployed, released, rolled out, live, in production or upgraded unless an engineer update says so in words you quote. A work item counts as delivered only when its status is DONE. In Progress, New, Ready for Review, Waiting, Triaged or Acknowledged are NOT delivered. Goals and plans are not achievements. '+
   'Do NOT infer, interpret or add benefit: restate only what the evidence says, reusing the engineer\'s own verbs and nouns (for example write "Deployed 10.1.1-sfdc.1 across the internal fleet" only if the update says so). Never add outcomes, causes or purposes the text does not state (for example do not add "resolving a regression", "enabling faster releases" or "upgraded from X to Y" unless the update says exactly that). Evaluating, validating, implementing and developing are not the same as upgrading, completing or releasing. Return ONLY JSON: {"accomplishments":[{"text":"","workItems":["W-1"],"quote":""}],"inProgress":[...same shape],"learnings":[{"text":"","quote":""}],"planForward":[{"text":"","workItems":[],"quote":""}]}. '+
-  'text is one crisp third-person line of at most 18 words, no engineer names. workItems lists the supplied work item numbers that back the line. quote is a short exact phrase copied from the engineer updates that backs the line (empty if none). '+
+  'Group related work items into one crisp line (cite all of them in workItems) rather than listing each; text is one third-person line of at most 18 words, no engineer names. workItems lists the supplied work item numbers that back the line. quote is a short exact phrase copied from the engineer updates that backs the line (empty if none). '+
   'accomplishments: only outcomes backed by a DONE work item, or by an engineer update that states the outcome is complete (quote it); if you use words like deployed, released, rolled out, live or upgraded, the quote must contain that word. inProgress: work under way or waiting, worded with verbs such as working on, in progress, awaiting; never with completed/delivered/deployed. learnings: lessons, risks or blockers actually reported (quote required). planForward: only what the evidence explicitly plans for release '+AI_REL+' or next; otherwise []. Use [] for any section the evidence does not support. At most 4, 3, 3, 3 items.';
  function aiEvidence(e){
   const w=(e.workItems||[]).slice(0,40).map(x=>`- ${x.id} | ${x.subject||''} | ${x.status||'?'} | ${isNever(x.status)?'CANCELLED':doneWi(x)?'DONE':'NOT DONE'}`).join('\n');
@@ -247,12 +247,12 @@
  function supported(text,support){
   const have=new Set(toks(support)),t=toks(text),miss=t.filter(w=>!have.has(w));
   if(miss.some(w=>CLAIMSTEM.test(w)))return false;
-  return t.length>0&&miss.length/t.length<=0.35;
+  return t.length>0&&miss.length/t.length<=0.5;
  }
  /** Whatever the AI lines could not confirm is filled from GUS itself, so an epic with finished work never shows an empty Accomplishments. */
  function aiMerge(e,s){
   let f=null;try{f=aiFallback(e);}catch(_){/* nothing recorded in GUS either */}
-  if(!s){if(!f)throw Error('No engineer update or work item status gives enough to summarise yet.');return f;}
+  if(!s)return f||{accomplishments:[],inProgress:[],learnings:[],planForward:[],note:'No AI line could be confirmed.'};
   if(f&&!s.accomplishments.length&&f.accomplishments.length){s.accomplishments=f.accomplishments;s.note=f.note;}
   if(f&&!s.inProgress.length&&f.inProgress.length){s.inProgress=f.inProgress;s.note=f.note;}
   return s;
@@ -294,18 +294,35 @@
   if(!n)throw Error('Nothing could be confirmed from the work items and updates, so no summary is shown.');
   return o;
  }
+ /** The part of the summary that needs no AI: progress facts, done and active work items by subject, and the newest engineer update as written. */
+ function aiBase(e){
+  const live=(e.workItems||[]).filter(w=>!isNever(w.status)),done=live.filter(doneWi),wip=live.filter(w=>!doneWi(w)&&isWip(w.status));
+  const subj=w=>String(w.subject||'').replace(/^WS:\s*/i,'').replace(/\s+/g,' ').trim().slice(0,150),pg=e.progress;
+  const line=w=>({text:subj(w),quote:'',refs:[String(w.id)]});
+  const facts=[pg&&pg.total?`${pg.done} of ${pg.total} points done`:'',live.length?`${done.length} of ${live.length} work items done`:'',wip.length?`${wip.length} in progress`:''].filter(Boolean).join(' · ');
+  const acc=done.slice(0,4).map(line);if(done.length>4)acc.push({text:`+${done.length-4} more done work items`,quote:'',refs:[]});
+  const m=parseUpdates(e.comments||'',state&&state.asOf).months[0],eng=m?m.text.split('\n').map(l=>l.replace(/^[\s\-–—•*·]+/,'').trim()).filter(l=>l.length>=15).slice(0,3).map(l=>({text:l.slice(0,170),quote:'',refs:[]})):[];
+  return {facts,accomplishments:acc,inProgress:wip.slice(0,3).map(line),engineer:eng,engineerLabel:m?m.label:'',learnings:[],planForward:[]};
+ }
+ /** Base first, with the AI lines laid over it only where the AI confirmed something. */
+ function aiView(e,sm){
+  const b=aiBase(e);if(!sm)return {...b,ai:false};
+  const has=k=>sm[k]&&sm[k].length;
+  return {facts:b.facts,accomplishments:has('accomplishments')?sm.accomplishments:b.accomplishments,inProgress:has('inProgress')?sm.inProgress:b.inProgress,engineer:b.engineer,engineerLabel:b.engineerLabel,learnings:sm.learnings||[],planForward:sm.planForward||[],ai:true,note:has('accomplishments')||has('inProgress')?'':sm.note};
+ }
  function aiRender(el,r,e){
-  const sm=r.summary,wis=new Map((e.workItems||[]).map(w=>[String(w.id),w]));
+  const sm=aiView(e,r&&r.summary),wis=new Map((e.workItems||[]).map(w=>[String(w.id),w]));
   const ref=x=>{const w=wis.get(String(x));return w&&w.url?`<a href="${esc(w.url)}" target="_blank" rel="noopener">${esc(x)}</a>`:esc(x);};
   const li=x=>{const it=typeof x==='string'?{text:x,refs:[]}:x;return `<li${it.quote?` title="${esc('Engineer update: “'+it.quote+'”')}"`:''}>${esc(it.text)}${(it.refs||[]).length?` <span class="aiu-ref">${it.refs.map(ref).join(', ')}</span>`:''}</li>`;};
-  const cols=[['Accomplishments',sm.accomplishments],['In progress',sm.inProgress],['Learnings',sm.learnings],['Plan forward · '+AI_REL,sm.planForward]].filter(c=>c[1]&&c[1].length);
-  el.innerHTML=`<div class="aiu-grid" style="grid-template-columns:repeat(${Math.min(2,cols.length)},minmax(0,1fr))">${cols.map(([h,l])=>`<div class="aiu-c"><h4>${esc(h)}</h4><ul>${l.map(li).join('')}</ul></div>`).join('')}</div><div class="aiu-meta"><span>${sm.note?esc(sm.note):'AI summary'+(r.at?' · '+esc(fmt(r.at)):'')+'. Accomplishments need a done work item or an engineer statement; no PR or deployment data is used.'}</span>${state.api&&aiAvailable()?'<button type="button" data-aiu-re>Refresh</button>':''}</div>`;
+  const cols=[['Accomplishments',sm.accomplishments],['In progress',sm.inProgress],['Latest engineer update'+(sm.engineerLabel?' · '+sm.engineerLabel:''),sm.engineer],['Learnings',sm.learnings],['Plan forward · '+AI_REL,sm.planForward]].filter(c=>c[1]&&c[1].length);
+  if(!cols.length)return el.innerHTML='<div class="aiu-msg">Nothing is recorded in GUS for this epic yet.</div>';
+  el.innerHTML=(sm.facts?`<div class="aiu-facts">${esc(sm.facts)}</div>`:'')+`<div class="aiu-grid" style="grid-template-columns:repeat(${Math.min(2,cols.length)},minmax(0,1fr))">${cols.map(([h,l])=>`<div class="aiu-c"><h4>${esc(h)}</h4><ul>${l.map(li).join('')}</ul></div>`).join('')}</div><div class="aiu-meta"><span>${esc(r&&r.summary&&sm.ai?'Built from GUS work items and engineer updates; AI condensed'+(r.at?' · '+fmt(r.at):'')+'. No PR or deployment data is used.':(r&&r.pending?'AI is condensing this in the background.':'Built from GUS work items and engineer updates only; no PR or deployment data is used.'))}</span>${state.api&&aiAvailable()&&e.comments?'<button type="button" data-aiu-re>Refresh</button>':''}</div>`;
  }
  /** One quick request fetches every saved summary, so epics already in the shared cache show at once and nothing is regenerated. */
  let aiPre=null;
  function aiPrefetch(){
   const cache=state.aiu||(state.aiu={});
-  const items=(state.epics||[]).filter(e=>e.gusId&&(e.comments||(e.workItems||[]).length)&&!(cache[e.id]&&cache[e.id].fp===fpOf(e))).map(e=>({epicId:e.gusId,fingerprint:fpOf(e),key:e.id}));
+  const items=(state.epics||[]).filter(e=>e.gusId&&e.comments&&!(cache[e.id]&&cache[e.id].fp===fpOf(e))).map(e=>({epicId:e.gusId,fingerprint:fpOf(e),key:e.id}));
   if(!state.api||!items.length)return aiPre=null;
   return aiPre=(async()=>{for(let i=0;i<items.length;i+=100){const part=items.slice(i,i+100),r=await state.api('epic-summary-get-many',{items:part.map(x=>({epicId:x.epicId,fingerprint:x.fingerprint}))});
    for(const x of part){const h=r&&r.found&&r.found[x.epicId];if(h&&h.summary)cache[x.key]={fp:x.fingerprint,summary:h.summary,at:h.generatedAt};}}})().catch(()=>{});
@@ -329,13 +346,12 @@
   aiBusy.set(e.id,run);try{return await run;}finally{aiBusy.delete(e.id);}
  }
  async function aiLoad(e,el,force){
-  const msg=(t,retry)=>{el.innerHTML=`<div class="aiu-msg">${esc(t)}${retry?'<button type="button" data-aiu-re>Try again</button>':''}</div>`;};
-  try{
-   const cached=state.aiu&&state.aiu[e.id];if(!force&&cached&&cached.fp===fpOf(e))return aiRender(el,cached,e);
-   const r=await aiResolve(e,force,msg);
-   if(r)return aiRender(el,r,e);
-   msg(state.api?'AI is unavailable right now, so no summary could be generated.':'No AI summary was saved for this epic. Open this review in ReleaseIQ to generate one.',!!state.api);
-  }catch(x){msg((x&&x.message||'The summary could not be generated.').slice(0,160),true);}
+  const cached=state.aiu&&state.aiu[e.id],fp=fpOf(e);
+  if(!force&&cached&&cached.fp===fp)return aiRender(el,cached,e);
+  aiRender(el,{pending:!!e.comments&&aiAvailable()&&!!state.api},e);
+  if(!e.comments||!state.api)return;
+  try{const r=await aiResolve(e,force);if(r&&el.isConnected)aiRender(el,r,e);}
+  catch(_){aiRender(el,null,e);}
  }
  /** Opening the presentation prepares every epic's AI summary in the background, one after the other: saved ones load at once, only epics whose updates or work items changed are regenerated. */
  let aiRun=0;
@@ -343,7 +359,7 @@
   const my=++aiRun;if(!state||!state.api)return;aiPrefetch();if(aiPre)await aiPre;if(!aiAvailable())return;
   for(const e of state.epics.slice()){
    if(my!==aiRun||!document.getElementById('dk'))return;
-   if(!(e.comments||(e.workItems||[]).length))continue;
+   if(!e.comments)continue;
    try{await aiResolve(e,false);}catch(_){/* shown with a retry when the tab is opened */}
    const el=document.querySelector(`#dk [data-uwrap="${CSS_ESC(e.id)}"] [data-upanel=ai]`);
    if(el&&!el.hidden&&el.dataset.ready&&state.aiu&&state.aiu[e.id]&&state.aiu[e.id].fp===fpOf(e))aiRender(el,state.aiu[e.id],e);
@@ -466,5 +482,5 @@
   const name=(d.team+'-'+d.release+'-'+(d.mode==='review'?'monthly-review':'epic-review')).replace(/[^A-Za-z0-9]+/g,'-').replace(/^-|-$/g,'').toLowerCase()+'.html';
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([html],{type:'text/html'}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);return name;
  }
- root.EpicDeck={open,close,download,build,flagsFor,summaryText,parseUpdates,aiParse,aiFallback,aiMerge};
+ root.EpicDeck={open,close,download,build,flagsFor,summaryText,parseUpdates,aiParse,aiFallback,aiMerge,aiBase,aiView};
 })(typeof window!=='undefined'?window:globalThis);
