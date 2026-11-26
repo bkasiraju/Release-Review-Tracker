@@ -1041,7 +1041,7 @@ async function reportItems(sf, teamId, input) {
   try { rep = await sf.request(`/services/data/v62.0/analytics/reports/${m[1]}?includeDetails=true`); }
   catch (e) { throw new Error('Could not run that report: ' + plain(e && e.message || e).slice(0, 200)); }
   if (typeof rep === 'string') { try { rep = JSON.parse(rep); } catch (_) { throw new Error('GUS returned an unreadable report.'); } }
-  if (rep && !rep.reportMetadata && rep.body && typeof rep.body === 'object') rep = rep.body;
+  if (rep && !rep.reportMetadata && rep.body) { try { rep = typeof rep.body === 'string' ? JSON.parse(rep.body) : rep.body; } catch (_) { /* reported below */ } }
   const md = rep && rep.reportMetadata, cols = (md && md.detailColumns) || [];
   const info = (rep && rep.reportExtendedMetadata && rep.reportExtendedMetadata.detailColumnInfo) || {};
   const idx = cols.findIndex(c => c === 'CUST_NAME' || /\.Name$/.test((info[c] || {}).entityColumnName || ''));
