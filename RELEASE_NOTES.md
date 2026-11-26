@@ -4,6 +4,10 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r74 (folded)
+
+- Audit log: events were being written in the background after the response (capped at 1.5 s), which the host can cut short, so nothing was recorded. The event is now written before the reply (up to 20 s). If a write still fails, the page shows "Saved, but the audit log could not record this change: <reason>" once per session so the cause is visible.
+
 ### 8.0.0-GA r73 (folded)
 
 - TD & CARR import, GUS report source: GUS Apps cannot run GUS reports itself (no Salesforce REST access), so the tab now takes the report's CSV export (Export > Details Only > .csv; or a .txt of the copied rows), reads the W-/TD- numbers in it and lists the matching items to select. The live report-link loader stays as a secondary option and now explains how to proceed when unavailable. Pasted lists take up to 500 numbers; pasted text no longer scans for record ids.

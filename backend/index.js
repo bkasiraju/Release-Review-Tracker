@@ -150,8 +150,11 @@ async function handleRequest(ctx){
       default:throw Error('Unknown dashboard action.');
     }
     // Who changed what: one audit event per successful change, bounded so it can never hold up the response.
-    if(audit.audited(action))await Promise.race([audit.record(store,sf,ctx,action,b,payload,service),new Promise(r=>setTimeout(r,1500))]);
-    return {ok:true,payload};
+    // The host may stop work once the response is sent, so the event is written before replying (capped at 20s); a failure is reported to the page, never thrown.
+    let auditNote;
+    if(audit.audited(action)){const done=await Promise.race([audit.record(store,sf,ctx,action,b,payload,service),new Promise(r=>setTimeout(()=>r('timeout'),20000))]);
+      if(done===false)auditNote={ok:false,error:audit.failure()||'The event could not be written.'};else if(done==='timeout')auditNote={ok:false,error:'Writing the event took too long.'};}
+    return auditNote?{ok:true,payload,audit:auditNote}:{ok:true,payload};
   }catch(e){return {ok:false,error:safeError(e)};}
 }
 module.exports={handleRequest,executionContext:'USER',handlerExecutionContext:'USER'};

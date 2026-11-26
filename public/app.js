@@ -76,6 +76,7 @@ async function apiOnce(action,data={},metric=null){
   const response=await fetch(url,{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,...data}),signal:AbortSignal.timeout(120000)});
   if(!response.ok)throw Error(`GUS Apps returned HTTP ${response.status}. Check your sign-in and applet access.`);
   let result;try{result=await response.json();}catch{throw Error('GUS Apps did not return a dashboard response. Check the backend deployment.');}
+  if(result?.audit&&result.audit.ok===false&&!window.__auditWarned){window.__auditWarned=true;console.warn('Audit log write failed:',result.audit.error);window.toast?.('Saved, but the audit log could not record this change: '+result.audit.error,true);}
   for(let i=0;i<6;i++){if(result?.ok===false||result?.status==='error')throw Error(result.error||'GUS Apps request failed.');if(result?.payload!==undefined)result=result.payload;else break;}
   return result;
 }

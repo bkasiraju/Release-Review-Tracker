@@ -88,12 +88,14 @@ function describe(action,b,payload){
   return {team,area:r.area,action,summary:text(r.say(b||{},payload),200),detail,merge:!!r.merge,releaseId:r.release&&/^[a-f0-9-]{36}$/.test(String(b.releaseId||b.id||''))?String(b.releaseId||b.id):''};
 }
 
-let lastSweep=0;
+let lastSweep=0,lastError='';
+const failure=()=>lastError;
 /** Old audit files are deleted at most every 6 hours, in the background; failures are retried at the next sweep. */
 function sweep(store){if(Date.now()-lastSweep<6*3600e3||typeof store.purgeOlderThan!=='function')return;lastSweep=Date.now();Promise.resolve().then(()=>store.purgeOlderThan('audit',RETENTION_DAYS)).catch(()=>{lastSweep=0;});}
 /** Append one event (retrying once on a concurrent write). Never throws. */
 async function record(store,sf,ctx,action,b,payload,service){
   try{
+    lastError='';
     if(!store||ctx&&ctx.demo||!audited(action))return null;
     const d=describe(action,b||{},payload);if(!d)return null;
     let release='';if(d.releaseId&&service&&typeof service.release==='function'){try{release=text((await service.release(d.releaseId)).name,100);}catch(_){/* release may be deleted */}}
@@ -103,9 +105,9 @@ async function record(store,sf,ctx,action,b,payload,service){
       const cur=await store.get('audit',d.team)||{events:[]},events=prune(Array.isArray(cur.events)?cur.events.map(e=>({...e})):[],now),last=events[events.length-1];
       if(d.merge&&last&&last.action===action&&last.actor.id===who.id&&last.actor.name===who.name&&last.release===release&&now-Date.parse(last.ts)<MERGE_MS){last.ts=ts;last.count=(last.count||1)+1;}
       else events.push({id:randomUUID(),ts,actor:who,teamId:d.team===SHARED?'':d.team,area:d.area,action,summary:d.summary,detail:d.detail,release,count:1});
-      try{await put(store,d.team,events,cur.revision??null);sweep(store);return true;}catch(e){if(attempt===2||!/changed|verified/i.test(e.message))return false;}
+      try{await put(store,d.team,events,cur.revision??null);sweep(store);return true;}catch(e){lastError=text(e&&e.message||e,200);if(attempt===2||!/changed|verified/i.test(e.message))return false;}
     }
-  }catch(_){/* auditing must never break the change that was already made */}
+  }catch(e){lastError=text(e&&e.message||e,200);/* auditing must never break the change that was already made */}
   return false;
 }
 
@@ -119,4 +121,4 @@ async function read(store,b){
   return {events:events.slice(0,MAX_EVENTS),days,retentionDays:RETENTION_DAYS,areas:AREAS,truncated:events.length>MAX_EVENTS};
 }
 
-module.exports={record,read,describe,audited,AREAS,RETENTION_DAYS,__test:{prune,RULES}};
+module.exports={failure,record,read,describe,audited,AREAS,RETENTION_DAYS,__test:{prune,RULES}};
