@@ -76,4 +76,24 @@ async function sendSlack(sf, slack, store, { userId, teamId, text }) {
   if (r && r.ok === false) throw new Error(`Slack did not accept the message (${r.error || 'unknown'}). Check that @GUS MIYO is invited to ${ch.name || 'the channel'}.`);
   return { ok: true, to: t.name, channel: ch.name || ch.id };
 }
-module.exports = { searchUsers, slackTarget, postChatter, sendSlack, cleanText };
+/**
+ * Share the epic-review deck summary to a Slack channel the user picks at send time: a configured team channel (by team id)
+ * or a pasted channel link/ID. Nothing is defaulted; the browser must name the channel on every call.
+ */
+async function sendDeckSlack(sf, slack, store, { teamId, channel, text }) {
+  const body = cleanText(text);
+  if (!slack || (typeof slack.postMessage !== 'function' && typeof slack.apiCall !== 'function')) throw new Error('The GUS MIYO Slack helper is not available in this runtime.');
+  const sc = require('./slack-channels');
+  let ch;
+  if (teamId) { ch = await sc.forTeam(store, teamId); if (!ch) throw new Error('No Slack channel is set for that team.'); }
+  else { const id = sc.parseChannel(channel); if (!id) throw new Error('Choose a Slack channel first.'); ch = { id, name: '' }; }
+  let from = ''; try { if (!SF_ID.test(String(sf.userId || ''))) throw 0; const me = ((await sf.query(`SELECT Name FROM User WHERE Id = '${q(sf.userId)}' LIMIT 1`)).records || [])[0]; from = me && me.Name || ''; } catch (_) { /* signature is optional */ }
+  const esc = body.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\[([^\]]+)\]\((https:\/\/[^\s)]+)\)/g, '<$2|$1>');
+  const text2 = `${esc}${from ? `\n\n_Shared by ${from} via ReleaseIQ_` : ''}`;
+  let r;
+  try { r = typeof slack.postMessage === 'function' ? await slack.postMessage({ channel: ch.id, text: text2 }) : await slack.apiCall('chat.postMessage', { channel: ch.id, text: text2, unfurl_links: false }); }
+  catch (e) { throw new Error(`GUS MIYO could not post to ${ch.name || 'the channel'}: ${String((e && e.message) || e).slice(0, 160)}. Check that @GUS MIYO is invited there.`); }
+  if (r && r.ok === false) throw new Error(`Slack did not accept the message (${r.error || 'unknown'}). Check that @GUS MIYO is invited to the channel.`);
+  return { ok: true, channel: ch.name || ch.id };
+}
+module.exports = { searchUsers, slackTarget, postChatter, sendSlack, sendDeckSlack, cleanText };

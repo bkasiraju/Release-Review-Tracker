@@ -74,6 +74,7 @@ async function handleRequest(ctx){
       case 'post-slack':payload=await post.slackTarget(sf,ctx.slack,b.userId);{const sc=require('./slack-channels'),L=await sc.list(sf,store);payload.channels=L.teams.filter(t=>t.channel).map(t=>({teamId:t.teamId,team:t.name,name:t.channel.name||t.channel.id}));payload.canSend=!!payload.slackUserId&&payload.channels.length>0&&!!ctx.slack&&(typeof ctx.slack.postMessage==='function'||typeof ctx.slack.apiCall==='function');}break;
       case 'slack-channels':payload=await require('./slack-channels').list(sf,store);break;
       case 'slack-channels-save':payload=await require('./slack-channels').save(sf,store,ctx.slack,b);break;
+      case 'deck-slack-send':payload=await post.sendDeckSlack(sf,ctx.slack,store,b);break;
       case 'post-slack-send':payload=await post.sendSlack(sf,ctx.slack,store,b);break;
       case 'runtime-capabilities':{ // names only (no values or data): which calls the host exposes, to find a way to post real Chatter mentions
         const names=o=>{const out=new Set();for(let x=o,i=0;x&&x!==Object.prototype&&i<4;x=Object.getPrototypeOf(x),i++)for(const k of Object.getOwnPropertyNames(x))try{if(k!=='constructor'&&typeof o[k]==='function')out.add(k);}catch{/* getter */}return [...out].sort();};

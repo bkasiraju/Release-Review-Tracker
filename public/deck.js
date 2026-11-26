@@ -75,6 +75,7 @@
 #dk .hyg .t{font-size:15px;font-weight:700;margin:2px 0 6px}#dk .hyg .d{font-size:12px;color:var(--muted);line-height:1.45}
 #dk .hyg .d div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#dk .hyg .d div::before{content:"• "}
 #dk .dk-bar{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);display:flex;gap:6px;align-items:center;background:rgba(0,0,0,.6);padding:6px 10px;border-radius:999px;color:#fff;font-size:13px;z-index:2;opacity:.35;transition:opacity .2s}
+#dk .dk-share{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:5;font:14px system-ui,sans-serif}#dk .dk-sh-box{background:#fff;color:#1b1f24;border-radius:12px;padding:18px 20px;width:min(560px,92vw);display:flex;flex-direction:column;gap:10px}#dk .dk-sh-box [hidden]{display:none}#dk .dk-sh-box h3{margin:0}#dk .dk-sh-box label{display:flex;flex-direction:column;gap:4px;font-weight:600}#dk .dk-sh-box select,#dk .dk-sh-box input,#dk .dk-sh-box textarea{font:13px system-ui,sans-serif;padding:6px 8px;border:1px solid #bbb;border-radius:6px}#dk .dk-sh-note{margin:0;font-size:12px;color:#555}#dk .dk-sh-err{margin:0;color:#b3261e;font-size:13px}#dk .dk-sh-act{display:flex;justify-content:flex-end;gap:8px}#dk .dk-sh-act button{background:#eee;color:#1b1f24;border:none;padding:7px 14px;border-radius:8px;cursor:pointer}#dk .dk-sh-act button.on{background:#0b5cab;color:#fff}#dk .dk-sh-act button:disabled{opacity:.5;cursor:default}
 #dk .dk-bar:hover,#dk .dk-bar:focus-within{opacity:1}
 #dk .dk-bar button{background:none;border:none;color:#fff;font-size:14px;cursor:pointer;padding:4px 10px;border-radius:999px}
 #dk .dk-bar button:hover,#dk .dk-bar button.on{background:rgba(255,255,255,.2)}
@@ -185,10 +186,10 @@
   close();state=Object.assign({mode:'planning',gusUrl:'https://gus.lightning.force.com/lightning/r/',asOf:new Date().toISOString().slice(0,10)},data,opts||{});state.prevOverflow=document.body.style.overflow;
   const st=document.createElement('style');st.id='dk-css';st.textContent=CSS;document.head.appendChild(st);
   const d=document.createElement('div');d.id='dk';d.setAttribute('role','dialog');d.setAttribute('aria-label','Epic review presentation');
-  d.innerHTML=(state.standalone?'':'')+'<div class="dk-prog" id="dk-prog"></div><div class="dk-stage"></div><div class="dk-bar"><button type="button" data-a="prev" title="Previous (←)" aria-label="Previous slide">◀</button><span id="dk-count"></span><button type="button" data-a="next" title="Next (→)" aria-label="Next slide">▶</button><button type="button" data-mode="planning" title="Planning view">Planning</button><button type="button" data-mode="review" title="Monthly review view: progress and risks">Monthly review</button>'+(state.standalone?'':'<button type="button" data-a="edit" title="Add presenter notes and asks">Edit notes</button>')+'<button type="button" data-a="print" title="Print or save as PDF">Print</button>'+(state.standalone?'':'<button type="button" data-a="save" title="Download this deck as an HTML file">Download</button>')+'<button type="button" data-a="full" title="Fullscreen (F)" aria-label="Fullscreen">⛶</button>'+(state.standalone?'':'<button type="button" data-a="close" title="Close (Esc)" aria-label="Close presentation">✕</button>')+'</div>';
+  d.innerHTML=(state.standalone?'':'')+'<div class="dk-prog" id="dk-prog"></div><div class="dk-stage"></div><div class="dk-bar"><button type="button" data-a="prev" title="Previous (←)" aria-label="Previous slide">◀</button><span id="dk-count"></span><button type="button" data-a="next" title="Next (→)" aria-label="Next slide">▶</button><button type="button" data-mode="planning" title="Planning view">Planning</button><button type="button" data-mode="review" title="Monthly review view: progress and risks">Monthly review</button>'+(state.standalone?'':'<button type="button" data-a="edit" title="Add presenter notes and asks">Edit notes</button>')+'<button type="button" data-a="print" title="Print or save as PDF">Print</button>'+(state.standalone?'':'<button type="button" data-a="save" title="Download this deck as an HTML file">Download</button>')+(!state.standalone&&state.api?'<button type="button" data-a="share" title="Post a summary to Slack (you pick the channel)">Share to Slack</button>':'')+'<button type="button" data-a="full" title="Fullscreen (F)" aria-label="Fullscreen">⛶</button>'+(state.standalone?'':'<button type="button" data-a="close" title="Close (Esc)" aria-label="Close presentation">✕</button>')+'</div>';
   document.body.appendChild(d);document.body.style.overflow='hidden';cur=0;
   d.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const a=b.dataset.a;
-   if(a==='prev')go(cur-1);else if(a==='next')go(cur+1);else if(a==='close')close();else if(a==='edit'){state.edit=!state.edit;b.classList.toggle('on',state.edit);paint();}else if(a==='print')print();else if(b.dataset.askAdd){state.asks.push({type:'Ask',q:'',d:'',who:''});changed();paint();}else if(b.dataset.askDel!=null){state.asks.splice(Number(b.dataset.askDel),1);changed();paint();}else if(a==='save'){b.disabled=true;download(state).catch(err=>alert(err.message)).finally(()=>b.disabled=false);}
+   if(a==='prev')go(cur-1);else if(a==='next')go(cur+1);else if(a==='close')close();else if(a==='edit'){state.edit=!state.edit;b.classList.toggle('on',state.edit);paint();}else if(a==='print')print();else if(a==='share')share();else if(b.dataset.askAdd){state.asks.push({type:'Ask',q:'',d:'',who:''});changed();paint();}else if(b.dataset.askDel!=null){state.asks.splice(Number(b.dataset.askDel),1);changed();paint();}else if(a==='save'){b.disabled=true;download(state).catch(err=>alert(err.message)).finally(()=>b.disabled=false);}
    else if(a==='full')document.fullscreenElement?document.exitFullscreen():d.requestFullscreen&&d.requestFullscreen();
    else if(b.dataset.mode){state.mode=b.dataset.mode;paint();}});
   d.addEventListener('input',e=>{const t=e.target;if(t.dataset.note!=null){(state.notes||(state.notes={}))[t.dataset.note]=t.value;changed();}else if(t.dataset.ask!=null){state.asks[Number(t.dataset.ask)][t.dataset.k]=t.value;changed();}});
@@ -201,6 +202,41 @@
    else if(k.toLowerCase()==='f')d.requestFullscreen&&(document.fullscreenElement?document.exitFullscreen():d.requestFullscreen());};
   onResize=fit;document.addEventListener('keydown',onKey,true);addEventListener('resize',onResize);paint();
  }
+ /** Plain-text Slack summary of the deck: health counts, one line per epic, and the asks. */
+ function summaryText(D){
+  const E=D.epics||[],cnt={g:0,a:0,r:0,n:0};E.forEach(e=>cnt[tone(e.health)||'n']++);
+  const dot={g:':large_green_circle:',a:':large_yellow_circle:',r:':red_circle:',n:':white_circle:'};
+  const L=[`*${D.team} — ${D.release}* ${D.mode==='review'?'monthly review':'epic review'} (${D.asOf})`,`${E.length} epics: ${cnt.g} on track, ${cnt.a} watch, ${cnt.r} at risk${cnt.n?`, ${cnt.n} not set`:''}`,''];
+  E.slice(0,40).forEach(e=>{const pr=e.progress&&e.progress.pct!=null?` — ${Math.round(e.progress.pct)}%`:'',lk=e.gusId?`[${String(e.name).replace(/[\[\]]/g,'')}](${D.gusUrl}ADM_Epic__c/${e.gusId}/view)`:String(e.name);
+   L.push(`${dot[tone(e.health)||'n']} ${lk}${e.owner?' ('+e.owner+')':''}${pr}`);});
+  if(E.length>40)L.push(`…and ${E.length-40} more`);
+  const asks=(D.asks||[]).filter(x=>x.q);
+  if(asks.length){L.push('','*Asks & decisions*');asks.forEach(x=>L.push(`• ${x.type||'Ask'}: ${x.q}${x.who?' — '+x.who:''}`));}
+  return L.join('\n').slice(0,3900);
+ }
+ /** Share to Slack: the channel is chosen in this dialog on every use (a configured team channel or a pasted link/ID) and the post only happens on the explicit Post click. */
+ async function share(){
+  const api=state.api;if(!api)return;
+  const dk=document.getElementById('dk');if(!dk||dk.querySelector('.dk-share'))return;
+  const o=document.createElement('div');o.className='dk-share';o.innerHTML='<div class="dk-sh-box" role="dialog" aria-label="Share to Slack"><h3>Share to Slack</h3><label>Channel<select id="dk-sh-ch"><option value="">Loading channels…</option></select></label><label id="dk-sh-oth" hidden>Channel link or ID<input id="dk-sh-in" placeholder="https://…/archives/C0123ABCD"></label><label>Message<textarea id="dk-sh-tx" rows="10"></textarea></label><p class="dk-sh-note">The summary is posted through GUS MIYO, which must be invited to the channel. The HTML file itself is not attached; use Download to share it.</p><p id="dk-sh-err" class="dk-sh-err" role="alert"></p><div class="dk-sh-act"><button type="button" data-sh="cancel">Cancel</button><button type="button" data-sh="send" class="on" disabled>Post</button></div></div>';
+  dk.appendChild(o);
+  const $=i=>o.querySelector('#'+i),sel=$('dk-sh-ch'),oth=$('dk-sh-oth'),inp=$('dk-sh-in'),tx=$('dk-sh-tx'),err=$('dk-sh-err'),send=o.querySelector('[data-sh=send]');
+  tx.value=summaryText(state);
+  const label=()=>sel.value==='__other'?'the pasted channel':(sel.selectedOptions[0]||{}).textContent||'';
+  const upd=()=>{oth.hidden=sel.value!=='__other';send.disabled=!(sel.value&&(sel.value!=='__other'||inp.value.trim())&&tx.value.trim());send.textContent=sel.value?'Post to '+(sel.value==='__other'?'channel':(sel.selectedOptions[0].dataset.nm||'channel')):'Post';};
+  sel.onchange=upd;inp.oninput=upd;tx.oninput=upd;
+  o.addEventListener('click',async e=>{const b=e.target.closest('[data-sh]');if(!b){if(e.target===o)o.remove();return;}
+   if(b.dataset.sh==='cancel')return o.remove();
+   if(!confirm('Post this summary to '+label()+'?'))return;
+   send.disabled=true;err.textContent='';
+   try{const body={text:tx.value};if(sel.value==='__other')body.channel=inp.value.trim();else body.teamId=sel.value;
+    const r=await api('deck-slack-send',body);o.remove();if(window.toast)window.toast('Posted to '+(r.channel||'Slack'),false);}
+   catch(x){err.textContent=(x&&x.message)||'Could not post.';upd();}});
+  try{const r=await api('slack-channels'),T=(r.teams||[]).filter(t=>t.channel);
+   sel.innerHTML='<option value="">Choose a channel…</option>'+T.map(t=>`<option value="${esc(t.teamId)}" data-nm="${esc(t.channel.name||t.channel.id)}">${esc((t.channel.name||t.channel.id)+' ('+t.name+')')}</option>`).join('')+'<option value="__other">Another channel (paste link or ID)…</option>';}
+  catch(x){sel.innerHTML='<option value="">Choose a channel…</option><option value="__other">Another channel (paste link or ID)…</option>';}
+  upd();sel.focus();
+ }
  /** Saves the deck as one self-contained HTML file: the same template, with this data filled in. It opens offline with no ReleaseIQ session. */
  async function download(data,opts){
   let src='';try{src=SRC?await (await fetch(SRC)).text():'';}catch(_){}
@@ -210,5 +246,5 @@
   const name=(d.team+'-'+d.release+'-'+(d.mode==='review'?'monthly-review':'epic-review')).replace(/[^A-Za-z0-9]+/g,'-').replace(/^-|-$/g,'').toLowerCase()+'.html';
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([html],{type:'text/html'}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);return name;
  }
- root.EpicDeck={open,close,download,build,flagsFor};
+ root.EpicDeck={open,close,download,build,flagsFor,summaryText};
 })(typeof window!=='undefined'?window:globalThis);

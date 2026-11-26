@@ -20,3 +20,18 @@ test('deck: presenter notes and asks render, escaped, and the asks slide only ap
   d.notes={'1':'Ship <it>'};d.asks=[{type:'Decision',q:'Freeze?',d:'A or B',who:'Leads'}];
   const h=build(d).html;assert.match(h,/Ship &lt;it&gt;/);assert.match(h,/Asks &amp; Decisions Needed/);assert.match(h,/ask decision/);
 });
+test('deck: Slack summary counts health, links epics and lists asks',()=>{
+  const d=D();d.asks=[{type:'Ask',q:'More heads',who:'Leads'}];
+  const t=globalThis.EpicDeck.summaryText(d);
+  assert.match(t,/2 epics: 1 on track, 0 watch, 0 at risk, 1 not set/);
+  assert.match(t,/ADM_Epic__c\/a3Q1\/view/);assert.match(t,/Ask: More heads — Leads/);
+});
+test('sendDeckSlack: needs an explicit channel, never defaults, and posts the escaped text',async()=>{
+  const post=require('../backend/post'),sent=[],slack={postMessage:async m=>{sent.push(m);return {ok:true};}};
+  const store={get:async()=>({channels:{T1:{id:'C0AAAAAAA1',name:'#team'}}})},sf={};
+  await assert.rejects(()=>post.sendDeckSlack(sf,slack,store,{text:'hi'}),/channel/i);
+  await assert.rejects(()=>post.sendDeckSlack(sf,slack,store,{channel:'nope',text:'hi'}),/channel/i);
+  assert.equal(sent.length,0);
+  const r=await post.sendDeckSlack(sf,slack,store,{channel:'https://x/archives/C0BBBBBBB2',text:'a <b> [Epic](https://g/e)'});
+  assert.equal(sent[0].channel,'C0BBBBBBB2');assert.match(sent[0].text,/a &lt;b&gt; <https:\/\/g\/e\|Epic>/);assert.equal(r.ok,true);
+});
