@@ -311,3 +311,8 @@ test('Epic action items are sanitised and kept with the epic', () => {
   assert.deepEqual([p.epics[0].actions[0].text, p.epics[0].actions[0].eta, p.epics[0].actions[0].done], ['Fix it', '2026-12-01', true]);
   assert.equal(p.epics[0].actions[1].eta, '');
 });
+
+test('cleanPlan keeps presenter notes and asks, bounded and typed',()=>{
+  const p=plan.cleanPlan({window:{},people:[],projects:[],epics:[],deck:{notes:{e1:'hello','bad key':'x',e2:'  '},asks:[{type:'Decision',q:'Q',d:'D',who:'W'},{type:'zzz',q:'Two'},{q:''}]}});
+  assert.deepEqual(p.deck.notes,{e1:'hello'});assert.equal(p.deck.asks.length,2);assert.equal(p.deck.asks[1].type,'Ask');
+});

@@ -453,7 +453,8 @@ $('full-updates').onclick=()=>{state.fullUpdates=!state.fullUpdates;renderTable(
 /** Monthly review deck: the shared template (deck.js) filled with the epics currently shown in the table. */
 function reviewDeckData(){
   const rows=visibleRows(),num=v=>Number(v)||0,r=release()||{};
-  return {team:(window.Hub&&Hub.team&&Hub.team.Name)||'Team',release:r.name||'Release review',mode:'review',gusUrl:'https://gus.lightning.force.com/lightning/r/',epics:rows.map(e=>{
+  const key='cfsDeck:'+((window.Hub&&Hub.team&&Hub.team.Id)||'')+':'+(r.id||''),saved=(()=>{try{return JSON.parse(localStorage.getItem(key)||'{}');}catch(_){return {};}})();
+  return {team:(window.Hub&&Hub.team&&Hub.team.Name)||'Team',release:r.name||'Release review',mode:'review',notes:saved.notes||{},asks:saved.asks||[],onChange:d=>{try{localStorage.setItem(key,JSON.stringify(d));}catch(_){}},gusUrl:'https://gus.lightning.force.com/lightning/r/',epics:rows.map(e=>{
     const done=num(e.closed),wip=num(e.inProgress),tot=num(e.planned)||done+wip+num(e.newPoints)+num(e.waiting);
     return {id:e.id,gusId:e.id,name:e.name,health:e.health||'',owner:leadName(e),points:num(e.planned),project:e.project||'',theme:'',comments:e.comments||'',pathToGreen:e.pathToGreen||'',
       progress:{pct:e.completion==null?(tot?done/tot*100:0):num(e.completion),done,wip,total:tot,unit:'points'},workItems:[]};})};

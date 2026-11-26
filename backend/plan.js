@@ -134,7 +134,13 @@ function cleanPlan(input) {
   // Which fields Pull from GUS syncs, per entity (project / epic / workstream); absent = the critical defaults chosen in the dashboard.
   const sfIn = p.syncFields && typeof p.syncFields === 'object' ? p.syncFields : null;
   const syncFields = sfIn ? Object.fromEntries(['p', 'e', 'w'].map(k => [k, (Array.isArray(sfIn[k]) ? sfIn[k] : []).filter(v => /^[a-z]{2,8}$/.test(String(v))).slice(0, 16).map(String)])) : undefined;
-  return { window: { start: ISO.test(w.start) ? w.start : '', end: ISO.test(w.end) ? w.end : '', releaseId: gid(w.releaseId) }, people, projects, epics, hiddenProjects, hiddenEng, extraEng, lastCommit: last, ...(syncFields ? { syncFields } : {}) };
+  // Presenter notes per epic and the asks/decisions slide of the epic review deck.
+  const dk = p.deck && typeof p.deck === 'object' ? p.deck : null;
+  const deck = dk ? {
+    notes: Object.fromEntries(Object.entries(dk.notes && typeof dk.notes === 'object' ? dk.notes : {}).filter(([k, v]) => /^[A-Za-z0-9_-]{1,40}$/.test(k) && String(v || '').trim()).slice(0, 300).map(([k, v]) => [k, String(v).slice(0, 1200)])),
+    asks: (Array.isArray(dk.asks) ? dk.asks : []).slice(0, 12).map(x => ({ type: x && x.type === 'Decision' ? 'Decision' : 'Ask', q: String((x && x.q) || '').slice(0, 200), d: String((x && x.d) || '').slice(0, 600), who: String((x && x.who) || '').slice(0, 100) })).filter(x => x.q.trim()),
+  } : undefined;
+  return { window: { start: ISO.test(w.start) ? w.start : '', end: ISO.test(w.end) ? w.end : '', releaseId: gid(w.releaseId) }, people, projects, epics, hiddenProjects, hiddenEng, extraEng, lastCommit: last, ...(syncFields ? { syncFields } : {}), ...(deck ? { deck } : {}) };
 }
 
 // Programs are per team and release, named "<Team> - <release>" in GUS

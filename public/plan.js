@@ -1060,9 +1060,9 @@ function presentPlan(act,scope,mode,btn){
       workItems:(e.workstreams||[]).map(w=>({id:w.storyNo||'WS',url:w.storyId?H.GUS+'ADM_Work__c/'+w.storyId+'/view':'',name:w.name,subject:w.name,status:w.status||'Planned',assignee:wsNames(w).join(', '),days:w.days||0}))};});
   if(!epics.length){window.toast?.('There are no epics to present.',true);return;}
   const rel=[...pl.epics.reduce((m,e)=>e.releaseName?m.set(e.releaseName,(m.get(e.releaseName)||0)+1):m,new Map())].sort((a,b)=>b[1]-a[1])[0];
-  const data={team:H.team.Name,release:rel?rel[0]:'Release plan',start:(pl.window||{}).start,end:(pl.window||{}).end,gusUrl:H.GUS,epics,mode:mode==='review'?'review':'planning'};
+  const data={team:H.team.Name,release:rel?rel[0]:'Release plan',start:(pl.window||{}).start,end:(pl.window||{}).end,gusUrl:H.GUS,epics,mode:mode==='review'?'review':'planning',notes:{...((pl.deck||{}).notes||{})},asks:((pl.deck||{}).asks||[]).map(x=>({...x}))};
   if(act==='download'){if(btn)btn.disabled=true;window.EpicDeck.download(data).then(n=>window.toast?.('Saved '+n,false)).catch(err=>window.toast?.(err.message,true)).finally(()=>{if(btn)btn.disabled=false;});}
-  else window.EpicDeck.open(data);
+  else window.EpicDeck.open(data,{onChange:d=>{pl.deck={notes:{...(pl.deck||{}).notes,...d.notes},asks:d.asks};queueSave();}});
 }
 async function refreshFromGus(btn,auto){setGs('run');try{await refreshFromGusRun(btn,auto);setGs('ok');}catch(e){setGs('err');throw e;}}
 /** What Pull from GUS can sync, per entity. `on` marks the critical fields proposed by default; the rest are offered but unticked. */

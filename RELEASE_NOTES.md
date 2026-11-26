@@ -4,6 +4,10 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r55 (folded)
+
+- Epic review deck: **Edit notes** adds a presenter note to each epic and an Asks & Decisions slide. In the planner they are saved with the plan; on the Release review page they are kept in this browser. Downloaded decks include them.
+
 ### 8.0.0-GA r54 (folded)
 
 - New epic review deck: a slide template written once (`deck.js`) and filled from data. It has a title, an at-a-glance slide, an epic agenda, one slide per epic (workstreams, owners, effort, progress, checks) and a wrap-up of gaps or risks. A Planning view and a Monthly review view (progress, status update, path to green, risks) share the same template.

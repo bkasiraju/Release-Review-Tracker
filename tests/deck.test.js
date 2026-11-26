@@ -15,3 +15,8 @@ test('deck: monthly view flags an overdue epic and an epic with no workstreams',
   assert.ok(late.some(f=>f.crit&&/has passed/.test(f.text)));
   assert.ok(flagsFor(e[0],'review','2026-11-25').every(f=>f.ok||/estimate|owner/.test(f.text)===false));
 });
+test('deck: presenter notes and asks render, escaped, and the asks slide only appears when used',()=>{
+  const d=D();assert.ok(!build(d).html.includes('Asks &amp; Decisions'));
+  d.notes={'1':'Ship <it>'};d.asks=[{type:'Decision',q:'Freeze?',d:'A or B',who:'Leads'}];
+  const h=build(d).html;assert.match(h,/Ship &lt;it&gt;/);assert.match(h,/Asks &amp; Decisions Needed/);assert.match(h,/ask decision/);
+});
