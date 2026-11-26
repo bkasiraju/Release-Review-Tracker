@@ -4,6 +4,12 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r64 (folded)
+
+- **Audit log** (hidden page, open it at `#audit-log`; it has no tab, tile or menu entry). Per team: who changed what and when. A dashboard shows Changes, People, Areas touched and Latest change, plus By area, By person, Activity by day (weekly for 90/180 days), By team (All teams only) and the latest changes. Double-click (or Enter on) any tile, bar, day or row for the full list with search and area/person filters; Esc closes it.
+- Recorded: release plan edits and saves to GUS, epic/workstream/project changes, GUS record updates, Release Review changes (status, path to green, drafts, publish, releases, settings), sprint actions, team settings, and Slack/Chatter/comment posts (the fact that they were sent, never the message text). Autosaves by the same person within 10 minutes are merged (×count).
+- Kept 180 days (latest 1,500 events per team). Events are recorded from this deployment onward; earlier changes are not backfilled. Release Review changes are not tied to one team and appear under "Release reviews (shared)". Recording is best effort and never blocks or fails the change itself.
+
 ### 8.0.0-GA r63 (folded)
 
 - Review deck: the Home / Epics / Filter controls moved from the dark top-right corner (where they were invisible) into the bottom action bar, with the filter panel opening above it.

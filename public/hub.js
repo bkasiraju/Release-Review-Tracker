@@ -35,7 +35,7 @@ H.onTeam=fn=>{listeners.add(fn);return()=>listeners.delete(fn);};
 /** The team in the URL (`#/plan?full&team=<Id>`, or `team=all`), so every page link is team-specific and shareable. */
 H.hashTeam=()=>(location.hash.match(/[?&]team=([A-Za-z0-9]+)/)||[])[1]||null;
 H.syncUrl=()=>{
-  if(!H.teams||!H.teams.length)return;
+  if(!H.teams||!H.teams.length||H.current==='audit')return; // the hidden audit page keeps its own #audit-log address
   const m=location.hash.match(/^#\/([a-z]+)(?:\/[^?]*)?(?:\?(.*))?$/),id=m?m[1]:(H.current||'home');
   const path=m?location.hash.split('?')[0]:'#/'+id,q=((m&&m[2])||'').split('&').filter(x=>x&&!/^team=/.test(x));
   q.push('team='+encodeURIComponent(H.team.Id));
@@ -128,7 +128,7 @@ let gusObs;function watchGus(){if(gusObs)return;const m=document.querySelector('
 function renderGusLinks(id){
   let el=gusEl||$('gus-links');
   if(!el){el=document.createElement('nav');el.id='gus-links';el.className='gus-links';el.setAttribute('aria-label','Open in GUS');$('hub-panel').before(el);watchGus();}gusEl=el;
-  el.hidden=id==='home';
+  el.hidden=id==='home'||id==='audit';
   const l=GUS_LINKS[id]||GUS_LINKS.home;
   const ext='<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M8 4H4v12h12v-4M11 4h5v5M16 4l-7 7"/></svg>',item=([t,u])=>`<a class="gus-mi" role="menuitem" tabindex="-1" href="${u}" target="_blank" rel="noopener noreferrer">${t}${ext}</a>`;
   const mk=l.filter(x=>/^New /.test(x[0])),go=l.filter(x=>!/^New /.test(x[0]));
@@ -142,7 +142,7 @@ H.go=(id,opts={})=>{
   if(p.legacy)legacy(p.legacy);
   if(id!=='plan')document.querySelectorAll('#pl-back').forEach(x=>x.remove());
   renderNav();renderCurrent();renderGusLinks(id);placeGus();
-  if(!opts.silent&&!new RegExp('^#/'+id+'(/|\\?|$)').test(location.hash))history.pushState(null,'','#/'+id);
+  if(!opts.silent&&id!=='audit'&&!new RegExp('^#/'+id+'(/|\\?|$)').test(location.hash))history.pushState(null,'','#/'+id);
   if(H.team)H.syncUrl();
   window.scrollTo(0,0);
 };
@@ -175,7 +175,7 @@ function chip(){
   el.textContent=n?`Saving ${n} change${n>1?'s':''} to GUS…`:failed?`${failed} change${failed>1?'s':''} not saved — see message`:lastOk?`Saved to GUS · ${lastOk}`:'';
 }
 async function send(e){
-  const run=()=>call('gus-update',{updates:[{object:e.object,id:e.id,fields:e.fields}]});
+  const run=()=>call('gus-update',{teamId:H.team&&H.team.Id,updates:[{object:e.object,id:e.id,fields:e.fields}]});
   let r;
   try{r=await run();}catch(err){await new Promise(ok=>setTimeout(ok,600));r=await run();}
   return r.results[0];
@@ -425,7 +425,7 @@ const escHandlers=new Map();
 H.onEsc=(id,fn)=>escHandlers.set(id,fn);
 document.addEventListener('keydown',e=>{
   if(e.key!=='Escape'||e.repeat||e.defaultPrevented)return;
-  if(document.querySelector('.hub-confirm-ov')||(e.target.closest&&e.target.closest('.gus-menu')))return; // the confirm dialog / GUS menu handle their own Escape
+  if(document.querySelector('.hub-confirm-ov,.au-ov')||(e.target.closest&&e.target.closest('.gus-menu')))return; // the confirm dialog / GUS menu handle their own Escape
   const om=document.querySelector('.cs.open');if(om){om.classList.remove('open');om.querySelector('.cs-btn').setAttribute('aria-expanded','false');e.preventDefault();e.stopImmediatePropagation();return;}
   const id=document.body.dataset.hub;if(!id||id==='epics'||document.querySelector('.nd-overlay'))return;
   if(!(escHandlers.get(id)&&escHandlers.get(id)())){
@@ -467,7 +467,7 @@ function soon(id,label,ic,tone,desc){
 }
 
 // ── Boot ────────────────────────────────────────────────────────────────────
-function route(){const id=(location.hash.match(/^#\/([a-z]+)/)||[])[1],t=H.hashTeam();let sw=false;if(t&&H.team&&t!==H.team.Id&&(t==='all'||H.teams.some(x=>x.Id===t))){H.team=H.teams.find(x=>x.Id===t)||ALL;$('hub-team').value=H.team.Id;H.syncSelects();sw=true;}H.go(id||'home',{silent:true});if(sw){window.dispatchEvent(new Event('hub:team'));for(const fn of listeners)fn(H.team);}}
+function route(){const id=/^#\/?audit-log(\?|$)/.test(location.hash)?'audit':((location.hash.match(/^#\/([a-z]+)/)||[])[1]==='audit'?'home':(location.hash.match(/^#\/([a-z]+)/)||[])[1]),t=H.hashTeam();let sw=false;if(t&&H.team&&t!==H.team.Id&&(t==='all'||H.teams.some(x=>x.Id===t))){H.team=H.teams.find(x=>x.Id===t)||ALL;$('hub-team').value=H.team.Id;H.syncSelects();sw=true;}H.go(id||'home',{silent:true});if(sw){window.dispatchEvent(new Event('hub:team'));for(const fn of listeners)fn(H.team);}}
 /** Keep the loading screen up until the first page has stopped changing, so sections do not appear and then jump. */
 const LOAD_T0=performance.now(),MIN_LOAD_MS=0;
 function settle(){

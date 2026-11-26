@@ -20,15 +20,16 @@
   <script src="./hub-post.js?v=8.0.0-GA" defer></script>
   <script src="./hub-teams.js?v=8.0.0-GA" defer></script>
   <script src="./hub-pages.js?v=8.0.0-GA" defer></script>
+  <script src="./audit.js?v=8.0.0-GA-r64" defer></script>
   <script src="./hourglass.js?v=8.0.0-GA" defer></script>
   <script src="./hrp-measures.js?v=8.0.0-GA" defer></script>
   <script src="./plan-io.js?v=8.0.0-GA" defer></script>
   <script src="./plan-merge.js?v=8.0.0-GA" defer></script>
-  <script src="./deck.js?v=8.0.0-GA-r63" defer></script>
+  <script src="./deck.js?v=8.0.0-GA-r64" defer></script>
   <script src="./plan.js?v=8.0.0-GA" defer></script>
 </head>
 <body class="loading-dashboard">
-<script>document.body.dataset.hub=(location.hash.match(/^#\/([a-z]+)/)||[])[1]||"home";setTimeout(function(){document.body.dataset.ready=document.body.dataset.ready||"1";},10000);</script>
+<script>document.body.dataset.hub=/^#\/?audit-log(\?|$)/.test(location.hash)?"audit":(location.hash.match(/^#\/([a-z]+)/)||[])[1]||"home";setTimeout(function(){document.body.dataset.ready=document.body.dataset.ready||"1";},10000);</script>
   <aside class="rail" aria-label="Application navigation">
     <a class="brand" href="#/home" data-go="home" aria-label="ReleaseIQ" title="ReleaseIQ"><img src="./logo.svg?v=5.0.0-GA-3" alt="" width="40" height="40"></a>
     <div class="rail-line"></div>

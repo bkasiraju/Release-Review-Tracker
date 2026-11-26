@@ -917,7 +917,7 @@ function commentsPop(epicId,opener){
     if(i<text.length)out.push({t:'text',v:text.slice(i)});return out;};
   const send=async()=>{const t=pop.querySelector('[data-cm-t]'),v=t.value.replace(/\s+$/,'');if(!v.trim()||busy){t.focus();return;}
     busy=true;paint();
-    try{const r=await call('epic-chat-post',{epicId:e.gusId,segments:segments(v),replyTo:replyTo?replyTo.id:''});
+    try{const r=await call('epic-chat-post',{teamId:H.team&&H.team.Id,epicId:e.gusId,segments:segments(v),replyTo:replyTo?replyTo.id:''});
       const had=mentions.size;pop.querySelector('[data-cm-t]').value='';mentions.clear();replyTo=null;busy=false;window.toast?.(r&&r.plain&&had?'Posted to GUS. In this session @mentions show as text and do not notify.':'Posted to the GUS Chatter feed of this epic.',false);await load();}
     catch(x){busy=false;paint();const t2=pop.querySelector('[data-cm-t]');t2.value=v;window.toast?.('GUS did not take the comment: '+x.message,true);}};
   let tm;const suggest=()=>{const t=pop.querySelector('[data-cm-t]'),box=pop.querySelector('[data-cm-sug]'),pre=t.value.slice(0,t.selectionStart),m=/(?:^|\s)@([^\s@][^@\n]{0,40})$/.exec(pre);clearTimeout(tm);

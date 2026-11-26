@@ -34,7 +34,7 @@ function applyChanges(doc,event){
 }
 class ContentStore{
   constructor(sf,options={}){this.sf=sf;this.shared=options.shared===true;}
-  title(type,id){if(!['release','epic','settings','actions'].includes(type)||!/^[a-zA-Z0-9-]{1,60}$/.test(id))throw Error('Invalid saved record key.');return PREFIX+type+'_'+id;}
+  title(type,id){if(!['release','epic','settings','actions','audit'].includes(type)||!/^[a-zA-Z0-9-]{1,60}$/.test(id))throw Error('Invalid saved record key.');return PREFIX+type+'_'+id;}
   /** Read every row. Uses queryMore()/request() when GUS Apps provides them; otherwise pages by keyset (CreatedDate, Id) with the caller's `next(lastRow)` query builder. */
   async query(q,next){let page=await this.sf.query(q);const rows=[...(page.records||[])];let n=0;
     while(page.done===false){if(++n>100)throw Error('Saved dashboard history is too large to load.');

@@ -1,6 +1,6 @@
 'use strict';
 const {Gus,safeError,validId}=require('./gus');const {ContentStore}=require('./store');const {Service}=require('./service');const sprint=require('./sprint');const hub=require('./hub');const planner=require('./plan');
-const pref=require('./pref');const post=require('./post');
+const pref=require('./pref');const post=require('./post');const audit=require('./audit');
 // Anyone signed in to GUS may review and save plans and create records; GUS itself still enforces its own permissions.
 async function canCommit(){return true;}
 function connection(ctx){
@@ -103,6 +103,7 @@ async function handleRequest(ctx){
       case 'hub-pd-summary':payload=await require('./pagerduty').summarize(sf,ctx.slack,b.teamId,b.ts,b.fresh===true);break;
       case 'hub-champion':payload=await hub.getChampion(store,b.teamId);break;
       case 'hub-champion-save':payload=await hub.saveChampion(store,b.teamId,b.champion,b.revision);break;
+      case 'audit-log':payload=await audit.read(store,b);break;
       case 'pref-get':payload=await pref.getPref(sf,store);break;
       case 'pref-set':payload=await pref.setPref(sf,store,b.defaultTeam||null);break;
       case 'plan-get':payload=await planner.getPlan(store,b.teamId,async()=>{const e=require('./teams.config').entryFor(await planner.teamName(sf,b.teamId));return !!(e&&e.noSharedProjects);});break;
@@ -144,6 +145,8 @@ async function handleRequest(ctx){
       case 'sync':if(!Array.isArray(b.approved)||!b.approved.length||b.approved.length>1)throw Error('Review the preview before syncing.');payload=await service.sync(b.releaseId,b.approved);break;
       default:throw Error('Unknown dashboard action.');
     }
+    // Who changed what: one audit event per successful change, bounded so it can never hold up the response.
+    if(audit.audited(action))await Promise.race([audit.record(store,sf,ctx,action,b,payload,service),new Promise(r=>setTimeout(r,1500))]);
     return {ok:true,payload};
   }catch(e){return {ok:false,error:safeError(e)};}
 }

@@ -11,7 +11,7 @@
   "productionUrl": "https://gus-apps.internal.salesforce.com/applets/cfs-release-review-tracker/",
   "preferredRollbackTag": "GOLDEN-BUILD-8.0.0-GA",
   "previousBaselineTag": "GOLDEN-BUILD-7.0.0-GA",
-  "revision": "20261126-8.0.0-r63",
+  "revision": "20261126-8.0.0-r64",
   "sourceVersion": "7.0.121-GA + Development Lead in drawers + Review Status highlights",
   "foldPolicy": "Further changes are folded into 8.0.0-GA only; each fold bumps the revision and refreshes this folder. First snapshot: releases/8.0.0-GA-original.",
   "verification": {

@@ -85,7 +85,7 @@ function open(btn){
       try{const cc=(s.slack.channels||[]).find(c=>c.teamId===s.chanTeam);if(!cc||!await H.confirm({title:'Post to Slack?',message:`Post this message in ${cc.name} (${cc.team}) and @mention ${s.user.name}?`,ok:'Post'})){s.busy=false;draw();return;}const r=await call('post-slack-send',{userId:s.user.id,teamId:s.chanTeam,text});if(S===s){s.busy=false;s.edited=false;draw();msg('Posted in '+(r.channel||'the channel')+' and mentioned '+(r.to||'the recipient')+'.','ok');}}
       catch(err){if(S===s){s.busy=false;draw();msg('Not sent: '+err.message+' You can still copy the message.','err');}}}
     else if('send' in t.dataset){const text=el.querySelector('#nd-text').value,s=S;s.busy=true;msg('');draw();
-      try{const r=await call('post-chatter',{recordId:s.id,userId:s.user.id,text});if(S===s){s.busy=false;s.edited=false;draw();msg('Posted to GUS Chatter'+(r.id?' ('+r.id+')':'')+'.','ok');}}
+      try{const r=await call('post-chatter',{teamId:H.team&&H.team.Id,recordId:s.id,userId:s.user.id,text});if(S===s){s.busy=false;s.edited=false;draw();msg('Posted to GUS Chatter'+(r.id?' ('+r.id+')':'')+'.','ok');}}
       catch(err){if(S===s){s.busy=false;draw();msg('Not posted: '+err.message,'err');}}}
   });
   draw();el.querySelector('#nd-q').focus();
