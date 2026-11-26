@@ -1919,13 +1919,14 @@ async function openBacklog(opener){
     closeModal();window.toast?.(`${okN} item${okN===1?'':'s'} pulled in as workstreams.${(epics.find(x=>x.gusId===epicGusId)||{}).imported?' Refresh the epic to see them in the plan.':''}${bad.length?' '+bad.length+' failed: '+bad[0].error:''}`,bad.length>0);
     fetchWs(false);
   });
+  el.querySelector('.nd-modal').classList.add('pl-cr-bl');
   const $=s=>el.querySelector(s),msg=t=>{$('[data-bmsg]').textContent=t||'';};
   const shown=()=>{const q=S.q.toLowerCase();return cur().filter(x=>!q||(x.key+' '+x.title+' '+x.owner+' '+x.status+' '+x.tag).toLowerCase().includes(q));};
   const drawList=()=>{
     const all=cur(),list=shown(),box=$('[data-blist]');
     $('[data-lcnt]').textContent=all.length?`${list.length} of ${all.length}`:'';
     if(!all.length){box.innerHTML=S.lists[S.md]?'<p class="note">No items.</p>':'';}
-    else box.innerHTML=`<table class="nofit nosort nopage"><thead><tr><th><input type="checkbox" data-noenter data-ball aria-label="Select all shown" ${list.some(x=>!x.workstream)&&list.filter(x=>!x.workstream).every(x=>S.sel.has(x.id))?'checked':''}></th><th>Item</th><th>Subject / deliverable</th><th>Status</th><th>Owner / team</th><th>Sprint / build</th><th>Already</th></tr></thead><tbody>${list.map(x=>`<tr><td><input type="checkbox" data-noenter data-bi="${esc(x.id)}" ${S.sel.has(x.id)?'checked':''} ${x.workstream?'disabled':''} aria-label="Select ${esc(x.key)}"></td><td><b>${esc(x.key)}</b><small>${x.kind==='td'?'TD':'Work'}</small></td><td>${esc(x.title)}</td><td>${esc(x.status)}</td><td>${esc(x.owner)}</td><td>${esc(x.sprint)}</td><td>${x.workstream?'Workstream in '+esc(x.workstream):x.epic?'In epic '+esc(x.epic):''}</td></tr>`).join('')}</tbody></table>`;
+    else box.innerHTML=`<table class="nofit nosort nopage" data-nocf><thead><tr><th class="pl-bl-ck"><input type="checkbox" data-noenter data-ball aria-label="Select all shown" ${list.some(x=>!x.workstream)&&list.filter(x=>!x.workstream).every(x=>S.sel.has(x.id))?'checked':''}></th><th>Item</th><th>Subject / deliverable</th><th>Status</th><th>Owner / team</th><th>Sprint / build</th><th>Already</th></tr></thead><tbody>${list.map(x=>`<tr><td class="pl-bl-ck"><input type="checkbox" data-noenter data-bi="${esc(x.id)}" ${S.sel.has(x.id)?'checked':''} ${x.workstream?'disabled':''} aria-label="Select ${esc(x.key)}"></td><td><b>${esc(x.key)}</b><small>${x.kind==='td'?'TD':'Work'}</small></td><td>${esc(x.title)}</td><td>${esc(x.status)}</td><td>${esc(x.owner)}</td><td>${esc(x.sprint)}</td><td>${x.workstream?'Workstream in '+esc(x.workstream):x.epic?'In epic '+esc(x.epic):''}</td></tr>`).join('')}</tbody></table>`;
     const n=S.sel.size,ok=$('[data-ok]');const here=cur().filter(x=>S.sel.has(x.id)).length;ok.dataset.label=n?`Pull ${n} item${n===1?'':'s'} into epic`:'Pull into epic';if(n>here)$('[data-bmsg]').textContent=`${S.note[S.md]||''}${S.note[S.md]?' · ':''}${n-here} selected in other sources`;if(!ok.disabled)ok.textContent=ok.dataset.label;
     el._sync();
   };

@@ -4,6 +4,10 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r68 (folded)
+
+- TD & CARR import dialog layout: the item list, search and messages now span the full dialog width (they were squeezed into a narrow column), the per-column filter row is not added to the list, and long titles wrap.
+
 ### 8.0.0-GA r67 (folded)
 
 - **Import TD & CARR items** (Release Planning, Import / Export menu, "TD & CARR backlog"). Same dialog pattern as Add epic. Pick items from the team's open CARR and TDs, paste W-IDs / TD numbers, or load a GUS report (tabular, Work ID or TD column, up to 500 rows); select items, choose the target epic and product tag, and each becomes a "WS: <id> <title>" workstream story under that epic, so it is planned in the epic's release. Items already carried by a workstream are shown and cannot be picked twice. Nothing is written to GUS until you confirm; failures are reported per item. Report import needs a signed-in session that can run GUS reports.
