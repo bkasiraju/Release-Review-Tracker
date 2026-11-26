@@ -158,8 +158,7 @@
     <div class="kpi a"><div class="v">${c('a')}</div><div class="l">Watch / at risk</div></div>
     <div class="kpi r"><div class="v">${c('r')}</div><div class="l">Blocked</div></div>
     <div class="kpi n"><div class="v">${mode==='review'?`${dn}<small> / ${all.length}</small>`:started+'<small> / '+E.length+'</small>'}</div><div class="l">${mode==='review'?'Workstreams done':'Epics started'}</div></div></div>
-    <div class="panels"><div class="panel"><h3>Planned effort by theme · # epics</h3>${hbars(group(e=>e.theme||'No theme',7).map(r=>[...r,tcol(r[0])]))}</div>
-    <div class="panel"><h3>Planned effort by epic owner · # epics</h3>${hbars(group(e=>e.owner||'Unassigned',7))}</div></div></div>${footer()}</section>`;};
+    <div class="panels"><div class="panel"><h3>Epics by owner</h3>${(()=>{const m={};E.forEach(e=>{const k=e.owner||'Unassigned';m[k]=(m[k]||0)+1;});const rows=Object.entries(m).sort((x,y)=>y[1]-x[1]).slice(0,7),max=Math.max(1,...rows.map(r=>r[1]));return rows.map(([n,v])=>`<div class="hbar"><div class="nm" title="${esc(n)}">${esc(n)}</div><div class="track"><div class="fill" style="width:${(v/max*100).toFixed(1)}%"></div></div><div class="val"><b>${v}</b> epic${v===1?'':'s'}</div></div>`).join('');})()}</div></div></div>${footer()}</section>`;};
   const PER=15,PAGES=Math.max(1,Math.ceil(E.length/PER)),index=pg=>`<section class="slide"><div class="accent-bar"></div>${header(PAGES>1?`Epics (${pg+1} of ${PAGES})`:'Epics',(mode==='review'?'Status · ':'Agenda · ')+'click to jump')}<div class="slide-body" style="padding-top:16px;overflow:hidden"><table class="idx nofit nosort nopage"><colgroup><col style="width:36px"><col><col style="width:170px"><col style="width:170px"><col style="width:56px"><col style="width:56px"><col style="width:130px"></colgroup><thead><tr><th class="num">#</th><th>Epic</th><th>Theme</th><th>Owner</th><th class="num">Days</th><th class="num">Done</th><th>Health</th></tr></thead><tbody>${E.slice(pg*PER,pg*PER+PER).map((e0,i0)=>{const e=e0,i=pg*PER+i0;const live=e.workItems.filter(w=>!isNever(w.status));return `<tr class="click" data-goto="${2+PAGES+i}"><td class="num">${i+1}</td><td><span class="dot" style="background:${tcol(e.theme)}"></span>${esc(e.name)}</td><td>${esc(e.theme||'—')}</td><td>${esc(e.owner||'—')}</td><td class="num">${Math.round(e.points*10)/10}</td><td class="num">${live.filter(w=>isDone(w.status)).length}/${live.length}</td><td>${badge(e.health)}</td></tr>`;}).join('')}</tbody></table></div>${footer()}</section>`;
   const notes=D.notes||(D.notes={}),asks=D.asks||(D.asks=[]);
   const noteCard=e=>D.edit?`<div class="card"><div class="section-label" style="margin-top:0">Presenter note</div><textarea class="note-e" data-note="${esc(e.id)}" maxlength="1200" placeholder="Update, decision or context to share on this epic">${esc(notes[e.id]||'')}</textarea></div>`:notes[e.id]?`<div class="card"><div class="section-label" style="margin-top:0">Note</div><div class="note-t">${esc(notes[e.id])}</div></div>`:'';
@@ -225,7 +224,7 @@
 
  /** AI Summarised Updates: executive bullets built from the engineer updates and the epic's work items. Generated once, saved
   *  to the shared cache under a fingerprint of that evidence, and regenerated only when the evidence changes. */
- const AI_VERSION='aiu3',AI_REL='268';
+ const AI_VERSION='aiu4',AI_REL='268';
  const fpOf=e=>{const t=JSON.stringify([AI_VERSION,AI_REL,e.name,e.health,e.goal,e.comments,e.pathToGreen,(e.workItems||[]).map(w=>[w.id,w.subject,w.status,w.days,w.assignee])]);let a=0x811c9dc5,b=5381;for(let i=0;i<t.length;i++){const c=t.charCodeAt(i);a=Math.imul(a^c,16777619)>>>0;b=(Math.imul(b,33)+c)>>>0;}return a.toString(36).padStart(7,'0')+b.toString(36).padStart(7,'0');};
  const aiAvailable=()=>{try{return typeof window.AppletAI?.complete==='function'&&window.AppletAI.isAvailable()===true;}catch(_){return false;}};
  const doneWi=w=>isDone(w.status)&&!isNever(w.status);
@@ -248,19 +247,26 @@
  function supported(text,support){
   const have=new Set(toks(support)),t=toks(text),miss=t.filter(w=>!have.has(w));
   if(miss.some(w=>CLAIMSTEM.test(w)))return false;
-  return t.length>0&&miss.length/t.length<=0.2;
+  return t.length>0&&miss.length/t.length<=0.35;
+ }
+ /** Used when nothing the AI wrote can be confirmed: only what GUS itself records (done and active work items), worded as the subject says. */
+ function aiFallback(e){
+  const subj=w=>String(w.subject||'').replace(/^WS:\s*/i,'').replace(/\s+/g,' ').trim().slice(0,150),wi=(e.workItems||[]).filter(w=>!isNever(w.status));
+  const ok=wi.filter(doneWi).slice(0,4).map(w=>({text:subj(w),quote:'',refs:[String(w.id)]})),wip=wi.filter(w=>!doneWi(w)&&isWip(w.status)).slice(0,3).map(w=>({text:subj(w),quote:'',refs:[String(w.id)]}));
+  if(!ok.length&&!wip.length)throw Error('No engineer update or work item status gives enough to summarise yet.');
+  return {accomplishments:ok,inProgress:wip,learnings:[],planForward:[],note:'Built from GUS work item status only: no engineer-stated outcome could be confirmed.'};
  }
  /** Keeps only lines the data backs up; every kept line carries its references (work items and/or an engineer-update quote). */
  function aiParse(out,e,evidence){
   const raw=String(out&&(out.text||out.answer||out.message)||out||'').trim().replace(/^```(?:json)?\s*/i,'').replace(/\s*```$/,'');
   let v;try{v=JSON.parse(raw);}catch(_){const m=/\{[\s\S]*\}/.exec(raw);try{v=m&&JSON.parse(m[0]);}catch(__){}}
   if(!v||typeof v!=='object')throw Error('The AI response could not be read.');
-  const wis=new Map((e.workItems||[]).map(w=>[String(w.id),w])),comments=norm(plainTxt(e.comments||'')+' '+plainTxt(e.pathToGreen||'')),known=new Set(evidence.match(/\d+(?:[.,]\d+)*/g)||[]);
+  const wis=new Map((e.workItems||[]).map(w=>[String(w.id),w])),comments=norm(plainTxt(e.comments||'')+' '+plainTxt(e.pathToGreen||'')),known=new Set(evidence.match(/\d+(?:[.,]\d+)*/g)||[]),ctoks=new Set(toks(comments));
   const cap={accomplishments:4,inProgress:3,learnings:3,planForward:3},o={};let n=0;
   const item=x=>typeof x==='string'?{text:x}:x&&typeof x==='object'?x:{};
   for(const k of Object.keys(cap)){
    o[k]=(Array.isArray(v[k])?v[k]:[]).map(item).map(x=>{
-    const text=String(x.text||'').replace(/^[\s\-*•]+/,'').replace(/\s+/g,' ').trim(),ids=[...new Set((Array.isArray(x.workItems)?x.workItems:[]).map(String).filter(i=>wis.has(i)))],quote=String(x.quote||'').trim(),qn=norm(quote),quoted=qn.length>=12&&comments.includes(qn);
+    const text=String(x.text||'').replace(/^[\s\-*•]+/,'').replace(/\s+/g,' ').trim(),ids=[...new Set((Array.isArray(x.workItems)?x.workItems:[]).map(String).filter(i=>wis.has(i)))],quote=String(x.quote||'').trim(),qn=norm(quote),quoted=qn.length>=12&&(comments.includes(qn)||(qt=>qt.length>=3&&qt.every(w=>ctoks.has(w)))(toks(quote)));
     if(!text||text.split(/\s+/).length>30)return null;
     if((text.match(/\d+(?:[.,]\d+)*/g)||[]).some(t=>!known.has(t)&&t!==AI_REL))return null;
     const doneIds=ids.filter(i=>doneWi(wis.get(i)));
@@ -285,7 +291,16 @@
   const ref=x=>{const w=wis.get(String(x));return w&&w.url?`<a href="${esc(w.url)}" target="_blank" rel="noopener">${esc(x)}</a>`:esc(x);};
   const li=x=>{const it=typeof x==='string'?{text:x,refs:[]}:x;return `<li${it.quote?` title="${esc('Engineer update: “'+it.quote+'”')}"`:''}>${esc(it.text)}${(it.refs||[]).length?` <span class="aiu-ref">${it.refs.map(ref).join(', ')}</span>`:''}</li>`;};
   const cols=[['Accomplishments',sm.accomplishments],['In progress',sm.inProgress],['Learnings',sm.learnings],['Plan forward · '+AI_REL,sm.planForward]].filter(c=>c[1]&&c[1].length);
-  el.innerHTML=`<div class="aiu-grid" style="grid-template-columns:repeat(${Math.min(2,cols.length)},minmax(0,1fr))">${cols.map(([h,l])=>`<div class="aiu-c"><h4>${esc(h)}</h4><ul>${l.map(li).join('')}</ul></div>`).join('')}</div><div class="aiu-meta"><span>AI summary${r.at?' · '+esc(fmt(r.at)):''}. Accomplishments need a done work item or an engineer statement; no PR or deployment data is used.</span>${state.api&&aiAvailable()?'<button type="button" data-aiu-re>Refresh</button>':''}</div>`;
+  el.innerHTML=`<div class="aiu-grid" style="grid-template-columns:repeat(${Math.min(2,cols.length)},minmax(0,1fr))">${cols.map(([h,l])=>`<div class="aiu-c"><h4>${esc(h)}</h4><ul>${l.map(li).join('')}</ul></div>`).join('')}</div><div class="aiu-meta"><span>${sm.note?esc(sm.note):'AI summary'+(r.at?' · '+esc(fmt(r.at)):'')+'. Accomplishments need a done work item or an engineer statement; no PR or deployment data is used.'}</span>${state.api&&aiAvailable()?'<button type="button" data-aiu-re>Refresh</button>':''}</div>`;
+ }
+ /** One quick request fetches every saved summary, so epics already in the shared cache show at once and nothing is regenerated. */
+ let aiPre=null;
+ function aiPrefetch(){
+  const cache=state.aiu||(state.aiu={});
+  const items=(state.epics||[]).filter(e=>e.gusId&&(e.comments||(e.workItems||[]).length)&&!(cache[e.id]&&cache[e.id].fp===fpOf(e))).map(e=>({epicId:e.gusId,fingerprint:fpOf(e),key:e.id}));
+  if(!state.api||!items.length)return aiPre=null;
+  return aiPre=(async()=>{for(let i=0;i<items.length;i+=100){const part=items.slice(i,i+100),r=await state.api('epic-summary-get-many',{items:part.map(x=>({epicId:x.epicId,fingerprint:x.fingerprint}))});
+   for(const x of part){const h=r&&r.found&&r.found[x.epicId];if(h&&h.summary)cache[x.key]={fp:x.fingerprint,summary:h.summary,at:h.generatedAt};}}})().catch(()=>{});
  }
  const aiBusy=new Map();
  /** The saved summary for an epic when its evidence is unchanged, else a new one (shared cache first). Returns null when nothing can be produced here. */
@@ -294,10 +309,11 @@
   if(!force&&cache[e.id]&&cache[e.id].fp===fp)return cache[e.id];
   if(aiBusy.has(e.id))return aiBusy.get(e.id);
   const run=(async()=>{
-   if(!force&&state.api&&id){say&&say('Checking for a saved summary…');try{const r=await state.api('epic-summary-get',{epicId:id,fingerprint:fp});if(r&&r.summary)return cache[e.id]={fp,summary:r.summary,at:r.generatedAt};}catch(_){/* generate instead */}}
+   if(!force&&aiPre){try{await aiPre;}catch(_){/* generate instead */}if(cache[e.id]&&cache[e.id].fp===fp)return cache[e.id];}
+   if(!force&&state.api&&id&&!aiPre){try{const r=await state.api('epic-summary-get',{epicId:id,fingerprint:fp});if(r&&r.summary)return cache[e.id]={fp,summary:r.summary,at:r.generatedAt};}catch(_){/* generate instead */}}
    if(!state.api||!aiAvailable())return null;
    say&&say('Summarising the updates and work items…');
-   const ev=aiEvidence(e),out=await window.AppletAI.complete('release-summary',{message:'Summarise this epic for the executive review.\n\n'+ev,systemPromptOverride:AI_SYSTEM}),summary=aiParse(out,e,ev);
+   const ev=aiEvidence(e),out=await window.AppletAI.complete('release-summary',{message:'Summarise this epic for the executive review.\n\n'+ev,systemPromptOverride:AI_SYSTEM}),summary=(()=>{try{return aiParse(out,e,ev);}catch(_){return aiFallback(e);}})();
    cache[e.id]={fp,summary,at:new Date().toISOString()};
    if(id){try{await state.api('epic-summary-save',{epicId:id,fingerprint:fp,summary});}catch(_){/* kept for this session */}}
    return cache[e.id];
@@ -307,6 +323,7 @@
  async function aiLoad(e,el,force){
   const msg=(t,retry)=>{el.innerHTML=`<div class="aiu-msg">${esc(t)}${retry?'<button type="button" data-aiu-re>Try again</button>':''}</div>`;};
   try{
+   const cached=state.aiu&&state.aiu[e.id];if(!force&&cached&&cached.fp===fpOf(e))return aiRender(el,cached,e);
    const r=await aiResolve(e,force,msg);
    if(r)return aiRender(el,r,e);
    msg(state.api?'AI is unavailable right now, so no summary could be generated.':'No AI summary was saved for this epic. Open this review in ReleaseIQ to generate one.',!!state.api);
@@ -315,7 +332,7 @@
  /** Opening the presentation prepares every epic's AI summary in the background, one after the other: saved ones load at once, only epics whose updates or work items changed are regenerated. */
  let aiRun=0;
  async function aiBackground(){
-  const my=++aiRun;if(!state||!state.api||!aiAvailable())return;
+  const my=++aiRun;if(!state||!state.api)return;aiPrefetch();if(aiPre)await aiPre;if(!aiAvailable())return;
   for(const e of state.epics.slice()){
    if(my!==aiRun||!document.getElementById('dk'))return;
    if(!(e.comments||(e.workItems||[]).length))continue;
@@ -441,5 +458,5 @@
   const name=(d.team+'-'+d.release+'-'+(d.mode==='review'?'monthly-review':'epic-review')).replace(/[^A-Za-z0-9]+/g,'-').replace(/^-|-$/g,'').toLowerCase()+'.html';
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([html],{type:'text/html'}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);return name;
  }
- root.EpicDeck={open,close,download,build,flagsFor,summaryText,parseUpdates,aiParse};
+ root.EpicDeck={open,close,download,build,flagsFor,summaryText,parseUpdates,aiParse,aiFallback};
 })(typeof window!=='undefined'?window:globalThis);

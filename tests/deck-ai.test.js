@@ -26,3 +26,12 @@ test('lines that add outcomes the engineer did not state are rejected (upgrade /
     {text:'Developed an automated mechanism to uplift the Qpid Broker version',workItems:[],quote:'Developed an automated mechanism to uplift the Qpid Broker version'}]}),e2,ev2);
   assert.equal(JSON.stringify(r.accomplishments.map(x=>x.text)),JSON.stringify(['Deployed it across the internal fleet']));
 });
+
+test('fallback lists only done and active work items as the work item subjects, and throws with nothing to say',()=>{
+  const {aiFallback}=ctx.EpicDeck||ctx.window.EpicDeck;
+  const r=aiFallback(e);
+  assert.equal(JSON.stringify(r.accomplishments.map(x=>[x.text,x.refs[0]])),JSON.stringify([['FIPS broker build','W-2']]));
+  assert.equal(JSON.stringify(r.inProgress.map(x=>x.text)),JSON.stringify(['Upgrade']));
+  assert.ok(r.note);
+  assert.throws(()=>aiFallback({workItems:[{id:'W-9',subject:'x',status:'New'}]}));
+});

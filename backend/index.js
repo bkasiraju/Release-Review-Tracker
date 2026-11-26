@@ -56,6 +56,7 @@ async function handleRequest(ctx){
       case 'set-year':payload=await service.setYear(b);break;
       case 'monthly-summary':payload=await service.monthlySummary(b);break;
       case 'epic-summary-get':payload=await require('./epic-summary').get(service,b);break;
+      case 'epic-summary-get-many':payload=await require('./epic-summary').getMany(service,b);break;
       case 'epic-summary-save':payload=await require('./epic-summary').save(service,b);break;
       case 'executive-cache-save':payload=await require('./summary-cache').save(service,b);break;
       case 'measure-summary-cache':payload=await require('./summary-cache').measure(service,b);break;

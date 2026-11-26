@@ -4,6 +4,12 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r85 (folded)
+
+- AI Summarised Updates no longer fail with "Nothing could be confirmed": the check accepts an engineer quote whose words all appear in the update, and when no AI line can be confirmed the tab shows only what GUS records (done work items under Accomplishments, active ones under In progress), labelled as built from work item status. Nothing is added beyond the work item subjects.
+- Saved summaries load at once: opening the presentation fetches every saved summary from the shared cache in one request (new `epic-summary-get-many` action), so epics already summarised show with no "Checking…" or "Summarising…" text. "Summarising…" appears only while a summary is actually being generated. Earlier results regenerate once (version aiu4).
+- Overview slide: removed the planned-effort-by-theme and by-owner panels, whose day totals were wrong; replaced by an "Epics by owner" panel showing epic counts only.
+
 ### 8.0.0-GA r84 (folded)
 
 - Opening the presentation now prepares every epic's AI Summarised Updates in the background, one epic after another: summaries already in the shared cache load at once, and only epics whose engineer updates or work items changed are regenerated (also after the in-deck Refresh). The tab shows the result instantly; if the epic is still being prepared it waits for that run instead of starting another.

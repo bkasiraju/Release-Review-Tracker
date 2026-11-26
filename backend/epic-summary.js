@@ -14,6 +14,7 @@ function clean(s){
   const out={};let n=0;
   for(const k of Object.keys(LIMITS)){out[k]=(Array.isArray(s[k])?s[k]:[]).map(item).filter(x=>x.text).slice(0,LIMITS[k]);n+=out[k].length;}
   if(!n)throw Error('Summary is empty.');
+  if(s.note)out.note=line(s.note);
   return out;
 }
 function ids(b){
@@ -26,6 +27,11 @@ async function get(service,b){
   const a=e&&e.epicSummary;
   return a&&a.fingerprint===fp&&a.summary?{summary:a.summary,generatedAt:a.generatedAt,cached:true}:{summary:null};
 }
+async function getMany(service,b){
+  const list=Array.isArray(b&&b.items)?b.items.slice(0,100):[],found={};
+  await Promise.all(list.map(async it=>{try{const r=await get(service,it);if(r.summary)found[String(it.epicId)]=r;}catch(_){/* skip bad ids */}}));
+  return {found};
+}
 async function save(service,b){
   const {id,fp}=ids(b),summary=clean(b.summary);
   if(service.readOnly)return {saved:false};
@@ -33,4 +39,4 @@ async function save(service,b){
   await service.store.put('settings',key(id),{id:key(id),epicSummary:{epicId:id,fingerprint:fp,summary,generatedAt}},old&&old.revision!==undefined?old.revision:null);
   return {saved:true,generatedAt};
 }
-module.exports={get,save,clean};
+module.exports={get,getMany,save,clean};
