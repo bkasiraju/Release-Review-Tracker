@@ -3821,5 +3821,5 @@ html body .topbar-right .pl-gs:empty{display:none}
 .pl-cr-bl .pl-bl-t .pl-bl-ti{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .pl-cr-bl .pl-bl-t td.pl-bl-ow,.pl-cr-bl .pl-bl-t td.pl-bl-al{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#4b647a}
 .pl-cr-bl .pl-bl-t tr:hover td{background:#f6f9fc}
-.pl-cr-bl .pl-bl-t col.c-al{width:200px}.pl-cr-bl .pl-bl-t td.pl-bl-al.on{color:#9a3412;font-weight:600}
+.pl-cr-bl .pl-bl-t col.c-al{width:260px}.pl-cr-bl .pl-bl-t td.pl-bl-al.on{color:#9a3412;font-weight:600}
 .pl-cr-bl .pl-bl-t tr.pl-bl-off td{opacity:.6}.pl-cr-bl .pl-bl-t tr.pl-bl-off td.pl-bl-al{opacity:1}
