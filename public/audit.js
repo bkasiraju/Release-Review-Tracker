@@ -38,7 +38,7 @@ const tile=(label,big,sub,kind,val)=>`<div class="au-tile" role="button" tabinde
 
 function dashboard(){
   const ev=S.events,sm=summarize(ev),max=a=>Math.max(1,...a.map(x=>x[1]));
-  if(!ev.length)return `<div class="empty-state hub-empty au-empty">${icon('notepad','violet')}<h3>No changes recorded</h3><p>Nothing was changed${H.team.Id==='all'?'':' for '+esc(teamName(H.team.Id))} in the last ${S.days} days. Changes are recorded from the moment auditing was switched on.</p></div>`;
+  if(!ev.length)return `<div class="au-tiles">${tile('Changes',0,'in the last '+S.days+' days','all')}${tile('People',0,'','people')}${tile('Areas touched','0 / 7','','areas')}${tile('Latest change','–','','latest')}</div>`;
   const ser=series(ev,S.days),smax=Math.max(1,...ser.map(x=>x.n));
   const tiles=`<div class="au-tiles">${tile('Changes',sm.n,'in the last '+S.days+' days','all')}${tile('People',sm.people.length,sm.people[0]?'most active: '+sm.people[0][0]:'','people')}${tile('Areas touched',sm.areas.length+' / 7',sm.areas[0]?'most: '+sm.areas[0][0]:'','areas')}${tile('Latest change',esc(ago(sm.last.ts)),who(sm.last)+' · '+sm.last.area,'latest')}</div>`;
   const areas=panel('By area','area',sm.areas.map(([k,v])=>bar('area',k,k,v,max(sm.areas),tone(k))).join(''),'Double-click a bar');
@@ -98,7 +98,7 @@ function wire(el){
   };
   const open=t=>{const x=t.closest('[data-kind]');if(!x||!x.dataset.kind)return false;const k=x.dataset.kind;if(k==='day'&&x.classList.contains('z'))return true;
     // a card opens the whole group; a bar, tile, day or row opens just its own slice
-    openDetails(k==='person'||k==='area'||k==='team'||k==='day'?(x.dataset.val?k:'all'):k,x.dataset.val);return true;};
+    if(!S.events.length)return true;openDetails(k==='person'||k==='area'||k==='team'||k==='day'?(x.dataset.val?k:'all'):k,x.dataset.val);return true;};
   el.ondblclick=e=>{if(H.current!=='audit'||e.target.closest('button,a,input,select'))return;if(open(e.target))e.preventDefault();};
   el.onkeydown=e=>{if(H.current!=='audit'||e.key!=='Enter'||e.target.closest('input,select'))return;const b=e.target.closest('button');if(b&&!b.classList.contains('au-more'))return;if(open(e.target))e.preventDefault();};
 }

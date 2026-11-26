@@ -2,7 +2,7 @@
 .hub-panel{display:block}.hub-panel.hidden{display:none}
 body[data-hub]:not([data-hub=epics]):not([data-hub=status]) .release-toolbar,
 body[data-hub]:not([data-hub=epics]):not([data-hub=status]) #selected-release-summary{display:none}
-body[data-hub=home] #table-card,
+body[data-hub=audit] #overview-panel,body[data-hub=audit] #table-card,body[data-hub=home] #table-card,
 body[data-hub=bugs] #overview-panel,body[data-hub=bugs] #table-card,body[data-hub=tds] #overview-panel,body[data-hub=tds] #table-card,
 body[data-hub=rotations] #overview-panel,body[data-hub=rotations] #table-card,body[data-hub=tests] #overview-panel,body[data-hub=tests] #table-card,
 body[data-hub=hourglass] #overview-panel,body[data-hub=hourglass] #table-card,body[data-hub=links] #overview-panel,body[data-hub=links] #table-card,body[data-hub=plan] #overview-panel,body[data-hub=plan] #table-card{display:none!important}

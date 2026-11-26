@@ -4,6 +4,10 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r65 (folded)
+
+- Audit log: removed the "No changes recorded" block (empty periods show zero tiles instead), and the Release Health Metrics section no longer appears under the audit page.
+
 ### 8.0.0-GA r64 (folded)
 
 - **Audit log** (hidden page, open it at `#audit-log`; it has no tab, tile or menu entry). Per team: who changed what and when. A dashboard shows Changes, People, Areas touched and Latest change, plus By area, By person, Activity by day (weekly for 90/180 days), By team (All teams only) and the latest changes. Double-click (or Enter on) any tile, bar, day or row for the full list with search and area/person filters; Esc closes it.
