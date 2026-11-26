@@ -54,3 +54,9 @@ test('base summary needs no AI: facts, done and active work items, newest engine
   assert.equal(v.accomplishments[0].text,'Slot design');assert.equal(v.inProgress[0].text,'AI line');assert.equal(v.learnings.length,1);
   assert.equal(v.engineer.length,0);assert.equal(aiView(e3,{accomplishments:[],inProgress:[],learnings:[],planForward:[]}).engineer.length,2);
 });
+
+test('headline is kept only when its numbers and outcome words come from the evidence',()=>{
+  const ok=aiParse(JSON.stringify({headline:'Watch: 3 of 5 points done; the Qpid upgrade is in PDV validation.',accomplishments:[]}),e,ev+' 3 of 5');
+  assert.equal(ok.headline,'Watch: 3 of 5 points done; the Qpid upgrade is in PDV validation.');
+  assert.throws(()=>aiParse(JSON.stringify({headline:'On track: 90% done and resolved performance regression.',accomplishments:[]}),e,ev));
+});
