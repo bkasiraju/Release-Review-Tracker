@@ -1910,7 +1910,8 @@ async function openBacklog(opener){
   const body=crSection('Items to import',`<div class="pl-cr-seg" role="tablist" aria-label="Item source"><button type="button" role="tab" data-mode="team">Team’s open items</button><button type="button" role="tab" data-mode="ids">W-ID / TD list</button><button type="button" role="tab" data-mode="report">GUS report</button></div>`+
       crField('Find in the list','<span data-lcnt></span>','<input class="hub-inline" type="search" data-noenter data-bq placeholder="Filter by id, title, owner or status" autocomplete="off" aria-label="Filter items">','s12 pl-bl-team')+
       crField('W-numbers or TD numbers','one per line or comma separated; max 200','<span class="pl-cr-find"><textarea class="hub-inline" rows="3" data-bids placeholder="W-12345678&#10;TD-0350171" aria-label="W-IDs and TD numbers"></textarea><button type="button" class="button" data-bgo="ids">Find</button></span>','s12 pl-bl-ids')+
-      crField('GUS report link or id','tabular report with a Work ID or TD column, up to 500 rows','<span class="pl-cr-find"><input class="hub-inline" type="text" data-noenter data-brep placeholder="https://…/lightning/r/Report/00O…/view" autocomplete="off" aria-label="GUS report link"><button type="button" class="button" data-bgo="report">Load</button></span>','s12 pl-bl-report')+
+      crField('GUS report export','in the report: Export › Details Only › .csv, then choose the file (or a .txt of the copied rows); up to 500 items','<input class="hub-inline" type="file" data-noenter data-bfile accept=".csv,.txt,.tsv,text/csv,text/plain" aria-label="Exported GUS report file">','s12 pl-bl-report')+
+      crField('Or a GUS report link','tried live; works only where GUS Apps can run reports','<span class="pl-cr-find"><input class="hub-inline" type="text" data-noenter data-brep placeholder="https://…/lightning/r/Report/00O…/view" autocomplete="off" aria-label="GUS report link"><button type="button" class="button" data-bgo="report">Load</button></span>','s12 pl-bl-report')+
       '<p class="pl-cr-pinfo s12" data-bmsg role="status"></p><div class="pl-bl-list s12" data-blist></div>')+
     crSection('Pull into',crField('Epic','type to filter, then pick one; its planned release is the release the items are planned in',`<input class="hub-inline" type="text" data-noenter data-bep list="pl-bl-eps" placeholder="Search and select an epic…" autocomplete="off" aria-label="Epic to pull the items into"><datalist id="pl-bl-eps">${epicOpts.map(o=>`<option value="${esc(o.label)}">`).join('')}</datalist>`,'s9')+
       crField('Product tag','required by GUS; used when the item has no tag of this team',`<select class="hub-inline" data-btag><option value="">Select a tag…</option>${tags.map(t=>opt(t.id,t.name,t.id===defTag(tags,tagKey))).join('')}</select>`,'s3'));
@@ -1957,7 +1958,11 @@ async function openBacklog(opener){
       else{const r=await call('plan-backlog-report',{teamId:id,report:$('[data-brep]').value});take('report',r,`${r.items.length} item${r.items.length===1?'':'s'} from “${r.report||'report'}”`);}}
     catch(err){msg(err.message);}finally{g.disabled=false;}
   });
-  el.addEventListener('change',e=>{
+  el.addEventListener('change',async e=>{
+    if(e.target.matches('[data-bfile]')){const f=e.target.files&&e.target.files[0];if(!f)return;
+      if(f.size>2e6){msg('That file is too large (2 MB max). Export Details Only with fewer columns.');return;}
+      msg('Reading '+f.name+'…');
+      try{const r=await call('plan-backlog-resolve',{teamId:id,text:await f.text()});take('report',r,`${r.items.length} found in ${f.name}`);}catch(err){msg(err.message);}return;}
     if(e.target.matches('[data-ball]')){let capped=false;shown().filter(x=>!blocked(x)).forEach(x=>{if(!e.target.checked)S.sel.delete(x.id);else if(S.sel.size<MAXSEL)S.sel.set(x.id,x);else capped=true;});drawList();if(capped)msg(`Up to ${MAXSEL} items can be pulled at a time; the rest were not selected.`);return;}
     const c=e.target.closest('[data-bi]');if(!c)return;const x=cur().find(i=>i.id===c.dataset.bi);if(!x)return;if(c.checked&&S.sel.size>=MAXSEL){c.checked=false;msg(`Up to ${MAXSEL} items can be pulled at a time.`);return;}c.checked?S.sel.set(x.id,x):S.sel.delete(x.id);drawList();});
   el.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.matches('[data-brep]')){e.preventDefault();$('[data-bgo=report]').click();}});

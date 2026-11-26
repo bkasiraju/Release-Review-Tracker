@@ -1017,7 +1017,7 @@ async function listBacklog(sf, teamId) {
 }
 /** Look items up by W-/TD- number or record Id, any team's work item, and TDs the team is part of. Returns what was not found. */
 async function lookupItems(sf, teamId, refs) {
-  const names = [...new Set(refs.names.map(x => x.toUpperCase()))].slice(0, 200), ids = [...new Set(refs.ids.map(gid).filter(Boolean))].slice(0, 500);
+  const names = [...new Set(refs.names.map(x => x.toUpperCase()))].slice(0, 500), ids = [...new Set(refs.ids.map(gid).filter(Boolean))].slice(0, 500);
   const works = names.filter(n => /^W-/.test(n)), tdN = names.filter(n => /^TD-/.test(n));
   const where = (nm, hasIds) => [nm.length ? `Name IN (${quoteList(nm)})` : '', hasIds ? `Id IN (${quoteList(ids)})` : ''].filter(Boolean).join(' OR ');
   const mine = `(Dependent_Team__c = '${teamId}' OR Provider_Team__c = '${teamId}')`;
@@ -1036,7 +1036,7 @@ async function reportItems(sf, teamId, input) {
   planKey(teamId);
   const m = String(input || '').match(REPORT_ID);
   if (!m) throw new Error('Paste the GUS report link (…/Report/00O…/view) or its 00O… id.');
-  if (typeof sf.request !== 'function') throw new Error('GUS Apps does not expose Salesforce request(): paste W-IDs instead.');
+  if (typeof sf.request !== 'function') throw new Error('GUS Apps cannot run GUS reports directly. Export the report (Export > Details Only > .csv) and choose the file above, or paste the W-IDs.');
   let rep;
   try { rep = await sf.request(`/services/data/v62.0/analytics/reports/${m[1]}?includeDetails=true`); }
   catch (e) { throw new Error('Could not run that report: ' + plain(e && e.message || e).slice(0, 200)); }
@@ -1057,8 +1057,8 @@ async function reportItems(sf, teamId, input) {
 /** Items for the import dialog: the pasted W-/TD- ids. */
 async function resolveItems(sf, teamId, input) {
   planKey(teamId);
-  const raw = String(input && input.text || '').slice(0, 20000);
-  const names = [...raw.matchAll(/\b(?:W|TD)-\d{3,}\b/gi)].map(x => x[0]), ids = [...raw.matchAll(/\b[a-zA-Z0-9]{15}(?:[a-zA-Z0-9]{3})?\b/g)].map(x => x[0]).filter(x => /^a[0-9A-Za-z]/.test(x) && /\d/.test(x));
+  const raw = String(input && input.text || '').slice(0, 400000);
+  const names = [...raw.matchAll(/\b(?:W|TD)-\d{3,}\b/gi)].map(x => x[0]), ids = [];
   if (!names.length && !ids.length) throw new Error('Enter W-numbers (W-12345678) or TD numbers (TD-0350171), one per line or separated by commas.');
   return lookupItems(sf, teamId, { names, ids });
 }
