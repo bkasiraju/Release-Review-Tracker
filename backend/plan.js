@@ -395,7 +395,7 @@ async function deleteWorkstream(sf, teamId, input) {
     if (!/insufficient access|access rights|not allowed|cannot delete|permission/i.test(e.message)) throw e;
     try { await sf.update('ADM_Work__c', id, { Status__c: 'Never' }); }
     catch (e2) { throw new Error(e.message + ' It could not be set to "Never" either: ' + String(e2 && e2.message || e2)); }
-    return { deleted: false, closed: true, gusId: id, name: hit.Subject__c };
+    return { deleted: false, closed: true, gusId: id, name: hit.Subject__c, reason: text(String(e.message).replace(/^GUS refused the delete:\s*/, ''), 200) };
   }
   return { deleted: true, gusId: id, name: hit.Subject__c };
 }

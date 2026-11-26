@@ -1846,7 +1846,7 @@ function delItemDlg(kind,e,w,opener){
         let r={};
         if(isWs)r=await call('plan-delete-workstream',{teamId:H.team.Id,workstream:{gusId:w.gusId}});
         else await call('plan-delete-epic',{teamId:H.team.Id,epic:{gusId:e.gusId,workstreamIds:wsIds}});
-        msg=r&&r.closed?`GUS does not let you delete “${label}”, so it was set to status Never in GUS and removed from the dashboard.`:`Deleted “${label}” in GUS and removed it from the dashboard.`;
+        msg=r&&r.closed?`GUS does not let you delete “${label}”, so it was set to status Never in GUS and removed from the dashboard. GUS said: ${r.reason||'not permitted'}. Delete it in GUS yourself if your profile allows it.`:`Deleted “${label}” in GUS and removed it from the dashboard.`;
       }
       if(isWs)e.workstreams=e.workstreams.filter(x=>x.id!==w.id);else pl.epics=pl.epics.filter(x=>x.id!==e.id);
       closeModal();draw();queueSave();window.toast?.(msg,false);
