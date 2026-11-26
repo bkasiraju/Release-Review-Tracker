@@ -4,6 +4,10 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r69 (folded)
+
+- TD & CARR import: the target epic is a type-to-filter box with no default; the Pull button stays disabled until an epic is chosen from the list.
+
 ### 8.0.0-GA r68 (folded)
 
 - TD & CARR import dialog layout: the item list, search and messages now span the full dialog width (they were squeezed into a narrow column), the per-column filter row is not added to the list, and long titles wrap.

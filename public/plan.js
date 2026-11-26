@@ -1900,16 +1900,18 @@ async function openBacklog(opener){
   if(!epics.length){window.toast?.('Add at least one epic that exists in GUS first; items are pulled into an epic.',true);return;}
   const MAXSEL=25,S={md:'team',lists:{team:null,ids:null,report:null},sel:new Map(),q:'',kind:'',note:{},tags:[]};
   const cur=()=>S.lists[S.md]||[];
+  const seen=new Map(),epicOpts=epics.map(e=>{let l=`${e.name||'Untitled epic'}${e.releaseName?' — '+e.releaseName:''}`;const n=(seen.get(l)||0)+1;seen.set(l,n);if(n>1)l+=` (${e.gusId.slice(-5)})`;return {label:l,gusId:e.gusId};}),pickEpic=v=>(epicOpts.find(o=>o.label===String(v).trim())||{}).gusId||'';
   const body=crSection('Items to import',`<div class="pl-cr-seg" role="tablist" aria-label="Item source"><button type="button" role="tab" data-mode="team">Team’s open items</button><button type="button" role="tab" data-mode="ids">W-ID / TD list</button><button type="button" role="tab" data-mode="report">GUS report</button></div>`+
       crField('Find in the list','<span data-lcnt></span>','<input class="hub-inline" type="search" data-noenter data-bq placeholder="Filter by id, title, owner or status" autocomplete="off" aria-label="Filter items">','s12 pl-bl-team')+
       crField('W-numbers or TD numbers','one per line or comma separated; max 200','<span class="pl-cr-find"><textarea class="hub-inline" rows="3" data-bids placeholder="W-12345678&#10;TD-0350171" aria-label="W-IDs and TD numbers"></textarea><button type="button" class="button" data-bgo="ids">Find</button></span>','s12 pl-bl-ids')+
       crField('GUS report link or id','tabular report with a Work ID or TD column, up to 500 rows','<span class="pl-cr-find"><input class="hub-inline" type="text" data-noenter data-brep placeholder="https://…/lightning/r/Report/00O…/view" autocomplete="off" aria-label="GUS report link"><button type="button" class="button" data-bgo="report">Load</button></span>','s12 pl-bl-report')+
       '<p class="pl-cr-pinfo s12" data-bmsg role="status"></p><div class="pl-bl-list s12" data-blist></div>')+
-    crSection('Pull into',crField('Epic','its planned release is the release the items are planned in',`<select class="hub-inline" data-bep>${epics.map(e=>`<option value="${esc(e.gusId)}">${esc(e.name||'Untitled epic')}${e.releaseName?' — '+esc(e.releaseName):''}</option>`).join('')}</select>`,'s9')+
+    crSection('Pull into',crField('Epic','type to filter, then pick one; its planned release is the release the items are planned in',`<input class="hub-inline" type="text" data-noenter data-bep list="pl-bl-eps" placeholder="Search and select an epic…" autocomplete="off" aria-label="Epic to pull the items into"><datalist id="pl-bl-eps">${epicOpts.map(o=>`<option value="${esc(o.label)}">`).join('')}</datalist>`,'s9')+
       crField('Product tag','required by GUS; used when the item has no tag of this team',`<select class="hub-inline" data-btag><option value="">Select a tag…</option>${tags.map(t=>opt(t.id,t.name,t.id===defTag(tags,tagKey))).join('')}</select>`,'s3'));
   const el=crDialog('Import TD & CARR items','Pick open CARR and TD items, or bring them in by W-ID or from a GUS report, and pull them into an epic as workstreams. Nothing is written to GUS until you confirm.',body,'Pull into epic',async(el,fail,detach)=>{
     const items=[...S.sel.values()];if(!items.length)throw new Error('Select at least one item.');
-    const epicGusId=el.querySelector('[data-bep]').value,tagId=el.querySelector('[data-btag]').value;
+    if(!pickEpic(el.querySelector('[data-bep]').value)){el.querySelector('[data-bep]').focus();throw new Error('Choose the epic to pull the items into: start typing and pick one from the list.');}
+    const epicGusId=pickEpic(el.querySelector('[data-bep]').value),tagId=el.querySelector('[data-btag]').value;
     if(!tagId){el.querySelector('[data-btag]').focus();throw new Error('Select a product tag. GUS requires one on every story.');}
     try{localStorage.setItem(tagKey,tagId);}catch(_){}
     detach();
@@ -1930,7 +1932,7 @@ async function openBacklog(opener){
     const n=S.sel.size,ok=$('[data-ok]');const here=cur().filter(x=>S.sel.has(x.id)).length;ok.dataset.label=n?`Pull ${n} item${n===1?'':'s'} into epic`:'Pull into epic';if(n>here)$('[data-bmsg]').textContent=`${S.note[S.md]||''}${S.note[S.md]?' · ':''}${n-here} selected in other sources`;if(!ok.disabled)ok.textContent=ok.dataset.label;
     el._sync();
   };
-  el._ready=()=>S.sel.size>0;
+  el._ready=()=>S.sel.size>0&&!!pickEpic($('[data-bep]').value);
   const setMode=k=>{S.md=k;S.q='';$('[data-bq]').value='';
     el.querySelectorAll('[data-mode]').forEach(b=>{const on=b.dataset.mode===k;b.classList.toggle('on',on);b.setAttribute('aria-selected',String(on));});
     el.querySelectorAll('.pl-bl-team,.pl-bl-ids,.pl-bl-report').forEach(f=>{f.hidden=!f.classList.contains('pl-bl-'+k);});
