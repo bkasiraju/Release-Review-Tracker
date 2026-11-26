@@ -4,6 +4,12 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r62 (folded)
+
+- Review/epic deck: the Epics index and workstream tables no longer get the host page's auto-fit, sort arrows (↕) or pager, which pushed the Health column past the right edge. The deck's tables are now opted out and fixed to the slide width.
+- Review deck: top-right controls with labels: **Home** (first slide), **Epics** (the list), **Filter** (by status, owner or theme; slides show only the matching epics; options narrow to what the other filters allow). **Esc** clears all filters first, and closes the deck only when none are active.
+- Release Planning: **Present** and **Download deck** now sit after the **Pull from GUS / Save to GUS** buttons. Release Review uses the same icon buttons ("Present", "Download deck").
+
 ### 8.0.0-GA r61 (folded)
 
 - Epic review deck: **Refresh** button re-reads the latest data while presenting and redraws in place (same slide and view; your notes and asks are kept). In the planner it reads the linked epics from GUS read-only (health, dates, goal, name, priority, story status) and never changes the plan; on the Release review page it runs the same GUS fetch as the Fetch button. Downloaded decks stay static.
