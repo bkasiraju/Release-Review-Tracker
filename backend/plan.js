@@ -990,6 +990,7 @@ async function commitRun(sf, store, teamId, confirm, includeBtl, acknowledged) {
 
 // ── Backlog: TD and CARR items that can be imported as workstreams under an epic ──────────────────────────
 const CARR_OPEN = ['New', 'Acknowledged', 'Triaged', 'In Progress'], TD_CLOSED = ['Completed', 'Cancelled', 'Rejected', 'Closed', 'Never'];
+const BACKLOG_MAX = 25;
 const SRC_TOKEN = /\b(W-\d{5,}|TD-\d{3,})\b/i;
 const quoteList = a => a.map(s => `'${soql(s)}'`).join(',');
 const WORK_SEL = 'Id, Name, Subject__c, Status__c, Assignee__r.Name, Product_Tag__c, Product_Tag__r.Name, Epic__r.Name, Sprint__r.Name, LastModifiedDate';
@@ -1021,8 +1022,8 @@ async function lookupItems(sf, teamId, refs) {
   const where = (nm, hasIds) => [nm.length ? `Name IN (${quoteList(nm)})` : '', hasIds ? `Id IN (${quoteList(ids)})` : ''].filter(Boolean).join(' OR ');
   const mine = `(Dependent_Team__c = '${teamId}' OR Provider_Team__c = '${teamId}')`;
   const [wr, tr, inWs] = await Promise.all([
-    works.length || ids.length ? sf.query(`SELECT ${WORK_SEL} FROM ADM_Work__c WHERE ${where(works, ids.length)} LIMIT 500`).then(r => r.records || []).catch(() => []) : [],
-    tdN.length || ids.length ? sf.query(`SELECT ${TD_SEL} FROM ADM_Team_Dependency__c WHERE (${where(tdN, ids.length)}) AND ${mine} LIMIT 500`).then(r => r.records || []).catch(() => []) : [],
+    works.length || ids.length ? sf.query(`SELECT ${WORK_SEL} FROM ADM_Work__c WHERE ${where(works, ids.length)} LIMIT 500`).then(r => r.records || []) : [],
+    tdN.length || ids.length ? sf.query(`SELECT ${TD_SEL} FROM ADM_Team_Dependency__c WHERE (${where(tdN, ids.length)}) AND ${mine} LIMIT 500`).then(r => r.records || []) : [],
     takenSources(sf, teamId)
   ]);
   const items = [...wr.map(w => carrItem(w, inWs)), ...tr.map(t => tdItem(t, inWs))];
@@ -1037,9 +1038,10 @@ async function reportItems(sf, teamId, input) {
   if (!m) throw new Error('Paste the GUS report link (…/Report/00O…/view) or its 00O… id.');
   if (typeof sf.request !== 'function') throw new Error('GUS Apps does not expose Salesforce request(): paste W-IDs instead.');
   let rep;
-  try { rep = await sf.request({ method: 'GET', url: `/services/data/v62.0/analytics/reports/${m[1]}?includeDetails=true` }); }
+  try { rep = await sf.request(`/services/data/v62.0/analytics/reports/${m[1]}?includeDetails=true`); }
   catch (e) { throw new Error('Could not run that report: ' + plain(e && e.message || e).slice(0, 200)); }
   if (typeof rep === 'string') { try { rep = JSON.parse(rep); } catch (_) { throw new Error('GUS returned an unreadable report.'); } }
+  if (rep && !rep.reportMetadata && rep.body && typeof rep.body === 'object') rep = rep.body;
   const md = rep && rep.reportMetadata, cols = (md && md.detailColumns) || [];
   const info = (rep && rep.reportExtendedMetadata && rep.reportExtendedMetadata.detailColumnInfo) || {};
   const idx = cols.findIndex(c => c === 'CUST_NAME' || /\.Name$/.test((info[c] || {}).entityColumnName || ''));
@@ -1063,9 +1065,11 @@ async function resolveItems(sf, teamId, input) {
 /** Pull the chosen CARR/TD items into one epic as workstreams ("WS: <id> <title>"); the epic's planned release is what ties them to the release. Safe to repeat. */
 async function assignBacklog(sf, teamId, input) {
   planKey(teamId);
-  const epicGusId = gid(input && input.epicGusId), tagId = gid(input && input.tagId), items = Array.isArray(input && input.items) ? input.items.slice(0, 25) : [];
+  const epicGusId = gid(input && input.epicGusId), tagId = gid(input && input.tagId), items = Array.isArray(input && input.items) ? input.items : [];
   if (!epicGusId) throw new Error('Choose the epic to pull the items into.');
   if (!items.length) throw new Error('Select at least one item.');
+  if (items.length > BACKLOG_MAX) throw new Error(`Pull at most ${BACKLOG_MAX} items at a time (you selected ${items.length}).`);
+  const inWs = await takenSources(sf, teamId);
   const out = [], ownTags = new Set((await teamTags(sf, teamId)).map(t => t.id.slice(0, 15)));
   for (const it of items) {
     const id = gid(it && it.id), kind = it && it.kind === 'td' ? 'td' : 'carr';
@@ -1084,8 +1088,9 @@ async function assignBacklog(sf, teamId, input) {
         key = t.Name; title = t.Deliverable__c || t.Name;
         note = `Imported from team dependency ${key} for ${(t.Dependent_Team__r && t.Dependent_Team__r.Name) || 'another team'} (${t.Dependency_Status__c || 'status unknown'}${t.Deliver_By__c ? ', deliver by ' + t.Deliver_By__c : ''}): ${title}`;
       }
-      const name = text(`${key} ${title}`, 190);
-      const r = await createWorkstream(sf, teamId, { epicGusId, name, assigneeId, tagId: itemTag || tagId, details: note });
+      const taken = inWs(key); if (taken) throw new Error(`${key} is already a workstream in ${taken}.`);
+      const name = text(`${key} ${title}`, 190), args = { epicGusId, name, assigneeId, tagId: itemTag || tagId, details: note };
+      let r; try { r = await createWorkstream(sf, teamId, args); } catch (e) { if (!assigneeId) throw e; r = await createWorkstream(sf, teamId, { ...args, assigneeId: '' }); }
       out.push({ id, kind, key, ok: true, gusId: r.gusId, created: r.created, warnings: r.warnings || [] });
     } catch (e) { out.push({ id, kind, key: '', ok: false, error: plain(e && e.message || e).slice(0, 300) }); }
   }

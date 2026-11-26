@@ -45,3 +45,11 @@ test('report rows are read from the Analytics API and rejected when the report h
   s.request=async()=>({reportMetadata:{name:'R',reportFormat:'TABULAR',detailColumns:['A']},reportExtendedMetadata:{detailColumnInfo:{A:{entityColumnName:'Foo'}}},factMap:{}});
   await assert.rejects(planner.reportItems(s,T,'00OEE000001gJ452AE'),/Work ID or TD column/);
 });
+test('more than 25 items are rejected and an item already in a workstream is not pulled twice',async()=>{
+  const many=Array.from({length:26},(_,i)=>({id:W,kind:'carr'}));
+  await assert.rejects(planner.assignBacklog(sf([]),T,{epicGusId:EP,tagId:TAG,items:many}),/at most 25/);
+  const s=sf([]),q=s.query;
+  s.query=async x=>/FROM ADM_Work__c WHERE Id = '/.test(x)?{records:[{Id:W,Name:'W-0123456',Subject__c:'PRB',Status__c:'New',Product_Tag__c:TAG}]}:/Subject__c LIKE 'WS: %' AND Status__c != 'Never'/.test(x)?{records:[{Id:'a07000000000009AAA',Subject__c:'WS: W-0123456 PRB',Epic__r:{Name:'Epic X'}}]}:q(x);
+  const r=await planner.assignBacklog(s,T,{epicGusId:EP,tagId:TAG,items:[{id:W,kind:'carr'}]});
+  assert.equal(r.results[0].ok,false);assert.match(r.results[0].error,/already a workstream in Epic X/);
+});
