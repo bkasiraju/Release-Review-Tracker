@@ -15,13 +15,13 @@
 #dk .slide-body{padding:28px 56px;height:calc(100% - 84px - 44px)}
 #dk .slide-footer{position:absolute;bottom:0;left:0;right:0;height:44px;padding:0 56px;display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--grey);border-top:1px solid var(--line)}
 #dk .accent-bar{position:absolute;top:0;left:0;width:8px;height:100%;background:var(--blue)}
-#dk .title-slide{background:linear-gradient(135deg,var(--navy) 0%,#0b5cab 60%,var(--blue) 100%);color:#fff}
+#dk .title-slide{background:#fbf9f4;color:#181818}#dk .title-slide::before{content:"";position:absolute;left:0;top:0;bottom:0;width:14px;background:var(--blue)}
 #dk .title-slide .inner{padding:120px 96px;height:100%;display:flex;flex-direction:column}
-#dk .kicker{font-size:16px;letter-spacing:3px;text-transform:uppercase;opacity:.8}
-#dk .title-slide h1{font-size:60px;font-weight:800;margin:18px 0 12px;letter-spacing:-1px;line-height:1.1}
-#dk .title-slide .sub{font-size:22px;opacity:.9}
-#dk .title-slide .meta{margin-top:auto;display:flex;gap:48px;font-size:16px}
-#dk .title-slide .meta b{display:block;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;opacity:.7;margin-bottom:4px;font-weight:600}
+#dk .kicker{font-size:16px;letter-spacing:3px;text-transform:uppercase;color:#5c6670;font-weight:600}
+#dk .title-slide h1{color:#181818;font-size:60px;font-weight:800;margin:18px 0 12px;letter-spacing:-1px;line-height:1.1}
+#dk .title-slide .sub{font-size:22px;color:#3e4650}
+#dk .title-slide .meta{margin-top:auto;display:flex;gap:48px;font-size:16px;color:#181818}
+#dk .title-slide .meta b{display:block;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:#5c6670;margin-bottom:4px;font-weight:600}
 #dk .badge{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:999px;font-size:13px;font-weight:700;color:#fff;background:var(--grey)}
 #dk .badge::before{content:"";width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.85)}
 #dk .badge.g{background:var(--green)}#dk .badge.a{background:var(--amber)}#dk .badge.r{background:var(--red)}
@@ -39,9 +39,9 @@
 #dk .hbar .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #dk .hbar .track{height:14px;background:#f3f5f7;border-radius:3px}#dk .hbar .fill{height:100%;border-radius:3px;background:var(--blue)}
 #dk .hbar .val{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}#dk .hbar .val b{color:var(--ink)}
-#dk table.idx{width:100%;border-collapse:collapse;font-size:13px}
+#dk table.idx{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
 #dk table.idx th{text-align:left;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;padding:0 8px 6px;border-bottom:2px solid var(--line)}
-#dk table.idx td{padding:0 8px;height:26px;border-bottom:1px solid #f0f2f4;white-space:nowrap;max-width:420px;overflow:hidden;text-overflow:ellipsis}
+#dk table.idx td{padding:0 8px;height:26px;border-bottom:1px solid #f0f2f4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#dk table.idx td:last-child{overflow:visible}
 #dk table.idx td.num,#dk table.idx th.num{text-align:right;font-variant-numeric:tabular-nums}
 #dk table.idx tr.click{cursor:pointer}#dk table.idx tr.click:hover td{background:var(--sky)}
 #dk .dot{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:8px;vertical-align:-1px}
@@ -53,6 +53,7 @@
 #dk .goal.missing{color:var(--amber);border-left-color:var(--amber);font-style:italic}
 #dk .section-label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1.2px;margin:10px 0 6px}
 #dk table.ws{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}#dk table.ws td:nth-child(2){white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#dk table.ws.wrap td:nth-child(2){white-space:normal;display:table-cell;line-height:1.3}
 #dk table.ws th{text-align:left;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;padding:0 6px 4px;border-bottom:1px solid var(--line);font-weight:600}
 #dk table.ws td{padding:5px 6px;border-bottom:1px solid #f0f2f4;vertical-align:middle}
 #dk table.ws td.wi{white-space:nowrap;font-weight:600;width:96px}#dk table.ws th:nth-child(1){width:96px}#dk table.ws th:nth-child(3){width:140px}#dk table.ws th:nth-child(4){width:100px}#dk table.ws th:nth-child(5){width:84px}
@@ -137,7 +138,7 @@
     <div class="kpi n"><div class="v">${mode==='review'?`${dn}<small> / ${all.length}</small>`:started+'<small> / '+E.length+'</small>'}</div><div class="l">${mode==='review'?'Workstreams done':'Epics started'}</div></div></div>
     <div class="panels"><div class="panel"><h3>Planned effort by theme · # epics</h3>${hbars(group(e=>e.theme||'No theme',7).map(r=>[...r,tcol(r[0])]))}</div>
     <div class="panel"><h3>Planned effort by epic owner · # epics</h3>${hbars(group(e=>e.owner||'Unassigned',7))}</div></div></div>${footer()}</section>`;};
-  const index=off=>`<section class="slide"><div class="accent-bar"></div>${header('Epics',(mode==='review'?'Status · ':'Agenda · ')+'click to jump')}<div class="slide-body" style="padding-top:16px;overflow:hidden"><table class="idx"><thead><tr><th class="num">#</th><th>Epic</th><th>Theme</th><th>Owner</th><th class="num">Days</th><th class="num">Done</th><th>Health</th></tr></thead><tbody>${E.slice(0,18).map((e,i)=>{const live=e.workItems.filter(w=>!isNever(w.status));return `<tr class="click" data-goto="${off+i}"><td class="num">${i+1}</td><td><span class="dot" style="background:${tcol(e.theme)}"></span>${esc(e.name)}</td><td>${esc(e.theme||'—')}</td><td>${esc(e.owner||'—')}</td><td class="num">${Math.round(e.points*10)/10}</td><td class="num">${live.filter(w=>isDone(w.status)).length}/${live.length}</td><td>${badge(e.health)}</td></tr>`;}).join('')}</tbody></table>${E.length>18?`<p class="more">+ ${E.length-18} more epics on the following slides</p>`:''}</div>${footer()}</section>`;
+  const PER=15,PAGES=Math.max(1,Math.ceil(E.length/PER)),index=pg=>`<section class="slide"><div class="accent-bar"></div>${header(PAGES>1?`Epics (${pg+1} of ${PAGES})`:'Epics',(mode==='review'?'Status · ':'Agenda · ')+'click to jump')}<div class="slide-body" style="padding-top:16px;overflow:hidden"><table class="idx"><colgroup><col style="width:36px"><col><col style="width:170px"><col style="width:170px"><col style="width:56px"><col style="width:56px"><col style="width:130px"></colgroup><thead><tr><th class="num">#</th><th>Epic</th><th>Theme</th><th>Owner</th><th class="num">Days</th><th class="num">Done</th><th>Health</th></tr></thead><tbody>${E.slice(pg*PER,pg*PER+PER).map((e0,i0)=>{const e=e0,i=pg*PER+i0;const live=e.workItems.filter(w=>!isNever(w.status));return `<tr class="click" data-goto="${2+PAGES+i}"><td class="num">${i+1}</td><td><span class="dot" style="background:${tcol(e.theme)}"></span>${esc(e.name)}</td><td>${esc(e.theme||'—')}</td><td>${esc(e.owner||'—')}</td><td class="num">${Math.round(e.points*10)/10}</td><td class="num">${live.filter(w=>isDone(w.status)).length}/${live.length}</td><td>${badge(e.health)}</td></tr>`;}).join('')}</tbody></table></div>${footer()}</section>`;
   const notes=D.notes||(D.notes={}),asks=D.asks||(D.asks=[]);
   const noteCard=e=>D.edit?`<div class="card"><div class="section-label" style="margin-top:0">Presenter note</div><textarea class="note-e" data-note="${esc(e.id)}" maxlength="1200" placeholder="Update, decision or context to share on this epic">${esc(notes[e.id]||'')}</textarea></div>`:notes[e.id]?`<div class="card"><div class="section-label" style="margin-top:0">Note</div><div class="note-t">${esc(notes[e.id])}</div></div>`:'';
   const askSlide=()=>D.edit||asks.length?`<section class="slide"><div class="accent-bar"></div>${header('Asks & Decisions Needed','Wrap-up')}<div class="slide-body"><div class="asks">${asks.map((a,i)=>D.edit?`<div class="ask ${a.type==='Decision'?'decision':''}"><select data-ask="${i}" data-k="type" aria-label="Type"><option${a.type==='Ask'?' selected':''}>Ask</option><option${a.type==='Decision'?' selected':''}>Decision</option></select><input data-ask="${i}" data-k="q" maxlength="200" value="${esc(a.q)}" placeholder="What is needed" aria-label="Ask"><textarea data-ask="${i}" data-k="d" maxlength="600" rows="3" placeholder="Why / options" aria-label="Details">${esc(a.d)}</textarea><input data-ask="${i}" data-k="who" maxlength="100" value="${esc(a.who)}" placeholder="Who needs to act" aria-label="Owner of the ask"><button type="button" data-ask-del="${i}">Remove</button></div>`:`<div class="ask ${a.type==='Decision'?'decision':''}"><div class="t">${esc(a.type)}</div><div class="q">${esc(a.q)}</div><div class="d">${esc(a.d)}</div>${a.who?`<div class="who">→ ${esc(a.who)}</div>`:''}</div>`).join('')}</div>${D.edit&&asks.length<12?'<div class="asks-add"><button type="button" data-ask-add="1">+ Add an ask or decision</button></div>':''}</div>${footer()}</section>`:'';
@@ -148,7 +149,7 @@
     <div class="epic-title">${esc(e.name)}</div><div class="epic-meta">${badge(e.health)}${e.priority!=null&&e.priority!==''?`<span class="pill">P${esc(e.priority)}</span>`:''}${e.line?`<span class="pill">${esc(e.line)}</span>`:''}<span>· Owner <b style="color:var(--ink)">${esc(e.owner||'Unassigned')}</b></span></div>
     ${e.project?`<div class="project">Project: <b>${esc(e.project)}</b></div>`:''}
     ${e.goal?`<div class="goal" style="border-left-color:${col}">${esc(e.goal)}</div>`:(e.progress?'':'<div class="goal missing">No SMART goal or description</div>')}
-    ${text}${e.workItems.length||!text?`<div class="section-label">Workstreams</div><table class="ws"><thead><tr><th>Story</th><th>Workstream</th><th>Owner</th><th>Effort</th><th style="text-align:right">Status</th></tr></thead><tbody>${rows}</tbody></table>`:''}${e.workItems.length>8?`<p class="more">+ ${e.workItems.length-8} more workstreams (open ones are listed first)</p>`:''}</div>
+    ${text}${e.workItems.length||!text?`<div class="section-label">Workstreams</div><table class="ws${shown.length<=5?' wrap':''}"><thead><tr><th>Story</th><th>Workstream</th><th>Owner</th><th>Effort</th><th style="text-align:right">Status</th></tr></thead><tbody>${rows}</tbody></table>`:''}${e.workItems.length>8?`<p class="more">+ ${e.workItems.length-8} more workstreams (open ones are listed first)</p>`:''}</div>
     <div><div class="card"><div class="section-label" style="margin-top:0">${mode==='review'?'Progress':'Planned effort'}</div><div class="bignum"><span class="v">${mode==='review'?pct+'%':Math.round(e.points*10)/10}</span><span class="u">${mode==='review'?`${dn} / ${tot} ${unit} done`:`days${days?` · ${live.length} workstreams`:''}`}</span></div>
     <div class="stack"><div style="width:${dn/n*100}%;background:var(--green)"></div><div style="width:${wp/n*100}%;background:var(--blue)"></div></div>
     <div class="legend"><span><i style="background:var(--green)"></i>Done ${dn}</span><span><i style="background:var(--blue)"></i>In progress ${wp}</span><span><i style="background:#eef1f4"></i>Planned ${Math.max(0,tot-dn-wp)}</span></div></div>
@@ -166,7 +167,7 @@
     ${card(noProj.length,E.length,'Epics without a project',names(noProj)||'All epics are linked to a project.')}
     ${mode==='review'?card(noOwner.length,live.length,'Workstreams without an owner','Assign an engineer to each workstream.'):card(risk.length,E.length,'Epics at risk or blocked',names(risk)||'None.')}
    </div></div>${footer()}</section>`;};
-  return {html:[title(),glance(),index(3),...E.map(epic),gaps(),askSlide()].join(''),first:3};
+  return {html:[title(),glance(),...Array.from({length:PAGES},(_,k)=>index(k)),...E.map(epic),gaps(),askSlide()].join(''),first:3};
  }
 
  let cur=0,slides=[],state=null,onKey=null,onResize=null;
@@ -185,7 +186,7 @@
  function open(data,opts){
   close();state=Object.assign({mode:'planning',gusUrl:'https://gus.lightning.force.com/lightning/r/',asOf:new Date().toISOString().slice(0,10)},data,opts||{});state.prevOverflow=document.body.style.overflow;
   const st=document.createElement('style');st.id='dk-css';st.textContent=CSS;document.head.appendChild(st);
-  const d=document.createElement('div');d.id='dk';d.setAttribute('role','dialog');d.setAttribute('aria-label','Epic review presentation');
+  const d=document.createElement('div');d.id='dk';d.setAttribute('data-nocf','');d.setAttribute('role','dialog');d.setAttribute('aria-label','Epic review presentation');
   d.innerHTML=(state.standalone?'':'')+'<div class="dk-prog" id="dk-prog"></div><div class="dk-stage"></div><div class="dk-bar"><button type="button" data-a="prev" title="Previous (←)" aria-label="Previous slide">◀</button><span id="dk-count"></span><button type="button" data-a="next" title="Next (→)" aria-label="Next slide">▶</button><button type="button" data-mode="planning" title="Planning view">Planning</button><button type="button" data-mode="review" title="Monthly review view: progress and risks">Monthly review</button>'+(state.standalone?'':'<button type="button" data-a="edit" title="Add presenter notes and asks">Edit notes</button>')+'<button type="button" data-a="print" title="Print or save as PDF">Print</button>'+(state.standalone?'':'<button type="button" data-a="save" title="Download this deck as an HTML file">Download</button>')+(!state.standalone&&state.api?'<button type="button" data-a="share" title="Post a summary to Slack (you pick the channel)">Share to Slack</button>':'')+'<button type="button" data-a="full" title="Fullscreen (F)" aria-label="Fullscreen">⛶</button>'+(state.standalone?'':'<button type="button" data-a="close" title="Close (Esc)" aria-label="Close presentation">✕</button>')+'</div>';
   document.body.appendChild(d);document.body.style.overflow='hidden';cur=0;
   d.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const a=b.dataset.a;

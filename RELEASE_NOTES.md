@@ -4,6 +4,10 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r57 (folded)
+
+- Epic review deck layout: the cover is now light with dark text (no blue gradient); the Epics index is paginated (15 per page, so no epic is dropped) with fixed columns; the host's column-filter rows no longer appear inside the deck; workstream names wrap when there is room.
+
 ### 8.0.0-GA r56 (folded)
 
 - Epic review deck: **Share to Slack** posts a text summary (health counts, one line per epic, asks) to a channel you choose each time: a configured team channel or a pasted link/ID. It asks for confirmation before posting, and the HTML file is not attached.

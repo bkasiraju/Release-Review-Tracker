@@ -35,3 +35,10 @@ test('sendDeckSlack: needs an explicit channel, never defaults, and posts the es
   const r=await post.sendDeckSlack(sf,slack,store,{channel:'https://x/archives/C0BBBBBBB2',text:'a <b> [Epic](https://g/e)'});
   assert.equal(sent[0].channel,'C0BBBBBBB2');assert.match(sent[0].text,/a &lt;b&gt; <https:\/\/g\/e\|Epic>/);assert.equal(r.ok,true);
 });
+test('deck: every epic is reachable from the paginated index and jump targets are right',()=>{
+  const e=Array.from({length:19},(_,i)=>({id:''+i,name:'E'+i,health:'',owner:'',points:1,workItems:[]}));
+  const h=build({team:'T',release:'R',asOf:'2026-11-25',gusUrl:'https://g/',mode:'planning',epics:e}).html;
+  assert.equal((h.match(/data-goto="/g)||[]).length,19);
+  assert.match(h,/data-goto="4"/);assert.match(h,/data-goto="22"/);assert.match(h,/Epics \(2 of 2\)/);
+  assert.equal((h.match(/<section class="slide/g)||[]).length,2+2+19+1);
+});
