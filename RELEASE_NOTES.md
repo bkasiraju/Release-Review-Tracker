@@ -4,6 +4,11 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r54 (folded)
+
+- New epic review deck: a slide template written once (`deck.js`) and filled from data. It has a title, an at-a-glance slide, an epic agenda, one slide per epic (workstreams, owners, effort, progress, checks) and a wrap-up of gaps or risks. A Planning view and a Monthly review view (progress, status update, path to green, risks) share the same template.
+- Buttons: Present and Download deck in the planner toolbar; Present, Planning deck and Monthly review deck in the Release summary; Present and Review deck in the Release review. Download saves one self-contained HTML file that opens offline.
+
 ### 8.0.0-GA r53 (folded)
 
 - Pull from GUS now always picks up a rename of a linked project (for example GCP Migration → GCP). The dashboard shows linked project titles as read-only, so a baseline recorded after the rename can no longer hide it.

@@ -450,6 +450,16 @@ function sourcePanel(){const r=release(),conn=state.connection,links=String(r?.i
   </div><footer class="drawer-footer">${!conn?'<button class="button" data-do="source-reconnect">Reconnect to GUS</button>':''}<span class="toolbar-spacer"></span><button class="button" data-do="close">Close</button><button class="button primary" data-do="source-edit">Edit sources</button></footer>`);state.drawer={type:'source'};state.unsaved=false;}
 document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));$('footer-source').onclick=sourcePanel;
 $('full-updates').onclick=()=>{state.fullUpdates=!state.fullUpdates;renderTable();};$('manage-button').onclick=releaseManager;$('rail-executive').onclick=()=>setView('executive');$('rail-sprint').onclick=()=>setView('sprint');$('rail-sources').onclick=sourcePanel;$('new-release').onclick=()=>manage(true);$('home-button').onclick=()=>{closeDrawer();setView('overview');window.scrollTo({top:0,behavior:'smooth'});};
+/** Monthly review deck: the shared template (deck.js) filled with the epics currently shown in the table. */
+function reviewDeckData(){
+  const rows=visibleRows(),num=v=>Number(v)||0,r=release()||{};
+  return {team:(window.Hub&&Hub.team&&Hub.team.Name)||'Team',release:r.name||'Release review',mode:'review',gusUrl:'https://gus.lightning.force.com/lightning/r/',epics:rows.map(e=>{
+    const done=num(e.closed),wip=num(e.inProgress),tot=num(e.planned)||done+wip+num(e.newPoints)+num(e.waiting);
+    return {id:e.id,gusId:e.id,name:e.name,health:e.health||'',owner:leadName(e),points:num(e.planned),project:e.project||'',theme:'',comments:e.comments||'',pathToGreen:e.pathToGreen||'',
+      progress:{pct:e.completion==null?(tot?done/tot*100:0):num(e.completion),done,wip,total:tot,unit:'points'},workItems:[]};})};
+}
+$('deck-present').onclick=()=>{const d=reviewDeckData();if(!d.epics.length)return alert('There are no epics to present.');EpicDeck.open(d);};
+$('deck-download').onclick=async e=>{const b=e.currentTarget,d=reviewDeckData();if(!d.epics.length)return alert('There are no epics to present.');b.disabled=true;try{await EpicDeck.download(d);}catch(err){alert(err.message);}finally{b.disabled=false;}};
 $('fetch-button').onclick=()=>fetchEpics();$('sync-button').onclick=syncPreview;
 $('release-select').onchange=()=>{state.releaseIds=[...$('release-select').selectedOptions].map(o=>o.value);state.releaseId=state.releaseIds[0]||'';state.selectionPrefetchNeeded=true;clearFilters();render();};$('group-by').onchange=()=>{state.groupBy=[...$('group-by').selectedOptions].map(o=>o.value);collapsedEpicGroups.clear();renderTable();};$('review-month').value=state.review;$('review-month').min='2000-01';$('review-month').max='2099-12';$('review-month').onclick=()=>{try{$('review-month').showPicker?.();}catch{}};$('review-month').onchange=()=>{if($('review-month').value){state.review=$('review-month').value;if(state.insight?.kind==='missing-month')state.insight.value=state.review;render();}};
 ['search','health-filter','owner-filter'].forEach(id=>$(id).addEventListener(id==='search'?'input':'change',()=>{if(id==='health-filter')state.healthMetric=null;renderTable();}));$('clear-filters').onclick=clearFilters;$('add-month').onclick=addMonth;$('columns-button').onclick=columns;
