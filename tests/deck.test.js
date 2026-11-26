@@ -46,7 +46,7 @@ test('deck: monthly comments split into Outcome and the two latest review months
   const t='------\nOctober Update:\nOutcome/Progress: A\nBlockers: x\n------\nNovember Update:\nOutcome/Progress: B &amp; C <script>x</script>\n\nSeptember 2026 Update:\nold';
   const u=globalThis.EpicDeck.parseUpdates(t,'2026-11-26');
   assert.deepEqual(u.months.map(m=>m.label),['November 2026','October 2026','September 2026']);
-  assert.equal(u.outcome,'B & Cx');
+  assert.equal(u.outcome,'B & C x');
   assert.equal(globalThis.EpicDeck.parseUpdates('Outcome: Ship it\n\nNovember Update:\nx','2026-11-26').outcome,'Ship it');
   const e=[{id:'1',name:'E',health:'',owner:'',points:1,comments:t,progress:{pct:1,done:0,wip:0,total:1,unit:'points'},workItems:[]}];
   const h=build({team:'T',release:'R',asOf:'2026-11-26',gusUrl:'https://g/',mode:'review',epics:e}).html;
