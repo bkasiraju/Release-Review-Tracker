@@ -2,7 +2,9 @@
    EpicDeck.open(data) shows it full screen. data = {team, release, asOf, start, end, gusUrl, mode, epics:[{id,gusId,name,health,owner,points,theme,line,priority,project,goal,start,end,workItems:[{id,url,name,subject,status,assignee,days}]}]} */
 (function(root){
  'use strict';
+ let BUILD='';
  const SRC=(typeof document!=='undefined'&&document.currentScript&&document.currentScript.src)||'';
+ try{if(typeof fetch==='function'&&typeof document!=='undefined'&&document.currentScript&&document.currentScript.src)fetch(new URL('build.json',document.currentScript.src)).then(r=>r.ok?r.json():null).then(j=>{if(j&&/^[0-9a-f]{7}\+?$/.test(String(j.commit||'')))BUILD=j.commit;}).catch(()=>{});}catch(_){}
  const CSS=`
 #dk{--navy:#032d60;--blue:#0176d3;--sky:#e8f4fd;--ink:#181818;--muted:#5c6670;--line:#e1e5ea;--green:#2e844a;--amber:#dd7a01;--red:#ba0517;--grey:#8a939c;position:fixed;inset:0;z-index:100000;background:#1b1f24;color:var(--ink);font-family:-apple-system,"Salesforce Sans","Segoe UI",Helvetica,Arial,sans-serif;overflow:hidden}
 #dk *{box-sizing:border-box;margin:0;padding:0}
@@ -140,7 +142,7 @@
   const E=D.epics,mode=D.mode==='review'?'review':'planning',all=E.flatMap(e=>e.workItems),totalPts=sum(E,e=>e.points);
   const themes=[...new Set(E.map(e=>e.theme||'No theme'))],tcol=t=>THEMES[themes.indexOf(t||'No theme')%THEMES.length];
   const link=(path,id)=>id?`${D.gusUrl}${path}/${id}/view`:'';
-  const footer=()=>`<div class="slide-footer"><span>${esc(D.team)} · ${esc(D.release)} · ${mode==='review'?'Monthly review':'Epic review'} · Source: GUS, as of ${fmt(D.asOf)}</span><span class="pg"></span></div>`;
+  const footer=()=>`<div class="slide-footer"><span>${esc(D.team)} · ${esc(D.release)} · ${mode==='review'?'Monthly review':'Epic review'} · Source: GUS, as of ${fmt(D.asOf)}${BUILD?' · Build '+esc(BUILD):''}</span><span class="pg"></span></div>`;
   const header=(t,c)=>`<div class="slide-header"><h2>${esc(t)}</h2><span class="crumb">${esc(c)}</span></div>`;
   const hbars=rows=>{const max=Math.max(1,...rows.map(r=>r[1]));return rows.map(([n,v,x,c])=>`<div class="hbar"><div class="nm" title="${esc(n)}">${c?`<span class="dot" style="background:${c}"></span>`:''}${esc(n)}</div><div class="track"><div class="fill" style="width:${(v/max*100).toFixed(1)}%;${c?`background:${c}`:''}"></div></div><div class="val"><b>${v}</b> d · ${x}</div></div>`).join('');};
   const group=(f,top)=>{const m={};E.forEach(e=>{const k=f(e)||'—';(m[k]=m[k]||{d:0,n:0}).d+=e.points||0;m[k].n++;});return Object.entries(m).sort((a,b)=>b[1].d-a[1].d).slice(0,top).map(([k,v])=>[k,Math.round(v.d*10)/10,v.n]);};

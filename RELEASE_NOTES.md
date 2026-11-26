@@ -6,6 +6,7 @@ Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback base
 
 ### 8.0.0-GA r60 (folded)
 
+- Review deck footer shows the build commit (short id, with "+" if built from uncommitted changes), taken from a `build.json` stamp the packager adds to the deploy zip. The review deck line-clamp now starts from the tallest update card.
 - Review deck cover: plain white slide with the same blue side bar as the other slides (no blue gradient), and `deck.js` is now loaded with a revision-specific URL so browsers refetch it instead of showing a cached older cover.
 - Review deck: text before the first monthly heading is now shown as a Status update card instead of being dropped; an Outcome written on the line after "Outcome:" is picked up; the plain-comment fallback is also cut with a pointer to GUS; heading and label matching no longer backtracks on long whitespace.
 
