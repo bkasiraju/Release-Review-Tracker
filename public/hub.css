@@ -1155,7 +1155,7 @@ body[data-hub=plan] .pl-kpi .pl-chip{background:color-mix(in srgb,var(--k) 12%,#
 .sal-body{flex:1;overflow:auto;padding:14px 22px 28px}
 .sal-tools{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:12px}.sal-grow{flex:1}.sal-own-l{font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px}
 .sal-sum{margin:0 0 14px;padding:12px 16px;border:1px solid #e3e8ee;border-radius:12px;background:#fbfcfd}.sal-sum h3{margin:0 0 4px;font-size:15px}
-.sal-pre{margin:0;padding:10px 12px;border:1px solid #e3e8ee;border-radius:8px;background:#fff;white-space:pre-wrap;font:12px/1.5 ui-monospace,Menlo,monospace;max-height:260px;overflow:auto}
+.sal-pre{margin:0;padding:10px 12px;border:1px solid #e3e8ee;border-radius:8px;background:#fff;white-space:pre-wrap;font:12px/1.5 'Salesforce Sans',Arial,sans-serif;max-height:260px;overflow:auto}
 .sal-table{width:100%;border-collapse:collapse;font-size:13px}.sal-table th{text-align:left;padding:8px 10px;border-bottom:1px solid #e3e8ee;font-size:12px;text-transform:none;color:#374151}
 .sal-table td{padding:9px 10px;border-bottom:1px solid #eef2f5;vertical-align:top}.sal-subj{max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sal-det{min-width:260px;white-space:pre-wrap}
 .sal-done td{opacity:.6}.sal-done .sal-det{text-decoration:line-through}.sal-late{color:#ba0517;font-weight:600}.sal-late small{font-weight:500}
@@ -2556,7 +2556,7 @@ html body[data-hub=plan] .pl-grid tr[data-e] td.c-project{padding-left:28px!impo
 html body[data-hub=plan] .pl-grid tr[data-e] td.c-project::before{content:"";display:inline-block;width:10px;height:10px;margin:0 6px 2px -16px;border-left:1px solid #a9bccf;border-bottom:1px solid #a9bccf;vertical-align:middle}
 html body[data-hub=plan] .pl-grid tr[data-e] td.c-name{padding-left:20px!important}
 /* 6.26.41 automatic values in the create dialogs are plain lines of text, not pills */
-.pl-cr-auto{margin:8px 0 0;padding:0;font:12px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;color:#3b4a5a}
+.pl-cr-auto{margin:8px 0 0;padding:0;font:12px/1.6 'Salesforce Sans',Arial,sans-serif;color:#3b4a5a}
 .pl-cr-auto>div{white-space:normal;overflow-wrap:anywhere}
 .pl-cr-auto i{font-style:normal;color:#6a7b8c}
 /* 6.26.43 told apart at a glance: project rows (blue-grey band), epic cells (soft blue), workstream cells (soft amber) */

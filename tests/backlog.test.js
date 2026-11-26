@@ -3,6 +3,7 @@ const test=require('node:test'),assert=require('node:assert/strict');
 const planner=require('../backend/plan');
 const T='a00B0000000w4ZhIAI',EP='a1B000000000001AAA',TAG='a1C000000000001AAA',W='a07000000000001AAA',TD='a2D000000000001AAA';
 function sf(created){return {
+  userId:'005000000000009AAA',
   async query(q){
     if(/FROM ADM_Work__c WHERE Product_Tag__c IN/.test(q)&&/LIMIT 300/.test(q))return {records:[{Id:W,Name:'W-0123456',Subject__c:'PRB: cache evictions',Status__c:'New',Product_Tag__r:{Name:'MQ'},Assignee__r:{Name:'Ann'}}]};
     if(/FROM ADM_Work__c WHERE Id = '/.test(q))return {records:[{Id:W,Name:'W-0123456',Subject__c:'PRB: cache evictions',Status__c:'New',Assignee__c:'005000000000001AAA',Product_Tag__c:TAG}]};
@@ -27,7 +28,7 @@ test('pulling items creates workstream stories in the epic with the source noted
   const r=await planner.assignBacklog(sf(created),T,{epicGusId:EP,tagId:TAG,items:[{id:W,kind:'carr'},{id:'bad',kind:'td'}]});
   assert.equal(r.results[0].ok,true);assert.equal(r.results[1].ok,false);
   const ws=created.find(c=>c[0]==='ADM_Work__c')[1];
-  assert.match(ws.Subject__c,/^WS: W-0123456 PRB: cache evictions/);assert.equal(ws.Epic__c,EP);assert.equal(ws.Assignee__c,'005000000000001AAA');assert.match(ws.Details__c,/Imported from work item W-0123456/);
+  assert.match(ws.Subject__c,/^WS: W-0123456 PRB: cache evictions/);assert.equal(ws.Epic__c,EP);assert.equal(ws.Assignee__c,'005000000000009AAA');assert.match(ws.Details__c,/Imported from work item W-0123456/);
 });
 test('pasted W-/TD- ids resolve and unknown ones are reported missing',async()=>{
   const s=sf([]),q=s.query;

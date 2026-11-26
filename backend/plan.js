@@ -1105,17 +1105,19 @@ async function assignBacklog(sf, teamId, input) {
   if (!epicGusId) throw new Error('Choose the epic to pull the items into.');
   if (!items.length) throw new Error('Select at least one item.');
   if (items.length > BACKLOG_MAX) throw new Error(`Pull at most ${BACKLOG_MAX} items at a time (you selected ${items.length}).`);
+  // The workstream is assigned to the person doing the import, not to whoever owns the source item.
+  let me = gid(sf.userId); if (!me && typeof sf.identity === 'function') { try { const w = await sf.identity(); me = gid(w && (w.user_id || w.userId)); } catch (_) { /* created unassigned */ } }
   const inWs = await takenSources(sf, teamId);
   const out = [], ownTags = new Set((await teamTags(sf, teamId)).map(t => t.id.slice(0, 15)));
   for (const it of items) {
     const id = gid(it && it.id), kind = it && it.kind === 'td' ? 'td' : 'carr';
     try {
       if (!id) throw new Error('Invalid item.');
-      let key, title, assigneeId = '', itemTag = '', note;
+      let key, title, assigneeId = me, itemTag = '', note;
       if (kind === 'carr') {
         const w = ((await sf.query(`SELECT Id, Name, Subject__c, Status__c, Assignee__c, Product_Tag__c FROM ADM_Work__c WHERE Id = '${id}' LIMIT 1`)).records || [])[0];
         if (!w) throw new Error('Work item not found.');
-        key = w.Name; title = w.Subject__c || ''; assigneeId = w.Assignee__c || '';
+        key = w.Name; title = w.Subject__c || '';
         if (w.Product_Tag__c && ownTags.has(w.Product_Tag__c.slice(0, 15))) itemTag = w.Product_Tag__c;
         note = `Imported from work item ${key} (${w.Status__c || 'status unknown'}): ${title}`;
       } else {

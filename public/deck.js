@@ -6,7 +6,7 @@
  const SRC=(typeof document!=='undefined'&&document.currentScript&&document.currentScript.src)||'';
  try{if(typeof fetch==='function'&&typeof document!=='undefined'&&document.currentScript&&document.currentScript.src)fetch(new URL('build.json',document.currentScript.src)).then(r=>r.ok?r.json():null).then(j=>{if(j&&/^[0-9a-f]{7}\+?$/.test(String(j.commit||'')))BUILD=j.commit;}).catch(()=>{});}catch(_){}
  const CSS=`
-#dk{--navy:#032d60;--blue:#0176d3;--sky:#e8f4fd;--ink:#181818;--muted:#5c6670;--line:#e1e5ea;--green:#2e844a;--amber:#dd7a01;--red:#ba0517;--grey:#8a939c;position:fixed;inset:0;z-index:100000;background:#1b1f24;color:var(--ink);font-family:-apple-system,"Salesforce Sans","Segoe UI",Helvetica,Arial,sans-serif;overflow:hidden}
+#dk{--navy:#032d60;--blue:#0176d3;--sky:#e8f4fd;--ink:#181818;--muted:#5c6670;--line:#e1e5ea;--green:#2e844a;--amber:#dd7a01;--red:#ba0517;--grey:#8a939c;position:fixed;inset:0;z-index:100000;background:#1b1f24;color:var(--ink);font-family:"Salesforce Sans",Arial,sans-serif;overflow:hidden}
 #dk *{box-sizing:border-box;margin:0;padding:0}
 #dk .dk-stage{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
 #dk .slide{position:absolute;width:1280px;height:720px;background:#fff;border-radius:6px;box-shadow:0 20px 60px rgba(0,0,0,.5);overflow:hidden;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;transform:translateX(40px)}

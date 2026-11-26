@@ -4,6 +4,12 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r80 (folded)
+
+- Import dialog: Product tag moved into a collapsed "Additional details" section with an Assignee note; imported workstreams are now assigned to the person importing, not the source item's owner.
+- Type-to-filter lists (epic, program, V2MOM method, theme, sprint, project, rota) use a Salesforce Sans listbox instead of the browser popup (new combo.js).
+- Salesforce Sans is forced on every element, including the review deck and previously monospace blocks.
+
 ### 8.0.0-GA r79 (folded)
 
 - TD & CARR import table: Status and Owner / team columns removed (Item, Subject / deliverable, Already remain; the filter box still matches owner and status).
