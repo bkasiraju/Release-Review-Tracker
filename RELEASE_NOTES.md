@@ -4,6 +4,10 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r60 (folded)
+
+- Review deck: text before the first monthly heading is now shown as a Status update card instead of being dropped; an Outcome written on the line after "Outcome:" is picked up; the plain-comment fallback is also cut with a pointer to GUS; heading and label matching no longer backtracks on long whitespace.
+
 ### 8.0.0-GA r59 (folded)
 
 - Review deck: monthly update text is never clipped silently. If an update does not fit its card, it is cut at the last line that fits and the card says "Continues in the epic comments in GUS" with a link to the epic.
