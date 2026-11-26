@@ -4,6 +4,10 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r66 (folded)
+
+- `hub.css` is now loaded with a revision-specific URL so browsers refetch it; the audit page no longer shows the Release Health Metrics and Release epics table underneath (that hide rule was being served from a cached stylesheet).
+
 ### 8.0.0-GA r65 (folded)
 
 - Audit log: removed the "No changes recorded" block (empty periods show zero tiles instead), and the Release Health Metrics section no longer appears under the audit page.
