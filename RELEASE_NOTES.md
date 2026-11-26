@@ -4,6 +4,10 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r71 (folded)
+
+- TD & CARR import: the Already column says "On dashboard: <epic>" when the item belongs to one of the plan's epics (GUS epic of the work item, or an existing workstream/story for it) and those rows are disabled, so nothing is imported twice. Items in other epics show "In epic X (not on dashboard)" and stay selectable.
+
 ### 8.0.0-GA r70 (folded)
 
 - TD & CARR import list: compact fixed-width columns (checkbox, item, subject limited to two lines, status, owner, sprint, already), no more wrapped status or oversized checkbox column.

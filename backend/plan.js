@@ -993,7 +993,7 @@ const CARR_OPEN = ['New', 'Acknowledged', 'Triaged', 'In Progress'], TD_CLOSED =
 const BACKLOG_MAX = 25;
 const SRC_TOKEN = /\b(W-\d{5,}|TD-\d{3,})\b/i;
 const quoteList = a => a.map(s => `'${soql(s)}'`).join(',');
-const WORK_SEL = 'Id, Name, Subject__c, Status__c, Assignee__r.Name, Product_Tag__c, Product_Tag__r.Name, Epic__r.Name, Sprint__r.Name, LastModifiedDate';
+const WORK_SEL = 'Id, Name, Subject__c, Status__c, Assignee__r.Name, Product_Tag__c, Product_Tag__r.Name, Epic__c, Epic__r.Name, Sprint__r.Name, LastModifiedDate';
 const TD_SEL = 'Id, Name, Dependency_Status__c, Deliverable__c, Deliver_By__c, Target_Build__r.Name, Dependent_Team__r.Name, Provider_Team__r.Name, Provider_User_Story__r.Name';
 /** Story subjects "WS: <W-/TD- id> <title>" tell which source items are already carried by a workstream of this team. */
 async function takenSources(sf, teamId) {
@@ -1002,7 +1002,7 @@ async function takenSources(sf, teamId) {
   for (const w of ws) { const m = String(w.Subject__c || '').match(SRC_TOKEN); if (m) taken.set(m[1].toUpperCase(), (w.Epic__r && w.Epic__r.Name) || 'an epic'); }
   return n => taken.get(String(n).toUpperCase()) || '';
 }
-const carrItem = (w, inWs) => ({ kind: 'carr', id: w.Id, key: w.Name, title: w.Subject__c || '', status: w.Status__c || '', owner: (w.Assignee__r && w.Assignee__r.Name) || '', tag: (w.Product_Tag__r && w.Product_Tag__r.Name) || '', sprint: (w.Sprint__r && w.Sprint__r.Name) || '', epic: (w.Epic__r && w.Epic__r.Name) || '', updated: w.LastModifiedDate || '', workstream: inWs(w.Name) });
+const carrItem = (w, inWs) => ({ kind: 'carr', id: w.Id, key: w.Name, title: w.Subject__c || '', status: w.Status__c || '', owner: (w.Assignee__r && w.Assignee__r.Name) || '', tag: (w.Product_Tag__r && w.Product_Tag__r.Name) || '', sprint: (w.Sprint__r && w.Sprint__r.Name) || '', epic: (w.Epic__r && w.Epic__r.Name) || '', epicId: w.Epic__c || '', updated: w.LastModifiedDate || '', workstream: inWs(w.Name) });
 const tdItem = (t, inWs) => ({ kind: 'td', id: t.Id, key: t.Name, title: t.Deliverable__c || t.Name, status: t.Dependency_Status__c || '', owner: (t.Dependent_Team__r && t.Dependent_Team__r.Name) || '', tag: '', sprint: (t.Target_Build__r && t.Target_Build__r.Name) || '', due: t.Deliver_By__c || '', story: (t.Provider_User_Story__r && t.Provider_User_Story__r.Name) || '', workstream: inWs(t.Name) });
 const teamTags = async (sf, teamId) => ((await sf.query(`SELECT Id, Name FROM ADM_Product_Tag__c WHERE Team__c = '${teamId}' AND Active__c = true ORDER BY Name LIMIT 200`)).records || []).map(t => ({ id: t.Id, name: t.Name }));
 /** Open CARR (PRB work items on the team's product tags) and TDs the team provides, each flagged when a workstream already carries it. */
