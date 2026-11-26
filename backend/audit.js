@@ -16,7 +16,7 @@ const q=s=>s?` "${s}"`:'';
 
 /** action -> how it is audited. `when` can skip non-writes (previews); `team` finds the team; `say` builds the summary. */
 const RULES={
-  'plan-save':{area:'Release plan',merge:true,say:()=>'Edited the release plan'},
+  'plan-save':{area:'Release plan',merge:true,when:(b,p)=>n(p&&p.auditChanges)>0,say:(b,p)=>p.auditChanges.length===1?p.auditChanges[0]:`Edited the release plan: ${p.auditChanges.length} changes`,detail:(b,p)=>p.auditChanges.length>1?p.auditChanges:[]},
   'plan-commit':{area:'Release plan',when:b=>b.confirm===true,say:b=>'Saved the plan to GUS'+(b.includeBtl?' (including below-the-line)':'')},
   'plan-v2mom-import':{area:'Release plan',say:()=> 'Imported V2MOM measures into the plan'},
   'plan-smart-goal-save':{area:'Epics & workstreams',say:b=>'Saved the SMART goal'+q(text(b.gusId,20))},
@@ -51,9 +51,9 @@ const put=(store,id,events,rev)=>(store.putSnapshot||store.put).call(store,'audi
 
 /** Describe a successful action, or return null when it is not an audited change. */
 function describe(action,b,payload){
-  const r=RULES[action];if(!r||(r.when&&!r.when(b)))return null;
+  const r=RULES[action];if(!r||(r.when&&!r.when(b,payload)))return null;
   const teamRaw=r.team?r.team(b):r.release?'':b.teamId,team=SF_ID.test(String(teamRaw||''))?String(teamRaw):SHARED;
-  let detail=[];try{detail=r.detail?r.detail(b).filter(Boolean):[];}catch(_){/* summary is enough */}
+  let detail=[];try{detail=r.detail?r.detail(b,payload).filter(Boolean):[];}catch(_){/* summary is enough */}
   return {team,area:r.area,action,summary:text(r.say(b||{},payload),200),detail,merge:!!r.merge,releaseId:r.release&&/^[a-f0-9-]{36}$/.test(String(b.releaseId||b.id||''))?String(b.releaseId||b.id):''};
 }
 
@@ -72,8 +72,8 @@ async function record(store,sf,ctx,action,b,payload,service){
     for(let attempt=0;attempt<3;attempt++){
       if(attempt)await new Promise(r=>setTimeout(r,50+Math.random()*250));
       const cur=await store.get('audit',d.team)||{events:[]},events=prune(Array.isArray(cur.events)?cur.events.map(e=>({...e})):[],now),last=events[events.length-1];
-      if(d.merge&&last&&last.action===action&&last.actor.id===who.id&&last.actor.name===who.name&&last.release===release&&now-Date.parse(last.ts)<MERGE_MS){last.ts=ts;last.count=(last.count||1)+1;}
-      else events.push({id:randomUUID(),ts,actor:who,teamId:d.team===SHARED?'':d.team,area:d.area,action,summary:d.summary,detail:d.detail,release,count:1});
+      if(d.merge&&last&&last.action===action&&last.actor.id===who.id&&last.actor.name===who.name&&last.release===release&&now-Date.parse(last.ts)<MERGE_MS){last.ts=ts;last.count=(last.count||1)+1;last.summary=`Edited the release plan: ${last.count} saves`;last.detail=[...(last.detail||[]),...d.detail,...(d.detail.length?[]:[d.summary])].slice(-80);}
+      else events.push({id:randomUUID(),ts,actor:who,teamId:d.team===SHARED?'':d.team,area:d.area,action,summary:d.summary,detail:d.merge&&!d.detail.length?[d.summary]:d.detail,release,count:1});
       try{await put(store,d.team,events,cur.revision??null);sweep(store);return true;}catch(e){lastError=text(e&&e.message||e,200);if(attempt===2||!/changed|verified/i.test(e.message))return false;}
     }
   }catch(e){lastError=text(e&&e.message||e,200);/* auditing must never break the change that was already made */}

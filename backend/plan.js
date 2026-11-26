@@ -178,9 +178,37 @@ async function getPlan(store, teamId, startEmpty) {
   if (!doc && startEmpty && await startEmpty().catch(() => false)) base.hiddenProjects = catalog.map(c => c.id).filter(id => LOCAL.test(id)).slice(0, MAX.projects);
   return { plan: mergeCatalog(base, catalog), revision: (doc && doc.revision) || null, updatedAt: (doc && doc.updatedAt) || null };
 }
+// Human-readable list of what a plan save changed (for the audit log): added / removed / edited projects, epics and workstreams with old → new values.
+const PRI = v => (v == null || v === '' ? 'none' : 'P' + v);
+const SHOW = (v, k) => { if (Array.isArray(v)) v = v.join(', '); if (v == null || v === '') return 'empty'; return k === 'priority' ? PRI(v) : text(v, 60); };
+const PROJ_F = [['name', 'name'], ['theme', 'theme'], ['short', 'short name'], ['method', 'V2MOM method'], ['programName', 'program']];
+const EPIC_F = [['name', 'name'], ['line', 'ATL/BTL'], ['priority', 'priority'], ['theme', 'theme'], ['hrp', 'HRP'], ['v2mom', 'V2MOM'], ['estimate', 'estimate (days)'], ['status', 'status'], ['doc', 'doc link'], ['releaseName', 'planned release'], ['ownerNames', 'owners'], ['smartGoal', 'SMART goal'], ['outcome', 'outcome']];
+const WS_F = [['name', 'name'], ['days', 'days'], ['engNames', 'engineers'], ['priority', 'priority'], ['line', 'ATL/BTL'], ['sprint', 'sprint']];
+function planChanges(prev, next) {
+  const out = [], say = x => { if (out.length < 60) out.push(text(x, 220)); };
+  const byId = a => new Map((a || []).map(x => [x.id, x]));
+  const fields = (kind, label, a, b, F) => { for (const [k, l] of F) { const x = JSON.stringify(a[k] == null ? '' : a[k]), y = JSON.stringify(b[k] == null ? '' : b[k]); if (x !== y) say(`${kind} “${label}”: ${l} ${SHOW(a[k], k)} → ${SHOW(b[k], k)}`); } };
+  const pp = byId(prev.projects), np = byId(next.projects);
+  for (const [id, p] of np) { const o = pp.get(id); if (!o) say(`Project added: “${p.name}”`); else fields('Project', p.name, o, p, PROJ_F); }
+  for (const [id, p] of pp) if (!np.has(id)) say(`Project removed: “${p.name}”`);
+  const pe = byId(prev.epics), ne = byId(next.epics);
+  for (const [id, e] of ne) {
+    const o = pe.get(id);
+    if (!o) { say(`Epic added: “${e.name}”${e.releaseName ? ' (' + e.releaseName + ')' : ''}`); continue; }
+    fields('Epic', e.name, o, e, EPIC_F);
+    const ow = byId(o.workstreams), nw = byId(e.workstreams);
+    for (const [wid, w] of nw) { const x = ow.get(wid); if (!x) say(`Workstream added to “${e.name}”: “${w.name}”${w.days ? ' (' + w.days + ' days)' : ''}`); else fields('Workstream', w.name, x, w, WS_F); }
+    for (const [wid, w] of ow) if (!nw.has(wid)) say(`Workstream removed from “${e.name}”: “${w.name}”`);
+    const oa = (o.actions || []).length, na = (e.actions || []).length; if (oa !== na) say(`Epic “${e.name}”: action items ${oa} → ${na}`);
+  }
+  for (const [id, e] of pe) if (!ne.has(id)) say(`Epic removed: “${e.name}”`);
+  const ow = prev.window || {}, nw2 = next.window || {};
+  for (const k of ['releaseId', 'start', 'end']) if (String(ow[k] || '') !== String(nw2[k] || '')) say(`Planning window ${k === 'releaseId' ? 'release' : k}: ${SHOW(ow[k])} → ${SHOW(nw2[k])}`);
+  return out;
+}
 async function savePlan(store, teamId, plan, expected) {
   const key = planKey(teamId), next = cleanPlan(plan);
-  const prevDoc = await store.get('settings', key), prev = new Map(cleanPlan(prevDoc && prevDoc.plan).projects.map(p => [p.id, p]));
+  const prevDoc = await store.get('settings', key), prevPlan = cleanPlan(prevDoc && prevDoc.plan), prev = new Map(prevPlan.projects.map(p => [p.id, p]));
   const saved = await store.put('settings', key, { plan: next }, expected === undefined ? undefined : expected);
   // Publish what this save changed (added or edited projects) to the shared catalog so other teams see it. Removing a project only hides it for this team (hiddenProjects).
   try {
@@ -189,7 +217,7 @@ async function savePlan(store, teamId, plan, expected) {
     for (const p of next.projects) if (!sameProject(prev.get(p.id), p) && !sameProject(cat.get(p.id), p)) { cat.set(p.id, teamLess(p)); dirty = true; }
     if (dirty) await store.put('settings', CATALOG_KEY, { projects: [...cat.values()].slice(0, MAX.projects), seedVersion: SEED_VERSION }); // keep seedVersion or the next read re-seeds and rewrites the catalog
   } catch (_) { /* the team plan is saved; the catalog catches up on the next save */ }
-  return { plan: mergeCatalog(cleanPlan(saved.plan), await getCatalog(store).catch(() => [])), revision: saved.revision, updatedAt: saved.updatedAt };
+  return { plan: mergeCatalog(cleanPlan(saved.plan), await getCatalog(store).catch(() => [])), revision: saved.revision, updatedAt: saved.updatedAt, auditChanges: planChanges(prevPlan, next) };
 }
 
 // Reference data for the pickers. Each lookup fails soft so the planner still opens.
@@ -1097,4 +1125,4 @@ async function assignBacklog(sf, teamId, input) {
   return { results: out };
 }
 
-module.exports = { listBacklog, resolveItems, reportItems, assignBacklog, moveProject, moveWorkstream, epicDescriptionHtml, adoptEpic, richHtml, teamName, syncWorkstreams, withOutcome, outcomeOf, fiscalQuarter, refreshEpics, saveSmartGoal, generateSmartGoal, withSmartGoal, epicWorkstreams, epicStories, epicLeads, deleteEpic, deleteWorkstream, programProjects, importV2mom, resolveProgram, teamProgram, getPlan, savePlan, getRefs, commitPlan, createProject, deleteProject, createEpic, listEpics, findEpics, createWorkstream, syncEpics, review, cleanPlan };
+module.exports = { planChanges, listBacklog, resolveItems, reportItems, assignBacklog, moveProject, moveWorkstream, epicDescriptionHtml, adoptEpic, richHtml, teamName, syncWorkstreams, withOutcome, outcomeOf, fiscalQuarter, refreshEpics, saveSmartGoal, generateSmartGoal, withSmartGoal, epicWorkstreams, epicStories, epicLeads, deleteEpic, deleteWorkstream, programProjects, importV2mom, resolveProgram, teamProgram, getPlan, savePlan, getRefs, commitPlan, createProject, deleteProject, createEpic, listEpics, findEpics, createWorkstream, syncEpics, review, cleanPlan };

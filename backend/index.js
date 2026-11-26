@@ -154,6 +154,7 @@ async function handleRequest(ctx){
     let auditNote;
     if(audit.audited(action)){const done=await Promise.race([audit.record(store,sf,ctx,action,b,payload,service),new Promise(r=>setTimeout(()=>r('timeout'),20000))]);
       if(done===false)auditNote={ok:false,error:audit.failure()||'The event could not be written.'};else if(done==='timeout')auditNote={ok:false,error:'Writing the event took too long.'};}
+    if(payload&&payload.auditChanges)delete payload.auditChanges;
     return auditNote?{ok:true,payload,audit:auditNote}:{ok:true,payload};
   }catch(e){return {ok:false,error:safeError(e)};}
 }

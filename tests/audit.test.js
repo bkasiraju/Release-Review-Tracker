@@ -27,8 +27,9 @@ test('previews and unaudited actions write nothing; only Release Planner actions
 
 test('autosaves within ten minutes merge into one event; demo mode and failures never throw',async()=>{
   const s=mem();
-  for(let i=0;i<3;i++)await audit.record(s,sf,{},'plan-save',{teamId:T1},{});
-  const ev=(await audit.read(s,{teamId:T1})).events;assert.equal(ev.length,1);assert.equal(ev[0].count,3);
+  await audit.record(s,sf,{},'plan-save',{teamId:T1},{auditChanges:[]});assert.equal(s.docs.size,0,'a save with no real change is not recorded');
+  for(let i=0;i<3;i++)await audit.record(s,sf,{},'plan-save',{teamId:T1},{auditChanges:[`Epic “E”: priority P1 → P${i}`]});
+  const ev=(await audit.read(s,{teamId:T1})).events;assert.equal(ev.length,1);assert.equal(ev[0].count,3);assert.equal(ev[0].detail.length,3);assert.match(ev[0].detail[2],/P1 → P2/);
   await audit.record(s,sf,{demo:true},'plan-create-epic',{teamId:T1,epic:{name:'x'}},{});assert.equal((await audit.read(s,{teamId:T1})).events.length,1);
   const broken={async get(){throw Error('down');}};assert.equal(await audit.record(broken,sf,{},'plan-create-epic',{teamId:T1},{}),false);
 });
@@ -43,4 +44,11 @@ test('the real ContentStore accepts the audit record type',()=>{
   const {ContentStore}=require('../backend/store');
   assert.doesNotThrow(()=>new ContentStore({}).title('audit',T1));
   assert.doesNotThrow(()=>new ContentStore({}).title('audit','shared'));
+});
+
+test('planChanges lists added, removed and edited items with old and new values',()=>{
+  const planner=require('../backend/plan');const base={projects:[{id:'p1',name:'Proj'}],epics:[{id:'e1',name:'Epic A',priority:1,workstreams:[{id:'w1',name:'WS1',days:2}]},{id:'e2',name:'Gone',workstreams:[]}],window:{}};
+  const next={projects:[{id:'p1',name:'Proj'}],epics:[{id:'e1',name:'Epic A',priority:0,workstreams:[{id:'w1',name:'WS1',days:5},{id:'w2',name:'New WS',days:1}]},{id:'e3',name:'Fresh',workstreams:[]}],window:{}};
+  const c=planner.planChanges(base,next).join('\n');
+  assert.match(c,/Epic “Epic A”: priority P1 → P0/);assert.match(c,/Workstream “WS1”: days 2 → 5/);assert.match(c,/Workstream added to “Epic A”: “New WS”/);assert.match(c,/Epic added: “Fresh”/);assert.match(c,/Epic removed: “Gone”/);
 });
