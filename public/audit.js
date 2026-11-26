@@ -38,9 +38,9 @@ const tile=(label,big,sub,kind,val)=>`<div class="au-tile" role="button" tabinde
 
 function dashboard(){
   const ev=S.events,sm=summarize(ev),max=a=>Math.max(1,...a.map(x=>x[1]));
-  if(!ev.length)return `<div class="au-tiles">${tile('Changes',0,'in the last '+S.days+' days','all')}${tile('People',0,'','people')}${tile('Areas touched','0 / 7','','areas')}${tile('Latest change','–','','latest')}</div>`;
+  if(!ev.length)return `<div class="au-tiles">${tile('Changes',0,'in the last '+S.days+' days','all')}${tile('People',0,'','people')}${tile('Areas touched','0 / 2','','areas')}${tile('Latest change','–','','latest')}</div>`;
   const ser=series(ev,S.days),smax=Math.max(1,...ser.map(x=>x.n));
-  const tiles=`<div class="au-tiles">${tile('Changes',sm.n,'in the last '+S.days+' days','all')}${tile('People',sm.people.length,sm.people[0]?'most active: '+sm.people[0][0]:'','people')}${tile('Areas touched',sm.areas.length+' / 7',sm.areas[0]?'most: '+sm.areas[0][0]:'','areas')}${tile('Latest change',esc(ago(sm.last.ts)),who(sm.last)+' · '+sm.last.area,'latest')}</div>`;
+  const tiles=`<div class="au-tiles">${tile('Changes',sm.n,'in the last '+S.days+' days','all')}${tile('People',sm.people.length,sm.people[0]?'most active: '+sm.people[0][0]:'','people')}${tile('Areas touched',sm.areas.length+' / 2',sm.areas[0]?'most: '+sm.areas[0][0]:'','areas')}${tile('Latest change',esc(ago(sm.last.ts)),who(sm.last)+' · '+sm.last.area,'latest')}</div>`;
   const areas=panel('By area','area',sm.areas.map(([k,v])=>bar('area',k,k,v,max(sm.areas),tone(k))).join(''),'Double-click a bar');
   const people=panel('By person','person',sm.people.slice(0,6).map(([k,v])=>bar('person',k,k,v,max(sm.people))).join('')+(sm.people.length>6?`<button type="button" class="au-more" data-kind="people" data-val="">+${sm.people.length-6} more…</button>`:''),'Double-click a person');
   const days=panel(S.days>45?'Activity by week':'Activity by day','day',`<div class="au-cols" role="list">${ser.map(d=>`<span class="au-col${d.n?'':' z'}" role="listitem" tabindex="${d.n?0:-1}" data-kind="day" data-val="${d.from}|${d.to}" title="${esc(d.label)}: ${d.n} change${d.n===1?'':'s'}${d.n?' · double-click for details':''}"><i style="height:${d.n?Math.max(6,d.n/smax*100).toFixed(1):2}%"></i></span>`).join('')}</div><div class="au-axis"><span>${esc(ser[0].label)}</span><span>${esc(ser[ser.length-1].label)}</span></div>`,'Double-click a column');
@@ -51,7 +51,7 @@ function dashboard(){
 
 function draw(el){
   const chips=PERIODS.map(([d,l])=>`<button type="button" class="hub-chip${d===S.days?' on':''}" data-days="${d}" aria-pressed="${d===S.days}">${l}</button>`).join('');
-  el.innerHTML=`<div class="executive-heading"><div><h2>${icon('notepad','violet')} Audit log</h2><p>Who changed what${H.team.Id==='all'?' across all teams':' for '+esc(H.team.Name)}. Double-click any card, bar or day for the details.</p></div><div class="heading-actions"><div class="hub-chips" role="group" aria-label="Period">${chips}</div><button type="button" class="button primary" data-refresh title="Reload the log">Refresh</button></div></div>`+
+  el.innerHTML=`<div class="executive-heading"><div><h2>${icon('notepad','violet')} Audit log</h2><p>Who changed what in the Release Planner${H.team.Id==='all'?' across all teams':' for '+esc(H.team.Name)}. Double-click any card, bar or day for the details.</p></div><div class="heading-actions"><div class="hub-chips" role="group" aria-label="Period">${chips}</div><button type="button" class="button primary" data-refresh title="Reload the log">Refresh</button></div></div>`+
    `<div class="au-body" id="au-body">${S.loading&&!S.events.length?'<div class="hub-loading" role="status"><span class="executive-spinner" aria-hidden="true"></span> Loading the audit log…</div>':S.error?`<div class="empty-state hub-empty"><h3>Could not load the audit log</h3><p>${esc(S.error)}</p></div>`:dashboard()}</div>`+
    `<p class="au-foot">Changes are kept for ${S.retention} days${S.truncated?' (busy records show only the most recent changes)':''}. Merged autosaves show a ×count.</p>`;
 }

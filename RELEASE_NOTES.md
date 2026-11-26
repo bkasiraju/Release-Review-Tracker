@@ -4,6 +4,10 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r76 (folded)
+
+- Audit log now covers the Release Planner only (plan edits and saves to GUS, projects, epics, workstreams, SMART goals, TD & CARR pulls). Release Review, GUS record edits, sprint actions, team settings and messaging are no longer recorded, and any earlier events from those areas are hidden from the page.
+
 ### 8.0.0-GA r75 (folded)
 
 - Deleting a workstream in GUS: when GUS refuses the delete and the story is set to Never instead, the message now includes GUS's own reason. (GUS permissions decide whether a work record can be deleted; the app cannot override them.)

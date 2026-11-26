@@ -16,13 +16,13 @@ test('records who changed what per team, and reads it back newest first',async()
   await assert.rejects(()=>audit.read(s,{teamId:'bad id'}),/Unknown team/);
 });
 
-test('previews and unaudited actions write nothing; release actions go to the shared record',async()=>{
+test('previews and unaudited actions write nothing; only Release Planner actions are audited',async()=>{
   const s=mem();
   await audit.record(s,sf,{},'plan-commit',{teamId:T1,confirm:false},{});
   await audit.record(s,sf,{},'plan-get',{teamId:T1},{});
   assert.equal(s.docs.size,0);
-  await audit.record(s,sf,{},'save-review-status',{releaseId:'11111111-1111-1111-1111-111111111111',value:'At-Risk'},{},{async release(){return {name:'VegaCache 266'};}});
-  const e=(await audit.read(s,{teamId:'shared'})).events[0];assert.equal(e.release,'VegaCache 266');assert.equal(e.teamId,'');assert.match(e.summary,/At-Risk/);
+  for(const a of ['save-review-status','gus-update','sal-save','post-chatter','save-team'])await audit.record(s,sf,{},a,{teamId:T1,releaseId:'11111111-1111-1111-1111-111111111111',value:'x'},{});
+  assert.equal(s.docs.size,0,'only Release Planner actions are audited');
 });
 
 test('autosaves within ten minutes merge into one event; demo mode and failures never throw',async()=>{
