@@ -81,7 +81,7 @@
 #dk .hyg .d div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#dk .hyg .d div::before{content:"• "}
 #dk .dk-bar{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);display:flex;gap:6px;align-items:center;background:rgba(0,0,0,.6);padding:6px 10px;border-radius:999px;color:#fff;font-size:13px;z-index:2;opacity:.35;transition:opacity .2s}
 #dk .dk-share{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:5;font:14px system-ui,sans-serif}#dk .dk-sh-box{background:#fff;color:#1b1f24;border-radius:12px;padding:18px 20px;width:min(560px,92vw);display:flex;flex-direction:column;gap:10px}#dk .dk-sh-box [hidden]{display:none}#dk .dk-sh-box h3{margin:0}#dk .dk-sh-box label{display:flex;flex-direction:column;gap:4px;font-weight:600}#dk .dk-sh-box select,#dk .dk-sh-box input,#dk .dk-sh-box textarea{font:13px system-ui,sans-serif;padding:6px 8px;border:1px solid #bbb;border-radius:6px}#dk .dk-sh-note{margin:0;font-size:12px;color:#555}#dk .dk-sh-err{margin:0;color:#b3261e;font-size:13px}#dk .dk-sh-act{display:flex;justify-content:flex-end;gap:8px}#dk .dk-sh-act button{background:#eee;color:#1b1f24;border:none;padding:7px 14px;border-radius:8px;cursor:pointer}#dk .dk-sh-act button.on{background:#0b5cab;color:#fff}#dk .dk-sh-act button:disabled{opacity:.5;cursor:default}
-#dk .dk-bar:hover,#dk .dk-bar:focus-within{opacity:1}
+#dk .dk-bar .dk-rf{font-size:12px;opacity:.85;max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#dk .dk-bar:hover,#dk .dk-bar:focus-within{opacity:1}
 #dk .dk-bar button{background:none;border:none;color:#fff;font-size:14px;cursor:pointer;padding:4px 10px;border-radius:999px}
 #dk .dk-bar button:hover,#dk .dk-bar button.on{background:rgba(255,255,255,.2)}
 #dk .dk-prog{position:fixed;top:0;left:0;height:3px;background:var(--blue);z-index:2;transition:width .3s}
@@ -216,6 +216,20 @@
    t.forEach(b=>{b.style.webkitLineClamp=n;const cut=b.scrollHeight>b.clientHeight+1;b.parentElement.querySelector('.m-more').hidden=!cut;if(!cut){b.style.display='';b.style.webkitLineClamp='';}});
   });
  }
+ /** Re-reads the latest data through the host (state.refresh) and redraws in place: same slide, same view, and your notes and asks are kept. */
+ async function refresh(btn){
+  const note=document.getElementById('dk-rf');if(!state.refresh||btn.disabled)return;
+  btn.disabled=true;btn.textContent='Refreshing…';if(note)note.textContent='';
+  try{const nd=await state.refresh();
+   if(nd&&nd.epics){const keep={mode:state.mode,edit:state.edit,notes:state.notes,asks:state.asks,api:state.api,refresh:state.refresh,onChange:state.onChange,standalone:state.standalone,prevOverflow:state.prevOverflow};
+    const n=nd.epics.length,was=state.epics.length;
+    Object.assign(state,nd,keep,{asOf:new Date().toISOString().slice(0,10)});
+    paint();
+    if(note)note.textContent='Updated '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+(n!==was?` · ${n} epics`:'');}
+   else if(note)note.textContent='Nothing to update';}
+  catch(x){if(note)note.textContent='Refresh failed: '+((x&&x.message)||'try again').slice(0,80);}
+  finally{btn.disabled=false;btn.textContent='Refresh';}
+ }
  function paint(){const st=document.querySelector('#dk .dk-stage'),b=build(state);st.innerHTML=b.html;slides=[...st.querySelectorAll('.slide')];
   slides.forEach(fitText);
   slides.forEach((s,i)=>{const pg=s.querySelector('.pg');if(pg)pg.textContent=`${i+1} / ${slides.length}`;});
@@ -230,10 +244,10 @@
   close();state=Object.assign({mode:'planning',gusUrl:'https://gus.lightning.force.com/lightning/r/',asOf:new Date().toISOString().slice(0,10)},data,opts||{});state.prevOverflow=document.body.style.overflow;
   const st=document.createElement('style');st.id='dk-css';st.textContent=CSS;document.head.appendChild(st);
   const d=document.createElement('div');d.id='dk';d.setAttribute('data-nocf','');d.setAttribute('role','dialog');d.setAttribute('aria-label','Epic review presentation');
-  d.innerHTML=(state.standalone?'':'')+'<div class="dk-prog" id="dk-prog"></div><div class="dk-stage"></div><div class="dk-bar"><button type="button" data-a="prev" title="Previous (←)" aria-label="Previous slide">◀</button><span id="dk-count"></span><button type="button" data-a="next" title="Next (→)" aria-label="Next slide">▶</button><button type="button" data-mode="planning" title="Planning view">Planning</button><button type="button" data-mode="review" title="Monthly review view: progress and risks">Monthly review</button>'+(state.standalone?'':'<button type="button" data-a="edit" title="Add presenter notes and asks">Edit notes</button>')+'<button type="button" data-a="print" title="Print or save as PDF">Print</button>'+(state.standalone?'':'<button type="button" data-a="save" title="Download this deck as an HTML file">Download</button>')+(!state.standalone&&state.api?'<button type="button" data-a="share" title="Post a summary to Slack (you pick the channel)">Share to Slack</button>':'')+'<button type="button" data-a="full" title="Fullscreen (F)" aria-label="Fullscreen">⛶</button>'+(state.standalone?'':'<button type="button" data-a="close" title="Close (Esc)" aria-label="Close presentation">✕</button>')+'</div>';
+  d.innerHTML=(state.standalone?'':'')+'<div class="dk-prog" id="dk-prog"></div><div class="dk-stage"></div><div class="dk-bar"><button type="button" data-a="prev" title="Previous (←)" aria-label="Previous slide">◀</button><span id="dk-count"></span><button type="button" data-a="next" title="Next (→)" aria-label="Next slide">▶</button><button type="button" data-mode="planning" title="Planning view">Planning</button><button type="button" data-mode="review" title="Monthly review view: progress and risks">Monthly review</button>'+(state.standalone?'':'<button type="button" data-a="edit" title="Add presenter notes and asks">Edit notes</button>')+'<button type="button" data-a="print" title="Print or save as PDF">Print</button>'+(state.standalone?'':'<button type="button" data-a="save" title="Download this deck as an HTML file">Download</button>')+(!state.standalone&&state.refresh?'<button type="button" data-a="refresh" title="Re-read the latest data from GUS">Refresh</button><span id="dk-rf" class="dk-rf" role="status"></span>':'')+(!state.standalone&&state.api?'<button type="button" data-a="share" title="Post a summary to Slack (you pick the channel)">Share to Slack</button>':'')+'<button type="button" data-a="full" title="Fullscreen (F)" aria-label="Fullscreen">⛶</button>'+(state.standalone?'':'<button type="button" data-a="close" title="Close (Esc)" aria-label="Close presentation">✕</button>')+'</div>';
   document.body.appendChild(d);document.body.style.overflow='hidden';cur=0;
   d.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const a=b.dataset.a;
-   if(a==='prev')go(cur-1);else if(a==='next')go(cur+1);else if(a==='close')close();else if(a==='edit'){state.edit=!state.edit;b.classList.toggle('on',state.edit);paint();}else if(a==='print')print();else if(a==='share')share();else if(b.dataset.askAdd){state.asks.push({type:'Ask',q:'',d:'',who:''});changed();paint();}else if(b.dataset.askDel!=null){state.asks.splice(Number(b.dataset.askDel),1);changed();paint();}else if(a==='save'){b.disabled=true;download(state).catch(err=>alert(err.message)).finally(()=>b.disabled=false);}
+   if(a==='prev')go(cur-1);else if(a==='next')go(cur+1);else if(a==='close')close();else if(a==='edit'){state.edit=!state.edit;b.classList.toggle('on',state.edit);paint();}else if(a==='print')print();else if(a==='share')share();else if(a==='refresh')refresh(b);else if(b.dataset.askAdd){state.asks.push({type:'Ask',q:'',d:'',who:''});changed();paint();}else if(b.dataset.askDel!=null){state.asks.splice(Number(b.dataset.askDel),1);changed();paint();}else if(a==='save'){b.disabled=true;download(state).catch(err=>alert(err.message)).finally(()=>b.disabled=false);}
    else if(a==='full')document.fullscreenElement?document.exitFullscreen():d.requestFullscreen&&d.requestFullscreen();
    else if(b.dataset.mode){state.mode=b.dataset.mode;paint();}});
   d.addEventListener('input',e=>{const t=e.target;if(t.dataset.note!=null){(state.notes||(state.notes={}))[t.dataset.note]=t.value;changed();}else if(t.dataset.ask!=null){state.asks[Number(t.dataset.ask)][t.dataset.k]=t.value;changed();}});

@@ -1051,18 +1051,30 @@ const txt0=h=>{const d=document.createElement('div');d.innerHTML=String(h||'');r
 const gsHtml=()=>{const g=P.gsync||{};return g.s==='run'?`<span class="pl-gs-dot run"></span>Syncing from GUS…`:g.s==='err'?`<span class="pl-gs-dot err"></span>GUS sync failed${g.at?' · '+g.at:''}`:g.at?`<span class="pl-gs-dot ok"></span>Synced from GUS ${g.at}${g.n?` · ${g.n} updated`:''}`:'';};
 const setGs=(s,n)=>{const g=P.gsync=Object.assign(P.gsync||{},{s});if(s!=='run')g.at=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'});if(n!=null)g.n=n;const el=document.getElementById('pl-gus-stat');if(el)el.innerHTML=gsHtml();};
 /** Epic review deck: the template lives in deck.js; this only maps the plan to its data. */
+/** Deck data for the planner. `live` (optional) is a read-only GUS reading laid over the display values; the plan itself is never changed by it. */
+function planDeckData(scope,mode,live){
+  const pl=P.plan;if(!pl)return null;
+  const prj=new Map(pl.projects.map(p=>[p.id,p])),hid=new Set(pl.hiddenProjects||[]),only=scope==='summary'&&P.rvEpicIds?new Set(P.rvEpicIds):null,k15=v=>String(v||'').slice(0,15);
+  const lv=new Map(((live&&live.epics)||[]).map(x=>[k15(x.id),x])),st=new Map();
+  Object.values((live&&live.stories)||{}).forEach(a=>(a||[]).forEach(g=>st.set(k15(g.gusId),g)));
+  const epics=pl.epics.filter(e=>!hid.has(e.projectId)&&(!only||only.has(e.id))).map(e=>{const p=prj.get(e.projectId),g=e.gf||{},x=e.gusId?lv.get(k15(e.gusId)):null,xg=(x&&x.gf)||{};
+    return {id:e.id,gusId:e.gusId,name:(x&&x.name)||e.name,health:x?(xg.health||''):(g.health||''),owner:(e.ownerNames||[]).join(', '),points:epicDays(e),theme:e.theme||'',line:e.line,priority:x&&x.priority!=null?x.priority:e.priority,
+      project:p?projLabel(p):'',goal:flat0(x?(x.smartGoal||e.smartGoal):e.smartGoal)||txt0(e.description),start:x?(xg.start||''):(g.start||''),end:x?(xg.end||''):(g.end||''),
+      workItems:(e.workstreams||[]).map(w=>{const sg=w.storyId?st.get(k15(w.storyId)):null;return {id:w.storyNo||'WS',url:w.storyId?H.GUS+'ADM_Work__c/'+w.storyId+'/view':'',name:w.name,subject:w.name,status:(sg&&sg.status)||w.status||'Planned',assignee:wsNames(w).join(', '),days:w.days||0};})};});
+  const rel=[...pl.epics.reduce((m,e)=>e.releaseName?m.set(e.releaseName,(m.get(e.releaseName)||0)+1):m,new Map())].sort((a,b)=>b[1]-a[1])[0];
+  return {team:H.team.Name,release:rel?rel[0]:'Release plan',start:(pl.window||{}).start,end:(pl.window||{}).end,gusUrl:H.GUS,epics,mode:mode==='review'?'review':'planning',notes:{...((pl.deck||{}).notes||{})},asks:((pl.deck||{}).asks||[]).map(x=>({...x}))};
+}
 function presentPlan(act,scope,mode,btn){
   const pl=P.plan;if(!pl||!window.EpicDeck){window.toast?.('The presentation is not available yet.',true);return;}
-  const prj=new Map(pl.projects.map(p=>[p.id,p])),hid=new Set(pl.hiddenProjects||[]),only=scope==='summary'&&P.rvEpicIds?new Set(P.rvEpicIds):null;
-  const epics=pl.epics.filter(e=>!hid.has(e.projectId)&&(!only||only.has(e.id))).map(e=>{const p=prj.get(e.projectId),g=e.gf||{};
-    return {id:e.id,gusId:e.gusId,name:e.name,health:g.health||'',owner:(e.ownerNames||[]).join(', '),points:epicDays(e),theme:e.theme||'',line:e.line,priority:e.priority,
-      project:p?projLabel(p):'',goal:flat0(e.smartGoal)||txt0(e.description),start:g.start||'',end:g.end||'',
-      workItems:(e.workstreams||[]).map(w=>({id:w.storyNo||'WS',url:w.storyId?H.GUS+'ADM_Work__c/'+w.storyId+'/view':'',name:w.name,subject:w.name,status:w.status||'Planned',assignee:wsNames(w).join(', '),days:w.days||0}))};});
-  if(!epics.length){window.toast?.('There are no epics to present.',true);return;}
-  const rel=[...pl.epics.reduce((m,e)=>e.releaseName?m.set(e.releaseName,(m.get(e.releaseName)||0)+1):m,new Map())].sort((a,b)=>b[1]-a[1])[0];
-  const data={team:H.team.Name,release:rel?rel[0]:'Release plan',start:(pl.window||{}).start,end:(pl.window||{}).end,gusUrl:H.GUS,epics,mode:mode==='review'?'review':'planning',notes:{...((pl.deck||{}).notes||{})},asks:((pl.deck||{}).asks||[]).map(x=>({...x}))};
+  const data=planDeckData(scope,mode);
+  if(!data.epics.length){window.toast?.('There are no epics to present.',true);return;}
   if(act==='download'){if(btn)btn.disabled=true;window.EpicDeck.download(data).then(n=>window.toast?.('Saved '+n,false)).catch(err=>window.toast?.(err.message,true)).finally(()=>{if(btn)btn.disabled=false;});}
-  else window.EpicDeck.open(data,{api:(a,b)=>call(a,b||{}),onChange:d=>{pl.deck={notes:{...(pl.deck||{}).notes,...d.notes},asks:d.asks};queueSave();}});
+  else window.EpicDeck.open(data,{api:(a,b)=>call(a,b||{}),
+    // Refresh reads the linked epics from GUS (read-only) and redraws; it does not touch the plan, so nothing is overwritten.
+    refresh:async()=>{const ids=data.epics.map(e=>e.gusId).filter(Boolean);let live=null;
+      if(ids.length)live=await call('plan-refresh-epics',{teamId:H.team.Id,ids,projectIds:[]});
+      const nd=planDeckData(scope,mode,live);nd.mode=undefined;return nd;},
+    onChange:d=>{pl.deck={notes:{...(pl.deck||{}).notes,...d.notes},asks:d.asks};queueSave();}});
 }
 async function refreshFromGus(btn,auto){setGs('run');try{await refreshFromGusRun(btn,auto);setGs('ok');}catch(e){setGs('err');throw e;}}
 /** What Pull from GUS can sync, per entity. `on` marks the critical fields proposed by default; the rest are offered but unticked. */
