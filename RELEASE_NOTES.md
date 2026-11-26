@@ -4,6 +4,10 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r63 (folded)
+
+- Review deck: the Home / Epics / Filter controls moved from the dark top-right corner (where they were invisible) into the bottom action bar, with the filter panel opening above it.
+
 ### 8.0.0-GA r62 (folded)
 
 - Review/epic deck: the Epics index and workstream tables no longer get the host page's auto-fit, sort arrows (↕) or pager, which pushed the Health column past the right edge. The deck's tables are now opted out and fixed to the slide width.
