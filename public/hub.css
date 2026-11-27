@@ -3416,7 +3416,8 @@ html body .pl-rps-t .cf-in{min-width:0;width:100%;max-width:100%}
 html body .pl-rps-t .cf-clear{max-width:100%}
 html body .pl-card.pl-saved,html body .pl-mo-scroll{overflow-x:auto;box-sizing:border-box}
 /* 7.0.97: no fades while a fold/unfold redraws the grid */
-html body #pl-planner.pl-nofx *,html body #pl-planner.pl-nofx *::before,html body #pl-planner.pl-nofx *::after{transition:none!important;animation:none!important}
+html body #pl-planner.pl-nofx *,html body #pl-planner.pl-nofx *::before,html body #pl-planner.pl-nofx *::after{transition:none!important}
+html body #pl-planner.pl-still *,html body #pl-planner.pl-still *::before,html body #pl-planner.pl-still *::after{animation:none!important}
 /* 7.0.98: theme legend never clips; slice labels show the points */
 html body .pl-donut-card .pl-theme-leg{grid-template-columns:minmax(0,1fr);gap:2px}
 html body .pl-donut-card .pl-theme-leg button{display:flex;align-items:center;gap:8px;width:100%;min-width:0;box-sizing:border-box}

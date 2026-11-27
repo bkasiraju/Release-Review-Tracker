@@ -4,6 +4,10 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r105 (folded)
+
+- Planner: expanding or collapsing a project, epic or workstream group no longer flickers or jumps. The rebuilt rows no longer replay their fade-in a moment after the click, and the row under the pointer stays at full opacity instead of dipping and coming back.
+
 ### 8.0.0-GA r104 (folded)
 
 - Planner: an epic filed under a different project on the dashboard than in GUS is now flagged on its row ("GUS: <project> · Move") and in a banner with "Move all N to GUS projects". The fix moves the epic under the dashboard project linked to that GUS project, or imports the GUS project onto the dashboard first (keeping the program GUS has it in). Previously this mismatch was invisible when the GUS project sat outside the team's program.

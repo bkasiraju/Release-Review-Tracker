@@ -1621,7 +1621,10 @@ function hoistTools(){
 }
 /** Redraw the grid for a fold/unfold without flicker: keep the scroll position and switch row transitions off for the redraw, so rows that are rebuilt under the pointer don't fade between their normal and hover looks. */
 function quietDraw(){const pe=P.el.querySelector('#pl-planner'),sy=window.scrollY,sc=[];for(let n=pe;n;n=n.parentElement)if(n.scrollTop)sc.push([n,n.scrollTop]);
-  if(pe)pe.classList.add('pl-nofx');drawPlanner();wire();window.scrollTo(window.scrollX,sy);sc.forEach(([n,t])=>{n.scrollTop=t;});
+  // the rebuilt rows must not replay their fade-in (pl-still, until the next full draw) and the row the pointer is on keeps its full opacity
+  const on=pe&&pe.querySelector('tr:hover')||pe.querySelector('tr.pl-row-on'),key=on?(on.dataset.wr?'[data-wr="'+on.dataset.wr+'"]':on.dataset.e?'[data-e="'+on.dataset.e+'"]:not([data-wr])':on.dataset.p?'[data-p="'+on.dataset.p+'"]':''):'';
+  if(pe)pe.classList.add('pl-nofx','pl-still');drawPlanner();wire();window.scrollTo(window.scrollX,sy);sc.forEach(([n,t])=>{n.scrollTop=t;});
+  if(pe&&key){try{const r=pe.querySelector('tr'+key);if(r)r.classList.add('pl-row-on');}catch(_){/* row gone */}}
   if(pe){clearTimeout(P.nofxT);P.nofxT=setTimeout(()=>pe.classList.remove('pl-nofx'),350);}}
 const wire=()=>{P.el.querySelectorAll('#pl-planner select').forEach(s=>H.customSelect(s));wireColFilters();};
 let cfTimer;
@@ -1703,7 +1706,7 @@ function drawPdiff(){const box=P.el&&P.el.querySelector('#pl-tools');if(!box)ret
   const live=P.plan?P.plan.epics.filter(pdOk).map(e=>e.id):[];if(!live.length)return;
   box.insertAdjacentHTML('beforeend',`<div class="pl-pdiff-bar" role="status"><b>${live.length} epic${live.length===1?'':'s'} filed under a different project than in GUS.</b> <span>Move them to the GUS project (a project not yet on the dashboard is imported from GUS first).</span> <button type="button" class="button primary" data-pfix-all>Move all ${live.length} to GUS projects</button></div>`);
   box.querySelector('[data-pfix-all]').onclick=()=>{let n=0;live.forEach(id=>{if(fixProject(id))n++;});if(n){queueSave();draw();window.toast?.(`Moved ${n} epic${n===1?'':'s'} to the project GUS has them in.`,false);}};}
-function draw(){drawSummary();drawTools();drawPlanner();drawPdiff();wire();}
+function draw(){const pe=P.el.querySelector('#pl-planner');if(pe)pe.classList.remove('pl-still');drawSummary();drawTools();drawPlanner();drawPdiff();wire();}
 
 const closeMs=()=>document.querySelectorAll('.ms.open').forEach(w=>{w.classList.remove('open');w.querySelector('.cs-btn').setAttribute('aria-expanded','false');});
 document.addEventListener('click',e=>{if(!e.target.closest('.ms'))closeMs();
@@ -2102,7 +2105,7 @@ window.addEventListener('hub:team',()=>{closeModal();clearTimeout(P.timer);});
     cur=h;tm=setTimeout(()=>{tm=0;if(!h.isConnected)return;nt=document.createElement('div');nt.className='pl-nt';nt.setAttribute('role','tooltip');nt.textContent=t;H.popHost().appendChild(nt);
       const r=h.getBoundingClientRect(),w=nt.offsetWidth,ht=nt.offsetHeight;const tr=h.closest('tr'),rr=tr?tr.getBoundingClientRect():r;let L=r.right+12;if(L+w>innerWidth-8)L=Math.max(8,innerWidth-w-8);nt.style.left=L+'px';nt.style.top=Math.min(Math.max(8,r.top+(r.height-ht)/2),innerHeight-ht-8)+'px';},1500);});
   document.addEventListener('focusin',e=>{if(host(e))off();});window.addEventListener('scroll',off,true);document.addEventListener('mousedown',off);
-  document.addEventListener('click',e=>{const tr=e.target.closest&&e.target.closest('.pl-grid tbody tr');if(!tr)return;document.querySelectorAll('.pl-grid tr.pl-row-on').forEach(x=>x!==tr&&x.classList.remove('pl-row-on'));tr.classList.add('pl-row-on');});
+  document.addEventListener('click',e=>{const tr=e.target.closest&&e.target.closest('.pl-grid tbody tr');if(!tr||!tr.isConnected)return;document.querySelectorAll('.pl-grid tr.pl-row-on').forEach(x=>x!==tr&&x.classList.remove('pl-row-on'));tr.classList.add('pl-row-on');});
 })();
 })();
 
