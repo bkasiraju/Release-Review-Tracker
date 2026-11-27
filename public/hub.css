@@ -3146,7 +3146,7 @@ html body[data-hub=plan] tr.pl-g-proj:has(.pl-caret[aria-expanded="true"]) td{ba
 html body[data-hub=plan] tr.pl-g-proj:has(.pl-caret[aria-expanded="true"]) .pl-pj-n{color:#032d60!important;font-weight:700!important}
 html body[data-hub=plan] tr.pl-g-proj:has(.pl-caret[aria-expanded="false"]) td{background-color:#fafbfd!important}
 html body[data-hub=plan] tr.pl-g-proj:has(.pl-caret[aria-expanded="false"]) .pl-pj-n{color:#5f6f80!important;font-weight:500!important}
-html body[data-hub=plan] tr.pl-g-proj:has(.pl-caret[aria-expanded="false"]) :is(.pl-ty,.pl-gsum,.pl-pj-mt,.pl-open-gus,.pl-pj-add,.pl-pj-del){opacity:.7}
+html body[data-hub=plan] tr.pl-g-proj:has(.pl-caret[aria-expanded="false"]) :is(.pl-ty,.pl-gsum,.pl-pj-mt,.pl-open-gus,.pl-pj-add,.pl-pj-del){opacity:.75}
 html body[data-hub=plan] tr.pl-g-proj.pl-g-out:has(.pl-caret[aria-expanded="true"]) td{background-color:#d3dcf5!important;border-top-color:#a5b4e6!important;border-bottom-color:#a5b4e6!important}
 html body[data-hub=plan] tr.pl-g-proj.pl-g-out:has(.pl-caret[aria-expanded="true"]) .pl-pj-n{color:#1f2a5c!important}
 html body[data-hub=plan] tr.pl-g-proj.pl-g-out:has(.pl-caret[aria-expanded="false"]) td{background-color:#f1f3fa!important}
