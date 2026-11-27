@@ -4,6 +4,10 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r94 (folded)
+
+- Fixed the misaligned Status column in the workstream tables of the presentation (its cells and row lines were shifted): the status-split style added to the overview in r86 reused the table's `st` class name and turned the cells into flex boxes. It now uses its own class.
+
 ### 8.0.0-GA r93 (folded)
 
 - The AI Summarised Updates tab and its background generation now appear only in the monthly review presentation. The Planner presentation shows just the epic's own updates (no tabs) above its workstreams.
