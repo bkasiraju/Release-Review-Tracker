@@ -4,6 +4,12 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r104 (folded)
+
+- Planner: an epic filed under a different project on the dashboard than in GUS is now flagged on its row ("GUS: <project> · Move") and in a banner with "Move all N to GUS projects". The fix moves the epic under the dashboard project linked to that GUS project, or imports the GUS project onto the dashboard first (keeping the program GUS has it in). Previously this mismatch was invisible when the GUS project sat outside the team's program.
+- Imported epics and projects follow the GUS hierarchy: an epic keeps the project and program GUS has it under, whichever team's program that is, and a dashboard project change on any epic of the team or its planned releases is written to GUS (the project only has to exist). Projects created from the dashboard still use the team's program.
+- Teams page: new optional "GUS program for new projects" (name or id), for teams whose program is not named "<short> - 268" (for example GBDS-268).
+
 ### 8.0.0-GA r103 (folded)
 
 - Planner, Add epic: "Add existing GUS epic" (Find and the list) now covers every epic tagged to one of the team's planned releases, whatever team owns it, not only the team's own epics. Such an epic keeps its GUS project so it can be added under that project. (Example: "[268][Flowsnake][GCP] Hardening across all Flowsnake Services" is on GCP BDS-268 but owned by Flowsnake, so it was never found.)

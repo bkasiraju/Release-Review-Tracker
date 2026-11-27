@@ -136,7 +136,7 @@ test('syncEpics writes grid edits to GUS epics of this team only and reports fai
   assert.match(r.results[1].err,/does not belong/);assert.match(r.results[2].err,/at most 80/);
 });
 
-test('syncEpics moves an epic to a project in the team program only; refreshEpics reads current GUS values',async()=>{
+test('syncEpics moves an epic to an existing GUS project (any program); refreshEpics reads current GUS values',async()=>{
   const PJ='a1PEE00000PRJ0001A',BAD='a1PEE00000PRJ0002A',EP='a0XEE00000EPC0001A',upd=[];
   const sf={async query(q){
       if(/FROM ADM_Scrum_Team__c/.test(q))return {records:[{Name:'Message Queue'}]};
@@ -147,7 +147,7 @@ test('syncEpics moves an epic to a project in the team program only; refreshEpic
       return {records:[]};},
     async update(o,id,f){upd.push(f);return {success:true};}};
   const r=await plan.syncEpics(sf,T,[{gusId:EP,projectId:PJ},{gusId:EP,projectId:BAD}]);
-  assert.deepEqual(r.results.map(x=>x.ok),[true,false]);assert.equal(upd.length,1);assert.equal(upd[0].Project__c,PJ);assert.match(r.results[1].err,/not in this team/);
+  assert.deepEqual(r.results.map(x=>x.ok),[true,false]);assert.equal(upd.length,1);assert.equal(upd[0].Project__c,PJ);assert.match(r.results[1].err,/does not exist in GUS/);
   const g=await plan.refreshEpics(sf,T,[EP,'junk']);assert.equal(g.epics[0].projectId,PJ);assert.equal(g.epics[0].projectName,'HRP M1');
 });
 
@@ -197,10 +197,10 @@ test('listEpics returns the team epics for the add-existing picker',async()=>{
   const r=await plan.listEpics(sf,T);
   assert.deepEqual(r.epics[0],{id:'a3QEE000002pXaH2AU',name:'E1',projectId:'a1PEE00000PRJ0001A',projectName:'M1',method:'meth',programId:PROG,programName:'MQ - 268',releaseId:REL,releaseName:'MQ 268',leadId:ENG,leadName:'Ann',points:12});
 });
-test('epics whose project sits in another team program are listed without that project',async()=>{
+test('epics keep the project GUS has them under, whichever program it sits in',async()=>{
   const row=pg=>({Id:'a3QEE000002pXaH2AU',Name:'E1',Project__c:'a1PEE00000PRJ0009A',Project__r:{Name:'Foreign',Program__c:pg,Program__r:{Name:'X - 268'}},Planned_Release__c:REL,Development_Lead__c:ENG,Planned_Story_Points__c:3});
   const mk=pg=>({async query(q){if(/FROM ADM_Scrum_Team__c/.test(q))return {records:[{Name:'Message Queue'}]};if(/FROM PPM_Program__c/.test(q))return {records:[{Id:PROG,Name:'MQ - 268'}]};return {records:[row(pg)]};}});
-  let e=(await plan.listEpics(mk('a1QEE00000OTHERPRG'),T)).epics[0];assert.equal(e.projectId,'');assert.equal(e.projectName,'');assert.equal(e.programId,'');assert.equal(e.name,'E1');
+  let e=(await plan.listEpics(mk('a1QEE00000OTHERPRG'),T)).epics[0];assert.equal(e.projectId,'a1PEE00000PRJ0009A');assert.equal(e.projectName,'Foreign');assert.equal(e.programId,'a1QEE00000OTHERPRG');assert.equal(e.name,'E1');
   e=(await plan.listEpics(mk(PROG),T)).epics[0];assert.equal(e.projectId,'a1PEE00000PRJ0009A');
 });
 test('deleteProject only deletes an empty project in the team program',async()=>{

@@ -5,6 +5,7 @@
  *   gus      the GUS scrum team name (ADM_Scrum_Team__c.Name). A trailing % matches any name starting with it (SOQL LIKE); otherwise an exact match.
  *   short    optional short form used in release/program names ("<short> - 268") and the UI; defaults to the GUS name without any "(...)" suffix
  *   theme    short form of the generic workstream theme R<release>_<theme>_Workstream; themeBy overrides it for names matching a regex (case-insensitive)
+ *   program  optional GUS program (name or PPM_Program__c id) that projects created from the dashboard go in; default "<short> - 268"
  *   tag      default GUS product tag name for new work items; omit to leave it unset
  *   leaders  leader names (built-in teams) or GUS user ids (teams added in the app); see LEADER_IDS
  *   excludeMembersOf   key of another team whose GUS members are not shown or counted for this team (leadership stays)
@@ -54,6 +55,7 @@ function cleanEntry(raw, existingKey) {
   // The planner names workstream themes R<release>_<theme>_Workstream, so a team always needs one: default to the short name.
   const theme = str(raw.theme, 12, /^[A-Za-z0-9-]+$/, 'Theme') || (short || '').replace(/[^A-Za-z0-9-]/g, '').slice(0, 12) || e.key.toUpperCase().slice(0, 12); e.theme = theme;
   const tag = str(raw.tag, 80, SAFE, 'Product tag'); if (tag) e.tag = tag;
+  const program = str(raw.program, 80, SAFE, 'GUS program (name or id)'); if (program) e.program = program; // team-level PPM program that new dashboard projects are created in
   // Leaders differ per team: GUS user ids picked from the scrum team's Scrum Lead, Engineering Manager, Architect and members (saved names of the CFS leaders are still accepted).
   // Optional per-team extras: Daily Chronicle page, Hourglass data key, PagerDuty Slack channel.
   const chron = String(raw.chronicle || '').trim(); if (chron) { if (chron.length > 200 || !/^https:\/\/[A-Za-z0-9.-]+\.salesforce\.com\/[A-Za-z0-9._~\/%?=&#-]*$/.test(chron)) throw new Error('Check the Daily Chronicle link (an https://….salesforce.com page).'); e.chronicle = chron; }

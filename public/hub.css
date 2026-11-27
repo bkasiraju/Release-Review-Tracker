@@ -3823,3 +3823,6 @@ html body .topbar-right .pl-gs:empty{display:none}
 .pl-cr-bl .pl-bl-t tr:hover td{background:#f6f9fc}
 .pl-cr-bl .pl-bl-t col.c-al{width:260px}.pl-cr-bl .pl-bl-t td.pl-bl-al.on{color:#9a3412;font-weight:600}
 .pl-cr-bl .pl-bl-t tr.pl-bl-off td{opacity:.6}.pl-cr-bl .pl-bl-t tr.pl-bl-off td.pl-bl-al{opacity:1}
+
+.pl-pdiff{margin-left:6px;border:1px solid #e0a100;background:#fff6dd;color:#7a4b00;border-radius:999px;font-size:11px;font-weight:600;padding:2px 9px;cursor:pointer;white-space:nowrap;max-width:260px;overflow:hidden;text-overflow:ellipsis}.pl-pdiff:hover,.pl-pdiff:focus-visible{background:#ffe9a8}
+.pl-pdiff-bar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:8px 0 0;padding:8px 12px;border:1px solid #e0a100;background:#fff6dd;border-radius:8px;font-size:12.5px;color:#5c3a00;width:100%}

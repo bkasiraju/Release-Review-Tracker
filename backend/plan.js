@@ -639,8 +639,7 @@ async function listEpics(sf, teamId) {
   const scope = await epicScope(sf, teamId);
   const rows = (await sf.query(`SELECT Id, Name, Project__c, Project__r.Name, Project__r.V2MOM_Method__c, Project__r.Program__c, Project__r.Program__r.Name, Planned_Release__c, Planned_Release__r.Name, Development_Lead__c, Development_Lead__r.Name, OwnerId, Owner.Name, Planned_Story_Points__c FROM ADM_Epic__c WHERE ${scope.where} AND (NOT Name LIKE '\_\_%') ORDER BY Name LIMIT 1000`)).records || [];
   const tprog = await teamProgram(sf, teamId);
-  const mine = (row, prog) => scope.ids.has(String(row.releaseId || '').slice(0, 15)) ? row : ownProject(row, prog); // an epic planned into this team's release keeps its project, so it lists under it
-  return { epics: rows.map(r => mine({ id: r.Id, name: r.Name, projectId: r.Project__c || '', projectName: (r.Project__r && r.Project__r.Name) || '', method: (r.Project__r && r.Project__r.V2MOM_Method__c) || '', programId: (r.Project__r && r.Project__r.Program__c) || '', programName: (r.Project__r && r.Project__r.Program__r && r.Project__r.Program__r.Name) || '', releaseId: r.Planned_Release__c || '', releaseName: (r.Planned_Release__r && r.Planned_Release__r.Name) || '', ...leadOf(r), points: Number(r.Planned_Story_Points__c) || 0 }, tprog)) };
+  return { epics: rows.map(r => ownProject({ id: r.Id, name: r.Name, projectId: r.Project__c || '', projectName: (r.Project__r && r.Project__r.Name) || '', method: (r.Project__r && r.Project__r.V2MOM_Method__c) || '', programId: (r.Project__r && r.Project__r.Program__c) || '', programName: (r.Project__r && r.Project__r.Program__r && r.Project__r.Program__r.Name) || '', releaseId: r.Planned_Release__c || '', releaseName: (r.Planned_Release__r && r.Planned_Release__r.Name) || '', ...leadOf(r), points: Number(r.Planned_Story_Points__c) || 0 }, tprog)) };
 }
 
 // The epic's owner as the planner shows it: the development lead, or the GUS record owner when no lead is set (queues are ignored).
@@ -648,8 +647,8 @@ function leadOf(r) { return leadOfImpl(r); }
 const leadOfImpl = r => r.Development_Lead__c ? { leadId: r.Development_Lead__c, leadName: (r.Development_Lead__r && r.Development_Lead__r.Name) || '' }
   : /^005/.test(String(r.OwnerId || '')) ? { leadId: r.OwnerId, leadName: (r.Owner && r.Owner.Name) || '' } : { leadId: '', leadName: '' };
 const EPIC_SEL = 'Id, Name, Team__c, Team__r.Name, Project__c, Project__r.Name, Project__r.V2MOM_Method__c, Project__r.Program__c, Project__r.Program__r.Name, Planned_Release__c, Planned_Release__r.Name, Development_Lead__c, Development_Lead__r.Name, OwnerId, Owner.Name, Planned_Story_Points__c';
-// An epic's project is only carried over when it sits in the team's own program; another team's project is never imported.
-const ownProject = (row, prog) => prog && row.programId === prog.id ? row : { ...row, projectId: '', projectName: '', method: '', programId: '', programName: '' };
+// Imported epics follow the GUS hierarchy: they keep the project (and its program) GUS has them under, whichever team's program that is. Only projects created from the dashboard use the team's own program.
+const ownProject = row => row;
 const epicRow = r => ({ id: r.Id, name: r.Name, teamId: r.Team__c || '', teamName: (r.Team__r && r.Team__r.Name) || '', projectId: r.Project__c || '', projectName: (r.Project__r && r.Project__r.Name) || '', method: (r.Project__r && r.Project__r.V2MOM_Method__c) || '', programId: (r.Project__r && r.Project__r.Program__c) || '', programName: (r.Project__r && r.Project__r.Program__r && r.Project__r.Program__r.Name) || '', releaseId: r.Planned_Release__c || '', releaseName: (r.Planned_Release__r && r.Planned_Release__r.Name) || '', ...leadOf(r), points: Number(r.Planned_Story_Points__c) || 0 });
 /** Find one of this team's GUS epics by a work item W-number (its epic), an epic record Id or a GUS link, or part of the epic name, so it can be tagged into a project. */
 async function findEpics(sf, teamId, query) {
@@ -667,15 +666,14 @@ async function findEpics(sf, teamId, query) {
   } else where = `Name LIKE '%${soql(q).replace(/[%_]/g, '\\$&')}%'`;
   const [rows, tprog] = await Promise.all([sf.query(`SELECT ${EPIC_SEL} FROM ADM_Epic__c WHERE (${where}) AND ${scope.where} ORDER BY Name LIMIT 25`).then(r => r.records || []), teamProgram(sf, teamId)]);
   if (!rows.length && !note) note = "No epic of this team or its planned releases matches. Epics tagged to other teams' releases are not imported.";
-  const mine = (row, prog) => scope.ids.has(String(row.releaseId || '').slice(0, 15)) ? row : ownProject(row, prog);
-  return { epics: rows.map(r => mine(epicRow(r), tprog)), note };
+  return { epics: rows.map(r => ownProject(epicRow(r))), note };
 }
 
 // Write edits made in the plan grid through to epics that already exist in GUS (name, development lead = owner, planned release, effort).
 async function syncEpics(sf, teamId, epics) {
   planKey(teamId);
   const out = [];
-  let program;
+  let scope;
   for (const x of (Array.isArray(epics) ? epics : []).slice(0, 100)) {
     const id = gid(x && x.gusId), f = {};
     if (!id) { out.push({ gusId: '', ok: false, err: 'Not a GUS epic' }); continue; }
@@ -687,14 +685,12 @@ async function syncEpics(sf, teamId, epics) {
       if (x.projectId) {
         const pj = gid(x.projectId);
         if (!pj) throw new Error('Not a GUS project.');
-        if (program === undefined) program = await teamProgram(sf, teamId);
-        if (!program) throw new Error('Could not find this team\'s program in GUS.');
-        const okp = ((await sf.query(`SELECT Id FROM PPM_Project__c WHERE Id = '${pj}' AND Program__c = '${program.id}' LIMIT 1`)).records || [])[0];
-        if (!okp) throw new Error('That project is not in this team\'s program.');
+        const okp = ((await sf.query(`SELECT Id FROM PPM_Project__c WHERE Id = '${pj}' LIMIT 1`)).records || [])[0];
+        if (!okp) throw new Error('That project does not exist in GUS.');
         f.Project__c = pj;
       }
-      const mine = ((await sf.query(`SELECT Id FROM ADM_Epic__c WHERE Id = '${id}' AND Team__c = '${teamId}' LIMIT 1`)).records || [])[0];
-      if (!mine) throw new Error('Epic does not belong to this team.');
+      const mine = ((await sf.query(`SELECT Id FROM ADM_Epic__c WHERE Id = '${id}' AND ${(scope = scope || await epicScope(sf, teamId)).where} LIMIT 1`)).records || [])[0];
+      if (!mine) throw new Error('Epic does not belong to this team or its planned releases.');
       let r = await sf.update('ADM_Epic__c', id, f);
       if (r && !ok(r) && f.OwnerId) { delete f.OwnerId; r = await sf.update('ADM_Epic__c', id, f); }
       if (r && !ok(r)) throw new Error(plain(errText(r)) || 'GUS rejected the update.');
@@ -837,6 +833,11 @@ async function teamShort(sf, teamId) {
   shortCache.set(teamId, { v, t: Date.now() });
   return v;
 }
+async function teamProgramConfig(sf, teamId) {
+  const t = ((await sf.query(`SELECT Name FROM ADM_Scrum_Team__c WHERE Id = '${teamId}' LIMIT 1`)).records || [])[0];
+  const e = t && require('./teams.config').entryFor(t.Name);
+  return (e && e.program) || '';
+}
 async function teamShortLookup(sf, teamId) {
   const t = ((await sf.query(`SELECT Name FROM ADM_Scrum_Team__c WHERE Id = '${teamId}' LIMIT 1`)).records || [])[0];
   if (!t) return null;
@@ -870,6 +871,12 @@ async function teamProgram(sf, teamId) {
   try {
     const short = await teamShort(sf, teamId);
     if (!short) return null;
+    // A program set on the team (Teams page) wins: some teams' programs are not named "<team> - 268" (e.g. GBDS-268).
+    const cfgProg = await teamProgramConfig(sf, teamId).catch(() => '');
+    if (cfgProg) {
+      const rows = (await sf.query(`SELECT Id, Name FROM PPM_Program__c WHERE ${/^a1f[A-Za-z0-9]{12,15}$/.test(cfgProg) ? `Id = '${cfgProg}'` : `Name = '${soql(cfgProg)}'`} LIMIT 1`)).records || [];
+      if (rows[0]) return { id: rows[0].Id, name: rows[0].Name };
+    }
     const find = async n => ((await sf.query(`SELECT Id, Name FROM PPM_Program__c WHERE Name = '${soql(n)}' LIMIT 1`)).records || [])[0];
     let p = await find(`${short} - ${PROGRAM_RELEASE}`);
     // Some teams are named differently from their program (Caching Services files its work under "VegaCache - 268"): try the planned release's name, then the program the team's own epics already use.
