@@ -4,6 +4,10 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r93 (folded)
+
+- The AI Summarised Updates tab and its background generation now appear only in the monthly review presentation. The Planner presentation shows just the epic's own updates (no tabs) above its workstreams.
+
 ### 8.0.0-GA r92 (folded)
 
 - AI Summarised Updates use one format only: four fixed quadrants (Planned outcome, Achieved, Gaps, Next). The headline no longer sits above them as free text; when the AI gives no Achieved lines, the headline (or the latest engineer update lines) appears inside the Achieved quadrant, and an empty quadrant says "None stated in the updates" (aiu10).
