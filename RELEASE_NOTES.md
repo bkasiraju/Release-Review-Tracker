@@ -4,6 +4,11 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r103 (folded)
+
+- Planner, Add epic: "Add existing GUS epic" (Find and the list) now covers every epic tagged to one of the team's planned releases, whatever team owns it, not only the team's own epics. Such an epic keeps its GUS project so it can be added under that project. (Example: "[268][Flowsnake][GCP] Hardening across all Flowsnake Services" is on GCP BDS-268 but owned by Flowsnake, so it was never found.)
+- Planner: project rows with epics are at 100% opacity and rows without epics are at 50% (replaces the 75% on collapsed rows).
+
 ### 8.0.0-GA r102 (folded)
 
 - Planner: the epics / ABL / BTL / V2MOM Ref chips and actions on collapsed project rows are now 75% opaque (were 70%) so they read more clearly; they are still full strength on hover.

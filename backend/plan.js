@@ -626,12 +626,21 @@ async function moveWorkstream(sf, teamId, input) {
   return { gusId: id, epicGusId: epicId };
 }
 
+/** Epics that belong on this team's dashboard: its own, plus any epic (of any team) tagged to one of its planned releases, so nothing planned into the release is hidden from the listing. */
+async function epicScope(sf, teamId) {
+  const rel = await teamReleases(sf, teamId, false).catch(() => []);
+  const ids = [...new Set(rel.map(r => gid(r.Id)).filter(Boolean))].slice(0, 100);
+  return { ids: new Set(ids.map(i => i.slice(0, 15))), where: ids.length ? `(Team__c = '${teamId}' OR Planned_Release__c IN (${ids.map(i => `'${i}'`).join(',')}))` : `Team__c = '${teamId}'` };
+}
+
 // The team's epics already in GUS, so they can be added to the plan table instead of retyped.
 async function listEpics(sf, teamId) {
   planKey(teamId);
-  const rows = (await sf.query(`SELECT Id, Name, Project__c, Project__r.Name, Project__r.V2MOM_Method__c, Project__r.Program__c, Project__r.Program__r.Name, Planned_Release__c, Planned_Release__r.Name, Development_Lead__c, Development_Lead__r.Name, OwnerId, Owner.Name, Planned_Story_Points__c FROM ADM_Epic__c WHERE Team__c = '${teamId}' AND (NOT Name LIKE '\_\_%') ORDER BY Name LIMIT 1000`)).records || [];
+  const scope = await epicScope(sf, teamId);
+  const rows = (await sf.query(`SELECT Id, Name, Project__c, Project__r.Name, Project__r.V2MOM_Method__c, Project__r.Program__c, Project__r.Program__r.Name, Planned_Release__c, Planned_Release__r.Name, Development_Lead__c, Development_Lead__r.Name, OwnerId, Owner.Name, Planned_Story_Points__c FROM ADM_Epic__c WHERE ${scope.where} AND (NOT Name LIKE '\_\_%') ORDER BY Name LIMIT 1000`)).records || [];
   const tprog = await teamProgram(sf, teamId);
-  return { epics: rows.map(r => ownProject({ id: r.Id, name: r.Name, projectId: r.Project__c || '', projectName: (r.Project__r && r.Project__r.Name) || '', method: (r.Project__r && r.Project__r.V2MOM_Method__c) || '', programId: (r.Project__r && r.Project__r.Program__c) || '', programName: (r.Project__r && r.Project__r.Program__r && r.Project__r.Program__r.Name) || '', releaseId: r.Planned_Release__c || '', releaseName: (r.Planned_Release__r && r.Planned_Release__r.Name) || '', ...leadOf(r), points: Number(r.Planned_Story_Points__c) || 0 }, tprog)) };
+  const mine = (row, prog) => scope.ids.has(String(row.releaseId || '').slice(0, 15)) ? row : ownProject(row, prog); // an epic planned into this team's release keeps its project, so it lists under it
+  return { epics: rows.map(r => mine({ id: r.Id, name: r.Name, projectId: r.Project__c || '', projectName: (r.Project__r && r.Project__r.Name) || '', method: (r.Project__r && r.Project__r.V2MOM_Method__c) || '', programId: (r.Project__r && r.Project__r.Program__c) || '', programName: (r.Project__r && r.Project__r.Program__r && r.Project__r.Program__r.Name) || '', releaseId: r.Planned_Release__c || '', releaseName: (r.Planned_Release__r && r.Planned_Release__r.Name) || '', ...leadOf(r), points: Number(r.Planned_Story_Points__c) || 0 }, tprog)) };
 }
 
 // The epic's owner as the planner shows it: the development lead, or the GUS record owner when no lead is set (queues are ignored).
@@ -645,7 +654,7 @@ const epicRow = r => ({ id: r.Id, name: r.Name, teamId: r.Team__c || '', teamNam
 /** Find one of this team's GUS epics by a work item W-number (its epic), an epic record Id or a GUS link, or part of the epic name, so it can be tagged into a project. */
 async function findEpics(sf, teamId, query) {
   planKey(teamId);
-  const q = text(query, 200);
+  const q = text(query, 200), scope = await epicScope(sf, teamId);
   if (q.length < 3) throw new Error('Type at least 3 characters, a W-number, or an epic Id.');
   const w = /^\s*W-?(\d{4,9})\s*$/i.exec(q), idm = /\b(a3Q[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?)\b/.exec(q);
   let where, note = '';
@@ -656,9 +665,10 @@ async function findEpics(sf, teamId, query) {
     if (!wi.Epic__c) return { epics: [], note: `W-${w[1]} is not linked to an epic.` };
     where = `Id = '${gid(wi.Epic__c)}'`; note = `Epic of W-${w[1]}`;
   } else where = `Name LIKE '%${soql(q).replace(/[%_]/g, '\\$&')}%'`;
-  const [rows, tprog] = await Promise.all([sf.query(`SELECT ${EPIC_SEL} FROM ADM_Epic__c WHERE (${where}) AND Team__c = '${teamId}' ORDER BY Name LIMIT 25`).then(r => r.records || []), teamProgram(sf, teamId)]);
-  if (!rows.length && !note) note = "No epic of this team matches. Epics of other teams are not imported.";
-  return { epics: rows.map(r => ownProject(epicRow(r), tprog)), note };
+  const [rows, tprog] = await Promise.all([sf.query(`SELECT ${EPIC_SEL} FROM ADM_Epic__c WHERE (${where}) AND ${scope.where} ORDER BY Name LIMIT 25`).then(r => r.records || []), teamProgram(sf, teamId)]);
+  if (!rows.length && !note) note = "No epic of this team or its planned releases matches. Epics tagged to other teams' releases are not imported.";
+  const mine = (row, prog) => scope.ids.has(String(row.releaseId || '').slice(0, 15)) ? row : ownProject(row, prog);
+  return { epics: rows.map(r => mine(epicRow(r), tprog)), note };
 }
 
 // Write edits made in the plan grid through to epics that already exist in GUS (name, development lead = owner, planned release, effort).
