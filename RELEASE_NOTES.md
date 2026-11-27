@@ -4,6 +4,11 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r91 (folded)
+
+- AI Summarised Updates now focus on the work, its impact and its outcome, not on story points or work item counts: the AI is told not to lead with or mention them, the "points done" line and the "points not yet done" gap are removed, and impact is stated only when the engineers state it (aiu9).
+- AI Summarised Updates were leaving Planned and Achieved empty when the review page had no goal or work items (only a headline and "points not yet done" showed). Planned now also uses the project, achievement wording engineers use (met, maintained, onboarded, remediated, passed …) counts when quoted, the AI is told to be specific (systems, counts, months) with one achieved line per notable month, and the latest engineer update is shown whenever the AI could not confirm any Achieved line. The duplicate "points done" line is hidden when the headline exists. Earlier saved results regenerate once (aiu8).
+
 ### 8.0.0-GA r90 (folded)
 
 - AI Summarised Updates are organised as planned versus achieved versus gaps: **Planned outcome** (the epic goal / stated outcome), **Achieved** (done work items and outcomes engineers state), **Gaps** (work still open, risks and blockers behind them; the points not yet done when nothing else is known), then **Next** for the following release. The headline still gives the one-line verdict. The no-AI base fills Planned from the goal and Gaps from open work items and points left. Earlier saved results regenerate once (aiu7).

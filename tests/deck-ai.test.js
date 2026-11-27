@@ -52,7 +52,7 @@ test('base summary needs no AI: facts, done and active work items, newest engine
   assert.equal(b.engineer.length,2);
   const v=aiView(e3,{accomplishments:[],inProgress:[{text:'AI line'}],learnings:[{text:'L'}],planForward:[]});
   assert.equal(v.accomplishments[0].text,'Slot design');assert.equal(v.inProgress[0].text,'AI line');assert.equal(v.learnings.length,1);
-  assert.equal(v.engineer.length,0);assert.equal(aiView(e3,{accomplishments:[],inProgress:[],learnings:[],planForward:[]}).engineer.length,2);
+  assert.equal(v.engineer.length,2);assert.equal(aiView(e3,{accomplishments:[{text:'A'}],inProgress:[],learnings:[],planForward:[]}).engineer.length,0);
 });
 
 test('headline is kept only when its numbers and outcome words come from the evidence',()=>{
@@ -67,5 +67,5 @@ test('planned outcome is kept only when quoted or drawn from the goal; base show
   const r=aiParse(JSON.stringify({planned:[{text:'Complete the FIPS broker build for GovCloud now',quote:''},{text:'Cut cost by half',quote:''}],accomplishments:[{text:'Delivered the FIPS broker build',workItems:['W-2'],quote:''}]}),eg,JSON.stringify(eg)+' 10.1.1');
   assert.equal(JSON.stringify(r.planned.map(x=>x.text)),JSON.stringify(['Complete the FIPS broker build for GovCloud now']));
   const b=aiBase({...eg,progress:{done:3,total:5}});
-  assert.equal(b.planned[0].text,eg.goal);assert.equal(b.gapsBase[0].text,'2 of 5 points not yet done');
+  assert.equal(b.planned[0].text,eg.goal);assert.equal(b.gapsBase.length,0);
 });
