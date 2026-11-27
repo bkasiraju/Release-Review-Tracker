@@ -4,6 +4,10 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r98 (folded)
+
+- Presentation epic slide: "Project:" is now "V2MOM Measure:" (the project is the measure in this dashboard), and the blue goal text sits under a "Planned Outcome" label.
+
 ### 8.0.0-GA r97 (folded)
 
 - Planner presentation: the workstream section is headed "Workstreams - Planned" and the Status column (always "Planned") is removed; the monthly review keeps its Status column.
