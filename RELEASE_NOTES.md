@@ -4,6 +4,10 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r97 (folded)
+
+- Planner presentation: the workstream section is headed "Workstreams - Planned" and the Status column (always "Planned") is removed; the monthly review keeps its Status column.
+
 ### 8.0.0-GA r96 (folded)
 
 - Presentation workstream table: the Owner column shows a round initials avatar (full name on hover and for screen readers) instead of the truncated name, and the column is narrowed so the workstream title gets the space.
