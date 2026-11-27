@@ -3,7 +3,7 @@
   "label": "GOLDEN BUILD",
   "product": "Release Intelligence",
   "artifact": "cfs-release-review-tracker.zip",
-  "sha256": "3c92a8fe2950af464205f2dc7acc243a8bf36df768afd4c0ba85dd6dd5ccdb82",
+  "sha256": "e84225d7c770b84662a9005cefa899ee40fbec1d17421fc0a6acc86aadb7e74b",
   "gitTags": [
     "v8.0.0-GA",
     "GOLDEN-BUILD-8.0.0-GA"
