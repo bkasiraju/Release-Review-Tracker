@@ -337,7 +337,7 @@
   const ach=sm.accomplishments&&sm.accomplishments.length?sm.accomplishments:sm.headline?[{text:sm.headline,quote:'',refs:[]}]:(sm.engineer||[]);
   const none={text:'None stated in the updates',none:1,refs:[]};
   const cols=[['Planned outcome',sm.planned],['Achieved',ach],['Gaps',gapList],['Next · '+AI_REL,sm.planForward]].map(([h,l])=>[h,l&&l.length?l:[none]]);
-  if(cols.every(c=>c[1][0]===none))return el.innerHTML='<div class="aiu-msg">Nothing is recorded in GUS for this epic yet.</div>';
+  if(cols.every(c=>c[1][0]===none)){const pg=e.progress,pct=pg&&pg.total?Math.round(pg.done/pg.total*100):pg&&pg.pct!=null?Math.round(pg.pct):null;return el.innerHTML=`<div class="aiu-msg">No engineer update, planned outcome or work item detail is available for this epic, so there is nothing to summarise.${pct!=null?` GUS shows it ${pct}% complete${e.health?` and ${esc(e.health)}`:''}.`:''} Add a monthly update in GUS and this tab fills in.</div>`;}
   el.innerHTML=`<div class="aiu-grid" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr))">${cols.map(([h,l])=>`<div class="aiu-c"><h4>${esc(h)}</h4><ul>${l.map(li).join('')}</ul></div>`).join('')}</div><div class="aiu-meta"><span>${esc(r&&r.summary&&sm.ai?'Built from GUS work items and engineer updates; AI condensed'+(r.at?' · '+fmt(r.at):'')+'. No PR or deployment data is used.':(r&&r.pending?'AI is condensing this in the background.':'Built from GUS work items and engineer updates only; no PR or deployment data is used.'))}</span>${state.api&&aiAvailable()&&e.comments?'<button type="button" data-aiu-re>Refresh</button>':''}</div>`;aiFit(el);
  }
  /** One quick request fetches every saved summary, so epics already in the shared cache show at once and nothing is regenerated. */
