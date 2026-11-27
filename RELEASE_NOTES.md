@@ -4,6 +4,10 @@
 
 Designated by the user on 22 November 2026 as the GOLDEN BUILD and rollback baseline. It is 7.0.121-GA: two-way GUS sync, compact review table and full screen, flicker-free refresh, ATL/BTL tiles, and the Slack nudge changes. Any further changes are folded into 8.0.0-GA only; no new version numbers. The earlier 7.0.0-GA golden stays immutable.
 
+### 8.0.0-GA r100 (folded)
+
+- AI Summarised Updates no longer show a plan as an achievement. The overview sentence that was placed under Achieved when the AI confirmed nothing is gone (and no longer requested from the AI, saving tokens); Achieved now lists only finished work (done work items, or outcomes engineers state as complete) and otherwise says "No completed work reported yet". The AI is told never to put goals, targets, scope or unstarted work under Achieved (aiu11).
+
 ### 8.0.0-GA r99 (folded)
 
 - AI Summarised Updates for an epic with no engineer update, goal or work item detail no longer says "Nothing is recorded in GUS" (misleading when the epic is, say, 91% complete): it says there is nothing to summarise, shows the completion and health GUS reports, and asks for a monthly update.
