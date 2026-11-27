@@ -230,7 +230,7 @@
 
  /** AI Summarised Updates: executive bullets built from the engineer updates and the epic's work items. Generated once, saved
   *  to the shared cache under a fingerprint of that evidence, and regenerated only when the evidence changes. */
- const AI_VERSION='aiu11',AI_REL='268';
+ const AI_VERSION='aiu12',AI_REL='268';
  const fpOf=e=>{const t=JSON.stringify([AI_VERSION,AI_REL,e.name,e.health,e.goal,e.comments,e.pathToGreen,(e.workItems||[]).map(w=>[w.id,w.subject,w.status,w.days,w.assignee])]);let a=0x811c9dc5,b=5381;for(let i=0;i<t.length;i++){const c=t.charCodeAt(i);a=Math.imul(a^c,16777619)>>>0;b=(Math.imul(b,33)+c)>>>0;}return a.toString(36).padStart(7,'0')+b.toString(36).padStart(7,'0');};
  const aiAvailable=()=>{try{return typeof window.AppletAI?.complete==='function'&&window.AppletAI.isAvailable()===true;}catch(_){return false;}};
  const doneWi=w=>isDone(w.status)&&!isNever(w.status);
@@ -343,9 +343,18 @@
  /** One quick request fetches every saved summary, so epics already in the shared cache show at once and nothing is regenerated. */
  const AIU={};/* kept for the whole session so reopening the deck never regenerates */
  let aiPre=null;
+ /** The review page lists epics without their work items; they are read from GUS once per epic (kept for the session) so summaries can be inferred from them as well as from the engineer updates. */
+ const WI=new Map();
+ const applyWI=eps=>{for(const e of eps||[])if(e&&!(e.workItems||[]).length&&WI.has(e.gusId))e.workItems=WI.get(e.gusId);};
+ async function hydrate(){
+  if(!state||!state.api||state.mode!=='review')return;
+  const todo=(state.epics||[]).filter(e=>e.gusId&&!(e.workItems||[]).length&&!WI.has(e.gusId));
+  const worker=async()=>{for(let e;(e=todo.shift());){try{const r=await state.api('work-items',{epicId:e.gusId});WI.set(e.gusId,(r.items||[]).map(w=>({id:w.number||w.id,subject:String(w.title||'').replace(/\s+/g,' ').trim(),status:w.status||'',assignee:w.assignee||'',days:0,url:''})).filter(w=>w.subject));}catch(_){/* summary falls back to the engineer updates */}}};
+  await Promise.all([worker(),worker(),worker(),worker()]);applyWI(state.epics);
+ }
  function aiPrefetch(){
   const cache=state.aiu||(state.aiu={});
-  const items=(state.epics||[]).filter(e=>e.gusId&&e.comments&&!(cache[e.id]&&cache[e.id].fp===fpOf(e))).map(e=>({epicId:e.gusId,fingerprint:fpOf(e),key:e.id}));
+  const items=(state.epics||[]).filter(e=>e.gusId&&(e.comments||(e.workItems||[]).length)&&!(cache[e.id]&&cache[e.id].fp===fpOf(e))).map(e=>({epicId:e.gusId,fingerprint:fpOf(e),key:e.id}));
   if(!state.api||!items.length)return aiPre=null;
   return aiPre=(async()=>{for(let i=0;i<items.length;i+=100){const part=items.slice(i,i+100),r=await state.api('epic-summary-get-many',{items:part.map(x=>({epicId:x.epicId,fingerprint:x.fingerprint}))});
    for(const x of part){const h=r&&r.found&&r.found[x.epicId];if(h&&h.summary)cache[x.key]={fp:x.fingerprint,summary:h.summary,at:h.generatedAt};}}})().catch(()=>{});
@@ -371,16 +380,16 @@
  async function aiLoad(e,el,force){
   const cached=state.aiu&&state.aiu[e.id],fp=fpOf(e);
   if(!force&&cached&&cached.fp===fp)return aiRender(el,cached,e);
-  aiRender(el,{pending:!!e.comments&&aiAvailable()&&!!state.api},e);
-  if(!e.comments||!state.api)return;
+  aiRender(el,{pending:!!(e.comments||(e.workItems||[]).length)&&aiAvailable()&&!!state.api},e);
+  if(!(e.comments||(e.workItems||[]).length)||!state.api)return;
   try{const r=await aiResolve(e,force);if(r&&el.isConnected)aiRender(el,r,e);}
   catch(_){aiRender(el,null,e);}
  }
  /** Opening the presentation prepares every epic's AI summary in the background, one after the other: saved ones load at once, only epics whose updates or work items changed are regenerated. */
  let aiRun=0;
  async function aiBackground(){
-  const my=++aiRun;if(!state||!state.api||state.mode!=='review')return;aiPrefetch();if(aiPre)await aiPre;if(!aiAvailable())return;
-  const queue=state.epics.filter(e=>e.comments);
+  const my=++aiRun;if(!state||!state.api||state.mode!=='review')return;await hydrate();if(my!==aiRun)return;aiPrefetch();if(aiPre)await aiPre;if(!aiAvailable())return;
+  const queue=state.epics.filter(e=>e.comments||(e.workItems||[]).length);
   const worker=async()=>{for(let e;(e=queue.shift());){
    if(my!==aiRun||(!state.headless&&!document.getElementById('dk')))return;
    try{await aiResolve(e,false);}catch(_){/* base summary stays; Refresh retries */}
@@ -392,7 +401,7 @@
  /** Called by the host as soon as its epics are loaded, before anyone clicks Present: saved summaries are fetched and changed epics generated, so the deck opens complete. */
  function prepare(data,api){
   if(document.getElementById('dk')||!data||!api||!(data.epics||[]).length)return;
-  state=Object.assign({mode:'review',asOf:new Date().toISOString().slice(0,10)},data,{api,aiu:AIU,headless:true});
+  state=Object.assign({mode:'review',asOf:new Date().toISOString().slice(0,10)},data,{api,aiu:AIU,headless:true});applyWI(state.epics);
   return aiBackground();
  }
  const CSS_ESC=v=>String(v).replace(/["\\]/g,'\\$&');
@@ -417,7 +426,7 @@
   try{const nd=await state.refresh();
    if(nd&&nd.epics){const keep={mode:state.mode,edit:state.edit,notes:state.notes,asks:state.asks,api:state.api,refresh:state.refresh,onChange:state.onChange,standalone:state.standalone,prevOverflow:state.prevOverflow};
     const n=nd.epics.length,was=state.epics.length;
-    Object.assign(state,nd,keep,{asOf:new Date().toISOString().slice(0,10)});
+    Object.assign(state,nd,keep,{asOf:new Date().toISOString().slice(0,10)});applyWI(state.epics);
     paint();aiBackground();
     if(note)note.textContent='Updated '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+(n!==was?` · ${n} epics`:'');}
    else if(note)note.textContent='Nothing to update';}
@@ -448,7 +457,7 @@
  /** Tells the host (planner or review page) that notes or asks changed so it can save them. */
  function changed(){if(typeof state.onChange==='function')state.onChange({notes:state.notes||{},asks:(state.asks||[]).filter(a=>String(a.q).trim())});}
  function open(data,opts){
-  close();state=Object.assign({mode:'planning',gusUrl:'https://gus.lightning.force.com/lightning/r/',asOf:new Date().toISOString().slice(0,10)},data,opts||{});state.prevOverflow=document.body.style.overflow;
+  close();state=Object.assign({mode:'planning',gusUrl:'https://gus.lightning.force.com/lightning/r/',asOf:new Date().toISOString().slice(0,10)},data,opts||{});state.prevOverflow=document.body.style.overflow;applyWI(state.epics);
   const st=document.createElement('style');st.id='dk-css';st.textContent=CSS;document.head.appendChild(st);
   const d=document.createElement('div');d.id='dk';d.setAttribute('data-nocf','');d.setAttribute('role','dialog');d.setAttribute('aria-label','Epic review presentation');
   d.innerHTML=(state.standalone?'':'')+'<div class="dk-prog" id="dk-prog"></div><div class="dk-stage"></div><div class="dk-flt" id="dk-flt" hidden></div><div class="dk-bar"><button type="button" data-a="prev" title="Previous (←)" aria-label="Previous slide">◀</button><span id="dk-count"></span><button type="button" data-a="next" title="Next (→)" aria-label="Next slide">▶</button><button type="button" data-a="home" title="Go to the first slide (Home)">⌂ Home</button><button type="button" data-a="index" title="Go to the epic list">☰ Epics</button><button type="button" data-a="filter" id="dk-fbtn" title="Show only some epics: by status, owner or theme" aria-expanded="false">⏷ Filter<span class="cnt" id="dk-fcnt" hidden></span></button><button type="button" data-a="clearf" id="dk-fclr" title="Clear all filters (Esc)" hidden>✕ Clear filters</button><button type="button" data-mode="planning" title="Planning view">Planning</button><button type="button" data-mode="review" title="Monthly review view: progress and risks">Monthly review</button>'+(state.standalone?'':'<button type="button" data-a="edit" title="Add presenter notes and asks">Edit notes</button>')+'<button type="button" data-a="print" title="Print or save as PDF">Print</button>'+(state.standalone?'':'<button type="button" data-a="save" title="Download this deck as an HTML file">Download</button>')+(!state.standalone&&state.refresh?'<button type="button" data-a="refresh" title="Re-read the latest data from GUS">Refresh</button><span id="dk-rf" class="dk-rf" role="status"></span>':'')+(!state.standalone&&state.api?'<button type="button" data-a="share" title="Post a summary to Slack (you pick the channel)">Share to Slack</button>':'')+'<button type="button" data-a="full" title="Fullscreen (F)" aria-label="Fullscreen">⛶</button>'+(state.standalone?'':'<button type="button" data-a="close" title="Close (Esc)" aria-label="Close presentation">✕</button>')+'</div>';
